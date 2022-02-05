@@ -1,0 +1,40 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="Eslint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="26">
+            <item index="0" class="java.lang.String" itemvalue="typed-ast" />
+            <item index="1" class="java.lang.String" itemvalue="mypy" />
+            <item index="2" class="java.lang.String" itemvalue="pytest-django" />
+            <item index="3" class="java.lang.String" itemvalue="pluggy" />
+            <item index="4" class="java.lang.String" itemvalue="mypy-extensions" />
+            <item index="5" class="java.lang.String" itemvalue="py" />
+            <item index="6" class="java.lang.String" itemvalue="pycodestyle" />
+            <item index="7" class="java.lang.String" itemvalue="flake8" />
+            <item index="8" class="java.lang.String" itemvalue="sqlparse" />
+            <item index="9" class="java.lang.String" itemvalue="pytest-cov" />
+            <item index="10" class="java.lang.String" itemvalue="mccabe" />
+            <item index="11" class="java.lang.String" itemvalue="pyparsing" />
+            <item index="12" class="java.lang.String" itemvalue="coverage" />
+            <item index="13" class="java.lang.String" itemvalue="testfixtures" />
+            <item index="14" class="java.lang.String" itemvalue="pyflakes" />
+            <item index="15" class="java.lang.String" itemvalue="pytest" />
+            <item index="16" class="java.lang.String" itemvalue="iniconfig" />
+            <item index="17" class="java.lang.String" itemvalue="asgiref" />
+            <item index="18" class="java.lang.String" itemvalue="packaging" />
+            <item index="19" class="java.lang.String" itemvalue="typing-extensions" />
+            <item index="20" class="java.lang.String" itemvalue="toml" />
+            <item index="21" class="java.lang.String" itemvalue="attrs" />
+            <item index="22" class="java.lang.String" itemvalue="flake8-isort" />
+            <item index="23" class="java.lang.String" itemvalue="django" />
+            <item index="24" class="java.lang.String" itemvalue="isort" />
+            <item index="25" class="java.lang.String" itemvalue="pytz" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
