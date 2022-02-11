@@ -6,10 +6,35 @@ authors = ["Keith Philpott <keith.philpott@icloud.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-koda = "0.10.1"
+koda = "0.10.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
+mypy = "^0.931"
+pyright = "^0.0.13"
+
+[tool.mypy]
+allow_redefinition = false
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+ignore_errors = false
+ignore_missing_imports = false
+local_partial_types = true
+no_implicit_optional = true
+no_implicit_reexport = true
+strict_optional = true
+strict_equality = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_unreachable = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

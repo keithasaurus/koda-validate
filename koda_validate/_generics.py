@@ -15,6 +15,7 @@ H = TypeVar("H")
 I = TypeVar("I")
 J = TypeVar("J")
 K = TypeVar("K")
+L = TypeVar("L")
 
 Ret = TypeVar("Ret")  # generic return type
 

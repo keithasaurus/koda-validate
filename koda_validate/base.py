@@ -1,14 +1,12 @@
 from abc import abstractmethod
 from typing import Callable, Generic, final
 
-from koda_validate._cruft import _chain, _validate_and_map, _Validator
 from koda.result import Err, Result, Ok
 
+from koda_validate._cruft import _Validator
 
 __all__ = (
-    "chain",
     "PredicateValidator",
-    "validate_and_map",
     "TransformableValidator",
     "Validator",
     "Predicate"
@@ -58,8 +56,3 @@ class PredicateValidator(Generic[A, FailT]):
             return Ok(val)
         else:
             return Err(self.err_message(val))
-
-
-chain = _chain
-
-validate_and_map = _validate_and_map

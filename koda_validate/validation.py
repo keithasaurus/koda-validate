@@ -21,10 +21,12 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Union,
+    Union, cast,
 )
 
 from koda import compose, mapping_get, safe_try
+from koda_validate._generics import A, B, C, D, E, F, G, H, I, J, FailT, Ret
+
 from koda_validate._cruft import _flat_map_same_type_if_not_none
 from koda.either import Either, Either3, First, Second, Third
 
@@ -40,25 +42,7 @@ from koda_validate.base import (
     Validator,
 )
 
-A = TypeVar("A")
-B = TypeVar("B")
-C = TypeVar("C")
-D = TypeVar("D")
-E = TypeVar("E")
-F = TypeVar("F")
-G = TypeVar("G")
-H = TypeVar("H")
-I = TypeVar("I")
-J = TypeVar("J")
-K = TypeVar("K")
-L = TypeVar("L")
-
-Ret = TypeVar("Ret")
-
-FailT = TypeVar("FailT")
-
 OBJECT_ERRORS_FIELD: Final[str] = "__object__"
-
 
 validate_and_map = _validate_and_map
 
@@ -841,7 +825,9 @@ class Nullable(TransformableValidator[Any, Maybe[A], Jsonable]):
         if val is None:
             return Ok(nothing)
         else:
-            return self.validator(val).map(Just)
+            # this cast is only needed because of pyright
+            return cast(Result[Maybe[A], Jsonable],
+                        self.validator(val).map(Just))
 
 
 Num = TypeVar("Num", int, float, DecimalStdLib)
@@ -896,7 +882,7 @@ class NullType(TransformableValidator[Any, None, Jsonable]):
             return err_list(expected("null"))
 
 
-Null = NullType()
+null = NullType()
 
 
 def prop(
@@ -915,7 +901,7 @@ def _tuples_to_jsonable_dict(data: Tuple[Tuple[str, Jsonable], ...]) -> Jsonable
     return Jsonable(dict(data))
 
 
-class Obj1(Generic[A, Ret], TransformableValidator[Any, Ret, Jsonable]):
+class Obj1Prop(Generic[A, Ret], TransformableValidator[Any, Ret, Jsonable]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -944,7 +930,7 @@ class Obj1(Generic[A, Ret], TransformableValidator[Any, Ret, Jsonable]):
             )
 
 
-class Obj2(Generic[A, B, Ret], TransformableValidator[Any, Ret, Jsonable]):
+class Obj2Props(Generic[A, B, Ret], TransformableValidator[Any, Ret, Jsonable]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -979,7 +965,7 @@ class Obj2(Generic[A, B, Ret], TransformableValidator[Any, Ret, Jsonable]):
             )
 
 
-class Obj3(Generic[A, B, C, Ret], TransformableValidator[Any, Ret, Jsonable]):
+class Obj3Props(Generic[A, B, C, Ret], TransformableValidator[Any, Ret, Jsonable]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -1017,7 +1003,7 @@ class Obj3(Generic[A, B, C, Ret], TransformableValidator[Any, Ret, Jsonable]):
             )
 
 
-class Obj4(Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, Jsonable]):
+class Obj4Props(Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, Jsonable]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -1058,7 +1044,7 @@ class Obj4(Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, Jsonable])
             )
 
 
-class Obj5(Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, Jsonable]):
+class Obj5Props(Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, Jsonable]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -1102,7 +1088,7 @@ class Obj5(Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, Jsonabl
             )
 
 
-class Obj6(Generic[A, B, C, D, E, F, Ret], TransformableValidator[Any, Ret, Jsonable]):
+class Obj6Props(Generic[A, B, C, D, E, F, Ret], TransformableValidator[Any, Ret, Jsonable]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -1149,7 +1135,7 @@ class Obj6(Generic[A, B, C, D, E, F, Ret], TransformableValidator[Any, Ret, Json
             )
 
 
-class Obj7(
+class Obj7Props(
     Generic[A, B, C, D, E, F, G, Ret], TransformableValidator[Any, Ret, Jsonable]
 ):
     def __init__(
@@ -1201,7 +1187,7 @@ class Obj7(
             )
 
 
-class Obj8(
+class Obj8Props(
     Generic[A, B, C, D, E, F, G, H, Ret], TransformableValidator[Any, Ret, Jsonable]
 ):
     def __init__(
@@ -1256,7 +1242,7 @@ class Obj8(
             )
 
 
-class Obj9(
+class Obj9Props(
     Generic[A, B, C, D, E, F, G, H, I, Ret], TransformableValidator[Any, Ret, Jsonable]
 ):
     def __init__(
@@ -1314,7 +1300,7 @@ class Obj9(
             )
 
 
-class Obj10(
+class Obj10Props(
     Generic[A, B, C, D, E, F, G, H, I, J, Ret],
     TransformableValidator[Any, Ret, Jsonable],
 ):
