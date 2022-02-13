@@ -47,33 +47,33 @@ from koda_validate.validation import (
     Tuple3,
     deserialize_and_validate,
     err,
-    err_list,
     maybe_prop,
     prop,
     unique_items,
-    unwrap_jsonable, Decimal,
+    Decimal,
 )
+from koda_validate.utils import unwrap_jsonable
 from koda.maybe import Just, Maybe, nothing
 from koda.result import Err, Result, Ok
-from koda_validate.typedefs import PredicateValidator, Jsonable
+from koda_validate.typedefs import PredicateValidator, JO
 
 
 def test_float() -> None:
-    assert Float()("a string") == err_list("expected a float")
+    assert Float()("a string") == err(["expected a float"])
 
     assert Float()(5.5) == Ok(5.5)
 
-    assert Float()(4) == err_list("expected a float")
+    assert Float()(4) == err(["expected a float"])
 
-    assert Float(Maximum(500.0))(503.0) == err_list("maximum allowed value is 500.0")
+    assert Float(Maximum(500.0))(503.0) == err(["maximum allowed value is 500.0"])
 
     assert Float(Maximum(500.0))(3.5) == Ok(3.5)
 
-    assert Float(Minimum(5.0))(4.999) == err_list("minimum allowed value is 5.0")
+    assert Float(Minimum(5.0))(4.999) == err(["minimum allowed value is 5.0"])
 
     assert Float(Minimum(5.0))(5.0) == Ok(5.0)
 
-    class MustHaveAZeroSomewhere(PredicateValidator[float, Jsonable]):
+    class MustHaveAZeroSomewhere(PredicateValidator[float, JO]):
         def is_valid(self, val: float) -> bool:
             for char in str(val):
                 if char == "0":
@@ -81,22 +81,22 @@ def test_float() -> None:
             else:
                 return False
 
-        def err_message(self, val: float) -> Jsonable:
-            return Jsonable("There should be a zero in the number")
+        def err_message(self, val: float) -> JO:
+            return JO("There should be a zero in the number")
 
-    assert Float(Minimum(2.5), Maximum(4.0), MustHaveAZeroSomewhere())(5.5) == err_list(
+    assert Float(Minimum(2.5), Maximum(4.0), MustHaveAZeroSomewhere())(5.5) == err([
         "maximum allowed value is 4.0", "There should be a zero in the number"
-    )
+    ])
 
 
 def test_decimal() -> None:
-    assert Decimal()("a string") == err_list(
+    assert Decimal()("a string") == err([
         "expected a decimal-compatible string or integer"
-    )
+    ])
 
-    assert Decimal()(5.5) == err_list(
+    assert Decimal()(5.5) == err([
         "expected a decimal-compatible string or integer"
-    )
+    ])
 
     assert Decimal()(DecimalStdLib("5.5")) == Ok(DecimalStdLib("5.5"))
 
@@ -107,22 +107,22 @@ def test_decimal() -> None:
 
 
 def test_boolean() -> None:
-    assert Boolean()("a string") == err_list("expected a boolean")
+    assert Boolean()("a string") == err(["expected a boolean"])
 
     assert Boolean()(True) == Ok(True)
 
     assert Boolean()(False) == Ok(False)
 
-    class RequireTrue(PredicateValidator[bool, Jsonable]):
+    class RequireTrue(PredicateValidator[bool, JO]):
         def is_valid(self, val: bool) -> bool:
             return val is True
 
-        def err_message(self, val: bool) -> Jsonable:
-            return Jsonable("must be true")
+        def err_message(self, val: bool) -> JO:
+            return JO("must be true")
 
-    assert Boolean(RequireTrue())(False) == err_list("must be true")
+    assert Boolean(RequireTrue())(False) == err(["must be true"])
 
-    assert Boolean()(1) == err_list("expected a boolean")
+    assert Boolean()(1) == err(["expected a boolean"])
 
 
 def test_date() -> None:
@@ -132,33 +132,33 @@ def test_date() -> None:
 
 
 def test_null() -> None:
-    assert Null("a string") == err_list("expected null")
+    assert Null("a string") == err(["expected null"])
 
     assert Null(None) == Ok(None)
 
-    assert Null(False) == err_list("expected null")
+    assert Null(False) == err(["expected null"])
 
 
 def test_integer() -> None:
-    assert Integer()("a string") == err_list("expected an integer")
+    assert Integer()("a string") == err(["expected an integer"])
 
     assert Integer()(5) == Ok(5)
 
-    assert Integer()(True) == err_list("expected an integer"), (
+    assert Integer()(True) == err(["expected an integer"]), (
         "even though `bool`s are subclasses of ints in python, we wouldn't "
         "want to validate incoming data as ints if they are bools"
     )
 
-    assert Integer()("5") == err_list("expected an integer")
+    assert Integer()("5") == err(["expected an integer"])
 
-    assert Integer()(5.0) == err_list("expected an integer")
+    assert Integer()(5.0) == err(["expected an integer"])
 
-    class DivisibleBy2(PredicateValidator[int, Jsonable]):
+    class DivisibleBy2(PredicateValidator[int, JO]):
         def is_valid(self, val: int) -> bool:
             return val % 2 == 0
 
-        def err_message(self, val: int) -> Jsonable:
-            return Jsonable("must be divisible by 2")
+        def err_message(self, val: int) -> JO:
+            return JO("must be divisible by 2")
 
     assert (
             Integer(
@@ -166,7 +166,7 @@ def test_integer() -> None:
                 Maximum(10),
                 DivisibleBy2(),
             )(11)
-            == err_list("maximum allowed value is 10", "must be divisible by 2")
+            == err(["maximum allowed value is 10", "must be divisible by 2"])
     )
 
 
@@ -206,14 +206,14 @@ def test_map_of() -> None:
     assert MapOf(String(), Integer())({"a": 5, "b": 22}) == Ok({"a": 5, "b": 22})
 
     @dataclass(frozen=True)
-    class MaxKeys(PredicateValidator[Dict[Any, Any], Jsonable]):
+    class MaxKeys(PredicateValidator[Dict[Any, Any], JO]):
         max: int
 
         def is_valid(self, val: Dict[Any, Any]) -> bool:
             return len(val) <= self.max
 
-        def err_message(self, val: Dict[Any, Any]) -> Jsonable:
-            return Jsonable(f"max {self.max} key(s) allowed")
+        def err_message(self, val: Dict[Any, Any]) -> JO:
+            return JO(f"max {self.max} key(s) allowed")
 
     complex_validator = MapOf(String(MaxLength(4)), Integer(Minimum(5)), MaxKeys(1))
     assert complex_validator({"key1": 10, "key1a": 2}, ) == err(
@@ -229,12 +229,12 @@ def test_map_of() -> None:
     assert MapOf(String(), Integer(), MaxKeys(1))(
         {OBJECT_ERRORS_FIELD: "not an int", "b": 1}
     ) == Err(
-        Jsonable(
+        JO(
             {
-                OBJECT_ERRORS_FIELD: Jsonable(
+                OBJECT_ERRORS_FIELD: JO(
                     [
-                        Jsonable("max 1 key(s) allowed"),
-                        Jsonable([Jsonable("expected an integer")]),
+                        JO("max 1 key(s) allowed"),
+                        JO([JO("expected an integer")]),
                     ]
                 )
             }
@@ -246,19 +246,19 @@ def test_map_of() -> None:
 
 
 def test_string() -> None:
-    assert String()(False) == err_list("expected a string")
+    assert String()(False) == err(["expected a string"])
 
     assert String()("abc") == Ok("abc")
 
-    assert String(MaxLength(3))("something") == err_list("maximum allowed length is 3")
+    assert String(MaxLength(3))("something") == err(["maximum allowed length is 3"])
 
     min_len_3_not_blank_validator = String(MinLength(3), NotBlank())
 
-    assert min_len_3_not_blank_validator("") == err_list(
+    assert min_len_3_not_blank_validator("") == err([
         "minimum allowed length is 3", "cannot be blank"
-    )
+    ])
 
-    assert min_len_3_not_blank_validator("   ") == err_list("cannot be blank")
+    assert min_len_3_not_blank_validator("   ") == err(["cannot be blank"])
 
     assert min_len_3_not_blank_validator("something") == Ok("something")
 
@@ -372,7 +372,7 @@ def test_tuple2() -> None:
 
     def must_be_a_if_integer_is_1(
             ab: Tuple[str, int]
-    ) -> Result[Tuple[str, int], Jsonable]:
+    ) -> Result[Tuple[str, int], JO]:
         if ab[1] == 1:
             if ab[0] == "a":
                 return Ok(ab)
@@ -411,7 +411,7 @@ def test_tuple3() -> None:
 
     def must_be_a_if_1_and_true(
             abc: Tuple[str, int, bool]
-    ) -> Result[Tuple[str, int, bool], Jsonable]:
+    ) -> Result[Tuple[str, int, bool], JO]:
         if abc[1] == 1 and abc[2] is True:
             if abc[0] == "a":
                 return Ok(abc)
@@ -506,7 +506,7 @@ _JONES_ERROR_MSG = {
 
 def _nobody_named_jones_has_brown_eyes(
         person: PersonLike,
-) -> Result[PersonLike, Jsonable]:
+) -> Result[PersonLike, JO]:
     if person.last_name.lower() == "jones" and person.eye_color == "brown":
         return err(_JONES_ERROR_MSG)
     else:
@@ -849,22 +849,22 @@ def test_obj_10() -> None:
 
 
 def test_unwrap_jsonable() -> None:
-    assert unwrap_jsonable(Jsonable(5)) == 5
-    assert unwrap_jsonable(Jsonable("ok")) == "ok"
-    assert unwrap_jsonable(Jsonable(False)) is False
-    assert unwrap_jsonable(Jsonable(3.3)) == 3.3
-    assert unwrap_jsonable(Jsonable((Jsonable(5), Jsonable(4), Jsonable(4)))) == (
+    assert unwrap_jsonable(JO(5)) == 5
+    assert unwrap_jsonable(JO("ok")) == "ok"
+    assert unwrap_jsonable(JO(False)) is False
+    assert unwrap_jsonable(JO(3.3)) == 3.3
+    assert unwrap_jsonable(JO((JO(5), JO(4), JO(4)))) == (
         5,
         4,
         4,
     )
     assert (
             unwrap_jsonable(
-                Jsonable(
+                JO(
                     [
-                        Jsonable("a"),
-                        Jsonable(5),
-                        Jsonable({"some_key": Jsonable(1), "other key": Jsonable(None)}),
+                        JO("a"),
+                        JO(5),
+                        JO({"some_key": JO(1), "other key": JO(None)}),
                     ]
                 )
             )
@@ -877,7 +877,7 @@ def test_choices() -> None:
 
     assert validator("bc") == Ok("bc")
     assert validator("not present") == Err(
-        Jsonable("expected one of ['a', 'bc', 'def']")
+        JO("expected one of ['a', 'bc', 'def']")
     )
 
 

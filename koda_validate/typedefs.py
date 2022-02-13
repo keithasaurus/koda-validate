@@ -54,12 +54,15 @@ class PredicateValidator(Generic[A, FailT]):
 
 
 @dataclass(frozen=True)
-class Jsonable:
+class JO:
     """
-    We need to specifically define validators that work insofar as the
-    error messages they produce can be serialized into json. Because of
-    a lack of recursive types (currently), as well as some issues working
-    with unions, we are currently defining a Jsonable type.
+    JO => "Json Object" -- brief for less visual disruption. "Jsonable"
+    or "JSONObj" may be good candidates if explicitness is needed at some point.
+
+    We need to specifically define validators whose error messages can be
+    serialized into json. Because of a lack of feasibility recursive types
+    in both pyright and mypy (currently), as well as some issues working
+    with unions, we are currently defining This Jsonable type type.
     """
 
     val: Union[
@@ -68,7 +71,24 @@ class Jsonable:
         float,
         bool,
         None,
-        Tuple["Jsonable", ...],
-        List["Jsonable"],
-        Dict[str, "Jsonable"],
+        Tuple["JO", ...],
+        List["JO"],
+        Dict[str, "JO"],
     ]
+
+
+class PredicateValidatorJO(PredicateValidator[A, JO]):
+    """
+    This class only exists as a convenience. If the error
+    messages you're writing are `str`, you can override
+    `err_message_str` method and simply return a string.
+
+    Otherwise you can override the `err_message` method
+    and return any kind of `JO`
+    """
+    @abstractmethod
+    def err_message_str(self, val: A) -> str:
+        raise NotImplementedError
+
+    def err_message(self, val: A) -> JO:
+        return JO(self.err_message_str(val))
