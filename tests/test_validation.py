@@ -29,16 +29,16 @@ from koda_validate.validation import (
     NotBlank,
     Null,
     Nullable,
-    Obj1,
-    Obj2,
-    Obj3,
-    Obj4,
-    Obj5,
-    Obj6,
-    Obj7,
-    Obj8,
-    Obj9,
-    Obj10,
+    Obj1Prop,
+    Obj2Props,
+    Obj3Props,
+    Obj4Props,
+    Obj5Props,
+    Obj6Props,
+    Obj7Props,
+    Obj8Props,
+    Obj9Props,
+    Obj10Props,
     OneOf2,
     OneOf3,
     RegexValidator,
@@ -434,7 +434,7 @@ def test_obj_1() -> None:
     class Person:
         name: str
 
-    validator = Obj1(prop("name", String()), into=Person)
+    validator = Obj1Prop(prop("name", String()), into=Person)
 
     assert validator("not a dict") == err({"__object__": ["expected an object"]})
 
@@ -455,7 +455,7 @@ def test_obj_2() -> None:
         name: str
         age: Maybe[int]
 
-    validator = Obj2(prop("name", String()), maybe_prop("age", Integer()), into=Person)
+    validator = Obj2Props(prop("name", String()), maybe_prop("age", Integer()), into=Person)
 
     assert validator("not a dict") == err({"__object__": ["expected an object"]})
 
@@ -480,7 +480,7 @@ def test_obj_3() -> None:
         last_name: str
         age: int
 
-    validator = Obj3(
+    validator = Obj3Props(
         prop("first_name", String()),
         prop("last_name", String()),
         prop("age", Integer()),
@@ -521,7 +521,7 @@ def test_obj_4() -> None:
         age: int
         eye_color: str
 
-    validator = Obj4(
+    validator = Obj4Props(
         prop("first_name", String()),
         prop("last_name", String()),
         prop("age", Integer()),
@@ -550,7 +550,7 @@ def test_obj_5() -> None:
         eye_color: str
         can_fly: bool
 
-    validator = Obj5(
+    validator = Obj5Props(
         prop("first_name", String()),
         prop("last_name", String()),
         prop("age", Integer()),
@@ -599,7 +599,7 @@ def test_obj_6() -> None:
         can_fly: bool
         fingers: float
 
-    validator = Obj6(
+    validator = Obj6Props(
         prop("first_name", String()),
         prop("last_name", String()),
         prop("age", Integer()),
@@ -637,7 +637,7 @@ def test_obj_7() -> None:
         fingers: float
         toes: float
 
-    validator = Obj7(
+    validator = Obj7Props(
         prop("first_name", String()),
         prop("last_name", String()),
         prop("age", Integer()),
@@ -678,7 +678,7 @@ def test_obj_8() -> None:
         toes: float
         favorite_color: Maybe[str]
 
-    validator = Obj8(
+    validator = Obj8Props(
         prop("first_name", String()),
         prop("last_name", String()),
         prop("age", Integer()),
@@ -754,7 +754,7 @@ def test_obj_9() -> None:
         favorite_color: Maybe[str]
         requires_none: None
 
-    validator = Obj9(
+    validator = Obj9Props(
         prop("first_name", String()),
         prop("last_name", String()),
         prop("age", Integer()),
@@ -802,7 +802,7 @@ def test_obj_10() -> None:
         requires_none: None
         something_else: List[str]
 
-    validator = Obj10(
+    validator = Obj10Props(
         prop("first_name", String()),
         prop("last_name", String()),
         prop("age", Integer()),
@@ -949,7 +949,7 @@ def deserialize_and_validate_tests() -> None:
         name: str
         age: int
 
-    validator = Obj2(prop("name", String()), prop("int", Integer()), into=Person)
+    validator = Obj2Props(prop("name", String()), prop("int", Integer()), into=Person)
 
     assert deserialize_and_validate(validator, "") == Err(
         {"invalid type": ["expected an object"]}
@@ -968,10 +968,10 @@ def test_lazy() -> None:
         val: int
         next: Maybe["TestNonEmptyList"]  # noqa: F821
 
-    def recur_tnel() -> Obj2[int, Maybe[TestNonEmptyList], TestNonEmptyList]:
+    def recur_tnel() -> Obj2Props[int, Maybe[TestNonEmptyList], TestNonEmptyList]:
         return nel_validator
 
-    nel_validator: Obj2[int, Maybe[TestNonEmptyList], TestNonEmptyList] = Obj2(
+    nel_validator: Obj2Props[int, Maybe[TestNonEmptyList], TestNonEmptyList] = Obj2Props(
         prop("val", Integer()),
         maybe_prop("next", Lazy(recur_tnel)),
         into=TestNonEmptyList,

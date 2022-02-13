@@ -3,7 +3,7 @@ from typing import Any, Dict, List, NoReturn, Union
 from koda_validate.serialization import JsonSerializable
 from koda_validate.typedefs import PredicateValidator, TransformableValidator
 
-from koda_validate.validation import Obj1, Obj2, Obj3, Obj4, Obj5, Obj6, Obj7, Obj8, Obj9, Obj10, String, Integer, \
+from koda_validate.validation import Obj1Prop, Obj2Props, Obj3Props, Obj4Props, Obj5Props, Obj6Props, Obj7Props, Obj8Props, Obj9Props, Obj10Props, String, Integer, \
     Float, OneOf3, OneOf2, Tuple2, RequiredField, MaybeField, MapOf, Boolean, ArrayOf, MaxLength, Email, MinLength, \
     Enum, NotBlank, RegexValidator, Minimum, Maximum, MinProperties, MaxProperties, MinItems, MaxItems, UniqueItems, \
     Nullable, Lazy, Tuple3
@@ -63,16 +63,16 @@ def array_of_schema(
 def obj_schema(
     schema_name: str,
     obj: Union[
-        Obj1[Any, Any],
-        Obj2[Any, Any, Any],
-        Obj3[Any, Any, Any, Any],
-        Obj4[Any, Any, Any, Any, Any],
-        Obj5[Any, Any, Any, Any, Any, Any],
-        Obj6[Any, Any, Any, Any, Any, Any, Any],
-        Obj7[Any, Any, Any, Any, Any, Any, Any, Any],
-        Obj8[Any, Any, Any, Any, Any, Any, Any, Any, Any],
-        Obj9[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
-        Obj10[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
+        Obj1Prop[Any, Any],
+        Obj2Props[Any, Any, Any],
+        Obj3Props[Any, Any, Any, Any],
+        Obj4Props[Any, Any, Any, Any, Any],
+        Obj5Props[Any, Any, Any, Any, Any, Any],
+        Obj6Props[Any, Any, Any, Any, Any, Any, Any],
+        Obj7Props[Any, Any, Any, Any, Any, Any, Any, Any],
+        Obj8Props[Any, Any, Any, Any, Any, Any, Any, Any, Any],
+        Obj9Props[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
+        Obj10Props[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
     ],
 ) -> Dict[str, JsonSerializable]:
     required: List[str] = []
@@ -179,16 +179,16 @@ def generate_schema_transformable(
     elif isinstance(
         obj,
         (
-            Obj1,
-            Obj2,
-            Obj3,
-            Obj4,
-            Obj5,
-            Obj6,
-            Obj7,
-            Obj8,
-            Obj9,
-            Obj10,
+                Obj1Prop,
+                Obj2Props,
+                Obj3Props,
+                Obj4Props,
+                Obj5Props,
+                Obj6Props,
+                Obj7Props,
+                Obj8Props,
+                Obj9Props,
+                Obj10Props,
         ),
     ):
         return obj_schema(schema_name, obj)

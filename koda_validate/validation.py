@@ -829,11 +829,11 @@ def maybe_prop(
     return prop_, MaybeField(validator)
 
 
-def _tuples_to_jsonable_dict(data: Tuple[Tuple[str, JO], ...]) -> JO:
+def _tuples_to_jo_dict(data: Tuple[Tuple[str, JO], ...]) -> JO:
     return JO(dict(data))
 
 
-class Obj1(Generic[A, Ret], TransformableValidator[Any, Ret, JO]):
+class Obj1Prop(Generic[A, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -858,11 +858,11 @@ class Obj1(Generic[A, Ret], TransformableValidator[Any, Ret, JO]):
                 _validate_with_key(self.fields[0], result.val), self.into
             )
             return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_jsonable_dict)
+                self.validate_object, result_1.map_err(_tuples_to_jo_dict)
             )
 
 
-class Obj2(Generic[A, B, Ret], TransformableValidator[Any, Ret, JO]):
+class Obj2Props(Generic[A, B, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -893,11 +893,11 @@ class Obj2(Generic[A, B, Ret], TransformableValidator[Any, Ret, JO]):
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_jsonable_dict)
+                self.validate_object, result_1.map_err(_tuples_to_jo_dict)
             )
 
 
-class Obj3(Generic[A, B, C, Ret], TransformableValidator[Any, Ret, JO]):
+class Obj3Props(Generic[A, B, C, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -931,11 +931,11 @@ class Obj3(Generic[A, B, C, Ret], TransformableValidator[Any, Ret, JO]):
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_jsonable_dict)
+                self.validate_object, result_1.map_err(_tuples_to_jo_dict)
             )
 
 
-class Obj4(Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, JO]):
+class Obj4Props(Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -972,11 +972,11 @@ class Obj4(Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, JO]):
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_jsonable_dict)
+                self.validate_object, result_1.map_err(_tuples_to_jo_dict)
             )
 
 
-class Obj5(Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, JO]):
+class Obj5Props(Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -1016,11 +1016,11 @@ class Obj5(Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, JO]):
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_jsonable_dict)
+                self.validate_object, result_1.map_err(_tuples_to_jo_dict)
             )
 
 
-class Obj6(Generic[A, B, C, D, E, F, Ret], TransformableValidator[Any, Ret, JO]):
+class Obj6Props(Generic[A, B, C, D, E, F, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
             self,
             field1: KeyValidator[A],
@@ -1063,11 +1063,11 @@ class Obj6(Generic[A, B, C, D, E, F, Ret], TransformableValidator[Any, Ret, JO])
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_jsonable_dict)
+                self.validate_object, result_1.map_err(_tuples_to_jo_dict)
             )
 
 
-class Obj7(
+class Obj7Props(
     Generic[A, B, C, D, E, F, G, Ret], TransformableValidator[Any, Ret, JO]
 ):
     def __init__(
@@ -1115,11 +1115,11 @@ class Obj7(
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_jsonable_dict)
+                self.validate_object, result_1.map_err(_tuples_to_jo_dict)
             )
 
 
-class Obj8(
+class Obj8Props(
     Generic[A, B, C, D, E, F, G, H, Ret], TransformableValidator[Any, Ret, JO]
 ):
     def __init__(
@@ -1170,11 +1170,11 @@ class Obj8(
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_jsonable_dict)
+                self.validate_object, result_1.map_err(_tuples_to_jo_dict)
             )
 
 
-class Obj9(
+class Obj9Props(
     Generic[A, B, C, D, E, F, G, H, I, Ret], TransformableValidator[Any, Ret, JO]
 ):
     def __init__(
@@ -1228,11 +1228,11 @@ class Obj9(
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_jsonable_dict)
+                self.validate_object, result_1.map_err(_tuples_to_jo_dict)
             )
 
 
-class Obj10(
+class Obj10Props(
     Generic[A, B, C, D, E, F, G, H, I, J, Ret],
     TransformableValidator[Any, Ret, JO],
 ):
@@ -1290,5 +1290,5 @@ class Obj10(
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_jsonable_dict)
+                self.validate_object, result_1.map_err(_tuples_to_jo_dict)
             )
