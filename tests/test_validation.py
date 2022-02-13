@@ -15,7 +15,6 @@ from koda_validate.validation import (
     Enum,
     Float,
     Integer,
-    Jsonable,
     Lazy,
     MapOf,
     Maximum,
@@ -56,7 +55,7 @@ from koda_validate.validation import (
 )
 from koda.maybe import Just, Maybe, nothing
 from koda.result import Err, Result, Ok
-from koda_validate.base import PredicateValidator
+from koda_validate.typedefs import PredicateValidator, Jsonable
 
 
 def test_float() -> None:

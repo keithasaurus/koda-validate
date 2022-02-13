@@ -1,18 +1,11 @@
+from __future__ import annotations
+
 from abc import abstractmethod
-from typing import Callable, Generic, final
+from dataclasses import dataclass
+from typing import Callable, Generic, final, Union, Tuple, List, Dict
 
-from koda_validate._cruft import _chain, _validate_and_map, _Validator
+from koda_validate._cruft import _Validator
 from koda.result import Err, Result, Ok
-
-
-__all__ = (
-    "chain",
-    "PredicateValidator",
-    "validate_and_map",
-    "TransformableValidator",
-    "Validator",
-    "Predicate"
-)
 
 from koda_validate._generics import A, B, FailT
 
@@ -60,6 +53,22 @@ class PredicateValidator(Generic[A, FailT]):
             return Err(self.err_message(val))
 
 
-chain = _chain
+@dataclass(frozen=True)
+class Jsonable:
+    """
+    We need to specifically define validators that work insofar as the
+    error messages they produce can be serialized into json. Because of
+    a lack of recursive types (currently), as well as some issues working
+    with unions, we are currently defining a Jsonable type.
+    """
 
-validate_and_map = _validate_and_map
+    val: Union[
+        str,
+        int,
+        float,
+        bool,
+        None,
+        Tuple["Jsonable", ...],
+        List["Jsonable"],
+        Dict[str, "Jsonable"],
+    ]

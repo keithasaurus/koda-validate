@@ -34,10 +34,10 @@ from koda_validate.utils import expected
 from koda.maybe import Just, Maybe, nothing, Nothing
 from koda.result import Err, Result, Ok
 from koda_validate._cruft import _typed_tuple
-from koda_validate.base import (
+from koda_validate.typedefs import (
     PredicateValidator,
     TransformableValidator,
-    Validator,
+    Validator, Jsonable,
 )
 
 A = TypeVar("A")
@@ -61,30 +61,6 @@ OBJECT_ERRORS_FIELD: Final[str] = "__object__"
 
 
 validate_and_map = _validate_and_map
-
-
-@dataclass(frozen=True)
-class Jsonable:
-    """
-    We need to specifically define validators that work insofar as the
-    error messages they produce can be serialized into json. Because of
-    a lack of recursive types (currently), as well as some issues working
-    with unions, we are currently defining a Jsonable type.
-    """
-
-    val: Union[
-        str,
-        int,
-        float,
-        bool,
-        None,
-        Tuple["Jsonable", ...],
-        List["Jsonable"],
-        Dict[str, "Jsonable"],
-    ]
-
-
-TransformableJsonValidator = Validator[A, B, Jsonable]
 
 
 def accum_errors(
@@ -706,9 +682,9 @@ class Tuple3(TransformableValidator[Any, Tuple[A, B, C], Jsonable]):
 
     def __init__(
             self,
-            slot1_validator: Callable[[Maybe[Any]], Result[A, Jsonable]],
-            slot2_validator: Callable[[Maybe[Any]], Result[B, Jsonable]],
-            slot3_validator: Callable[[Maybe[Any]], Result[C, Jsonable]],
+            slot1_validator: Callable[[Any], Result[A, Jsonable]],
+            slot2_validator: Callable[[Any], Result[B, Jsonable]],
+            slot3_validator: Callable[[Any], Result[C, Jsonable]],
             tuple_validator: Optional[
                 Callable[[Tuple[A, B, C]], Result[Tuple[A, B, C], Jsonable]]
             ] = None,
@@ -773,7 +749,7 @@ _KEY_MISSING: Final[str] = "key missing"
 
 
 class RequiredField(Generic[A]):
-    def __init__(self, validator: TransformableJsonValidator[Any, A]) -> None:
+    def __init__(self, validator: TransformableValidator[Any, A, Jsonable]) -> None:
         self.validator = validator
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Jsonable]:
@@ -784,7 +760,7 @@ class RequiredField(Generic[A]):
 
 
 class MaybeField(Generic[A]):
-    def __init__(self, validator: TransformableJsonValidator[Any, A]) -> None:
+    def __init__(self, validator: TransformableValidator[Any, A, Jsonable]) -> None:
         self.validator = validator
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Jsonable]:
@@ -841,7 +817,7 @@ class Nullable(TransformableValidator[Any, Maybe[A], Jsonable]):
         if val is None:
             return Ok(nothing)
         else:
-            return self.validator(val).map(Just)
+            return self.validator(val).map(lambda x: Just(x))
 
 
 Num = TypeVar("Num", int, float, DecimalStdLib)
@@ -900,13 +876,13 @@ Null = NullType()
 
 
 def prop(
-        prop_: str, validator: Callable[[Any], Result[A, Jsonable]]
+        prop_: str, validator: TransformableValidator[Any, A, Jsonable]
 ) -> Tuple[str, Callable[[Any], Result[A, Jsonable]]]:
     return prop_, RequiredField(validator)
 
 
 def maybe_prop(
-        prop_: str, validator: Callable[[Any], Result[A, Jsonable]]
+        prop_: str, validator: TransformableValidator[Any, A, Jsonable]
 ) -> Tuple[str, Callable[[Any], Result[Maybe[A], Jsonable]]]:
     return prop_, MaybeField(validator)
 

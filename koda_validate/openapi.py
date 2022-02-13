@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, NoReturn, Union
 
 from koda_validate.serialization import JsonSerializable
-from koda_validate.base import PredicateValidator, TransformableValidator
+from koda_validate.typedefs import PredicateValidator, TransformableValidator
 
 from koda_validate.validation import Obj1, Obj2, Obj3, Obj4, Obj5, Obj6, Obj7, Obj8, Obj9, Obj10, String, Integer, \
     Float, OneOf3, OneOf2, Tuple2, RequiredField, MaybeField, MapOf, Boolean, ArrayOf, MaxLength, Email, MinLength, \
