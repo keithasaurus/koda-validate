@@ -11,6 +11,11 @@ koda = "0.10.2"
 [tool.poetry.dev-dependencies]
 pytest = "7.0.1"
 pyright = "0.0.13"
+pytest-cov = "3.0.0"
+isort = "5.10.1"
+black = "22.1.0"
+flake8 = "4.0.1"
+pre-commit = "2.17.0"
 
 
 [tool.mypy]
@@ -35,6 +40,21 @@ warn_return_any = true
 warn_unused_configs = true
 warn_unused_ignores = true
 warn_unreachable = true
+
+
+[tool.pytest.ini_options]
+addopts ="""
+  --cov=koda
+  --cov-report=term:skip-covered
+  --cov-report=html
+  --cov-branch
+  --cov-fail-under=100
+"""
+
+
+[tool.isort]
+line_length = 90
+profile = "black"
 
 
 [build-system]
