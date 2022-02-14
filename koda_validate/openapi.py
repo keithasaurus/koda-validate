@@ -243,7 +243,8 @@ def generate_schema_transformable(
         }
     elif isinstance(obj, Tuple2):
         return {
-            "description": 'a 2-tuple; schemas for slots are listed in order in "items" > "anyOf"',
+            "description": "a 2-tuple; schemas for slots are listed in "
+            'order in "items" > "anyOf"',
             "type": "array",
             "maxItems": 2,
             "items": {
@@ -255,7 +256,8 @@ def generate_schema_transformable(
         }
     elif isinstance(obj, Tuple3):
         return {
-            "description": 'a 3-tuple; schemas for slots are listed in order in "items" > "anyOf"',
+            "description": "a 3-tuple; schemas for slots are listed in order "
+            'in "items" > "anyOf"',
             "type": "array",
             "maxItems": 3,
             "items": {
