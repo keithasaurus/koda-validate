@@ -1,12 +1,46 @@
 from typing import Any, Dict, List, NoReturn, Union
 
 from koda_validate.serialization import JsonSerializable
-from koda_validate.base import PredicateValidator, TransformableValidator
-
-from koda_validate.validation import Obj1, Obj2, Obj3, Obj4, Obj5, Obj6, Obj7, Obj8, Obj9, Obj10, String, Integer, \
-    Float, OneOf3, OneOf2, Tuple2, RequiredField, MaybeField, MapOf, Boolean, ArrayOf, MaxLength, Email, MinLength, \
-    Enum, NotBlank, RegexValidator, Minimum, Maximum, MinProperties, MaxProperties, MinItems, MaxItems, UniqueItems, \
-    Nullable, Lazy, Tuple3
+from koda_validate.typedefs import PredicateValidator, TransformableValidator
+from koda_validate.validation import (
+    ArrayOf,
+    Boolean,
+    Email,
+    Enum,
+    Float,
+    Integer,
+    Lazy,
+    MapOf,
+    Maximum,
+    MaxItems,
+    MaxLength,
+    MaxProperties,
+    MaybeField,
+    Minimum,
+    MinItems,
+    MinLength,
+    MinProperties,
+    NotBlank,
+    Nullable,
+    Obj1Prop,
+    Obj2Props,
+    Obj3Props,
+    Obj4Props,
+    Obj5Props,
+    Obj6Props,
+    Obj7Props,
+    Obj8Props,
+    Obj9Props,
+    Obj10Props,
+    OneOf2,
+    OneOf3,
+    RegexValidator,
+    RequiredField,
+    String,
+    Tuple2,
+    Tuple3,
+    UniqueItems,
+)
 
 
 def unhandled_type(obj: Any) -> NoReturn:
@@ -21,9 +55,7 @@ def string_schema(schema_name: str, validator: String) -> Dict[str, JsonSerializ
     return ret
 
 
-def integer_schema(
-    schema_name: str, validator: Integer
-) -> Dict[str, JsonSerializable]:
+def integer_schema(schema_name: str, validator: Integer) -> Dict[str, JsonSerializable]:
     ret: Dict[str, JsonSerializable] = {"type": "integer"}
     for sub_validator in validator.validators:
         ret.update(generate_schema_base(schema_name, sub_validator))
@@ -37,9 +69,7 @@ def float_schema(schema_name: str, validator: Float) -> Dict[str, JsonSerializab
     return ret
 
 
-def boolean_schema(
-    schema_name: str, validator: Boolean
-) -> Dict[str, JsonSerializable]:
+def boolean_schema(schema_name: str, validator: Boolean) -> Dict[str, JsonSerializable]:
     ret: Dict[str, JsonSerializable] = {"type": "boolean"}
     for sub_validator in validator.validators:
         ret.update(generate_schema_base(schema_name, sub_validator))
@@ -63,16 +93,16 @@ def array_of_schema(
 def obj_schema(
     schema_name: str,
     obj: Union[
-        Obj1[Any, Any],
-        Obj2[Any, Any, Any],
-        Obj3[Any, Any, Any, Any],
-        Obj4[Any, Any, Any, Any, Any],
-        Obj5[Any, Any, Any, Any, Any, Any],
-        Obj6[Any, Any, Any, Any, Any, Any, Any],
-        Obj7[Any, Any, Any, Any, Any, Any, Any, Any],
-        Obj8[Any, Any, Any, Any, Any, Any, Any, Any, Any],
-        Obj9[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
-        Obj10[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
+        Obj1Prop[Any, Any],
+        Obj2Props[Any, Any, Any],
+        Obj3Props[Any, Any, Any, Any],
+        Obj4Props[Any, Any, Any, Any, Any],
+        Obj5Props[Any, Any, Any, Any, Any, Any],
+        Obj6Props[Any, Any, Any, Any, Any, Any, Any],
+        Obj7Props[Any, Any, Any, Any, Any, Any, Any, Any],
+        Obj8Props[Any, Any, Any, Any, Any, Any, Any, Any, Any],
+        Obj9Props[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
+        Obj10Props[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
     ],
 ) -> Dict[str, JsonSerializable]:
     required: List[str] = []
@@ -97,9 +127,7 @@ def obj_schema(
     }
 
 
-def map_of_schema(
-    schema_name: str, obj: MapOf[Any, Any]
-) -> Dict[str, JsonSerializable]:
+def map_of_schema(schema_name: str, obj: MapOf[Any, Any]) -> Dict[str, JsonSerializable]:
     ret: Dict[str, JsonSerializable] = {
         "type": "object",
         "additionalProperties": generate_schema_base(schema_name, obj.value_validator),
@@ -179,16 +207,16 @@ def generate_schema_transformable(
     elif isinstance(
         obj,
         (
-            Obj1,
-            Obj2,
-            Obj3,
-            Obj4,
-            Obj5,
-            Obj6,
-            Obj7,
-            Obj8,
-            Obj9,
-            Obj10,
+            Obj1Prop,
+            Obj2Props,
+            Obj3Props,
+            Obj4Props,
+            Obj5Props,
+            Obj6Props,
+            Obj7Props,
+            Obj8Props,
+            Obj9Props,
+            Obj10Props,
         ),
     ):
         return obj_schema(schema_name, obj)
@@ -215,7 +243,8 @@ def generate_schema_transformable(
         }
     elif isinstance(obj, Tuple2):
         return {
-            "description": 'a 2-tuple; schemas for slots are listed in order in "items" > "anyOf"',
+            "description": "a 2-tuple; schemas for slots are listed in "
+            'order in "items" > "anyOf"',
             "type": "array",
             "maxItems": 2,
             "items": {
@@ -227,7 +256,8 @@ def generate_schema_transformable(
         }
     elif isinstance(obj, Tuple3):
         return {
-            "description": 'a 3-tuple; schemas for slots are listed in order in "items" > "anyOf"',
+            "description": "a 3-tuple; schemas for slots are listed in order "
+            'in "items" > "anyOf"',
             "type": "array",
             "maxItems": 3,
             "items": {

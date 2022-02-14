@@ -3,13 +3,12 @@ from __future__ import annotations
 from functools import partial
 from typing import Callable, Optional, Tuple, Union, overload
 
-from koda._generics import A, B, FailT, I, J
-from koda.result import Err, Result, Ok
+from koda.result import Err, Ok, Result
+
+from koda_validate._generics import A, B, C, D, E, F, FailT, G, H, I, J, K, Ret
 
 # simple alias allows to greatly reduce amount of characters required to define
 # validators
-from koda_validate._generics import Ret
-
 _Validator = Callable[[A], Result[B, FailT]]
 
 
@@ -28,7 +27,7 @@ def _validate_and_map(
     r1: Result[A, FailT],
     r2: Callable[[A], Ret],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
@@ -39,7 +38,7 @@ def _validate_and_map(
     r2: Result[B, FailT],
     r3: Callable[[A, B], Ret],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
@@ -51,7 +50,7 @@ def _validate_and_map(
     r3: Result[C, FailT],
     r4: Callable[[A, B, C], Ret],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
@@ -64,7 +63,7 @@ def _validate_and_map(
     r4: Result[D, FailT],
     r5: Callable[[A, B, C, D], Ret],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
@@ -78,7 +77,7 @@ def _validate_and_map(
     r5: Result[E, FailT],
     r6: Callable[[A, B, C, D, E], Ret],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
@@ -93,7 +92,7 @@ def _validate_and_map(
     r6: Result[F, FailT],
     r7: Callable[[A, B, C, D, E, F], Ret],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
@@ -109,7 +108,7 @@ def _validate_and_map(
     r7: Result[G, FailT],
     r8: Callable[[A, B, C, D, E, F, G], Ret],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
@@ -126,7 +125,7 @@ def _validate_and_map(
     r8: Result[H, FailT],
     r9: Callable[[A, B, C, D, E, F, G, H], Ret],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
@@ -144,7 +143,7 @@ def _validate_and_map(
     r9: Result[I, FailT],
     r10: Callable[[A, B, C, D, E, F, G, H, I], Ret],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
@@ -163,7 +162,7 @@ def _validate_and_map(
     r10: Result[J, FailT],
     r11: Callable[[A, B, C, D, E, F, G, H, I, J], Ret],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
@@ -181,7 +180,7 @@ def _validate_and_map(
     r10: None | Callable[[A, B, C, D, E, F, G, H, I], Ret] | Result[J, FailT] = None,
     r11: None | Callable[[A, B, C, D, E, F, G, H, I, J], Ret] = None,
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]] = None,
 ) -> Result[Ret, Tuple[FailT, ...]]:
     """
     See overloaded signatures above for better idea of what's happening here
@@ -513,9 +512,9 @@ def _validate7_helper(
 ) -> Result[H, Tuple[FailT, ...]]:
     if isinstance(r1, Err):
         if isinstance(state, Err):
-            next_state: Result[
-                Callable[[B, C, D, E, F, G], H], Tuple[FailT, ...]
-            ] = Err(state.val + (r1.val,))
+            next_state: Result[Callable[[B, C, D, E, F, G], H], Tuple[FailT, ...]] = Err(
+                state.val + (r1.val,)
+            )
         else:
             next_state = Err((r1.val,))
     else:
@@ -611,18 +610,6 @@ def _validate10_helper(
     return _validate9_helper(next_state, r2, r3, r4, r5, r6, r7, r8, r9, r10)
 
 
-from typing import Tuple, TypeVar, Union, overload
-
-A = TypeVar("A")
-B = TypeVar("B")
-C = TypeVar("C")
-D = TypeVar("D")
-E = TypeVar("E")
-F = TypeVar("F")
-G = TypeVar("G")
-H = TypeVar("H")
-
-
 class _NotSet:
     pass
 
@@ -696,7 +683,7 @@ def _typed_tuple(
     Tuple[A, B, C, D, E, F, G, H],
 ]:
     if isinstance(v2, _NotSet):
-        return v1,
+        return (v1,)
     elif isinstance(v3, _NotSet):
         return v1, v2
     elif isinstance(v4, _NotSet):

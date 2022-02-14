@@ -4,13 +4,40 @@ from datetime import date
 from typing import List, Set, TypeVar
 
 from koda.either import First, Second, Third
-from koda_validate.openapi import generate_schema
 from koda.maybe import Just, Maybe, nothing
 from koda.result import Ok
 
-from koda_validate.validation import Obj5, String, not_blank, prop, Email, MaxLength, Enum, MinLength, ArrayOf, \
-    RegexValidator, unique_items, MaxItems, Obj2, Lazy, MapOf, Nullable, Integer, Minimum, MaxProperties, MinProperties, \
-    OneOf2, OneOf3, Obj1, Date, Float, Tuple2, Tuple3, Boolean
+from koda_validate.openapi import generate_schema
+from koda_validate.validation import (
+    ArrayOf,
+    Boolean,
+    Date,
+    Email,
+    Enum,
+    Float,
+    Integer,
+    Lazy,
+    MapOf,
+    MaxItems,
+    MaxLength,
+    MaxProperties,
+    Minimum,
+    MinLength,
+    MinProperties,
+    Nullable,
+    Obj1Prop,
+    Obj2Props,
+    Obj5Props,
+    OneOf2,
+    OneOf3,
+    RegexValidator,
+    String,
+    Tuple2,
+    Tuple3,
+    not_blank,
+    prop,
+    unique_items,
+)
 
 A = TypeVar("A")
 Ret = TypeVar("Ret")
@@ -22,10 +49,10 @@ def test_recursive_validator() -> None:
         name: str
         replies: List["Comment"]  # noqa: F821
 
-    def get_comment_recur() -> Obj2[str, List[Comment], Comment]:
+    def get_comment_recur() -> Obj2Props[str, List[Comment], Comment]:
         return comment_validator
 
-    comment_validator: Obj2[str, List[Comment], Comment] = Obj2(
+    comment_validator: Obj2Props[str, List[Comment], Comment] = Obj2Props(
         prop("name", String(not_blank)),
         prop("replies", ArrayOf(Lazy(get_comment_recur))),
         into=Comment,
@@ -56,12 +83,10 @@ def test_person() -> None:
         country_code: str
         honorifics: List[str]
 
-    person_validator = Obj5(
+    person_validator = Obj5Props(
         prop("name", String(not_blank)),
         prop("email", String(Email(), MaxLength(50))),
-        prop(
-            "occupation", String(Enum({"teacher", "engineer", "musician", "cook"}))
-        ),
+        prop("occupation", String(Enum({"teacher", "engineer", "musician", "cook"}))),
         prop("country_code", String(MinLength(2), MaxLength(3))),
         prop(
             "honorifics",
@@ -108,7 +133,7 @@ def test_cities() -> None:
 
     validate_cities = MapOf(
         String(),
-        Obj2(
+        Obj2Props(
             prop("population", Nullable(Integer(Minimum(0)))),
             prop("state", String(Enum(state_choices))),
             into=CityInfo,
@@ -164,13 +189,13 @@ def test_auth_creds() -> None:
         email: str
         password: str
 
-    username_creds_validator = Obj2(
+    username_creds_validator = Obj2Props(
         prop("username", String(not_blank)),
         prop("password", String(not_blank)),
         into=UsernameCreds,
     )
 
-    email_creds_validator = Obj2(
+    email_creds_validator = Obj2Props(
         prop("email", String(Email())),
         prop("password", String(not_blank)),
         into=EmailCreds,
@@ -219,7 +244,7 @@ def test_auth_creds() -> None:
     validator_one_of_3 = OneOf3(
         username_creds_validator,
         email_creds_validator,
-        Obj1(prop("token", String(MinLength(32), MaxLength(32))), into=Token),
+        Obj1Prop(prop("token", String(MinLength(32), MaxLength(32))), into=Token),
     )
 
     # sanity
@@ -275,9 +300,7 @@ def test_forecast() -> None:
 
 
 def test_tuples() -> None:
-    validator = Tuple2(
-        String(not_blank), Tuple3(String(), Integer(), Boolean())
-    )
+    validator = Tuple2(String(not_blank), Tuple3(String(), Integer(), Boolean()))
 
     # sanity check
     assert validator(["ok", ["", 0, False]]) == Ok(("ok", ("", 0, False)))
