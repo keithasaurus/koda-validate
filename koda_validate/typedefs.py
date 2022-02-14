@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Generic, final, Union, Tuple, List, Dict
+from typing import Callable, Dict, Generic, List, Tuple, Union, final
+
+from koda.result import Err, Ok, Result
 
 from koda_validate._cruft import _Validator
-from koda.result import Err, Result, Ok
-
 from koda_validate._generics import A, B, FailT
 
 Validator = _Validator[A, B, FailT]
@@ -86,6 +86,7 @@ class PredicateValidatorJO(PredicateValidator[A, JO]):
     Otherwise you can override the `err_message` method
     and return any kind of `JO`
     """
+
     @abstractmethod
     def err_message_str(self, val: A) -> str:
         raise NotImplementedError

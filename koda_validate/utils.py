@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import Iterable, List
 
-from koda import Result, Ok, Err
+from koda import Err, Ok, Result
 
 from koda_validate._cruft import _chain, _validate_and_map
-from koda_validate._generics import FailT, A
+from koda_validate._generics import A, FailT
 from koda_validate.serialization import JsonSerializable
-from koda_validate.typedefs import PredicateValidator, JO
+from koda_validate.typedefs import JO, PredicateValidator
 
 
 def expected(val: str) -> str:
@@ -15,7 +15,7 @@ def expected(val: str) -> str:
 
 
 def accum_errors(
-        val: A, validators: Iterable[PredicateValidator[A, FailT]]
+    val: A, validators: Iterable[PredicateValidator[A, FailT]]
 ) -> Result[A, List[FailT]]:
     errors: List[FailT] = []
     result: Result[A, FailT] = Ok(val)
@@ -32,7 +32,6 @@ def accum_errors(
         # has to be because there are no errors
         assert isinstance(result, Ok)
         return Ok(result.val)
-
 
 
 chain = _chain

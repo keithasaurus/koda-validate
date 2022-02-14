@@ -5,12 +5,18 @@ from decimal import Decimal as DecimalStdLib
 from typing import Any, Dict, List, Protocol, Tuple
 
 from koda.either import First, Second, Third
+from koda.maybe import Just, Maybe, nothing
+from koda.result import Err, Ok, Result
+
+from koda_validate.typedefs import JO, PredicateValidator
+from koda_validate.utils import unwrap_jsonable
 from koda_validate.validation import (
     BLANK_STRING_MSG,
     OBJECT_ERRORS_FIELD,
     ArrayOf,
     Boolean,
     Date,
+    Decimal,
     Email,
     Enum,
     Float,
@@ -50,12 +56,7 @@ from koda_validate.validation import (
     maybe_prop,
     prop,
     unique_items,
-    Decimal,
 )
-from koda_validate.utils import unwrap_jsonable
-from koda.maybe import Just, Maybe, nothing
-from koda.result import Err, Result, Ok
-from koda_validate.typedefs import PredicateValidator, JO
 
 
 def test_float() -> None:
@@ -84,26 +85,25 @@ def test_float() -> None:
         def err_message(self, val: float) -> JO:
             return JO("There should be a zero in the number")
 
-    assert Float(Minimum(2.5), Maximum(4.0), MustHaveAZeroSomewhere())(5.5) == err([
-        "maximum allowed value is 4.0", "There should be a zero in the number"
-    ])
+    assert Float(Minimum(2.5), Maximum(4.0), MustHaveAZeroSomewhere())(5.5) == err(
+        ["maximum allowed value is 4.0", "There should be a zero in the number"]
+    )
 
 
 def test_decimal() -> None:
-    assert Decimal()("a string") == err([
-        "expected a decimal-compatible string or integer"
-    ])
+    assert Decimal()("a string") == err(
+        ["expected a decimal-compatible string or integer"]
+    )
 
-    assert Decimal()(5.5) == err([
-        "expected a decimal-compatible string or integer"
-    ])
+    assert Decimal()(5.5) == err(["expected a decimal-compatible string or integer"])
 
     assert Decimal()(DecimalStdLib("5.5")) == Ok(DecimalStdLib("5.5"))
 
     assert Decimal()(5) == Ok(DecimalStdLib(5))
 
-    assert Decimal(Minimum(DecimalStdLib(4)),
-                   Maximum(DecimalStdLib("5.5")))(5) == Ok(DecimalStdLib(5))
+    assert Decimal(Minimum(DecimalStdLib(4)), Maximum(DecimalStdLib("5.5")))(5) == Ok(
+        DecimalStdLib(5)
+    )
 
 
 def test_boolean() -> None:
@@ -160,14 +160,9 @@ def test_integer() -> None:
         def err_message(self, val: int) -> JO:
             return JO("must be divisible by 2")
 
-    assert (
-            Integer(
-                Minimum(2),
-                Maximum(10),
-                DivisibleBy2(),
-            )(11)
-            == err(["maximum allowed value is 10", "must be divisible by 2"])
-    )
+    assert Integer(Minimum(2), Maximum(10), DivisibleBy2(),)(
+        11
+    ) == err(["maximum allowed value is 10", "must be divisible by 2"])
 
 
 def test_array_of() -> None:
@@ -216,7 +211,7 @@ def test_map_of() -> None:
             return JO(f"max {self.max} key(s) allowed")
 
     complex_validator = MapOf(String(MaxLength(4)), Integer(Minimum(5)), MaxKeys(1))
-    assert complex_validator({"key1": 10, "key1a": 2}, ) == err(
+    assert complex_validator({"key1": 10, "key1a": 2},) == err(
         {
             "key1a": ["minimum allowed value is 5"],
             "key1a (key)": ["maximum allowed length is 4"],
@@ -254,9 +249,9 @@ def test_string() -> None:
 
     min_len_3_not_blank_validator = String(MinLength(3), NotBlank())
 
-    assert min_len_3_not_blank_validator("") == err([
-        "minimum allowed length is 3", "cannot be blank"
-    ])
+    assert min_len_3_not_blank_validator("") == err(
+        ["minimum allowed length is 3", "cannot be blank"]
+    )
 
     assert min_len_3_not_blank_validator("   ") == err(["cannot be blank"])
 
@@ -370,9 +365,7 @@ def test_tuple2() -> None:
         {"index 0": ["expected a string"], "index 1": ["expected an integer"]}
     )
 
-    def must_be_a_if_integer_is_1(
-            ab: Tuple[str, int]
-    ) -> Result[Tuple[str, int], JO]:
+    def must_be_a_if_integer_is_1(ab: Tuple[str, int]) -> Result[Tuple[str, int], JO]:
         if ab[1] == 1:
             if ab[0] == "a":
                 return Ok(ab)
@@ -397,9 +390,7 @@ def test_tuple3() -> None:
         {"invalid type": ["expected array of length 3"]}
     )
 
-    assert Tuple3(String(), Integer(), Boolean())(["a", 1, False]) == Ok(
-        ("a", 1, False)
-    )
+    assert Tuple3(String(), Integer(), Boolean())(["a", 1, False]) == Ok(("a", 1, False))
 
     assert Tuple3(String(), Integer(), Boolean())([1, "a", 7.42]) == err(
         {
@@ -410,7 +401,7 @@ def test_tuple3() -> None:
     )
 
     def must_be_a_if_1_and_true(
-            abc: Tuple[str, int, bool]
+        abc: Tuple[str, int, bool]
     ) -> Result[Tuple[str, int, bool], JO]:
         if abc[1] == 1 and abc[2] is True:
             if abc[0] == "a":
@@ -455,7 +446,9 @@ def test_obj_2() -> None:
         name: str
         age: Maybe[int]
 
-    validator = Obj2Props(prop("name", String()), maybe_prop("age", Integer()), into=Person)
+    validator = Obj2Props(
+        prop("name", String()), maybe_prop("age", Integer()), into=Person
+    )
 
     assert validator("not a dict") == err({"__object__": ["expected an object"]})
 
@@ -505,7 +498,7 @@ _JONES_ERROR_MSG = {
 
 
 def _nobody_named_jones_has_brown_eyes(
-        person: PersonLike,
+    person: PersonLike,
 ) -> Result[PersonLike, JO]:
     if person.last_name.lower() == "jones" and person.eye_color == "brown":
         return err(_JONES_ERROR_MSG)
@@ -560,31 +553,25 @@ def test_obj_5() -> None:
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
-    assert (
-            validator(
-                {
-                    "first_name": "bob",
-                    "last_name": "smith",
-                    "age": 50,
-                    "eye color": "brown",
-                    "can-fly": True,
-                }
-            )
-            == Ok(Person("bob", "smith", 50, "brown", True))
-    )
+    assert validator(
+        {
+            "first_name": "bob",
+            "last_name": "smith",
+            "age": 50,
+            "eye color": "brown",
+            "can-fly": True,
+        }
+    ) == Ok(Person("bob", "smith", 50, "brown", True))
 
-    assert (
-            validator(
-                {
-                    "first_name": "bob",
-                    "last_name": "Jones",
-                    "age": 50,
-                    "eye color": "brown",
-                    "can-fly": True,
-                }
-            )
-            == err(_JONES_ERROR_MSG)
-    )
+    assert validator(
+        {
+            "first_name": "bob",
+            "last_name": "Jones",
+            "age": 50,
+            "eye color": "brown",
+            "can-fly": True,
+        }
+    ) == err(_JONES_ERROR_MSG)
 
     assert validator("") == err({"__object__": ["expected an object"]})
 
@@ -609,19 +596,16 @@ def test_obj_6() -> None:
         into=Person,
     )
 
-    assert (
-            validator(
-                {
-                    "first_name": "bob",
-                    "last_name": "smith",
-                    "age": 50,
-                    "eye color": "brown",
-                    "can-fly": True,
-                    "number_of_fingers": 6.5,
-                }
-            )
-            == Ok(Person("bob", "smith", 50, "brown", True, 6.5))
-    )
+    assert validator(
+        {
+            "first_name": "bob",
+            "last_name": "smith",
+            "age": 50,
+            "eye color": "brown",
+            "can-fly": True,
+            "number_of_fingers": 6.5,
+        }
+    ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5))
 
     assert validator("") == err({"__object__": ["expected an object"]})
 
@@ -648,20 +632,17 @@ def test_obj_7() -> None:
         into=Person,
     )
 
-    assert (
-            validator(
-                {
-                    "first_name": "bob",
-                    "last_name": "smith",
-                    "age": 50,
-                    "eye color": "brown",
-                    "can-fly": True,
-                    "number_of_fingers": 6.5,
-                    "number of toes": 9.8,
-                }
-            )
-            == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8))
-    )
+    assert validator(
+        {
+            "first_name": "bob",
+            "last_name": "smith",
+            "age": 50,
+            "eye color": "brown",
+            "can-fly": True,
+            "number_of_fingers": 6.5,
+            "number of toes": 9.8,
+        }
+    ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8))
 
     assert validator("") == err({"__object__": ["expected an object"]})
 
@@ -691,52 +672,43 @@ def test_obj_8() -> None:
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
-    assert (
-            validator(
-                {
-                    "first_name": "bob",
-                    "last_name": "smith",
-                    "age": 50,
-                    "eye color": "brown",
-                    "can-fly": True,
-                    "number_of_fingers": 6.5,
-                    "number of toes": 9.8,
-                    "favorite_color": "blue",
-                }
-            )
-            == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, Just("blue")))
-    )
+    assert validator(
+        {
+            "first_name": "bob",
+            "last_name": "smith",
+            "age": 50,
+            "eye color": "brown",
+            "can-fly": True,
+            "number_of_fingers": 6.5,
+            "number of toes": 9.8,
+            "favorite_color": "blue",
+        }
+    ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, Just("blue")))
 
-    assert (
-            validator(
-                {
-                    "first_name": "bob",
-                    "last_name": "smith",
-                    "age": 50,
-                    "eye color": "brown",
-                    "can-fly": True,
-                    "number_of_fingers": 6.5,
-                    "number of toes": 9.8,
-                }
-            )
-            == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, nothing))
-    )
+    assert validator(
+        {
+            "first_name": "bob",
+            "last_name": "smith",
+            "age": 50,
+            "eye color": "brown",
+            "can-fly": True,
+            "number_of_fingers": 6.5,
+            "number of toes": 9.8,
+        }
+    ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, nothing))
 
-    assert (
-            validator(
-                {
-                    "first_name": "bob",
-                    "last_name": "jones",
-                    "age": 50,
-                    "eye color": "brown",
-                    "can-fly": True,
-                    "number_of_fingers": 6.5,
-                    "number of toes": 9.8,
-                    "favorite_color": "blue",
-                }
-            )
-            == err(_JONES_ERROR_MSG)
-    )
+    assert validator(
+        {
+            "first_name": "bob",
+            "last_name": "jones",
+            "age": 50,
+            "eye color": "brown",
+            "can-fly": True,
+            "number_of_fingers": 6.5,
+            "number of toes": 9.8,
+            "favorite_color": "blue",
+        }
+    ) == err(_JONES_ERROR_MSG)
 
     assert validator("") == err({"__object__": ["expected an object"]})
 
@@ -768,22 +740,19 @@ def test_obj_9() -> None:
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
-    assert (
-            validator(
-                {
-                    "first_name": "bob",
-                    "last_name": "smith",
-                    "age": 50,
-                    "eye color": "brown",
-                    "can-fly": True,
-                    "number_of_fingers": 6.5,
-                    "number of toes": 9.8,
-                    "favorite_color": "blue",
-                    "requires_none": None,
-                }
-            )
-            == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, Just("blue"), None))
-    )
+    assert validator(
+        {
+            "first_name": "bob",
+            "last_name": "smith",
+            "age": 50,
+            "eye color": "brown",
+            "can-fly": True,
+            "number_of_fingers": 6.5,
+            "number of toes": 9.8,
+            "favorite_color": "blue",
+            "requires_none": None,
+        }
+    ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, Just("blue"), None))
 
     assert validator("") == err({"__object__": ["expected an object"]})
 
@@ -858,27 +827,22 @@ def test_unwrap_jsonable() -> None:
         4,
         4,
     )
-    assert (
-            unwrap_jsonable(
-                JO(
-                    [
-                        JO("a"),
-                        JO(5),
-                        JO({"some_key": JO(1), "other key": JO(None)}),
-                    ]
-                )
-            )
-            == ["a", 5, {"some_key": 1, "other key": None}]
-    )
+    assert unwrap_jsonable(
+        JO(
+            [
+                JO("a"),
+                JO(5),
+                JO({"some_key": JO(1), "other key": JO(None)}),
+            ]
+        )
+    ) == ["a", 5, {"some_key": 1, "other key": None}]
 
 
 def test_choices() -> None:
     validator = Enum({"a", "bc", "def"})
 
     assert validator("bc") == Ok("bc")
-    assert validator("not present") == Err(
-        JO("expected one of ['a', 'bc', 'def']")
-    )
+    assert validator("not present") == Err(JO("expected one of ['a', 'bc', 'def']"))
 
 
 def test_not_blank() -> None:
@@ -978,9 +942,7 @@ def test_lazy() -> None:
     )
 
     assert nel_validator({"val": 5, "next": {"val": 6, "next": {"val": 7}}}) == Ok(
-        TestNonEmptyList(
-            5, Just(TestNonEmptyList(6, Just(TestNonEmptyList(7, nothing))))
-        )
+        TestNonEmptyList(5, Just(TestNonEmptyList(6, Just(TestNonEmptyList(7, nothing)))))
     )
 
 
@@ -990,10 +952,7 @@ def test_unique_items() -> None:
     assert unique_items([1, 1]) == unique_fail
     assert unique_items([1, [], []]) == unique_fail
     assert unique_items([[], [1], [2]]) == Ok([[], [1], [2]])
-    assert (
-            unique_items(
-                [{"something": {"a": 1}}, {"something": {"a": 1}}]) == unique_fail
-    )
+    assert unique_items([{"something": {"a": 1}}, {"something": {"a": 1}}]) == unique_fail
 
 
 def test_regex_validator() -> None:

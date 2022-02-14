@@ -44,17 +44,20 @@ warn_unreachable = true
 
 [tool.pytest.ini_options]
 addopts ="""
-  --cov=koda
+  --cov=koda_validate
   --cov-report=term:skip-covered
   --cov-report=html
   --cov-branch
-  --cov-fail-under=100
+  --cov-fail-under=90
 """
 
 
 [tool.isort]
 line_length = 90
 profile = "black"
+
+[tool.black]
+line_length = 90
 
 
 [build-system]

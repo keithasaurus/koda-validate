@@ -1,7 +1,7 @@
 from json import dumps, loads
 from typing import Any, AnyStr, Dict, List, Tuple, TypeVar, Union
 
-from koda.result import Err, Result, Ok
+from koda.result import Err, Ok, Result
 
 A = TypeVar("A")
 

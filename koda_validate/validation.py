@@ -25,18 +25,19 @@ from typing import (
 
 from koda import compose, mapping_get, safe_try
 from koda.either import Either, Either3, First, Second, Third
-from koda.maybe import Just, Maybe, nothing, Nothing
-from koda.result import Err, Result, Ok
+from koda.maybe import Just, Maybe, Nothing, nothing
+from koda.result import Err, Ok, Result
 
-from koda_validate._cruft import _flat_map_same_type_if_not_none
-from koda_validate._cruft import _typed_tuple
+from koda_validate._cruft import _flat_map_same_type_if_not_none, _typed_tuple
 from koda_validate.serialization import JsonSerializable
 from koda_validate.typedefs import (
+    JO,
     PredicateValidator,
+    PredicateValidatorJO,
     TransformableValidator,
-    Validator, JO, PredicateValidatorJO,
+    Validator,
 )
-from koda_validate.utils import expected, validate_and_map, accum_errors, unwrap_jsonable
+from koda_validate.utils import accum_errors, expected, unwrap_jsonable, validate_and_map
 
 A = TypeVar("A")
 B = TypeVar("B")
@@ -206,9 +207,7 @@ class RegexValidator(PredicateValidatorJO[str]):
 
 @dataclass(frozen=True)
 class Email(PredicateValidatorJO[str]):
-    pattern: Pattern[str] = re.compile(
-        "[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+"
-    )
+    pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
 
     def is_valid(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
@@ -298,10 +297,10 @@ class MapOf(TransformableValidator[Any, Dict[A, B], JO]):
     """
 
     def __init__(
-            self,
-            key_validator: TransformableValidator[Any, A, JO],
-            value_validator: TransformableValidator[Any, B, JO],
-            *dict_validators: PredicateValidator[Dict[A, B], JO],
+        self,
+        key_validator: TransformableValidator[Any, A, JO],
+        value_validator: TransformableValidator[Any, B, JO],
+        *dict_validators: PredicateValidator[Dict[A, B], JO],
     ) -> None:
         self.key_validator = key_validator
         self.value_validator = value_validator
@@ -352,9 +351,9 @@ class MapOf(TransformableValidator[Any, Dict[A, B], JO]):
 
 class ArrayOf(TransformableValidator[Any, List[A], JO]):
     def __init__(
-            self,
-            item_validator: TransformableValidator[Any, A, JO],
-            *list_validators: PredicateValidator[List[Any], JO],
+        self,
+        item_validator: TransformableValidator[Any, A, JO],
+        *list_validators: PredicateValidator[List[Any], JO],
     ) -> None:
         self.item_validator = item_validator
         self.list_validators = list_validators
@@ -394,9 +393,9 @@ EnumT = TypeVar("EnumT", str, int)
 
 class Lazy(TransformableValidator[A, Ret, JO]):
     def __init__(
-            self,
-            validator: Callable[[], TransformableValidator[A, Ret, JO]],
-            recurrent: bool = True,
+        self,
+        validator: Callable[[], TransformableValidator[A, Ret, JO]],
+        recurrent: bool = True,
     ) -> None:
         """
         Args:
@@ -429,22 +428,22 @@ class Enum(PredicateValidatorJO[EnumT]):
 
 
 def err(
-        val: Union[
-            str,
-            int,
-            float,
-            bool,
-            None,
-            List["JO"],
-            Tuple["JO", ...],
-            Dict[str, "JO"],
-            # until we have recursive types, we should at least make
-            # it easy to create common types of error messages without needing to always
-            # use `Jsonable`
-            Dict[str, str],
-            Dict[str, List[str]],
-            List[str],
-        ]
+    val: Union[
+        str,
+        int,
+        float,
+        bool,
+        None,
+        List["JO"],
+        Tuple["JO", ...],
+        Dict[str, "JO"],
+        # until we have recursive types, we should at least make
+        # it easy to create common types of error messages without needing to always
+        # use `Jsonable`
+        Dict[str, str],
+        Dict[str, List[str]],
+        List[str],
+    ]
 ) -> Err[JO]:
     if isinstance(val, dict):
         ret: Dict[str, JO] = {}
@@ -463,11 +462,7 @@ def err(
                 ret[k] = JO(v)
         return Err(JO(ret))
     elif isinstance(val, list):
-        return Err(
-            JO(
-                [item if isinstance(item, JO) else JO(item) for item in val]
-            )
-        )
+        return Err(JO([item if isinstance(item, JO) else JO(item) for item in val]))
     else:
         return Err(JO(val))
 
@@ -476,7 +471,7 @@ KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, JO]]]
 
 
 def _validate_with_key(
-        r: KeyValidator[A], data: Dict[Any, Any]
+    r: KeyValidator[A], data: Dict[Any, Any]
 ) -> Result[A, Tuple[str, JO]]:
     key, fn = r
 
@@ -494,23 +489,21 @@ class IsObject(TransformableValidator[Any, Dict[Any, Any], JO]):
             return err({OBJECT_ERRORS_FIELD: [expected("an object")]})
 
 
-def _dict_without_extra_keys(
-        keys: Set[str], data: Any
-) -> Result[Dict[Any, Any], JO]:
+def _dict_without_extra_keys(keys: Set[str], data: Any) -> Result[Dict[Any, Any], JO]:
     return IsObject()(data).flat_map(_has_no_extra_keys(keys))
 
 
 class OneOf2(TransformableValidator[Any, Either[A, B], JO]):
     def __init__(
-            self,
-            variant_one: Union[
-                TransformableValidator[Any, A, JO],
-                Tuple[str, TransformableValidator[Any, A, JO]],
-            ],
-            variant_two: Union[
-                TransformableValidator[Any, B, JO],
-                Tuple[str, TransformableValidator[Any, B, JO]],
-            ],
+        self,
+        variant_one: Union[
+            TransformableValidator[Any, A, JO],
+            Tuple[str, TransformableValidator[Any, A, JO]],
+        ],
+        variant_two: Union[
+            TransformableValidator[Any, B, JO],
+            Tuple[str, TransformableValidator[Any, B, JO]],
+        ],
     ) -> None:
         if isinstance(variant_one, tuple):
             self.variant_one_label, self.variant_one = variant_one
@@ -545,19 +538,19 @@ class OneOf2(TransformableValidator[Any, Either[A, B], JO]):
 
 class OneOf3(TransformableValidator[Any, Either3[A, B, C], JO]):
     def __init__(
-            self,
-            variant_one: Union[
-                TransformableValidator[Any, A, JO],
-                Tuple[str, TransformableValidator[Any, A, JO]],
-            ],
-            variant_two: Union[
-                TransformableValidator[Any, B, JO],
-                Tuple[str, TransformableValidator[Any, B, JO]],
-            ],
-            variant_three: Union[
-                TransformableValidator[Any, C, JO],
-                Tuple[str, TransformableValidator[Any, C, JO]],
-            ],
+        self,
+        variant_one: Union[
+            TransformableValidator[Any, A, JO],
+            Tuple[str, TransformableValidator[Any, A, JO]],
+        ],
+        variant_two: Union[
+            TransformableValidator[Any, B, JO],
+            Tuple[str, TransformableValidator[Any, B, JO]],
+        ],
+        variant_three: Union[
+            TransformableValidator[Any, C, JO],
+            Tuple[str, TransformableValidator[Any, C, JO]],
+        ],
     ) -> None:
         if isinstance(variant_one, tuple):
             self.variant_one_label, self.variant_one = variant_one
@@ -610,12 +603,12 @@ class Tuple2(TransformableValidator[Any, Tuple[A, B], JO]):
     required_length: int = 2
 
     def __init__(
-            self,
-            slot1_validator: Callable[[Any], Result[A, JO]],
-            slot2_validator: Callable[[Any], Result[B, JO]],
-            tuple_validator: Optional[
-                Callable[[Tuple[A, B]], Result[Tuple[A, B], JO]]
-            ] = None,
+        self,
+        slot1_validator: Callable[[Any], Result[A, JO]],
+        slot2_validator: Callable[[Any], Result[B, JO]],
+        tuple_validator: Optional[
+            Callable[[Tuple[A, B]], Result[Tuple[A, B], JO]]
+        ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator
@@ -646,13 +639,13 @@ class Tuple3(TransformableValidator[Any, Tuple[A, B, C], JO]):
     required_length: int = 3
 
     def __init__(
-            self,
-            slot1_validator: Callable[[Any], Result[A, JO]],
-            slot2_validator: Callable[[Any], Result[B, JO]],
-            slot3_validator: Callable[[Any], Result[C, JO]],
-            tuple_validator: Optional[
-                Callable[[Tuple[A, B, C]], Result[Tuple[A, B, C], JO]]
-            ] = None,
+        self,
+        slot1_validator: Callable[[Any], Result[A, JO]],
+        slot2_validator: Callable[[Any], Result[B, JO]],
+        slot3_validator: Callable[[Any], Result[C, JO]],
+        tuple_validator: Optional[
+            Callable[[Tuple[A, B, C]], Result[Tuple[A, B, C], JO]]
+        ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator
@@ -737,7 +730,7 @@ class MaybeField(Generic[A]):
 
 
 def deserialize_and_validate(
-        validator: TransformableValidator[Any, A, JO], data: AnyStr
+    validator: TransformableValidator[Any, A, JO], data: AnyStr
 ) -> Result[A, JsonSerializable]:
     try:
         deserialized = loads(data)
@@ -818,13 +811,13 @@ Null = NullType()
 
 
 def prop(
-        prop_: str, validator: TransformableValidator[Any, A, JO]
+    prop_: str, validator: TransformableValidator[Any, A, JO]
 ) -> Tuple[str, Callable[[Any], Result[A, JO]]]:
     return prop_, RequiredField(validator)
 
 
 def maybe_prop(
-        prop_: str, validator: TransformableValidator[Any, A, JO]
+    prop_: str, validator: TransformableValidator[Any, A, JO]
 ) -> Tuple[str, Callable[[Any], Result[Maybe[A], JO]]]:
     return prop_, MaybeField(validator)
 
@@ -835,11 +828,11 @@ def _tuples_to_jo_dict(data: Tuple[Tuple[str, JO], ...]) -> JO:
 
 class Obj1Prop(Generic[A, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
-            self,
-            field1: KeyValidator[A],
-            *,
-            into: Callable[[A], Ret],
-            validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
+        self,
+        field1: KeyValidator[A],
+        *,
+        into: Callable[[A], Ret],
+        validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
     ) -> None:
         self.fields = (field1,)
         self.into = into
@@ -864,12 +857,12 @@ class Obj1Prop(Generic[A, Ret], TransformableValidator[Any, Ret, JO]):
 
 class Obj2Props(Generic[A, B, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
-            self,
-            field1: KeyValidator[A],
-            field2: KeyValidator[B],
-            *,
-            into: Callable[[A, B], Ret],
-            validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
+        self,
+        field1: KeyValidator[A],
+        field2: KeyValidator[B],
+        *,
+        into: Callable[[A, B], Ret],
+        validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -899,13 +892,13 @@ class Obj2Props(Generic[A, B, Ret], TransformableValidator[Any, Ret, JO]):
 
 class Obj3Props(Generic[A, B, C, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
-            self,
-            field1: KeyValidator[A],
-            field2: KeyValidator[B],
-            field3: KeyValidator[C],
-            *,
-            into: Callable[[A, B, C], Ret],
-            validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
+        self,
+        field1: KeyValidator[A],
+        field2: KeyValidator[B],
+        field3: KeyValidator[C],
+        *,
+        into: Callable[[A, B, C], Ret],
+        validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -937,14 +930,14 @@ class Obj3Props(Generic[A, B, C, Ret], TransformableValidator[Any, Ret, JO]):
 
 class Obj4Props(Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
-            self,
-            field1: KeyValidator[A],
-            field2: KeyValidator[B],
-            field3: KeyValidator[C],
-            field4: KeyValidator[D],
-            *,
-            into: Callable[[A, B, C, D], Ret],
-            validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
+        self,
+        field1: KeyValidator[A],
+        field2: KeyValidator[B],
+        field3: KeyValidator[C],
+        field4: KeyValidator[D],
+        *,
+        into: Callable[[A, B, C, D], Ret],
+        validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -978,15 +971,15 @@ class Obj4Props(Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, JO]):
 
 class Obj5Props(Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
-            self,
-            field1: KeyValidator[A],
-            field2: KeyValidator[B],
-            field3: KeyValidator[C],
-            field4: KeyValidator[D],
-            field5: KeyValidator[E],
-            *,
-            into: Callable[[A, B, C, D, E], Ret],
-            validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
+        self,
+        field1: KeyValidator[A],
+        field2: KeyValidator[B],
+        field3: KeyValidator[C],
+        field4: KeyValidator[D],
+        field5: KeyValidator[E],
+        *,
+        into: Callable[[A, B, C, D, E], Ret],
+        validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -1022,16 +1015,16 @@ class Obj5Props(Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, JO
 
 class Obj6Props(Generic[A, B, C, D, E, F, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
-            self,
-            field1: KeyValidator[A],
-            field2: KeyValidator[B],
-            field3: KeyValidator[C],
-            field4: KeyValidator[D],
-            field5: KeyValidator[E],
-            field6: KeyValidator[F],
-            *,
-            into: Callable[[A, B, C, D, E, F], Ret],
-            validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
+        self,
+        field1: KeyValidator[A],
+        field2: KeyValidator[B],
+        field3: KeyValidator[C],
+        field4: KeyValidator[D],
+        field5: KeyValidator[E],
+        field6: KeyValidator[F],
+        *,
+        into: Callable[[A, B, C, D, E, F], Ret],
+        validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -1067,21 +1060,19 @@ class Obj6Props(Generic[A, B, C, D, E, F, Ret], TransformableValidator[Any, Ret,
             )
 
 
-class Obj7Props(
-    Generic[A, B, C, D, E, F, G, Ret], TransformableValidator[Any, Ret, JO]
-):
+class Obj7Props(Generic[A, B, C, D, E, F, G, Ret], TransformableValidator[Any, Ret, JO]):
     def __init__(
-            self,
-            field1: KeyValidator[A],
-            field2: KeyValidator[B],
-            field3: KeyValidator[C],
-            field4: KeyValidator[D],
-            field5: KeyValidator[E],
-            field6: KeyValidator[F],
-            field7: KeyValidator[G],
-            *,
-            into: Callable[[A, B, C, D, E, F, G], Ret],
-            validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
+        self,
+        field1: KeyValidator[A],
+        field2: KeyValidator[B],
+        field3: KeyValidator[C],
+        field4: KeyValidator[D],
+        field5: KeyValidator[E],
+        field6: KeyValidator[F],
+        field7: KeyValidator[G],
+        *,
+        into: Callable[[A, B, C, D, E, F, G], Ret],
+        validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -1123,18 +1114,18 @@ class Obj8Props(
     Generic[A, B, C, D, E, F, G, H, Ret], TransformableValidator[Any, Ret, JO]
 ):
     def __init__(
-            self,
-            field1: KeyValidator[A],
-            field2: KeyValidator[B],
-            field3: KeyValidator[C],
-            field4: KeyValidator[D],
-            field5: KeyValidator[E],
-            field6: KeyValidator[F],
-            field7: KeyValidator[G],
-            field8: KeyValidator[H],
-            *,
-            into: Callable[[A, B, C, D, E, F, G, H], Ret],
-            validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
+        self,
+        field1: KeyValidator[A],
+        field2: KeyValidator[B],
+        field3: KeyValidator[C],
+        field4: KeyValidator[D],
+        field5: KeyValidator[E],
+        field6: KeyValidator[F],
+        field7: KeyValidator[G],
+        field8: KeyValidator[H],
+        *,
+        into: Callable[[A, B, C, D, E, F, G, H], Ret],
+        validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -1178,19 +1169,19 @@ class Obj9Props(
     Generic[A, B, C, D, E, F, G, H, I, Ret], TransformableValidator[Any, Ret, JO]
 ):
     def __init__(
-            self,
-            field1: KeyValidator[A],
-            field2: KeyValidator[B],
-            field3: KeyValidator[C],
-            field4: KeyValidator[D],
-            field5: KeyValidator[E],
-            field6: KeyValidator[F],
-            field7: KeyValidator[G],
-            field8: KeyValidator[H],
-            field9: KeyValidator[I],
-            *,
-            into: Callable[[A, B, C, D, E, F, G, H, I], Ret],
-            validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
+        self,
+        field1: KeyValidator[A],
+        field2: KeyValidator[B],
+        field3: KeyValidator[C],
+        field4: KeyValidator[D],
+        field5: KeyValidator[E],
+        field6: KeyValidator[F],
+        field7: KeyValidator[G],
+        field8: KeyValidator[H],
+        field9: KeyValidator[I],
+        *,
+        into: Callable[[A, B, C, D, E, F, G, H, I], Ret],
+        validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -1237,20 +1228,20 @@ class Obj10Props(
     TransformableValidator[Any, Ret, JO],
 ):
     def __init__(
-            self,
-            field1: KeyValidator[A],
-            field2: KeyValidator[B],
-            field3: KeyValidator[C],
-            field4: KeyValidator[D],
-            field5: KeyValidator[E],
-            field6: KeyValidator[F],
-            field7: KeyValidator[G],
-            field8: KeyValidator[H],
-            field9: KeyValidator[I],
-            field10: KeyValidator[J],
-            *,
-            into: Callable[[A, B, C, D, E, F, G, H, I, J], Ret],
-            validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
+        self,
+        field1: KeyValidator[A],
+        field2: KeyValidator[B],
+        field3: KeyValidator[C],
+        field4: KeyValidator[D],
+        field5: KeyValidator[E],
+        field6: KeyValidator[F],
+        field7: KeyValidator[G],
+        field8: KeyValidator[H],
+        field9: KeyValidator[I],
+        field10: KeyValidator[J],
+        *,
+        into: Callable[[A, B, C, D, E, F, G, H, I, J], Ret],
+        validate_object: Optional[Callable[[Ret], Result[Ret, JO]]] = None,
     ) -> None:
         self.fields = (
             field1,
