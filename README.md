@@ -13,6 +13,7 @@ from koda import Ok
 from koda_validate.validation import String, err
 
 string_validator = String()
+
 assert string_validator("s") == Ok("s")
 assert string_validator(None) == err(["expected a string"])
 ```
@@ -24,20 +25,22 @@ Testing if something is a string can be useful, but we often want to constrain v
 from koda import Ok
 from koda_validate.validation import String, err, not_blank, MinLength
 
-string_validator = String(not_blank,
-                          MinLength(5))
+string_validator = String(not_blank, MinLength(5))
 
 assert string_validator("  ") == err(["cannot be blank", "minimum allowed length is 5"])
 assert string_validator("long enough") == Ok("long enough")
 ```
 Note that we return errors from all failing value-level validators, instead of 
-failing on the first error. This is because of certain type-level guarantees within
+failing on the first error. This is possible because of certain type-level guarantees within
 Koda Validate, but we'll get into that later.
 
-For now, let's build a more interesting validator.
+One thing to note is that we can express validators with
+multiple acceptable types. A common need is to be able to express
+values that can be some concrete type or `None`. For this case we
+have `Nullable`
 
 ```python
-
+Nullable(Integer())
 ```
 
 

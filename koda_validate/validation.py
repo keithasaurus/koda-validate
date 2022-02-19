@@ -23,7 +23,7 @@ from typing import (
     Union,
 )
 
-from koda import compose, mapping_get, safe_try
+from koda import compose, identity, mapping_get, safe_try
 from koda.either import Either, Either3, First, Second, Third
 from koda.maybe import Just, Maybe, Nothing, nothing
 from koda.result import Err, Ok, Result
@@ -439,7 +439,7 @@ def err(
         Dict[str, "JO"],
         # until we have recursive types, we should at least make
         # it easy to create common types of error messages without needing to always
-        # use `Jsonable`
+        # use `JO`
         Dict[str, str],
         Dict[str, List[str]],
         List[str],
@@ -740,6 +740,10 @@ def deserialize_and_validate(
         return validator(deserialized).map_err(unwrap_jsonable)
 
 
+def _to_just(x: A) -> Maybe[A]:
+    return Just(x)
+
+
 class Nullable(TransformableValidator[Any, Maybe[A], JO]):
     """
     We have a value for a key, but it can be null (None)
@@ -752,7 +756,18 @@ class Nullable(TransformableValidator[Any, Maybe[A], JO]):
         if val is None:
             return Ok(nothing)
         else:
-            return self.validator(val).map(lambda x: Just(x))
+            result: Result[A, JO] = self.validator(val)
+            if isinstance(result, Ok):
+                return result.map(_to_just)
+            else:
+                return result.map_err(
+                    lambda errs: JO(
+                        {
+                            "None variant": JO([JO("must be None")]),
+                            "non-None variant": errs,
+                        }
+                    )
+                )
 
 
 Num = TypeVar("Num", int, float, DecimalStdLib)
