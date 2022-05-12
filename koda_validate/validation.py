@@ -12,6 +12,7 @@ from typing import (
     Callable,
     Final,
     Generic,
+    Iterable,
     Optional,
     Pattern,
     Set,
@@ -19,6 +20,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    cast,
 )
 
 from koda import mapping_get, safe_try
@@ -54,6 +56,15 @@ Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
 OBJECT_ERRORS_FIELD: Final[str] = "__object__"
+
+
+def accum_errors_jsonish(
+    val: A, validators: Iterable[PredicateValidator[A, Jsonish]]
+) -> Result[A, Jsonish]:
+    """
+    Helper that exists only because mypy is not always great at narrowing types
+    """
+    return cast(Result[A, Jsonish], accum_errors(val, validators))
 
 
 @dataclass(frozen=True)
@@ -175,7 +186,7 @@ class Boolean(TransformableValidator[Any, bool, Jsonish]):
 
     def __call__(self, val: Any) -> Result[bool, Jsonish]:
         if isinstance(val, bool):
-            return accum_errors(val, self.validators)
+            return accum_errors_jsonish(val, self.validators)
         else:
             return Err([expected("a boolean")])
 
@@ -186,7 +197,7 @@ class String(TransformableValidator[Any, str, Jsonish]):
 
     def __call__(self, val: Any) -> Result[str, Jsonish]:
         if isinstance(val, str):
-            return accum_errors(val, self.validators)
+            return accum_errors_jsonish(val, self.validators)
         else:
             return Err([expected("a string")])
 
@@ -220,7 +231,7 @@ class Integer(TransformableValidator[Any, int, Jsonish]):
     def __call__(self, val: Any) -> Result[int, Jsonish]:
         # can't use isinstance because it would return true for bools
         if type(val) == int:
-            return accum_errors(val, self.validators)
+            return accum_errors_jsonish(val, self.validators)
         else:
             return Err([expected("an integer")])
 
@@ -231,7 +242,7 @@ class Float(TransformableValidator[Any, float, Jsonish]):
 
     def __call__(self, val: Any) -> Result[float, Jsonish]:
         if isinstance(val, float):
-            return accum_errors(val, self.validators)
+            return accum_errors_jsonish(val, self.validators)
         else:
             return Err([expected("a float")])
 
@@ -281,10 +292,7 @@ class Date(TransformableValidator[Any, date, Jsonish]):
                 if isinstance(result, Err):
                     return fail_msg
                 else:
-                    final_result: Result[date, Jsonish] = accum_errors(
-                        result.val, self.validators
-                    )
-                    return final_result
+                    return accum_errors_jsonish(result.val, self.validators)
         else:
             return fail_msg
 
