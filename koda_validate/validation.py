@@ -694,7 +694,9 @@ class MaybeField(Generic[A]):
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Jsonish]:
         if isinstance(maybe_val, Just):
-            result: Result[Maybe[A], Jsonish] = self.validator(maybe_val.val).map(Just)
+            result: Result[Maybe[A], Jsonish] = self.validator(maybe_val.val).map(
+                _to_just
+            )
         else:
             result = Ok(maybe_val)
         return result
@@ -712,7 +714,14 @@ def deserialize_and_validate(
 
 
 def _to_just(x: A) -> Maybe[A]:
+    """
+    for pyright, as of 1.1.246
+    """
     return Just(x)
+
+
+def _variant_errors(*variants: Jsonish) -> Jsonish:
+    return {f"variant {i + 1}": v for i, v in enumerate(variants)}
 
 
 class Nullable(TransformableValidator[Any, Maybe[A], Jsonish]):
@@ -732,10 +741,7 @@ class Nullable(TransformableValidator[Any, Maybe[A], Jsonish]):
                 return result.map(_to_just)
             else:
                 return result.map_err(
-                    lambda errs: {
-                        "variant 1": ["must be None"],
-                        "variant 2": errs,
-                    }
+                    lambda errs: _variant_errors(["must be None"], errs)
                 )
 
 
