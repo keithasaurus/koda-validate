@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from dataclasses import dataclass
-from typing import Callable, Dict, Generic, List, Tuple, Union, final
+from typing import Any, Callable, Generic, Union, final
 
-from koda.result import Err, Ok, Result
+from koda import Err, Ok, Result
 
 from koda_validate._cruft import _Validator
 from koda_validate._generics import A, B, FailT
 
 Validator = _Validator[A, B, FailT]
+
 
 Predicate = Callable[[A], bool]
 
@@ -53,43 +53,23 @@ class PredicateValidator(Generic[A, FailT]):
             return Err(self.err_message(val))
 
 
-@dataclass(frozen=True)
-class JO:
-    """
-    JO => "Json Object" -- brief for less visual disruption. "Jsonable"
-    or "JSONObj" may be good candidates if explicitness is needed at some point.
-
-    We need to specifically define validators whose error messages can be
-    serialized into json. Because of a lack of feasibility recursive types
-    in both pyright and mypy (currently), as well as some issues working
-    with unions, we are currently defining This Jsonable type type.
-    """
-
-    val: Union[
-        str,
-        int,
-        float,
-        bool,
-        None,
-        Tuple["JO", ...],
-        List["JO"],
-        Dict[str, "JO"],
-    ]
+_Jsonish1 = Union[None, int, str, bool, float, list[Any], dict[str, Any]]
+Jsonish = Union[None, int, str, bool, float, list[_Jsonish1], dict[str, _Jsonish1]]
 
 
-class PredicateValidatorJO(PredicateValidator[A, JO]):
+class PredicateValidatorJson(PredicateValidator[A, Jsonish]):
     """
     This class only exists as a convenience. If the error
     messages you're writing are `str`, you can override
     `err_message_str` method and simply return a string.
 
     Otherwise you can override the `err_message` method
-    and return any kind of `JO`
+    and return any kind of `Jsonish`
     """
 
     @abstractmethod
     def err_message_str(self, val: A) -> str:
         raise NotImplementedError
 
-    def err_message(self, val: A) -> JO:
-        return JO(self.err_message_str(val))
+    def err_message(self, val: A) -> Jsonish:
+        return self.err_message_str(val)
