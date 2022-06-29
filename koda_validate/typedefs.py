@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Callable, Generic, Union, final
 
-from koda import Err, Ok, Result
+from koda import Result, err, ok
 
 from koda_validate._cruft import _Validator
 from koda_validate._generics import A, B, FailT
@@ -48,9 +48,9 @@ class PredicateValidator(Generic[A, FailT]):
     @final
     def __call__(self, val: A) -> Result[A, FailT]:
         if self.is_valid(val) is True:
-            return Ok(val)
+            return ok(val)
         else:
-            return Err(self.err_message(val))
+            return err(self.err_message(val))
 
 
 _Jsonish1 = Union[None, int, str, bool, float, list[Any], dict[str, Any]]

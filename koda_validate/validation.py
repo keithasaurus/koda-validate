@@ -23,10 +23,24 @@ from typing import (
     cast,
 )
 
-from koda import mapping_get, safe_try
-from koda.either import Either, Either3, First, Second, Third
-from koda.maybe import Just, Maybe, Nothing, nothing
-from koda.result import Err, Ok, Result
+from koda import (
+    Either,
+    Either3,
+    Err,
+    First,
+    Just,
+    Maybe,
+    Ok,
+    Result,
+    Second,
+    Third,
+    err,
+    just,
+    mapping_get,
+    nothing,
+    ok,
+    safe_try,
+)
 
 from koda_validate._cruft import _flat_map_same_type_if_not_none, _typed_tuple
 from koda_validate.typedefs import (
@@ -188,7 +202,7 @@ class Boolean(TransformableValidator[Any, bool, Jsonish]):
         if isinstance(val, bool):
             return accum_errors_jsonish(val, self.validators)
         else:
-            return Err([expected("a boolean")])
+            return err([expected("a boolean")])
 
 
 class String(TransformableValidator[Any, str, Jsonish]):
@@ -199,7 +213,7 @@ class String(TransformableValidator[Any, str, Jsonish]):
         if isinstance(val, str):
             return accum_errors_jsonish(val, self.validators)
         else:
-            return Err([expected("a string")])
+            return err([expected("a string")])
 
 
 @dataclass(frozen=True)
@@ -233,7 +247,7 @@ class Integer(TransformableValidator[Any, int, Jsonish]):
         if type(val) == int:
             return accum_errors_jsonish(val, self.validators)
         else:
-            return Err([expected("an integer")])
+            return err([expected("an integer")])
 
 
 class Float(TransformableValidator[Any, float, Jsonish]):
@@ -244,7 +258,7 @@ class Float(TransformableValidator[Any, float, Jsonish]):
         if isinstance(val, float):
             return accum_errors_jsonish(val, self.validators)
         else:
-            return Err([expected("a float")])
+            return err([expected("a float")])
 
 
 class Decimal(TransformableValidator[Any, DecimalStdLib, Jsonish]):
@@ -254,14 +268,14 @@ class Decimal(TransformableValidator[Any, DecimalStdLib, Jsonish]):
     def __call__(self, val: Any) -> Result[DecimalStdLib, Jsonish]:
         expected_msg = expected("a decimal-compatible string or integer")
         if isinstance(val, DecimalStdLib):
-            return Ok(val)
+            return ok(val)
         elif isinstance(val, (str, int)):
             try:
-                return Ok(DecimalStdLib(val))
+                return ok(DecimalStdLib(val))
             except decimal.InvalidOperation:
-                return Err([expected_msg])
+                return err([expected_msg])
         else:
-            return Err([expected_msg])
+            return err([expected_msg])
 
 
 def _safe_try_int(val: Any) -> Result[int, Exception]:
@@ -277,7 +291,7 @@ class Date(TransformableValidator[Any, date, Jsonish]):
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[date, Jsonish]:
-        fail_msg: Result[date, Jsonish] = Err(["expected date formatted as yyyy-mm-dd"])
+        fail_msg: Result[date, Jsonish] = err(["expected date formatted as yyyy-mm-dd"])
         if isinstance(val, str):
             try:
                 year, month, day = val.split("-")
@@ -289,7 +303,7 @@ class Date(TransformableValidator[Any, date, Jsonish]):
                 result = validate_and_map(
                     _safe_try_int(year), _safe_try_int(month), _safe_try_int(day), date
                 )
-                if isinstance(result, Err):
+                if isinstance(result.val, Err):
                     return fail_msg
                 else:
                     return accum_errors_jsonish(result.val, self.validators)
@@ -322,14 +336,14 @@ class MapOf(TransformableValidator[Any, dict[A, B], Jsonish]):
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val)
 
-                if isinstance(key_result, Ok) and isinstance(val_result, Ok):
-                    return_dict[key_result.val] = val_result.val
+                if isinstance(key_result.val, Ok) and isinstance(val_result.val, Ok):
+                    return_dict[key_result.val.val] = val_result.val.val
                 else:
-                    if isinstance(key_result, Err):
-                        errors[f"{key} (key)"] = key_result.val
+                    if isinstance(key_result.val, Err):
+                        errors[f"{key} (key)"] = key_result.val.val
 
-                    if isinstance(val_result, Err):
-                        errors[key] = val_result.val
+                    if isinstance(val_result.val, Err):
+                        errors[key] = val_result.val.val
 
             dict_validator_errors: list[Jsonish] = []
             for validator in self.dict_validators:
@@ -339,7 +353,7 @@ class MapOf(TransformableValidator[Any, dict[A, B], Jsonish]):
                 # an incorrect assumption; if so, some minor refactoring is probably
                 # necessary.
                 result = validator(data)
-                if isinstance(result, Err):
+                if isinstance(result.val, Err):
                     dict_validator_errors.append(result.val)
 
             if len(dict_validator_errors) > 0:
@@ -350,11 +364,11 @@ class MapOf(TransformableValidator[Any, dict[A, B], Jsonish]):
                 errors[OBJECT_ERRORS_FIELD] = dict_validator_errors
 
             if errors:
-                return Err(errors)
+                return err(errors)
             else:
-                return Ok(return_dict)
+                return ok(return_dict)
         else:
-            return Err({"invalid type": [expected("a map")]})
+            return err({"invalid type": [expected("a map")]})
 
 
 class ArrayOf(TransformableValidator[Any, list[A], Jsonish]):
@@ -375,7 +389,7 @@ class ArrayOf(TransformableValidator[Any, list[A], Jsonish]):
             for validator in self.list_validators:
                 result = validator(val)
 
-                if isinstance(result, Err):
+                if isinstance(result.val, Err):
                     list_errors.append(result.val)
 
             if len(list_errors) > 0:
@@ -389,11 +403,11 @@ class ArrayOf(TransformableValidator[Any, list[A], Jsonish]):
                     errors[f"index {i}"] = item_result.val
 
             if len(errors) > 0:
-                return Err(errors)
+                return err(errors)
             else:
-                return Ok(return_list)
+                return ok(return_list)
         else:
-            return Err({"invalid type": [expected("an array")]})
+            return err({"invalid type": [expected("an array")]})
 
 
 EnumT = TypeVar("EnumT", str, int)
@@ -436,12 +450,12 @@ class Enum(PredicateValidatorJson[EnumT]):
         return f"expected one of {sorted(self.choices)}"
 
 
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Jsonish]]]
+KeyValidator = tuple[str, Callable[[Maybe[Any]], Result[A, Jsonish]]]
 
 
 def _validate_with_key(
     r: KeyValidator[A], data: dict[Any, Any]
-) -> Result[A, Tuple[str, Jsonish]]:
+) -> Result[A, tuple[str, Jsonish]]:
     key, fn = r
 
     def add_key(val: Jsonish) -> Tuple[str, Jsonish]:
@@ -453,9 +467,9 @@ def _validate_with_key(
 class IsObject(TransformableValidator[Any, dict[Any, Any], Jsonish]):
     def __call__(self, val: Any) -> Result[dict[Any, Any], Jsonish]:
         if isinstance(val, dict):
-            return Ok(val)
+            return ok(val)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("an object")]})
+            return err({OBJECT_ERRORS_FIELD: [expected("an object")]})
 
 
 def _dict_without_extra_keys(
@@ -492,14 +506,14 @@ class OneOf2(TransformableValidator[Any, Either[A, B], Jsonish]):
         v1_result = self.variant_one(val)
 
         if isinstance(v1_result, Ok):
-            return Ok(First(v1_result.val))
+            return ok(First(v1_result.val))
         else:
             v2_result = self.variant_two(val)
 
             if isinstance(v2_result, Ok):
-                return Ok(Second(v2_result.val))
+                return ok(Second(v2_result.val))
             else:
-                return Err(
+                return err(
                     {
                         self.variant_one_label: v1_result.val,
                         self.variant_two_label: v2_result.val,
@@ -545,19 +559,19 @@ class OneOf3(TransformableValidator[Any, Either3[A, B, C], Jsonish]):
         v1_result = self.variant_one(val)
 
         if isinstance(v1_result, Ok):
-            return Ok(First(v1_result.val))
+            return ok(First(v1_result.val))
         else:
             v2_result = self.variant_two(val)
 
             if isinstance(v2_result, Ok):
-                return Ok(Second(v2_result.val))
+                return ok(Second(v2_result.val))
             else:
                 v3_result = self.variant_three(val)
 
                 if isinstance(v3_result, Ok):
-                    return Ok(Third(v3_result.val))
+                    return ok(Third(v3_result.val))
                 else:
-                    return Err(
+                    return err(
                         {
                             self.variant_one_label: v1_result.val,
                             self.variant_two_label: v2_result.val,
@@ -593,7 +607,7 @@ class Tuple2(TransformableValidator[Any, Tuple[A, B], Jsonish]):
                 _typed_tuple,
             )
 
-            if isinstance(result, Err):
+            if isinstance(result.val, Err):
                 return result.map_err(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
@@ -601,7 +615,7 @@ class Tuple2(TransformableValidator[Any, Tuple[A, B], Jsonish]):
                 else:
                     return result.flat_map(self.tuple_validator)
         else:
-            return Err(
+            return err(
                 {"invalid type": [f"expected array of length {self.required_length}"]}
             )
 
@@ -632,7 +646,7 @@ class Tuple3(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
                 _typed_tuple,
             )
 
-            if isinstance(result, Err):
+            if isinstance(result.val, Err):
                 return result.map_err(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
@@ -640,7 +654,7 @@ class Tuple3(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
                 else:
                     return result.flat_map(self.tuple_validator)
         else:
-            return Err(
+            return err(
                 {"invalid type": [f"expected array of length {self.required_length}"]}
             )
 
@@ -648,7 +662,7 @@ class Tuple3(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
 def _has_no_extra_keys(keys: Set[str]) -> Validator[dict[A, B], dict[A, B], Jsonish]:
     def inner(mapping: dict[A, B]) -> Result[dict[A, B], Jsonish]:
         if len(mapping.keys() - keys) > 0:
-            return Err(
+            return err(
                 {
                     OBJECT_ERRORS_FIELD: [
                         f"Received unknown keys. Only expected {sorted(keys)}"
@@ -656,7 +670,7 @@ def _has_no_extra_keys(keys: Set[str]) -> Validator[dict[A, B], dict[A, B], Json
                 }
             )
         else:
-            return Ok(mapping)
+            return ok(mapping)
 
     return inner
 
@@ -683,7 +697,7 @@ class RequiredField(Generic[A]):
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Jsonish]:
         if isinstance(maybe_val, Nothing):
-            return Err([_KEY_MISSING])
+            return err([_KEY_MISSING])
         else:
             return self.validator(maybe_val.val)
 
@@ -693,12 +707,12 @@ class MaybeField(Generic[A]):
         self.validator = validator
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Jsonish]:
-        if isinstance(maybe_val, Just):
+        if isinstance(maybe_val.val, Just):
             result: Result[Maybe[A], Jsonish] = self.validator(maybe_val.val).map(
                 _to_just
             )
         else:
-            result = Ok(maybe_val)
+            result = ok(maybe_val)
         return result
 
 
@@ -708,7 +722,7 @@ def deserialize_and_validate(
     try:
         deserialized = loads(data)
     except Exception:
-        return Err({"bad data": "invalid json"})
+        return err({"bad data": "invalid json"})
     else:
         return validator(deserialized)
 
@@ -717,7 +731,7 @@ def _to_just(x: A) -> Maybe[A]:
     """
     for pyright, as of 1.1.246
     """
-    return Just(x)
+    return just(x)
 
 
 def _variant_errors(*variants: Jsonish) -> Jsonish:
@@ -734,7 +748,7 @@ class Nullable(TransformableValidator[Any, Maybe[A], Jsonish]):
 
     def __call__(self, val: Optional[Any]) -> Result[Maybe[A], Jsonish]:
         if val is None:
-            return Ok(nothing)
+            return ok(nothing)
         else:
             result: Result[A, Jsonish] = self.validator(val)
             if isinstance(result, Ok):
@@ -792,9 +806,9 @@ class MultipleOf(PredicateValidatorJson[Num]):
 class NullType(TransformableValidator[Any, None, Jsonish]):
     def __call__(self, val: Any) -> Result[None, Jsonish]:
         if val is None:
-            return Ok(val)
+            return ok(val)
         else:
-            return Err([expected("null")])
+            return err([expected("null")])
 
 
 Null = NullType()
@@ -834,7 +848,7 @@ class Obj1Prop(Generic[A, Ret], TransformableValidator[Any, Ret, Jsonish]):
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result, Err):
+        if isinstance(result.val, Err):
             return result
         else:
             result_1 = validate_and_map(
@@ -867,7 +881,7 @@ class Obj2Props(Generic[A, B, Ret], TransformableValidator[Any, Ret, Jsonish]):
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result, Err):
+        if isinstance(result.val, Err):
             return result
         else:
             result_1 = validate_and_map(
@@ -904,7 +918,7 @@ class Obj3Props(Generic[A, B, C, Ret], TransformableValidator[Any, Ret, Jsonish]
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result, Err):
+        if isinstance(result.val, Err):
             return result
         else:
             result_1 = validate_and_map(
@@ -944,7 +958,7 @@ class Obj4Props(Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, Jsoni
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result, Err):
+        if isinstance(result.val, Err):
             return result
         else:
             result_1 = validate_and_map(
@@ -987,7 +1001,7 @@ class Obj5Props(Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, Js
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result, Err):
+        if isinstance(result.val, Err):
             return result
         else:
             result_1 = validate_and_map(
@@ -1035,7 +1049,7 @@ class Obj6Props(
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result, Err):
+        if isinstance(result.val, Err):
             return result
         else:
             result_1 = validate_and_map(
@@ -1086,7 +1100,7 @@ class Obj7Props(
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result, Err):
+        if isinstance(result.val, Err):
             return result
         else:
             result_1 = validate_and_map(
@@ -1140,7 +1154,7 @@ class Obj8Props(
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result, Err):
+        if isinstance(result.val, Err):
             return result
         else:
             result_1 = validate_and_map(
@@ -1197,7 +1211,7 @@ class Obj9Props(
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result, Err):
+        if isinstance(result.val, Err):
             return result
         else:
             result_1 = validate_and_map(
@@ -1258,7 +1272,7 @@ class Obj10Props(
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result, Err):
+        if isinstance(result.val, Err):
             return result
         else:
             result_1 = validate_and_map(

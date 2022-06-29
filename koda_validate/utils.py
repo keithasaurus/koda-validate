@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from koda import Err, Ok, Result
+from koda import Err, Ok, Result, err, ok
 
 from koda_validate._cruft import _chain, _validate_and_map
 from koda_validate._generics import A, FailT
@@ -20,17 +20,17 @@ def accum_errors(
     result: Result[A, FailT] = Ok(val)
     for validator in validators:
         result = validator(val)
-        if isinstance(result, Err):
-            errors.append(result.val)
+        if isinstance(result.val, Err):
+            errors.append(result.val.val)
         else:
-            val = result.val
+            val = result.val.val
 
     if len(errors) > 0:
-        return Err(errors)
+        return err(errors)
     else:
         # has to be because there are no errors
-        assert isinstance(result, Ok)
-        return Ok(result.val)
+        assert isinstance(result.val, Ok)
+        return ok(result.val)
 
 
 chain = _chain

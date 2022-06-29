@@ -3,9 +3,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import List, Set, TypeVar
 
-from koda.either import First, Second, Third
-from koda.maybe import Just, Maybe, nothing
-from koda.result import Ok
+from koda import First, Maybe, Second, Third, err, just, nothing, ok
 
 from koda_validate.openapi import generate_schema
 from koda_validate.validation import (
@@ -148,9 +146,9 @@ def test_cities() -> None:
             "Oakland": {"population": 450000, "state": "CA"},
             "San Francisco": {"population": None, "state": "CA"},
         }
-    ) == Ok(
+    ) == ok(
         {
-            "Oakland": CityInfo(Just(450000), "CA"),
+            "Oakland": CityInfo(just(450000), "CA"),
             "San Francisco": CityInfo(nothing, "CA"),
         }
     )
@@ -204,11 +202,11 @@ def test_auth_creds() -> None:
     validator_one_of_2 = OneOf2(username_creds_validator, email_creds_validator)
 
     # sanity check
-    assert validator_one_of_2({"username": "a", "password": "b"}) == Ok(
+    assert validator_one_of_2({"username": "a", "password": "b"}) == ok(
         First(UsernameCreds("a", "b"))
     )
 
-    assert validator_one_of_2({"email": "a@example.com", "password": "b"}) == Ok(
+    assert validator_one_of_2({"email": "a@example.com", "password": "b"}) == ok(
         Second(EmailCreds("a@example.com", "b"))
     )
 
@@ -248,7 +246,7 @@ def test_auth_creds() -> None:
     )
 
     # sanity
-    assert validator_one_of_3({"token": "abcdefghijklmnopqrstuvwxyz123456"}) == Ok(
+    assert validator_one_of_3({"token": "abcdefghijklmnopqrstuvwxyz123456"}) == ok(
         Third(Token("abcdefghijklmnopqrstuvwxyz123456"))
     )
 
@@ -290,7 +288,7 @@ def test_forecast() -> None:
     validator = MapOf(Date(), Float())
 
     # sanity
-    assert validator({"2021-04-06": 55.5, "2021-04-07": 57.9}) == Ok(
+    assert validator({"2021-04-06": 55.5, "2021-04-07": 57.9}) == ok(
         {date(2021, 4, 6): 55.5, date(2021, 4, 7): 57.9}
     )
 
@@ -303,7 +301,7 @@ def test_tuples() -> None:
     validator = Tuple2(String(not_blank), Tuple3(String(), Integer(), Boolean()))
 
     # sanity check
-    assert validator(["ok", ["", 0, False]]) == Ok(("ok", ("", 0, False)))
+    assert validator(["ok", ["", 0, False]]) == ok(("ok", ("", 0, False)))
 
     assert generate_schema("Tuples", validator) == {
         "Tuples": {
