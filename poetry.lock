@@ -154,12 +154,7 @@ version = "0.11.0"
 description = "Type-safe functional tools for Python"
 category = "main"
 optional = false
-python-versions = "^3.10"
-develop = true
-
-[package.source]
-type = "directory"
-url = "../koda"
+python-versions = ">=3.8,<4.0"
 
 [[package]]
 name = "mccabe"
@@ -409,7 +404,7 @@ testing = ["coverage (>=4)", "coverage-enable-subprocess (>=1)", "flaky (>=3)", 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "fc46c1c4f82cbd96c4440f9a7c7e51fab4b070abd709124505607dac19bdd940"
+content-hash = "316605068b105dda69b747d8aea50d64b8c073c3ab3d2607ab10920c909af16e"
 
 [metadata.files]
 atomicwrites = [
@@ -524,7 +519,10 @@ isort = [
     {file = "isort-5.10.1-py3-none-any.whl", hash = "sha256:6f62d78e2f89b4500b080fe3a81690850cd254227f27f75c3a0c491a1f351ba7"},
     {file = "isort-5.10.1.tar.gz", hash = "sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951"},
 ]
-koda = []
+koda = [
+    {file = "koda-0.11.0-py3-none-any.whl", hash = "sha256:6d822a92534040a9d1e4e0b19fbb00a14e1098df39281aa10965a7118eb8fc08"},
+    {file = "koda-0.11.0.tar.gz", hash = "sha256:16429246236566ab3ea3519db5996324058cd9e5dbaf64797b43e93bb803985e"},
+]
 mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
     {file = "mccabe-0.6.1.tar.gz", hash = "sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f"},
