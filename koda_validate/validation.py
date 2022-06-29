@@ -15,8 +15,6 @@ from typing import (
     Iterable,
     Optional,
     Pattern,
-    Set,
-    Tuple,
     Type,
     TypeVar,
     Union,
@@ -41,6 +39,7 @@ from koda import (
     ok,
     safe_try,
 )
+from koda.maybe import Nothing
 
 from koda_validate._cruft import _flat_map_same_type_if_not_none, _typed_tuple
 from koda_validate.typedefs import (
@@ -167,9 +166,9 @@ class MaxProperties(PredicateValidatorJson[dict[Any, Any]]):
 
 class UniqueItems(PredicateValidatorJson[list[Any]]):
     def is_valid(self, val: list[Any]) -> bool:
-        hashable_items: Set[Tuple[Type[Any], Any]] = set()
+        hashable_items: set[tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables
-        unhashable_items: list[Tuple[Type[Any], Any]] = []
+        unhashable_items: list[tuple[Type[Any], Any]] = []
         for item in val:
             # needed to tell difference between things like
             # ints and bools
@@ -303,10 +302,10 @@ class Date(TransformableValidator[Any, date, Jsonish]):
                 result = validate_and_map(
                     _safe_try_int(year), _safe_try_int(month), _safe_try_int(day), date
                 )
-                if isinstance(result.val, Err):
+                if isinstance(result.variant, Err):
                     return fail_msg
                 else:
-                    return accum_errors_jsonish(result.val, self.validators)
+                    return accum_errors_jsonish(result.variant.val, self.validators)
         else:
             return fail_msg
 
@@ -336,14 +335,16 @@ class MapOf(TransformableValidator[Any, dict[A, B], Jsonish]):
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val)
 
-                if isinstance(key_result.val, Ok) and isinstance(val_result.val, Ok):
-                    return_dict[key_result.val.val] = val_result.val.val
+                if isinstance(key_result.variant.val, Ok) and isinstance(
+                    val_result.variant.val, Ok
+                ):
+                    return_dict[key_result.variant.val.val] = val_result.variant.val.val
                 else:
-                    if isinstance(key_result.val, Err):
-                        errors[f"{key} (key)"] = key_result.val.val
+                    if isinstance(key_result.variant.val, Err):
+                        errors[f"{key} (key)"] = key_result.variant.val.val
 
-                    if isinstance(val_result.val, Err):
-                        errors[key] = val_result.val.val
+                    if isinstance(val_result.variant.val, Err):
+                        errors[key] = val_result.variant.val.val
 
             dict_validator_errors: list[Jsonish] = []
             for validator in self.dict_validators:
@@ -353,8 +354,8 @@ class MapOf(TransformableValidator[Any, dict[A, B], Jsonish]):
                 # an incorrect assumption; if so, some minor refactoring is probably
                 # necessary.
                 result = validator(data)
-                if isinstance(result.val, Err):
-                    dict_validator_errors.append(result.val)
+                if isinstance(result.variant, Err):
+                    dict_validator_errors.append(result.variant.val)
 
             if len(dict_validator_errors) > 0:
                 # in case somehow there are already errors in this field
@@ -389,8 +390,8 @@ class ArrayOf(TransformableValidator[Any, list[A], Jsonish]):
             for validator in self.list_validators:
                 result = validator(val)
 
-                if isinstance(result.val, Err):
-                    list_errors.append(result.val)
+                if isinstance(result.variant, Err):
+                    list_errors.append(result.variant.val)
 
             if len(list_errors) > 0:
                 errors["__array__"] = list_errors
@@ -398,9 +399,9 @@ class ArrayOf(TransformableValidator[Any, list[A], Jsonish]):
             for i, item in enumerate(val):
                 item_result = self.item_validator(item)
                 if isinstance(item_result, Ok):
-                    return_list.append(item_result.val)
+                    return_list.append(item_result.variant.val)
                 else:
-                    errors[f"index {i}"] = item_result.val
+                    errors[f"index {i}"] = item_result.variant.val
 
             if len(errors) > 0:
                 return err(errors)
@@ -440,8 +441,8 @@ class Enum(PredicateValidatorJson[EnumT]):
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
-    def __init__(self, choices: Set[EnumT]) -> None:
-        self.choices: Set[EnumT] = choices
+    def __init__(self, choices: set[EnumT]) -> None:
+        self.choices: set[EnumT] = choices
 
     def is_valid(self, val: EnumT) -> bool:
         return val in self.choices
@@ -458,7 +459,7 @@ def _validate_with_key(
 ) -> Result[A, tuple[str, Jsonish]]:
     key, fn = r
 
-    def add_key(val: Jsonish) -> Tuple[str, Jsonish]:
+    def add_key(val: Jsonish) -> tuple[str, Jsonish]:
         return key, val
 
     return fn(mapping_get(data, key)).map_err(add_key)
@@ -473,7 +474,7 @@ class IsObject(TransformableValidator[Any, dict[Any, Any], Jsonish]):
 
 
 def _dict_without_extra_keys(
-    keys: Set[str], data: Any
+    keys: set[str], data: Any
 ) -> Result[dict[Any, Any], Jsonish]:
     return IsObject()(data).flat_map(_has_no_extra_keys(keys))
 
@@ -483,11 +484,11 @@ class OneOf2(TransformableValidator[Any, Either[A, B], Jsonish]):
         self,
         variant_one: Union[
             TransformableValidator[Any, A, Jsonish],
-            Tuple[str, TransformableValidator[Any, A, Jsonish]],
+            tuple[str, TransformableValidator[Any, A, Jsonish]],
         ],
         variant_two: Union[
             TransformableValidator[Any, B, Jsonish],
-            Tuple[str, TransformableValidator[Any, B, Jsonish]],
+            tuple[str, TransformableValidator[Any, B, Jsonish]],
         ],
     ) -> None:
         if isinstance(variant_one, tuple):
@@ -506,17 +507,17 @@ class OneOf2(TransformableValidator[Any, Either[A, B], Jsonish]):
         v1_result = self.variant_one(val)
 
         if isinstance(v1_result, Ok):
-            return ok(First(v1_result.val))
+            return ok(First(v1_result.variant.val))
         else:
             v2_result = self.variant_two(val)
 
             if isinstance(v2_result, Ok):
-                return ok(Second(v2_result.val))
+                return ok(Second(v2_result.variant.val))
             else:
                 return err(
                     {
-                        self.variant_one_label: v1_result.val,
-                        self.variant_two_label: v2_result.val,
+                        self.variant_one_label: v1_result.variant.val,
+                        self.variant_two_label: v2_result.variant.val,
                     }
                 )
 
@@ -526,15 +527,15 @@ class OneOf3(TransformableValidator[Any, Either3[A, B, C], Jsonish]):
         self,
         variant_one: Union[
             TransformableValidator[Any, A, Jsonish],
-            Tuple[str, TransformableValidator[Any, A, Jsonish]],
+            tuple[str, TransformableValidator[Any, A, Jsonish]],
         ],
         variant_two: Union[
             TransformableValidator[Any, B, Jsonish],
-            Tuple[str, TransformableValidator[Any, B, Jsonish]],
+            tuple[str, TransformableValidator[Any, B, Jsonish]],
         ],
         variant_three: Union[
             TransformableValidator[Any, C, Jsonish],
-            Tuple[str, TransformableValidator[Any, C, Jsonish]],
+            tuple[str, TransformableValidator[Any, C, Jsonish]],
         ],
     ) -> None:
         if isinstance(variant_one, tuple):
@@ -558,33 +559,33 @@ class OneOf3(TransformableValidator[Any, Either3[A, B, C], Jsonish]):
     def __call__(self, val: Any) -> Result[Either3[A, B, C], Jsonish]:
         v1_result = self.variant_one(val)
 
-        if isinstance(v1_result, Ok):
-            return ok(First(v1_result.val))
+        if isinstance(v1_result.variant, Ok):
+            return ok(First(v1_result.variant.val))
         else:
             v2_result = self.variant_two(val)
 
-            if isinstance(v2_result, Ok):
-                return ok(Second(v2_result.val))
+            if isinstance(v2_result.variant, Ok):
+                return ok(Second(v2_result.variant.val))
             else:
                 v3_result = self.variant_three(val)
 
-                if isinstance(v3_result, Ok):
-                    return ok(Third(v3_result.val))
+                if isinstance(v3_result.variant, Ok):
+                    return ok(Third(v3_result.variant.val))
                 else:
                     return err(
                         {
-                            self.variant_one_label: v1_result.val,
-                            self.variant_two_label: v2_result.val,
-                            self.variant_three_label: v3_result.val,
+                            self.variant_one_label: v1_result.variant.val,
+                            self.variant_two_label: v2_result.variant.val,
+                            self.variant_three_label: v3_result.variant.val,
                         }
                     )
 
 
-def _tuple_to_dict_errors(errs: Tuple[Jsonish, ...]) -> dict[str, Jsonish]:
+def _tuple_to_dict_errors(errs: tuple[Jsonish, ...]) -> dict[str, Jsonish]:
     return {f"index {i}": err for i, err in enumerate(errs)}
 
 
-class Tuple2(TransformableValidator[Any, Tuple[A, B], Jsonish]):
+class Tuple2(TransformableValidator[Any, tuple[A, B], Jsonish]):
     required_length: int = 2
 
     def __init__(
@@ -592,22 +593,22 @@ class Tuple2(TransformableValidator[Any, Tuple[A, B], Jsonish]):
         slot1_validator: Callable[[Any], Result[A, Jsonish]],
         slot2_validator: Callable[[Any], Result[B, Jsonish]],
         tuple_validator: Optional[
-            Callable[[Tuple[A, B]], Result[Tuple[A, B], Jsonish]]
+            Callable[[tuple[A, B]], Result[tuple[A, B], Jsonish]]
         ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator
         self.tuple_validator = tuple_validator
 
-    def __call__(self, data: Any) -> Result[Tuple[A, B], Jsonish]:
+    def __call__(self, data: Any) -> Result[tuple[A, B], Jsonish]:
         if isinstance(data, list) and len(data) == self.required_length:
-            result: Result[Tuple[A, B], Tuple[Jsonish, ...]] = validate_and_map(
+            result: Result[tuple[A, B], tuple[Jsonish, ...]] = validate_and_map(
                 self.slot1_validator(data[0]),
                 self.slot2_validator(data[1]),
                 _typed_tuple,
             )
 
-            if isinstance(result.val, Err):
+            if isinstance(result.variant, Err):
                 return result.map_err(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
@@ -620,7 +621,7 @@ class Tuple2(TransformableValidator[Any, Tuple[A, B], Jsonish]):
             )
 
 
-class Tuple3(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
+class Tuple3(TransformableValidator[Any, tuple[A, B, C], Jsonish]):
     required_length: int = 3
 
     def __init__(
@@ -629,7 +630,7 @@ class Tuple3(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
         slot2_validator: Callable[[Any], Result[B, Jsonish]],
         slot3_validator: Callable[[Any], Result[C, Jsonish]],
         tuple_validator: Optional[
-            Callable[[Tuple[A, B, C]], Result[Tuple[A, B, C], Jsonish]]
+            Callable[[tuple[A, B, C]], Result[tuple[A, B, C], Jsonish]]
         ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
@@ -637,16 +638,16 @@ class Tuple3(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
         self.slot3_validator = slot3_validator
         self.tuple_validator = tuple_validator
 
-    def __call__(self, data: Any) -> Result[Tuple[A, B, C], Jsonish]:
+    def __call__(self, data: Any) -> Result[tuple[A, B, C], Jsonish]:
         if isinstance(data, list) and len(data) == self.required_length:
-            result: Result[Tuple[A, B, C], Tuple[Jsonish, ...]] = validate_and_map(
+            result: Result[tuple[A, B, C], tuple[Jsonish, ...]] = validate_and_map(
                 self.slot1_validator(data[0]),
                 self.slot2_validator(data[1]),
                 self.slot3_validator(data[2]),
                 _typed_tuple,
             )
 
-            if isinstance(result.val, Err):
+            if isinstance(result.variant, Err):
                 return result.map_err(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
@@ -659,7 +660,7 @@ class Tuple3(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
             )
 
 
-def _has_no_extra_keys(keys: Set[str]) -> Validator[dict[A, B], dict[A, B], Jsonish]:
+def _has_no_extra_keys(keys: set[str]) -> Validator[dict[A, B], dict[A, B], Jsonish]:
     def inner(mapping: dict[A, B]) -> Result[dict[A, B], Jsonish]:
         if len(mapping.keys() - keys) > 0:
             return err(
@@ -696,10 +697,10 @@ class RequiredField(Generic[A]):
         self.validator = validator
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Jsonish]:
-        if isinstance(maybe_val, Nothing):
+        if isinstance(maybe_val.variant, Nothing):
             return err([_KEY_MISSING])
         else:
-            return self.validator(maybe_val.val)
+            return self.validator(maybe_val.variant.val)
 
 
 class MaybeField(Generic[A]):
@@ -707,10 +708,8 @@ class MaybeField(Generic[A]):
         self.validator = validator
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Jsonish]:
-        if isinstance(maybe_val.val, Just):
-            result: Result[Maybe[A], Jsonish] = self.validator(maybe_val.val).map(
-                _to_just
-            )
+        if isinstance(maybe_val.variant, Just):
+            result: Result[Maybe[A], Jsonish] = self.validator(maybe_val).map(_to_just)
         else:
             result = ok(maybe_val)
         return result
@@ -751,12 +750,9 @@ class Nullable(TransformableValidator[Any, Maybe[A], Jsonish]):
             return ok(nothing)
         else:
             result: Result[A, Jsonish] = self.validator(val)
-            if isinstance(result, Ok):
-                return result.map(_to_just)
-            else:
-                return result.map_err(
-                    lambda errs: _variant_errors(["must be None"], errs)
-                )
+            return result.map(just).map_err(
+                lambda errs: _variant_errors(["must be None"], errs)
+            )
 
 
 Num = TypeVar("Num", int, float, DecimalStdLib)
@@ -816,17 +812,17 @@ Null = NullType()
 
 def prop(
     prop_: str, validator: TransformableValidator[Any, A, Jsonish]
-) -> Tuple[str, Callable[[Any], Result[A, Jsonish]]]:
+) -> tuple[str, Callable[[Any], Result[A, Jsonish]]]:
     return prop_, RequiredField(validator)
 
 
 def maybe_prop(
     prop_: str, validator: TransformableValidator[Any, A, Jsonish]
-) -> Tuple[str, Callable[[Any], Result[Maybe[A], Jsonish]]]:
+) -> tuple[str, Callable[[Any], Result[Maybe[A], Jsonish]]]:
     return prop_, MaybeField(validator)
 
 
-def _tuples_to_jo_dict(data: Tuple[Tuple[str, Jsonish], ...]) -> Jsonish:
+def _tuples_to_jo_dict(data: tuple[tuple[str, Jsonish], ...]) -> Jsonish:
     return dict(data)
 
 
@@ -848,11 +844,11 @@ class Obj1Prop(Generic[A, Ret], TransformableValidator[Any, Ret, Jsonish]):
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result.val, Err):
-            return result
+        if isinstance(result.variant, Err):
+            return err(result.variant.val)
         else:
             result_1 = validate_and_map(
-                _validate_with_key(self.fields[0], result.val), self.into
+                _validate_with_key(self.fields[0], result.variant.val), self.into
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_jo_dict)
@@ -881,12 +877,12 @@ class Obj2Props(Generic[A, B, Ret], TransformableValidator[Any, Ret, Jsonish]):
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result.val, Err):
-            return result
+        if isinstance(result.variant, Err):
+            return err(result.variant.val)
         else:
             result_1 = validate_and_map(
-                _validate_with_key(self.fields[0], result.val),
-                _validate_with_key(self.fields[1], result.val),
+                _validate_with_key(self.fields[0], result.variant.val),
+                _validate_with_key(self.fields[1], result.variant.val),
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
@@ -918,13 +914,13 @@ class Obj3Props(Generic[A, B, C, Ret], TransformableValidator[Any, Ret, Jsonish]
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result.val, Err):
-            return result
+        if isinstance(result.variant, Err):
+            return err(result.variant.val)
         else:
             result_1 = validate_and_map(
-                _validate_with_key(self.fields[0], result.val),
-                _validate_with_key(self.fields[1], result.val),
-                _validate_with_key(self.fields[2], result.val),
+                _validate_with_key(self.fields[0], result.variant.val),
+                _validate_with_key(self.fields[1], result.variant.val),
+                _validate_with_key(self.fields[2], result.variant.val),
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
@@ -958,14 +954,14 @@ class Obj4Props(Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, Jsoni
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result.val, Err):
-            return result
+        if isinstance(result.variant, Err):
+            return err(result.variant.val)
         else:
             result_1 = validate_and_map(
-                _validate_with_key(self.fields[0], result.val),
-                _validate_with_key(self.fields[1], result.val),
-                _validate_with_key(self.fields[2], result.val),
-                _validate_with_key(self.fields[3], result.val),
+                _validate_with_key(self.fields[0], result.variant.val),
+                _validate_with_key(self.fields[1], result.variant.val),
+                _validate_with_key(self.fields[2], result.variant.val),
+                _validate_with_key(self.fields[3], result.variant.val),
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
@@ -1001,15 +997,15 @@ class Obj5Props(Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, Js
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result.val, Err):
-            return result
+        if isinstance(result.variant, Err):
+            return err(result.variant.val)
         else:
             result_1 = validate_and_map(
-                _validate_with_key(self.fields[0], result.val),
-                _validate_with_key(self.fields[1], result.val),
-                _validate_with_key(self.fields[2], result.val),
-                _validate_with_key(self.fields[3], result.val),
-                _validate_with_key(self.fields[4], result.val),
+                _validate_with_key(self.fields[0], result.variant.val),
+                _validate_with_key(self.fields[1], result.variant.val),
+                _validate_with_key(self.fields[2], result.variant.val),
+                _validate_with_key(self.fields[3], result.variant.val),
+                _validate_with_key(self.fields[4], result.variant.val),
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
@@ -1049,16 +1045,16 @@ class Obj6Props(
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result.val, Err):
-            return result
+        if isinstance(result.variant, Err):
+            return err(result.variant.val)
         else:
             result_1 = validate_and_map(
-                _validate_with_key(self.fields[0], result.val),
-                _validate_with_key(self.fields[1], result.val),
-                _validate_with_key(self.fields[2], result.val),
-                _validate_with_key(self.fields[3], result.val),
-                _validate_with_key(self.fields[4], result.val),
-                _validate_with_key(self.fields[5], result.val),
+                _validate_with_key(self.fields[0], result.variant.val),
+                _validate_with_key(self.fields[1], result.variant.val),
+                _validate_with_key(self.fields[2], result.variant.val),
+                _validate_with_key(self.fields[3], result.variant.val),
+                _validate_with_key(self.fields[4], result.variant.val),
+                _validate_with_key(self.fields[5], result.variant.val),
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
@@ -1100,17 +1096,17 @@ class Obj7Props(
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result.val, Err):
-            return result
+        if isinstance(result.variant, Err):
+            return err(result.variant.val)
         else:
             result_1 = validate_and_map(
-                _validate_with_key(self.fields[0], result.val),
-                _validate_with_key(self.fields[1], result.val),
-                _validate_with_key(self.fields[2], result.val),
-                _validate_with_key(self.fields[3], result.val),
-                _validate_with_key(self.fields[4], result.val),
-                _validate_with_key(self.fields[5], result.val),
-                _validate_with_key(self.fields[6], result.val),
+                _validate_with_key(self.fields[0], result.variant.val),
+                _validate_with_key(self.fields[1], result.variant.val),
+                _validate_with_key(self.fields[2], result.variant.val),
+                _validate_with_key(self.fields[3], result.variant.val),
+                _validate_with_key(self.fields[4], result.variant.val),
+                _validate_with_key(self.fields[5], result.variant.val),
+                _validate_with_key(self.fields[6], result.variant.val),
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
@@ -1154,18 +1150,18 @@ class Obj8Props(
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result.val, Err):
-            return result
+        if isinstance(result.variant, Err):
+            return err(result.variant.val)
         else:
             result_1 = validate_and_map(
-                _validate_with_key(self.fields[0], result.val),
-                _validate_with_key(self.fields[1], result.val),
-                _validate_with_key(self.fields[2], result.val),
-                _validate_with_key(self.fields[3], result.val),
-                _validate_with_key(self.fields[4], result.val),
-                _validate_with_key(self.fields[5], result.val),
-                _validate_with_key(self.fields[6], result.val),
-                _validate_with_key(self.fields[7], result.val),
+                _validate_with_key(self.fields[0], result.variant.val),
+                _validate_with_key(self.fields[1], result.variant.val),
+                _validate_with_key(self.fields[2], result.variant.val),
+                _validate_with_key(self.fields[3], result.variant.val),
+                _validate_with_key(self.fields[4], result.variant.val),
+                _validate_with_key(self.fields[5], result.variant.val),
+                _validate_with_key(self.fields[6], result.variant.val),
+                _validate_with_key(self.fields[7], result.variant.val),
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
@@ -1211,19 +1207,19 @@ class Obj9Props(
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result.val, Err):
-            return result
+        if isinstance(result.variant, Err):
+            return err(result.variant.val)
         else:
             result_1 = validate_and_map(
-                _validate_with_key(self.fields[0], result.val),
-                _validate_with_key(self.fields[1], result.val),
-                _validate_with_key(self.fields[2], result.val),
-                _validate_with_key(self.fields[3], result.val),
-                _validate_with_key(self.fields[4], result.val),
-                _validate_with_key(self.fields[5], result.val),
-                _validate_with_key(self.fields[6], result.val),
-                _validate_with_key(self.fields[7], result.val),
-                _validate_with_key(self.fields[8], result.val),
+                _validate_with_key(self.fields[0], result.variant.val),
+                _validate_with_key(self.fields[1], result.variant.val),
+                _validate_with_key(self.fields[2], result.variant.val),
+                _validate_with_key(self.fields[3], result.variant.val),
+                _validate_with_key(self.fields[4], result.variant.val),
+                _validate_with_key(self.fields[5], result.variant.val),
+                _validate_with_key(self.fields[6], result.variant.val),
+                _validate_with_key(self.fields[7], result.variant.val),
+                _validate_with_key(self.fields[8], result.variant.val),
                 self.into,
             )
             return _flat_map_same_type_if_not_none(
@@ -1272,20 +1268,20 @@ class Obj10Props(
             {self.fields[x][0] for x in range(len(self.fields))}, data
         )
 
-        if isinstance(result.val, Err):
-            return result
+        if isinstance(result.variant, Err):
+            return err(result.variant.val)
         else:
             result_1 = validate_and_map(
-                _validate_with_key(self.fields[0], result.val),
-                _validate_with_key(self.fields[1], result.val),
-                _validate_with_key(self.fields[2], result.val),
-                _validate_with_key(self.fields[3], result.val),
-                _validate_with_key(self.fields[4], result.val),
-                _validate_with_key(self.fields[5], result.val),
-                _validate_with_key(self.fields[6], result.val),
-                _validate_with_key(self.fields[7], result.val),
-                _validate_with_key(self.fields[8], result.val),
-                _validate_with_key(self.fields[9], result.val),
+                _validate_with_key(self.fields[0], result.variant.val),
+                _validate_with_key(self.fields[1], result.variant.val),
+                _validate_with_key(self.fields[2], result.variant.val),
+                _validate_with_key(self.fields[3], result.variant.val),
+                _validate_with_key(self.fields[4], result.variant.val),
+                _validate_with_key(self.fields[5], result.variant.val),
+                _validate_with_key(self.fields[6], result.variant.val),
+                _validate_with_key(self.fields[7], result.variant.val),
+                _validate_with_key(self.fields[8], result.variant.val),
+                _validate_with_key(self.fields[9], result.variant.val),
                 self.into,
             )
             return _flat_map_same_type_if_not_none(

@@ -20,17 +20,17 @@ def accum_errors(
     result: Result[A, FailT] = Ok(val)
     for validator in validators:
         result = validator(val)
-        if isinstance(result.val, Err):
-            errors.append(result.val.val)
+        if isinstance(result.variant, Err):
+            errors.append(result.variant.val)
         else:
-            val = result.val.val
+            val = result.variant.val
 
     if len(errors) > 0:
         return err(errors)
     else:
-        # has to be because there are no errors
-        assert isinstance(result.val, Ok)
-        return ok(result.val)
+        # has to be ok because there are no errors
+        assert isinstance(result.variant, Ok)
+        return ok(result.variant.val)
 
 
 chain = _chain
