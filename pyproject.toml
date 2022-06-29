@@ -10,13 +10,13 @@ koda = { path = "../koda", develop=true}
 
 [tool.poetry.dev-dependencies]
 pytest = "7.1.2"
-pyright = "1.1.248"
+pyright = "1.1.256"
 pytest-cov = "3.0.0"
 isort = "5.10.1"
-black = "22.3.0"
+black = "22.6.0"
 flake8 = "4.0.1"
 pre-commit = "2.19.0"
-mypy = "0.950"
+mypy = "0.961"
 
 
 [tool.mypy]
