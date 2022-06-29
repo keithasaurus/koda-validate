@@ -2,7 +2,7 @@
 name = "koda-validate"
 version = "0.11-dev1"
 description = ""
-authors = ["Keith Philpott <keith.philpott@icloud.com>"]
+authors = ["Keith Philpott"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
