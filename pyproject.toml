@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "koda-validate"
-version = "0.11-dev1"
+version = "1.0-dev1"
 description = ""
 authors = ["Keith Philpott"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-koda = "0.11.0"
+koda = "1.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "7.1.2"
