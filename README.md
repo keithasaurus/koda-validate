@@ -8,11 +8,12 @@ aims to facilitate:
 
 # Quickstart
 Let's start as simple as possible.
+
 ```python3
 from koda import Ok
-from koda_validate.validation import String, err
+from koda_validate.validation import StringValidator, err
 
-string_validator = String()
+string_validator = StringValidator()
 
 assert string_validator("s") == Ok("s")
 assert string_validator(None) == err(["expected a string"])
@@ -23,9 +24,9 @@ Testing if something is a string can be useful, but we often want to constrain v
 
 ```python
 from koda import Ok
-from koda_validate.validation import String, err, not_blank, MinLength
+from koda_validate.validation import StringValidator, err, not_blank, MinLength
 
-string_validator = String(not_blank, MinLength(5))
+string_validator = StringValidator(not_blank, MinLength(5))
 
 assert string_validator("  ") == err(["cannot be blank", "minimum allowed length is 5"])
 assert string_validator("long enough") == Ok("long enough")

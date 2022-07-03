@@ -4,7 +4,17 @@ from koda_validate.serialization import JsonSerializable
 from koda_validate.typedefs import PredicateValidator, TransformableValidator
 from koda_validate.validation import (
     ArrayOf,
-    Boolean,
+    BooleanValidator,
+    Dict1KeyValidator,
+    Dict2KeysValidator,
+    Dict3KeysValidator,
+    Dict4KeysValidator,
+    Dict5KeysValidator,
+    Dict6KeysValidator,
+    Dict7KeysValidator,
+    Dict8KeysValidator,
+    Dict9KeysValidator,
+    Dict10KeysValidator,
     Email,
     Enum,
     Float,
@@ -21,22 +31,12 @@ from koda_validate.validation import (
     MinLength,
     MinProperties,
     NotBlank,
-    Nullable,
-    Obj1Prop,
-    Obj2Props,
-    Obj3Props,
-    Obj4Props,
-    Obj5Props,
-    Obj6Props,
-    Obj7Props,
-    Obj8Props,
-    Obj9Props,
-    Obj10Props,
+    NullableValidator,
     OneOf2,
     OneOf3,
     RegexValidator,
     RequiredField,
-    String,
+    StringValidator,
     Tuple2,
     Tuple3,
     UniqueItems,
@@ -47,7 +47,9 @@ def unhandled_type(obj: Any) -> NoReturn:
     raise TypeError(f"type {type(obj)} not handled")
 
 
-def string_schema(schema_name: str, validator: String) -> Dict[str, JsonSerializable]:
+def string_schema(
+    schema_name: str, validator: StringValidator
+) -> Dict[str, JsonSerializable]:
     ret: Dict[str, JsonSerializable] = {"type": "string"}
     for sub_validator in validator.validators:
         ret.update(generate_schema_base(schema_name, sub_validator))
@@ -69,7 +71,9 @@ def float_schema(schema_name: str, validator: Float) -> Dict[str, JsonSerializab
     return ret
 
 
-def boolean_schema(schema_name: str, validator: Boolean) -> Dict[str, JsonSerializable]:
+def boolean_schema(
+    schema_name: str, validator: BooleanValidator
+) -> Dict[str, JsonSerializable]:
     ret: Dict[str, JsonSerializable] = {"type": "boolean"}
     for sub_validator in validator.validators:
         ret.update(generate_schema_base(schema_name, sub_validator))
@@ -93,16 +97,16 @@ def array_of_schema(
 def obj_schema(
     schema_name: str,
     obj: Union[
-        Obj1Prop[Any, Any],
-        Obj2Props[Any, Any, Any],
-        Obj3Props[Any, Any, Any, Any],
-        Obj4Props[Any, Any, Any, Any, Any],
-        Obj5Props[Any, Any, Any, Any, Any, Any],
-        Obj6Props[Any, Any, Any, Any, Any, Any, Any],
-        Obj7Props[Any, Any, Any, Any, Any, Any, Any, Any],
-        Obj8Props[Any, Any, Any, Any, Any, Any, Any, Any, Any],
-        Obj9Props[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
-        Obj10Props[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
+        Dict1KeyValidator[Any, Any],
+        Dict2KeysValidator[Any, Any, Any],
+        Dict3KeysValidator[Any, Any, Any, Any],
+        Dict4KeysValidator[Any, Any, Any, Any, Any],
+        Dict5KeysValidator[Any, Any, Any, Any, Any, Any],
+        Dict6KeysValidator[Any, Any, Any, Any, Any, Any, Any],
+        Dict7KeysValidator[Any, Any, Any, Any, Any, Any, Any, Any],
+        Dict8KeysValidator[Any, Any, Any, Any, Any, Any, Any, Any, Any],
+        Dict9KeysValidator[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
+        Dict10KeysValidator[Any, Any, Any, Any, Any, Any, Any, Any, Any, Any, Any],
     ],
 ) -> Dict[str, JsonSerializable]:
     required: List[str] = []
@@ -189,15 +193,15 @@ def generate_schema_transformable(
     schema_name: str, obj: TransformableValidator[Any, Any, Any]
 ) -> Dict[str, JsonSerializable]:
     # caution, mutation below!
-    if isinstance(obj, Boolean):
+    if isinstance(obj, BooleanValidator):
         return boolean_schema(schema_name, obj)
-    if isinstance(obj, String):
+    if isinstance(obj, StringValidator):
         return string_schema(schema_name, obj)
     elif isinstance(obj, Integer):
         return integer_schema(schema_name, obj)
     elif isinstance(obj, Float):
         return float_schema(schema_name, obj)
-    elif isinstance(obj, Nullable):
+    elif isinstance(obj, NullableValidator):
         maybe_val_ret = generate_schema_base(schema_name, obj.validator)
         assert isinstance(maybe_val_ret, dict)
         maybe_val_ret["nullable"] = True
@@ -207,16 +211,16 @@ def generate_schema_transformable(
     elif isinstance(
         obj,
         (
-            Obj1Prop,
-            Obj2Props,
-            Obj3Props,
-            Obj4Props,
-            Obj5Props,
-            Obj6Props,
-            Obj7Props,
-            Obj8Props,
-            Obj9Props,
-            Obj10Props,
+            Dict1KeyValidator,
+            Dict2KeysValidator,
+            Dict3KeysValidator,
+            Dict4KeysValidator,
+            Dict5KeysValidator,
+            Dict6KeysValidator,
+            Dict7KeysValidator,
+            Dict8KeysValidator,
+            Dict9KeysValidator,
+            Dict10KeysValidator,
         ),
     ):
         return obj_schema(schema_name, obj)
