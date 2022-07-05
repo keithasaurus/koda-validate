@@ -3,7 +3,6 @@ from typing import Any, Dict, List, NoReturn, Union
 from koda_validate.serialization import JsonSerializable
 from koda_validate.typedefs import PredicateValidator, TransformableValidator
 from koda_validate.validation import (
-    ArrayOf,
     BooleanValidator,
     Dict1KeyValidator,
     Dict2KeysValidator,
@@ -17,10 +16,11 @@ from koda_validate.validation import (
     Dict10KeysValidator,
     Email,
     Enum,
-    Float,
-    Integer,
+    FloatValidator,
+    IntValidator,
     Lazy,
-    MapOf,
+    ListValidator,
+    MapValidator,
     Maximum,
     MaxItems,
     MaxLength,
@@ -31,14 +31,14 @@ from koda_validate.validation import (
     MinLength,
     MinProperties,
     NotBlank,
-    NullableValidator,
+    Nullable,
     OneOf2,
     OneOf3,
     RegexValidator,
     RequiredField,
     StringValidator,
-    Tuple2,
-    Tuple3,
+    Tuple2Validator,
+    Tuple3Validator,
     UniqueItems,
 )
 
@@ -57,14 +57,18 @@ def string_schema(
     return ret
 
 
-def integer_schema(schema_name: str, validator: Integer) -> Dict[str, JsonSerializable]:
+def integer_schema(
+    schema_name: str, validator: IntValidator
+) -> Dict[str, JsonSerializable]:
     ret: Dict[str, JsonSerializable] = {"type": "integer"}
     for sub_validator in validator.validators:
         ret.update(generate_schema_base(schema_name, sub_validator))
     return ret
 
 
-def float_schema(schema_name: str, validator: Float) -> Dict[str, JsonSerializable]:
+def float_schema(
+    schema_name: str, validator: FloatValidator
+) -> Dict[str, JsonSerializable]:
     ret: Dict[str, JsonSerializable] = {"type": "number"}
     for sub_validator in validator.validators:
         ret.update(generate_schema_base(schema_name, sub_validator))
@@ -81,7 +85,7 @@ def boolean_schema(
 
 
 def array_of_schema(
-    schema_name: str, validator: ArrayOf[Any]
+    schema_name: str, validator: ListValidator[Any]
 ) -> Dict[str, JsonSerializable]:
     ret: Dict[str, JsonSerializable] = {
         "type": "array",
@@ -131,7 +135,9 @@ def obj_schema(
     }
 
 
-def map_of_schema(schema_name: str, obj: MapOf[Any, Any]) -> Dict[str, JsonSerializable]:
+def map_of_schema(
+    schema_name: str, obj: MapValidator[Any, Any]
+) -> Dict[str, JsonSerializable]:
     ret: Dict[str, JsonSerializable] = {
         "type": "object",
         "additionalProperties": generate_schema_base(schema_name, obj.value_validator),
@@ -197,16 +203,16 @@ def generate_schema_transformable(
         return boolean_schema(schema_name, obj)
     if isinstance(obj, StringValidator):
         return string_schema(schema_name, obj)
-    elif isinstance(obj, Integer):
+    elif isinstance(obj, IntValidator):
         return integer_schema(schema_name, obj)
-    elif isinstance(obj, Float):
+    elif isinstance(obj, FloatValidator):
         return float_schema(schema_name, obj)
-    elif isinstance(obj, NullableValidator):
+    elif isinstance(obj, Nullable):
         maybe_val_ret = generate_schema_base(schema_name, obj.validator)
         assert isinstance(maybe_val_ret, dict)
         maybe_val_ret["nullable"] = True
         return maybe_val_ret
-    elif isinstance(obj, MapOf):
+    elif isinstance(obj, MapValidator):
         return map_of_schema(schema_name, obj)
     elif isinstance(
         obj,
@@ -224,7 +230,7 @@ def generate_schema_transformable(
         ),
     ):
         return obj_schema(schema_name, obj)
-    elif isinstance(obj, ArrayOf):
+    elif isinstance(obj, ListValidator):
         return array_of_schema(schema_name, obj)
     elif isinstance(obj, Lazy):
         if obj.recurrent:
@@ -245,7 +251,7 @@ def generate_schema_transformable(
                 for s in [obj.variant_one, obj.variant_two, obj.variant_three]
             ]
         }
-    elif isinstance(obj, Tuple2):
+    elif isinstance(obj, Tuple2Validator):
         return {
             "description": "a 2-tuple; schemas for slots are listed in "
             'order in "items" > "anyOf"',
@@ -258,7 +264,7 @@ def generate_schema_transformable(
                 ]
             },
         }
-    elif isinstance(obj, Tuple3):
+    elif isinstance(obj, Tuple3Validator):
         return {
             "description": "a 3-tuple; schemas for slots are listed in order "
             'in "items" > "anyOf"',

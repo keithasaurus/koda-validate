@@ -11,28 +11,27 @@ Let's start as simple as possible.
 
 ```python3
 from koda import Ok
-from koda_validate.validation import StringValidator, err
+from koda_validate.validation import StringValidator, Err
 
 string_validator = StringValidator()
 
 assert string_validator("s") == Ok("s")
-assert string_validator(None) == err(["expected a string"])
+assert string_validator(None) == Err(["expected a string"])
 ```
-Note that we use `err` instead of `Err` because of issues with JSON and recursive datatypes.
 
 Testing if something is a string can be useful, but we often want to constrain values in some way.
 
 ```python
 from koda import Ok
-from koda_validate.validation import StringValidator, err, not_blank, MinLength
+from koda_validate.validation import StringValidator, Err, not_blank, MinLength
 
 string_validator = StringValidator(not_blank, MinLength(5))
 
-assert string_validator("  ") == err(["cannot be blank", "minimum allowed length is 5"])
+assert string_validator("  ") == Err(["cannot be blank", "minimum allowed length is 5"])
 assert string_validator("long enough") == Ok("long enough")
 ```
 Note that we return errors from all failing value-level validators, instead of 
-failing on the first error. This is possible because of certain type-level guarantees within
+failing and exiting on the first error. This is possible because of certain type-level guarantees within
 Koda Validate, but we'll get into that later.
 
 One thing to note is that we can express validators with
@@ -41,7 +40,8 @@ values that can be some concrete type or `None`. For this case we
 have `Nullable`
 
 ```python
-Nullable(Integer())
+from koda_validate import Nullable, IntValidator
+Nullable(IntegerValidator())
 ```
 
 
@@ -56,20 +56,20 @@ A = TypeVar('A')
 
 Predicate = Callable[[A], bool]
 ```
-However, in the opinion of this library, this is not a sufficient. We also want to be able (though not required) to:
+However, in the opinion of this library, this is not sufficient. We also want to be able (though not required) to:
 - coerce submitted data into some other form (e.g. normalization, quantization, type conversions, etc.) 
 - produce useful messages for validation failure
 
-Given these requirements, the definintion of a `Validator` becomes:
+Given these requirements, the definition of a `Validator` would become:
 ```python3
 from typing import Callable, TypeVar
 from koda import Result
 
 A = TypeVar('A')
-B = TypeVar('B')
-InvalidT = TypeVar('InvalidT')
+Valid = TypeVar('Valid')
+Invalid = TypeVar('Invalid')
 
-Validator = Callable[[A], Result[B, InvalidT]]
+Validator = Callable[[A], Result[Valid, Invalid]]
 ```
 Some examples of validators made in this way could be:
 ```python3
@@ -89,16 +89,16 @@ def positive_int(val: int) -> Result[int, str]:
         return Err("must be greater than 0")
 ```
 It's worth noting that `positive_int` doesn't change the value, but it
-still abides by the signature
+still abides by the signature:
 ```python3
-Callable[[A], Result[B, InvalidT]]
+Callable[[A], Result[Valid, Invalid]]
 ```
-In this case, however, `A` and `B` are merely the same type. Even though our
+In this case `A` and `Valid` happen to be the same type. Even though our
 base type signature says the type of a validated input can change,
 it doesn't mean it has to. In fact, in many instances, it's beneficial know
-that the type and/or value of the input do not change.
+that the type and/or value of the input *do not* change.
 
-Imagine we want to run a series of validators against an `int` input value. If
+Imagine we want to run a series of validators against an `int` value. If
 we want to store these validators in a homogeneous collection, like a `list`, we'll
 need the types of all the validators to be the same. In effect, this constraint also
 enforces that the input and output types are the same. For example,
@@ -133,7 +133,6 @@ def predicate_validator(
     return inner
 
 # USAGE
-
 def is_less_than_5(val: int) -> bool:
     return val < 5
 
@@ -145,9 +144,9 @@ assert less_than_5_validator(10) == Err("must be less than 5")
 That might seem long-winded, but we get an important guarantee from using
 `predicate_validator`: the validated value is the same as the input. 
 
-For the reason of preserving typed metadata for the function, `PredicateValidator`
-is actually implemented as a class. But it's little more than a function 
-with metadata. Implementing the previous example would look like:
+For the purpose of preserving typed metadata for the function, `PredicateValidator`
+is actually implemented as a class in this library. But it's little more than a 
+function with metadata. Implementing the previous example would look like:
 ```python3
 class LessThan5(PredicateValidator[int, str]):
     def is_valid(self, val: int) -> bool:

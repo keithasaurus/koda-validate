@@ -224,7 +224,7 @@ class Email(PredicateValidatorJson[str]):
         return "expected a valid email address"
 
 
-class Integer(TransformableValidator[Any, int, Jsonish]):
+class IntValidator(TransformableValidator[Any, int, Jsonish]):
     def __init__(self, *validators: PredicateValidator[int, Jsonish]) -> None:
         self.validators = validators
 
@@ -236,7 +236,7 @@ class Integer(TransformableValidator[Any, int, Jsonish]):
             return Err([expected("an integer")])
 
 
-class Float(TransformableValidator[Any, float, Jsonish]):
+class FloatValidator(TransformableValidator[Any, float, Jsonish]):
     def __init__(self, *validators: PredicateValidator[float, Jsonish]) -> None:
         self.validators = validators
 
@@ -247,7 +247,7 @@ class Float(TransformableValidator[Any, float, Jsonish]):
             return Err([expected("a float")])
 
 
-class Decimal(TransformableValidator[Any, DecimalStdLib, Jsonish]):
+class DecimalValidator(TransformableValidator[Any, DecimalStdLib, Jsonish]):
     def __init__(self, *validators: PredicateValidator[DecimalStdLib, Jsonish]) -> None:
         self.validators = validators
 
@@ -268,7 +268,7 @@ def _safe_try_int(val: Any) -> Result[int, Exception]:
     return safe_try(int, val)
 
 
-class Date(TransformableValidator[Any, date, Jsonish]):
+class DateValidator(TransformableValidator[Any, date, Jsonish]):
     """
     Expects dates to be yyyy-mm-dd
     """
@@ -297,7 +297,7 @@ class Date(TransformableValidator[Any, date, Jsonish]):
             return fail_msg
 
 
-class MapOf(TransformableValidator[Any, dict[A, B], Jsonish]):
+class MapValidator(TransformableValidator[Any, dict[A, B], Jsonish]):
     """
     Note that while a key should always be expected to be received as a string,
     it's possible that we may want to validate and cast it to a different
@@ -357,7 +357,7 @@ class MapOf(TransformableValidator[Any, dict[A, B], Jsonish]):
             return Err({"invalid type": [expected("a map")]})
 
 
-class ArrayOf(TransformableValidator[Any, list[A], Jsonish]):
+class ListValidator(TransformableValidator[Any, list[A], Jsonish]):
     def __init__(
         self,
         item_validator: TransformableValidator[Any, A, Jsonish],
@@ -450,7 +450,7 @@ def _validate_with_key(
     return fn(mapping_get(data, key)).map_err(add_key)
 
 
-class IsObject(TransformableValidator[Any, dict[Any, Any], Jsonish]):
+class IsDict(TransformableValidator[Any, dict[Any, Any], Jsonish]):
     def __call__(self, val: Any) -> Result[dict[Any, Any], Jsonish]:
         if isinstance(val, dict):
             return Ok(val)
@@ -461,7 +461,7 @@ class IsObject(TransformableValidator[Any, dict[Any, Any], Jsonish]):
 def _dict_without_extra_keys(
     keys: Set[str], data: Any
 ) -> Result[dict[Any, Any], Jsonish]:
-    return IsObject()(data).flat_map(_has_no_extra_keys(keys))
+    return IsDict()(data).flat_map(_has_no_extra_keys(keys))
 
 
 class OneOf2(TransformableValidator[Any, Either[A, B], Jsonish]):
@@ -570,7 +570,7 @@ def _tuple_to_dict_errors(errs: Tuple[Jsonish, ...]) -> dict[str, Jsonish]:
     return {f"index {i}": err for i, err in enumerate(errs)}
 
 
-class Tuple2(TransformableValidator[Any, Tuple[A, B], Jsonish]):
+class Tuple2Validator(TransformableValidator[Any, Tuple[A, B], Jsonish]):
     required_length: int = 2
 
     def __init__(
@@ -606,7 +606,7 @@ class Tuple2(TransformableValidator[Any, Tuple[A, B], Jsonish]):
             )
 
 
-class Tuple3(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
+class Tuple3Validator(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
     required_length: int = 3
 
     def __init__(
@@ -724,7 +724,7 @@ def _variant_errors(*variants: Jsonish) -> Jsonish:
     return {f"variant {i + 1}": v for i, v in enumerate(variants)}
 
 
-class NullableValidator(TransformableValidator[Any, Maybe[A], Jsonish]):
+class Nullable(TransformableValidator[Any, Maybe[A], Jsonish]):
     """
     We have a value for a key, but it can be null (None)
     """

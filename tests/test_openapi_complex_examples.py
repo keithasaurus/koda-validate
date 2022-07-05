@@ -9,31 +9,31 @@ from koda.result import Ok
 
 from koda_validate.openapi import generate_schema
 from koda_validate.validation import (
-    ArrayOf,
     BooleanValidator,
-    Date,
+    DateValidator,
     Dict1KeyValidator,
     Dict2KeysValidator,
     Dict5KeysValidator,
     Email,
     Enum,
-    Float,
-    Integer,
+    FloatValidator,
+    IntValidator,
     Lazy,
-    MapOf,
+    ListValidator,
+    MapValidator,
     MaxItems,
     MaxLength,
     MaxProperties,
     Minimum,
     MinLength,
     MinProperties,
-    NullableValidator,
+    Nullable,
     OneOf2,
     OneOf3,
     RegexValidator,
     StringValidator,
-    Tuple2,
-    Tuple3,
+    Tuple2Validator,
+    Tuple3Validator,
     not_blank,
     prop,
     unique_items,
@@ -56,7 +56,7 @@ def test_recursive_validator() -> None:
         str, List[Comment], Comment
     ] = Dict2KeysValidator(
         prop("name", StringValidator(not_blank)),
-        prop("replies", ArrayOf(Lazy(get_comment_recur))),
+        prop("replies", ListValidator(Lazy(get_comment_recur))),
         into=Comment,
     )
 
@@ -95,7 +95,7 @@ def test_person() -> None:
         prop("country_code", StringValidator(MinLength(2), MaxLength(3))),
         prop(
             "honorifics",
-            ArrayOf(
+            ListValidator(
                 StringValidator(RegexValidator(re.compile(r"[A-Z][a-z]+\.]"))),
                 unique_items,
                 MaxItems(3),
@@ -136,10 +136,10 @@ def test_cities() -> None:
 
     state_choices: Set[str] = {"CA", "NY"}
 
-    validate_cities = MapOf(
+    validate_cities = MapValidator(
         StringValidator(),
         Dict2KeysValidator(
-            prop("population", NullableValidator(Integer(Minimum(0)))),
+            prop("population", Nullable(IntValidator(Minimum(0)))),
             prop("state", StringValidator(Enum(state_choices))),
             into=CityInfo,
         ),
@@ -294,7 +294,7 @@ def test_auth_creds() -> None:
 
 
 def test_forecast() -> None:
-    validator = MapOf(Date(), Float())
+    validator = MapValidator(DateValidator(), FloatValidator())
 
     # sanity
     assert validator({"2021-04-06": 55.5, "2021-04-07": 57.9}) == Ok(
@@ -307,9 +307,9 @@ def test_forecast() -> None:
 
 
 def test_tuples() -> None:
-    validator = Tuple2(
+    validator = Tuple2Validator(
         StringValidator(not_blank),
-        Tuple3(StringValidator(), Integer(), BooleanValidator()),
+        Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator()),
     )
 
     # sanity check
