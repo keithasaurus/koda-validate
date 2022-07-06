@@ -9,15 +9,18 @@ from koda.result import Ok
 
 from koda_validate.openapi import generate_schema
 from koda_validate.validation import (
-    ArrayOf,
-    Boolean,
-    Date,
+    BooleanValidator,
+    DateValidator,
+    Dict1KeyValidator,
+    Dict2KeysValidator,
+    Dict5KeysValidator,
     Email,
     Enum,
-    Float,
-    Integer,
+    FloatValidator,
+    IntValidator,
     Lazy,
-    MapOf,
+    ListValidator,
+    MapValidator,
     MaxItems,
     MaxLength,
     MaxProperties,
@@ -25,15 +28,12 @@ from koda_validate.validation import (
     MinLength,
     MinProperties,
     Nullable,
-    Obj1Prop,
-    Obj2Props,
-    Obj5Props,
     OneOf2,
     OneOf3,
     RegexValidator,
-    String,
-    Tuple2,
-    Tuple3,
+    StringValidator,
+    Tuple2Validator,
+    Tuple3Validator,
     not_blank,
     prop,
     unique_items,
@@ -49,12 +49,14 @@ def test_recursive_validator() -> None:
         name: str
         replies: List["Comment"]  # noqa: F821
 
-    def get_comment_recur() -> Obj2Props[str, List[Comment], Comment]:
+    def get_comment_recur() -> Dict2KeysValidator[str, List[Comment], Comment]:
         return comment_validator
 
-    comment_validator: Obj2Props[str, List[Comment], Comment] = Obj2Props(
-        prop("name", String(not_blank)),
-        prop("replies", ArrayOf(Lazy(get_comment_recur))),
+    comment_validator: Dict2KeysValidator[
+        str, List[Comment], Comment
+    ] = Dict2KeysValidator(
+        prop("name", StringValidator(not_blank)),
+        prop("replies", ListValidator(Lazy(get_comment_recur))),
         into=Comment,
     )
 
@@ -83,15 +85,18 @@ def test_person() -> None:
         country_code: str
         honorifics: List[str]
 
-    person_validator = Obj5Props(
-        prop("name", String(not_blank)),
-        prop("email", String(Email(), MaxLength(50))),
-        prop("occupation", String(Enum({"teacher", "engineer", "musician", "cook"}))),
-        prop("country_code", String(MinLength(2), MaxLength(3))),
+    person_validator = Dict5KeysValidator(
+        prop("name", StringValidator(not_blank)),
+        prop("email", StringValidator(Email(), MaxLength(50))),
+        prop(
+            "occupation",
+            StringValidator(Enum({"teacher", "engineer", "musician", "cook"})),
+        ),
+        prop("country_code", StringValidator(MinLength(2), MaxLength(3))),
         prop(
             "honorifics",
-            ArrayOf(
-                String(RegexValidator(re.compile(r"[A-Z][a-z]+\.]"))),
+            ListValidator(
+                StringValidator(RegexValidator(re.compile(r"[A-Z][a-z]+\.]"))),
                 unique_items,
                 MaxItems(3),
             ),
@@ -131,11 +136,11 @@ def test_cities() -> None:
 
     state_choices: Set[str] = {"CA", "NY"}
 
-    validate_cities = MapOf(
-        String(),
-        Obj2Props(
-            prop("population", Nullable(Integer(Minimum(0)))),
-            prop("state", String(Enum(state_choices))),
+    validate_cities = MapValidator(
+        StringValidator(),
+        Dict2KeysValidator(
+            prop("population", Nullable(IntValidator(Minimum(0)))),
+            prop("state", StringValidator(Enum(state_choices))),
             into=CityInfo,
         ),
         MaxProperties(3),
@@ -189,15 +194,15 @@ def test_auth_creds() -> None:
         email: str
         password: str
 
-    username_creds_validator = Obj2Props(
-        prop("username", String(not_blank)),
-        prop("password", String(not_blank)),
+    username_creds_validator = Dict2KeysValidator(
+        prop("username", StringValidator(not_blank)),
+        prop("password", StringValidator(not_blank)),
         into=UsernameCreds,
     )
 
-    email_creds_validator = Obj2Props(
-        prop("email", String(Email())),
-        prop("password", String(not_blank)),
+    email_creds_validator = Dict2KeysValidator(
+        prop("email", StringValidator(Email())),
+        prop("password", StringValidator(not_blank)),
         into=EmailCreds,
     )
 
@@ -244,7 +249,9 @@ def test_auth_creds() -> None:
     validator_one_of_3 = OneOf3(
         username_creds_validator,
         email_creds_validator,
-        Obj1Prop(prop("token", String(MinLength(32), MaxLength(32))), into=Token),
+        Dict1KeyValidator(
+            prop("token", StringValidator(MinLength(32), MaxLength(32))), into=Token
+        ),
     )
 
     # sanity
@@ -287,7 +294,7 @@ def test_auth_creds() -> None:
 
 
 def test_forecast() -> None:
-    validator = MapOf(Date(), Float())
+    validator = MapValidator(DateValidator(), FloatValidator())
 
     # sanity
     assert validator({"2021-04-06": 55.5, "2021-04-07": 57.9}) == Ok(
@@ -300,7 +307,10 @@ def test_forecast() -> None:
 
 
 def test_tuples() -> None:
-    validator = Tuple2(String(not_blank), Tuple3(String(), Integer(), Boolean()))
+    validator = Tuple2Validator(
+        StringValidator(not_blank),
+        Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator()),
+    )
 
     # sanity check
     assert validator(["ok", ["", 0, False]]) == Ok(("ok", ("", 0, False)))
