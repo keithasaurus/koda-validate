@@ -50,9 +50,9 @@ from koda_validate.validation import (
     Tuple2Validator,
     Tuple3Validator,
     deserialize_and_validate,
-    maybe_prop,
+    key,
+    maybe_key,
     none_validator,
-    prop,
     unique_items,
 )
 
@@ -445,7 +445,7 @@ def test_obj_1() -> None:
     class Person:
         name: str
 
-    validator = Dict1KeyValidator(prop("name", StringValidator()), into=Person)
+    validator = Dict1KeyValidator(key("name", StringValidator()), into=Person)
 
     assert validator("not a dict") == Err({"__object__": ["expected an object"]})
 
@@ -467,7 +467,7 @@ def test_obj_2() -> None:
         age: Maybe[int]
 
     validator = Dict2KeysValidator(
-        prop("name", StringValidator()), maybe_prop("age", IntValidator()), into=Person
+        key("name", StringValidator()), maybe_key("age", IntValidator()), into=Person
     )
 
     assert validator("not a dict") == Err({"__object__": ["expected an object"]})
@@ -494,9 +494,9 @@ def test_obj_3() -> None:
         age: int
 
     validator = Dict3KeysValidator(
-        prop("first_name", StringValidator()),
-        prop("last_name", StringValidator()),
-        prop("age", IntValidator()),
+        key("first_name", StringValidator()),
+        key("last_name", StringValidator()),
+        key("age", IntValidator()),
         into=Person,
     )
 
@@ -535,10 +535,10 @@ def test_obj_4() -> None:
         eye_color: str
 
     validator = Dict4KeysValidator(
-        prop("first_name", StringValidator()),
-        prop("last_name", StringValidator()),
-        prop("age", IntValidator()),
-        prop("eye color", StringValidator()),
+        key("first_name", StringValidator()),
+        key("last_name", StringValidator()),
+        key("age", IntValidator()),
+        key("eye color", StringValidator()),
         into=Person,
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
@@ -564,11 +564,11 @@ def test_obj_5() -> None:
         can_fly: bool
 
     validator = Dict5KeysValidator(
-        prop("first_name", StringValidator()),
-        prop("last_name", StringValidator()),
-        prop("age", IntValidator()),
-        prop("eye color", StringValidator()),
-        prop("can-fly", BooleanValidator()),
+        key("first_name", StringValidator()),
+        key("last_name", StringValidator()),
+        key("age", IntValidator()),
+        key("eye color", StringValidator()),
+        key("can-fly", BooleanValidator()),
         into=Person,
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
@@ -607,12 +607,12 @@ def test_obj_6() -> None:
         fingers: float
 
     validator = Dict6KeysValidator(
-        prop("first_name", StringValidator()),
-        prop("last_name", StringValidator()),
-        prop("age", IntValidator()),
-        prop("eye color", StringValidator()),
-        prop("can-fly", BooleanValidator()),
-        prop("number_of_fingers", FloatValidator()),
+        key("first_name", StringValidator()),
+        key("last_name", StringValidator()),
+        key("age", IntValidator()),
+        key("eye color", StringValidator()),
+        key("can-fly", BooleanValidator()),
+        key("number_of_fingers", FloatValidator()),
         into=Person,
     )
 
@@ -642,13 +642,13 @@ def test_obj_7() -> None:
         toes: float
 
     validator = Dict7KeysValidator(
-        prop("first_name", StringValidator()),
-        prop("last_name", StringValidator()),
-        prop("age", IntValidator()),
-        prop("eye color", StringValidator()),
-        prop("can-fly", BooleanValidator()),
-        prop("number_of_fingers", FloatValidator()),
-        prop("number of toes", FloatValidator()),
+        key("first_name", StringValidator()),
+        key("last_name", StringValidator()),
+        key("age", IntValidator()),
+        key("eye color", StringValidator()),
+        key("can-fly", BooleanValidator()),
+        key("number_of_fingers", FloatValidator()),
+        key("number of toes", FloatValidator()),
         into=Person,
     )
 
@@ -680,14 +680,14 @@ def test_obj_8() -> None:
         favorite_color: Maybe[str]
 
     validator = Dict8KeysValidator(
-        prop("first_name", StringValidator()),
-        prop("last_name", StringValidator()),
-        prop("age", IntValidator()),
-        prop("eye color", StringValidator()),
-        prop("can-fly", BooleanValidator()),
-        prop("number_of_fingers", FloatValidator()),
-        prop("number of toes", FloatValidator()),
-        maybe_prop("favorite_color", StringValidator()),
+        key("first_name", StringValidator()),
+        key("last_name", StringValidator()),
+        key("age", IntValidator()),
+        key("eye color", StringValidator()),
+        key("can-fly", BooleanValidator()),
+        key("number_of_fingers", FloatValidator()),
+        key("number of toes", FloatValidator()),
+        maybe_key("favorite_color", StringValidator()),
         into=Person,
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
@@ -747,15 +747,15 @@ def test_obj_9() -> None:
         requires_none: None
 
     validator = Dict9KeysValidator(
-        prop("first_name", StringValidator()),
-        prop("last_name", StringValidator()),
-        prop("age", IntValidator()),
-        prop("eye color", StringValidator()),
-        prop("can-fly", BooleanValidator()),
-        prop("number_of_fingers", FloatValidator()),
-        prop("number of toes", FloatValidator()),
-        maybe_prop("favorite_color", StringValidator()),
-        prop("requires_none", none_validator),
+        key("first_name", StringValidator()),
+        key("last_name", StringValidator()),
+        key("age", IntValidator()),
+        key("eye color", StringValidator()),
+        key("can-fly", BooleanValidator()),
+        key("number_of_fingers", FloatValidator()),
+        key("number of toes", FloatValidator()),
+        maybe_key("favorite_color", StringValidator()),
+        key("requires_none", none_validator),
         into=Person,
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
@@ -792,16 +792,16 @@ def test_obj_10() -> None:
         something_else: List[str]
 
     validator = Dict10KeysValidator(
-        prop("first_name", StringValidator()),
-        prop("last_name", StringValidator()),
-        prop("age", IntValidator()),
-        prop("eye color", StringValidator()),
-        prop("can-fly", BooleanValidator()),
-        prop("number_of_fingers", FloatValidator()),
-        prop("number of toes", FloatValidator()),
-        maybe_prop("favorite_color", StringValidator()),
-        prop("requires_none", none_validator),
-        prop("favorite_books", ListValidator(StringValidator())),
+        key("first_name", StringValidator()),
+        key("last_name", StringValidator()),
+        key("age", IntValidator()),
+        key("eye color", StringValidator()),
+        key("can-fly", BooleanValidator()),
+        key("number_of_fingers", FloatValidator()),
+        key("number of toes", FloatValidator()),
+        maybe_key("favorite_color", StringValidator()),
+        key("requires_none", none_validator),
+        key("favorite_books", ListValidator(StringValidator())),
         into=Person,
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
@@ -917,7 +917,7 @@ def deserialize_and_validate_tests() -> None:
         age: int
 
     validator = Dict2KeysValidator(
-        prop("name", StringValidator()), prop("int", IntValidator()), into=Person
+        key("name", StringValidator()), key("int", IntValidator()), into=Person
     )
 
     assert deserialize_and_validate(validator, "") == Err(
@@ -945,8 +945,8 @@ def test_lazy() -> None:
     nel_validator: Dict2KeysValidator[
         int, Maybe[TestNonEmptyList], TestNonEmptyList
     ] = Dict2KeysValidator(
-        prop("val", IntValidator()),
-        maybe_prop("next", Lazy(recur_tnel)),
+        key("val", IntValidator()),
+        maybe_key("next", Lazy(recur_tnel)),
         into=TestNonEmptyList,
     )
 

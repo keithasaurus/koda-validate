@@ -800,13 +800,13 @@ class NoneValidator(TransformableValidator[Any, None, Jsonish]):
 none_validator = NoneValidator()
 
 
-def prop(
+def key(
     prop_: str, validator: TransformableValidator[Any, A, Jsonish]
 ) -> Tuple[str, Callable[[Any], Result[A, Jsonish]]]:
     return prop_, RequiredField(validator)
 
 
-def maybe_prop(
+def maybe_key(
     prop_: str, validator: TransformableValidator[Any, A, Jsonish]
 ) -> Tuple[str, Callable[[Any], Result[Maybe[A], Jsonish]]]:
     return prop_, MaybeField(validator)
