@@ -124,7 +124,7 @@ class MaxItems(PredicateJson[list[Any]]):
 
 
 @dataclass(frozen=True)
-class MinProperties(PredicateJson[dict[Any, Any]]):
+class MinKeys(PredicateJson[dict[Any, Any]]):
     size: int
 
     def __post_init__(self) -> None:
@@ -138,7 +138,7 @@ class MinProperties(PredicateJson[dict[Any, Any]]):
 
 
 @dataclass(frozen=True)
-class MaxProperties(PredicateJson[dict[Any, Any]]):
+class MaxKeys(PredicateJson[dict[Any, Any]]):
     size: int
 
     def __post_init__(self) -> None:
@@ -419,8 +419,7 @@ class Lazy(Validator[A, Ret, JSONValue]):
         return self.validator()(data)
 
 
-# todo rename
-class Enum(PredicateJson[EnumT]):
+class Choices(PredicateJson[EnumT]):
     """
     This only exists separately from a more generic form because
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
@@ -696,9 +695,7 @@ class MaybeField(Generic[A]):
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], JSONValue]:
         if isinstance(maybe_val, Just):
-            result: Result[Maybe[A], JSONValue] = self.validator(maybe_val.val).map(
-                _to_just
-            )
+            result: Result[Maybe[A], JSONValue] = self.validator(maybe_val.val).map(Just)
         else:
             result = Ok(maybe_val)
         return result
@@ -713,13 +710,6 @@ def deserialize_and_validate(
         return Err({"bad data": "invalid json"})
     else:
         return validator(deserialized)
-
-
-def _to_just(x: A) -> Maybe[A]:
-    """
-    for pyright, as of 1.1.246
-    """
-    return Just(x)
 
 
 def _variant_errors(*variants: JSONValue) -> JSONValue:
@@ -740,7 +730,7 @@ class Nullable(Validator[Any, Maybe[A], JSONValue]):
         else:
             result: Result[A, JSONValue] = self.validator(val)
             if isinstance(result, Ok):
-                return result.map(_to_just)
+                return result.map(Just)
             else:
                 return result.map_err(
                     lambda errs: _variant_errors(["must be None"], errs)

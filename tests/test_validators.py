@@ -9,10 +9,11 @@ from koda.maybe import Just, Maybe, nothing
 from koda.result import Err, Ok, Result
 
 from koda_validate.typedefs import JSONValue, Predicate
-from koda_validate.validation import (
+from koda_validate.validators import (
     BLANK_STRING_MSG,
     OBJECT_ERRORS_FIELD,
     BooleanValidator,
+    Choices,
     DateValidator,
     DecimalValidator,
     Dict1KeyValidator,
@@ -26,7 +27,6 @@ from koda_validate.validation import (
     Dict9KeysValidator,
     Dict10KeysValidator,
     Email,
-    Enum,
     FloatValidator,
     IntValidator,
     Lazy,
@@ -34,12 +34,12 @@ from koda_validate.validation import (
     MapValidator,
     Maximum,
     MaxItems,
+    MaxKeys,
     MaxLength,
-    MaxProperties,
     Minimum,
     MinItems,
+    MinKeys,
     MinLength,
-    MinProperties,
     MultipleOf,
     NotBlank,
     Nullable,
@@ -331,33 +331,33 @@ def test_min_items() -> None:
 
 
 def test_max_properties() -> None:
-    assert MaxProperties(0)({}) == Ok({})
+    assert MaxKeys(0)({}) == Ok({})
 
     try:
-        MaxProperties(-1)
+        MaxKeys(-1)
     except AssertionError:
         pass
     else:
         raise AssertionError("should have raised error in try call")
 
-    assert MaxProperties(5)({"a": 1, "b": 2, "c": 3}) == Ok({"a": 1, "b": 2, "c": 3})
+    assert MaxKeys(5)({"a": 1, "b": 2, "c": 3}) == Ok({"a": 1, "b": 2, "c": 3})
 
-    assert MaxProperties(1)({"a": 1, "b": 2}) == Err("maximum allowed properties is 1")
+    assert MaxKeys(1)({"a": 1, "b": 2}) == Err("maximum allowed properties is 1")
 
 
 def test_min_properties() -> None:
-    assert MinProperties(0)({}) == Ok({})
+    assert MinKeys(0)({}) == Ok({})
 
     try:
-        MinProperties(-1)
+        MinKeys(-1)
     except AssertionError:
         pass
     else:
         raise AssertionError("should have raised error in try call")
 
-    assert MinProperties(3)({"a": 1, "b": 2, "c": 3}) == Ok({"a": 1, "b": 2, "c": 3})
+    assert MinKeys(3)({"a": 1, "b": 2, "c": 3}) == Ok({"a": 1, "b": 2, "c": 3})
 
-    assert MinProperties(3)({"a": 1, "b": 2}) == Err("minimum allowed properties is 3")
+    assert MinKeys(3)({"a": 1, "b": 2}) == Err("minimum allowed properties is 3")
 
 
 def test_tuple2() -> None:
@@ -838,7 +838,7 @@ def test_obj_10() -> None:
 
 
 def test_choices() -> None:
-    validator = Enum({"a", "bc", "def"})
+    validator = Choices({"a", "bc", "def"})
 
     assert validator("bc") == Ok("bc")
     assert validator("not present") == Err("expected one of ['a', 'bc', 'def']")
