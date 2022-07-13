@@ -9,7 +9,7 @@ from koda_validate._generics import A, B, C, D, E, F, FailT, G, H, I, J, K, Ret
 
 # simple alias allows to greatly reduce amount of characters required to define
 # validators
-_Validator = Callable[[A], Result[B, FailT]]
+_ValidatorFunc = Callable[[A], Result[B, FailT]]
 
 
 def _flat_map_same_type_if_not_none(
@@ -276,60 +276,60 @@ def _validate_and_map(
 
 @overload
 def _chain(
-    fn1: _Validator[A, B, FailT], fn2: _Validator[B, C, FailT]
-) -> _Validator[A, C, FailT]:
+    fn1: _ValidatorFunc[A, B, FailT], fn2: _ValidatorFunc[B, C, FailT]
+) -> _ValidatorFunc[A, C, FailT]:
     ...
 
 
 @overload
 def _chain(
-    fn1: _Validator[A, B, FailT],
-    fn2: _Validator[B, C, FailT],
-    fn3: _Validator[C, D, FailT],
-) -> _Validator[A, D, FailT]:
+    fn1: _ValidatorFunc[A, B, FailT],
+    fn2: _ValidatorFunc[B, C, FailT],
+    fn3: _ValidatorFunc[C, D, FailT],
+) -> _ValidatorFunc[A, D, FailT]:
     ...
 
 
 @overload
 def _chain(
-    fn1: _Validator[A, B, FailT],
-    fn2: _Validator[B, C, FailT],
-    fn3: _Validator[C, D, FailT],
-    fn4: _Validator[D, E, FailT],
-) -> _Validator[A, E, FailT]:
+    fn1: _ValidatorFunc[A, B, FailT],
+    fn2: _ValidatorFunc[B, C, FailT],
+    fn3: _ValidatorFunc[C, D, FailT],
+    fn4: _ValidatorFunc[D, E, FailT],
+) -> _ValidatorFunc[A, E, FailT]:
     ...
 
 
 @overload
 def _chain(
-    fn1: _Validator[A, B, FailT],
-    fn2: _Validator[B, C, FailT],
-    fn3: _Validator[C, D, FailT],
-    fn4: _Validator[D, E, FailT],
-    fn5: _Validator[E, F, FailT],
-) -> _Validator[A, F, FailT]:
+    fn1: _ValidatorFunc[A, B, FailT],
+    fn2: _ValidatorFunc[B, C, FailT],
+    fn3: _ValidatorFunc[C, D, FailT],
+    fn4: _ValidatorFunc[D, E, FailT],
+    fn5: _ValidatorFunc[E, F, FailT],
+) -> _ValidatorFunc[A, F, FailT]:
     ...
 
 
 @overload
 def _chain(
-    fn1: _Validator[A, B, FailT],
-    fn2: _Validator[B, C, FailT],
-    fn3: _Validator[C, D, FailT],
-    fn4: _Validator[D, E, FailT],
-    fn5: _Validator[E, F, FailT],
-    fn6: _Validator[F, G, FailT],
-) -> _Validator[A, G, FailT]:
+    fn1: _ValidatorFunc[A, B, FailT],
+    fn2: _ValidatorFunc[B, C, FailT],
+    fn3: _ValidatorFunc[C, D, FailT],
+    fn4: _ValidatorFunc[D, E, FailT],
+    fn5: _ValidatorFunc[E, F, FailT],
+    fn6: _ValidatorFunc[F, G, FailT],
+) -> _ValidatorFunc[A, G, FailT]:
     ...
 
 
 def _chain(
-    fn1: _Validator[A, B, FailT],
-    fn2: _Validator[B, C, FailT],
-    fn3: Optional[_Validator[C, D, FailT]] = None,
-    fn4: Optional[_Validator[D, E, FailT]] = None,
-    fn5: Optional[_Validator[E, F, FailT]] = None,
-    fn6: Optional[_Validator[F, G, FailT]] = None,
+    fn1: _ValidatorFunc[A, B, FailT],
+    fn2: _ValidatorFunc[B, C, FailT],
+    fn3: Optional[_ValidatorFunc[C, D, FailT]] = None,
+    fn4: Optional[_ValidatorFunc[D, E, FailT]] = None,
+    fn5: Optional[_ValidatorFunc[E, F, FailT]] = None,
+    fn6: Optional[_ValidatorFunc[F, G, FailT]] = None,
 ) -> Callable[
     [A],
     Union[

@@ -30,11 +30,11 @@ from koda.result import Err, Ok, Result
 
 from koda_validate._cruft import _flat_map_same_type_if_not_none, _typed_tuple
 from koda_validate.typedefs import (
-    Jsonish,
-    PredicateValidator,
-    PredicateValidatorJson,
-    TransformableValidator,
+    JSONValue,
+    Predicate,
+    PredicateJson,
     Validator,
+    ValidatorFunc,
 )
 from koda_validate.utils import accum_errors, expected, validate_and_map
 
@@ -59,16 +59,16 @@ OBJECT_ERRORS_FIELD: Final[str] = "__object__"
 
 
 def accum_errors_jsonish(
-    val: A, validators: Iterable[PredicateValidator[A, Jsonish]]
-) -> Result[A, Jsonish]:
+    val: A, validators: Iterable[Predicate[A, JSONValue]]
+) -> Result[A, JSONValue]:
     """
     Helper that exists only because mypy is not always great at narrowing types
     """
-    return cast(Result[A, Jsonish], accum_errors(val, validators))
+    return cast(Result[A, JSONValue], accum_errors(val, validators))
 
 
 @dataclass(frozen=True)
-class MaxLength(PredicateValidatorJson[str]):
+class MaxLength(PredicateJson[str]):
     length: int
 
     def __post_init__(self) -> None:
@@ -82,7 +82,7 @@ class MaxLength(PredicateValidatorJson[str]):
 
 
 @dataclass(frozen=True)
-class MinLength(PredicateValidatorJson[str]):
+class MinLength(PredicateJson[str]):
     length: int
 
     def __post_init__(self) -> None:
@@ -96,7 +96,7 @@ class MinLength(PredicateValidatorJson[str]):
 
 
 @dataclass(frozen=True)
-class MinItems(PredicateValidatorJson[list[Any]]):
+class MinItems(PredicateJson[list[Any]]):
     length: int
 
     def __post_init__(self) -> None:
@@ -110,7 +110,7 @@ class MinItems(PredicateValidatorJson[list[Any]]):
 
 
 @dataclass(frozen=True)
-class MaxItems(PredicateValidatorJson[list[Any]]):
+class MaxItems(PredicateJson[list[Any]]):
     length: int
 
     def __post_init__(self) -> None:
@@ -124,7 +124,7 @@ class MaxItems(PredicateValidatorJson[list[Any]]):
 
 
 @dataclass(frozen=True)
-class MinProperties(PredicateValidatorJson[dict[Any, Any]]):
+class MinProperties(PredicateJson[dict[Any, Any]]):
     size: int
 
     def __post_init__(self) -> None:
@@ -138,7 +138,7 @@ class MinProperties(PredicateValidatorJson[dict[Any, Any]]):
 
 
 @dataclass(frozen=True)
-class MaxProperties(PredicateValidatorJson[dict[Any, Any]]):
+class MaxProperties(PredicateJson[dict[Any, Any]]):
     size: int
 
     def __post_init__(self) -> None:
@@ -151,7 +151,7 @@ class MaxProperties(PredicateValidatorJson[dict[Any, Any]]):
         return f"maximum allowed properties is {self.size}"
 
 
-class UniqueItems(PredicateValidatorJson[list[Any]]):
+class UniqueItems(PredicateJson[list[Any]]):
     def is_valid(self, val: list[Any]) -> bool:
         hashable_items: Set[Tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables
@@ -180,22 +180,22 @@ class UniqueItems(PredicateValidatorJson[list[Any]]):
 unique_items = UniqueItems()
 
 
-class BooleanValidator(TransformableValidator[Any, bool, Jsonish]):
-    def __init__(self, *validators: PredicateValidator[bool, Jsonish]) -> None:
+class BooleanValidator(Validator[Any, bool, JSONValue]):
+    def __init__(self, *validators: Predicate[bool, JSONValue]) -> None:
         self.validators = validators
 
-    def __call__(self, val: Any) -> Result[bool, Jsonish]:
+    def __call__(self, val: Any) -> Result[bool, JSONValue]:
         if isinstance(val, bool):
             return accum_errors_jsonish(val, self.validators)
         else:
             return Err([expected("a boolean")])
 
 
-class StringValidator(TransformableValidator[Any, str, Jsonish]):
-    def __init__(self, *validators: PredicateValidator[str, Jsonish]) -> None:
+class StringValidator(Validator[Any, str, JSONValue]):
+    def __init__(self, *validators: Predicate[str, JSONValue]) -> None:
         self.validators = validators
 
-    def __call__(self, val: Any) -> Result[str, Jsonish]:
+    def __call__(self, val: Any) -> Result[str, JSONValue]:
         if isinstance(val, str):
             return accum_errors_jsonish(val, self.validators)
         else:
@@ -203,7 +203,7 @@ class StringValidator(TransformableValidator[Any, str, Jsonish]):
 
 
 @dataclass(frozen=True)
-class RegexValidator(PredicateValidatorJson[str]):
+class RegexValidator(PredicateJson[str]):
     pattern: Pattern[str]
 
     def is_valid(self, val: str) -> bool:
@@ -214,7 +214,7 @@ class RegexValidator(PredicateValidatorJson[str]):
 
 
 @dataclass(frozen=True)
-class Email(PredicateValidatorJson[str]):
+class Email(PredicateJson[str]):
     pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
 
     def is_valid(self, val: str) -> bool:
@@ -224,11 +224,11 @@ class Email(PredicateValidatorJson[str]):
         return "expected a valid email address"
 
 
-class IntValidator(TransformableValidator[Any, int, Jsonish]):
-    def __init__(self, *validators: PredicateValidator[int, Jsonish]) -> None:
+class IntValidator(Validator[Any, int, JSONValue]):
+    def __init__(self, *validators: Predicate[int, JSONValue]) -> None:
         self.validators = validators
 
-    def __call__(self, val: Any) -> Result[int, Jsonish]:
+    def __call__(self, val: Any) -> Result[int, JSONValue]:
         # can't use isinstance because it would return true for bools
         if type(val) == int:
             return accum_errors_jsonish(val, self.validators)
@@ -236,22 +236,22 @@ class IntValidator(TransformableValidator[Any, int, Jsonish]):
             return Err([expected("an integer")])
 
 
-class FloatValidator(TransformableValidator[Any, float, Jsonish]):
-    def __init__(self, *validators: PredicateValidator[float, Jsonish]) -> None:
+class FloatValidator(Validator[Any, float, JSONValue]):
+    def __init__(self, *validators: Predicate[float, JSONValue]) -> None:
         self.validators = validators
 
-    def __call__(self, val: Any) -> Result[float, Jsonish]:
+    def __call__(self, val: Any) -> Result[float, JSONValue]:
         if isinstance(val, float):
             return accum_errors_jsonish(val, self.validators)
         else:
             return Err([expected("a float")])
 
 
-class DecimalValidator(TransformableValidator[Any, DecimalStdLib, Jsonish]):
-    def __init__(self, *validators: PredicateValidator[DecimalStdLib, Jsonish]) -> None:
+class DecimalValidator(Validator[Any, DecimalStdLib, JSONValue]):
+    def __init__(self, *validators: Predicate[DecimalStdLib, JSONValue]) -> None:
         self.validators = validators
 
-    def __call__(self, val: Any) -> Result[DecimalStdLib, Jsonish]:
+    def __call__(self, val: Any) -> Result[DecimalStdLib, JSONValue]:
         expected_msg = expected("a decimal-compatible string or integer")
         if isinstance(val, DecimalStdLib):
             return Ok(val)
@@ -268,16 +268,16 @@ def _safe_try_int(val: Any) -> Result[int, Exception]:
     return safe_try(int, val)
 
 
-class DateValidator(TransformableValidator[Any, date, Jsonish]):
+class DateValidator(Validator[Any, date, JSONValue]):
     """
     Expects dates to be yyyy-mm-dd
     """
 
-    def __init__(self, *validators: PredicateValidator[date, Jsonish]) -> None:
+    def __init__(self, *validators: Predicate[date, JSONValue]) -> None:
         self.validators = validators
 
-    def __call__(self, val: Any) -> Result[date, Jsonish]:
-        fail_msg: Result[date, Jsonish] = Err(["expected date formatted as yyyy-mm-dd"])
+    def __call__(self, val: Any) -> Result[date, JSONValue]:
+        fail_msg: Result[date, JSONValue] = Err(["expected date formatted as yyyy-mm-dd"])
         if isinstance(val, str):
             try:
                 year, month, day = val.split("-")
@@ -297,7 +297,7 @@ class DateValidator(TransformableValidator[Any, date, Jsonish]):
             return fail_msg
 
 
-class MapValidator(TransformableValidator[Any, dict[A, B], Jsonish]):
+class MapValidator(Validator[Any, dict[A, B], JSONValue]):
     """
     Note that while a key should always be expected to be received as a string,
     it's possible that we may want to validate and cast it to a different
@@ -306,18 +306,18 @@ class MapValidator(TransformableValidator[Any, dict[A, B], Jsonish]):
 
     def __init__(
         self,
-        key_validator: TransformableValidator[Any, A, Jsonish],
-        value_validator: TransformableValidator[Any, B, Jsonish],
-        *dict_validators: PredicateValidator[dict[A, B], Jsonish],
+        key_validator: Validator[Any, A, JSONValue],
+        value_validator: Validator[Any, B, JSONValue],
+        *dict_validators: Predicate[dict[A, B], JSONValue],
     ) -> None:
         self.key_validator = key_validator
         self.value_validator = value_validator
         self.dict_validators = dict_validators
 
-    def __call__(self, data: Any) -> Result[dict[A, B], Jsonish]:
+    def __call__(self, data: Any) -> Result[dict[A, B], JSONValue]:
         if isinstance(data, dict):
             return_dict: dict[A, B] = {}
-            errors: dict[str, Jsonish] = {}
+            errors: dict[str, JSONValue] = {}
             for key, val in data.items():
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val)
@@ -331,7 +331,7 @@ class MapValidator(TransformableValidator[Any, dict[A, B], Jsonish]):
                     if isinstance(val_result, Err):
                         errors[key] = val_result.val
 
-            dict_validator_errors: list[Jsonish] = []
+            dict_validator_errors: list[JSONValue] = []
             for validator in self.dict_validators:
                 # Note that the expectation here is that validators will likely
                 # be doing json like number of keys; they aren't expected
@@ -357,21 +357,21 @@ class MapValidator(TransformableValidator[Any, dict[A, B], Jsonish]):
             return Err({"invalid type": [expected("a map")]})
 
 
-class ListValidator(TransformableValidator[Any, list[A], Jsonish]):
+class ListValidator(Validator[Any, list[A], JSONValue]):
     def __init__(
         self,
-        item_validator: TransformableValidator[Any, A, Jsonish],
-        *list_validators: PredicateValidator[list[Any], Jsonish],
+        item_validator: Validator[Any, A, JSONValue],
+        *list_validators: Predicate[list[Any], JSONValue],
     ) -> None:
         self.item_validator = item_validator
         self.list_validators = list_validators
 
-    def __call__(self, val: Any) -> Result[list[A], Jsonish]:
+    def __call__(self, val: Any) -> Result[list[A], JSONValue]:
         if isinstance(val, list):
             return_list: list[A] = []
-            errors: dict[str, Jsonish] = {}
+            errors: dict[str, JSONValue] = {}
 
-            list_errors: list[Jsonish] = []
+            list_errors: list[JSONValue] = []
             for validator in self.list_validators:
                 result = validator(val)
 
@@ -399,10 +399,10 @@ class ListValidator(TransformableValidator[Any, list[A], Jsonish]):
 EnumT = TypeVar("EnumT", str, int)
 
 
-class Lazy(TransformableValidator[A, Ret, Jsonish]):
+class Lazy(Validator[A, Ret, JSONValue]):
     def __init__(
         self,
-        validator: Callable[[], TransformableValidator[A, Ret, Jsonish]],
+        validator: Callable[[], Validator[A, Ret, JSONValue]],
         recurrent: bool = True,
     ) -> None:
         """
@@ -415,12 +415,12 @@ class Lazy(TransformableValidator[A, Ret, Jsonish]):
         self.validator = validator
         self.recurrent = recurrent
 
-    def __call__(self, data: A) -> Result[Ret, Jsonish]:
+    def __call__(self, data: A) -> Result[Ret, JSONValue]:
         return self.validator()(data)
 
 
 # todo rename
-class Enum(PredicateValidatorJson[EnumT]):
+class Enum(PredicateJson[EnumT]):
     """
     This only exists separately from a more generic form because
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
@@ -436,22 +436,22 @@ class Enum(PredicateValidatorJson[EnumT]):
         return f"expected one of {sorted(self.choices)}"
 
 
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Jsonish]]]
+KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, JSONValue]]]
 
 
 def _validate_with_key(
     r: KeyValidator[A], data: dict[Any, Any]
-) -> Result[A, Tuple[str, Jsonish]]:
+) -> Result[A, Tuple[str, JSONValue]]:
     key, fn = r
 
-    def add_key(val: Jsonish) -> Tuple[str, Jsonish]:
+    def add_key(val: JSONValue) -> Tuple[str, JSONValue]:
         return key, val
 
     return fn(mapping_get(data, key)).map_err(add_key)
 
 
-class IsDict(TransformableValidator[Any, dict[Any, Any], Jsonish]):
-    def __call__(self, val: Any) -> Result[dict[Any, Any], Jsonish]:
+class IsDict(Validator[Any, dict[Any, Any], JSONValue]):
+    def __call__(self, val: Any) -> Result[dict[Any, Any], JSONValue]:
         if isinstance(val, dict):
             return Ok(val)
         else:
@@ -460,20 +460,20 @@ class IsDict(TransformableValidator[Any, dict[Any, Any], Jsonish]):
 
 def _dict_without_extra_keys(
     keys: Set[str], data: Any
-) -> Result[dict[Any, Any], Jsonish]:
+) -> Result[dict[Any, Any], JSONValue]:
     return IsDict()(data).flat_map(_has_no_extra_keys(keys))
 
 
-class OneOf2(TransformableValidator[Any, Either[A, B], Jsonish]):
+class OneOf2(Validator[Any, Either[A, B], JSONValue]):
     def __init__(
         self,
         variant_one: Union[
-            TransformableValidator[Any, A, Jsonish],
-            Tuple[str, TransformableValidator[Any, A, Jsonish]],
+            Validator[Any, A, JSONValue],
+            Tuple[str, Validator[Any, A, JSONValue]],
         ],
         variant_two: Union[
-            TransformableValidator[Any, B, Jsonish],
-            Tuple[str, TransformableValidator[Any, B, Jsonish]],
+            Validator[Any, B, JSONValue],
+            Tuple[str, Validator[Any, B, JSONValue]],
         ],
     ) -> None:
         if isinstance(variant_one, tuple):
@@ -488,7 +488,7 @@ class OneOf2(TransformableValidator[Any, Either[A, B], Jsonish]):
             self.variant_two = variant_two
             self.variant_two_label = "variant 2"
 
-    def __call__(self, val: Any) -> Result[Either[A, B], Jsonish]:
+    def __call__(self, val: Any) -> Result[Either[A, B], JSONValue]:
         v1_result = self.variant_one(val)
 
         if isinstance(v1_result, Ok):
@@ -507,20 +507,20 @@ class OneOf2(TransformableValidator[Any, Either[A, B], Jsonish]):
                 )
 
 
-class OneOf3(TransformableValidator[Any, Either3[A, B, C], Jsonish]):
+class OneOf3(Validator[Any, Either3[A, B, C], JSONValue]):
     def __init__(
         self,
         variant_one: Union[
-            TransformableValidator[Any, A, Jsonish],
-            Tuple[str, TransformableValidator[Any, A, Jsonish]],
+            Validator[Any, A, JSONValue],
+            Tuple[str, Validator[Any, A, JSONValue]],
         ],
         variant_two: Union[
-            TransformableValidator[Any, B, Jsonish],
-            Tuple[str, TransformableValidator[Any, B, Jsonish]],
+            Validator[Any, B, JSONValue],
+            Tuple[str, Validator[Any, B, JSONValue]],
         ],
         variant_three: Union[
-            TransformableValidator[Any, C, Jsonish],
-            Tuple[str, TransformableValidator[Any, C, Jsonish]],
+            Validator[Any, C, JSONValue],
+            Tuple[str, Validator[Any, C, JSONValue]],
         ],
     ) -> None:
         if isinstance(variant_one, tuple):
@@ -541,7 +541,7 @@ class OneOf3(TransformableValidator[Any, Either3[A, B, C], Jsonish]):
             self.variant_three = variant_three
             self.variant_three_label = "variant 3"
 
-    def __call__(self, val: Any) -> Result[Either3[A, B, C], Jsonish]:
+    def __call__(self, val: Any) -> Result[Either3[A, B, C], JSONValue]:
         v1_result = self.variant_one(val)
 
         if isinstance(v1_result, Ok):
@@ -566,28 +566,28 @@ class OneOf3(TransformableValidator[Any, Either3[A, B, C], Jsonish]):
                     )
 
 
-def _tuple_to_dict_errors(errs: Tuple[Jsonish, ...]) -> dict[str, Jsonish]:
+def _tuple_to_dict_errors(errs: Tuple[JSONValue, ...]) -> dict[str, JSONValue]:
     return {f"index {i}": err for i, err in enumerate(errs)}
 
 
-class Tuple2Validator(TransformableValidator[Any, Tuple[A, B], Jsonish]):
+class Tuple2Validator(Validator[Any, Tuple[A, B], JSONValue]):
     required_length: int = 2
 
     def __init__(
         self,
-        slot1_validator: Callable[[Any], Result[A, Jsonish]],
-        slot2_validator: Callable[[Any], Result[B, Jsonish]],
+        slot1_validator: Callable[[Any], Result[A, JSONValue]],
+        slot2_validator: Callable[[Any], Result[B, JSONValue]],
         tuple_validator: Optional[
-            Callable[[Tuple[A, B]], Result[Tuple[A, B], Jsonish]]
+            Callable[[Tuple[A, B]], Result[Tuple[A, B], JSONValue]]
         ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator
         self.tuple_validator = tuple_validator
 
-    def __call__(self, data: Any) -> Result[Tuple[A, B], Jsonish]:
+    def __call__(self, data: Any) -> Result[Tuple[A, B], JSONValue]:
         if isinstance(data, list) and len(data) == self.required_length:
-            result: Result[Tuple[A, B], Tuple[Jsonish, ...]] = validate_and_map(
+            result: Result[Tuple[A, B], Tuple[JSONValue, ...]] = validate_and_map(
                 self.slot1_validator(data[0]),
                 self.slot2_validator(data[1]),
                 _typed_tuple,
@@ -606,16 +606,16 @@ class Tuple2Validator(TransformableValidator[Any, Tuple[A, B], Jsonish]):
             )
 
 
-class Tuple3Validator(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
+class Tuple3Validator(Validator[Any, Tuple[A, B, C], JSONValue]):
     required_length: int = 3
 
     def __init__(
         self,
-        slot1_validator: Callable[[Any], Result[A, Jsonish]],
-        slot2_validator: Callable[[Any], Result[B, Jsonish]],
-        slot3_validator: Callable[[Any], Result[C, Jsonish]],
+        slot1_validator: Callable[[Any], Result[A, JSONValue]],
+        slot2_validator: Callable[[Any], Result[B, JSONValue]],
+        slot3_validator: Callable[[Any], Result[C, JSONValue]],
         tuple_validator: Optional[
-            Callable[[Tuple[A, B, C]], Result[Tuple[A, B, C], Jsonish]]
+            Callable[[Tuple[A, B, C]], Result[Tuple[A, B, C], JSONValue]]
         ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
@@ -623,9 +623,9 @@ class Tuple3Validator(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
         self.slot3_validator = slot3_validator
         self.tuple_validator = tuple_validator
 
-    def __call__(self, data: Any) -> Result[Tuple[A, B, C], Jsonish]:
+    def __call__(self, data: Any) -> Result[Tuple[A, B, C], JSONValue]:
         if isinstance(data, list) and len(data) == self.required_length:
-            result: Result[Tuple[A, B, C], Tuple[Jsonish, ...]] = validate_and_map(
+            result: Result[Tuple[A, B, C], Tuple[JSONValue, ...]] = validate_and_map(
                 self.slot1_validator(data[0]),
                 self.slot2_validator(data[1]),
                 self.slot3_validator(data[2]),
@@ -645,8 +645,10 @@ class Tuple3Validator(TransformableValidator[Any, Tuple[A, B, C], Jsonish]):
             )
 
 
-def _has_no_extra_keys(keys: Set[str]) -> Validator[dict[A, B], dict[A, B], Jsonish]:
-    def inner(mapping: dict[A, B]) -> Result[dict[A, B], Jsonish]:
+def _has_no_extra_keys(
+    keys: Set[str],
+) -> ValidatorFunc[dict[A, B], dict[A, B], JSONValue]:
+    def inner(mapping: dict[A, B]) -> Result[dict[A, B], JSONValue]:
         if len(mapping.keys() - keys) > 0:
             return Err(
                 {
@@ -664,11 +666,11 @@ def _has_no_extra_keys(keys: Set[str]) -> Validator[dict[A, B], dict[A, B], Json
 BLANK_STRING_MSG: Final[str] = "cannot be blank"
 
 
-class NotBlank(PredicateValidator[str, Jsonish]):
+class NotBlank(Predicate[str, JSONValue]):
     def is_valid(self, val: str) -> bool:
         return len(val.strip()) != 0
 
-    def err_message(self, val: str) -> Jsonish:
+    def err_message(self, val: str) -> JSONValue:
         return BLANK_STRING_MSG
 
 
@@ -678,10 +680,10 @@ _KEY_MISSING: Final[str] = "key missing"
 
 
 class RequiredField(Generic[A]):
-    def __init__(self, validator: TransformableValidator[Any, A, Jsonish]) -> None:
+    def __init__(self, validator: Validator[Any, A, JSONValue]) -> None:
         self.validator = validator
 
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Jsonish]:
+    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, JSONValue]:
         if isinstance(maybe_val, Nothing):
             return Err([_KEY_MISSING])
         else:
@@ -689,12 +691,12 @@ class RequiredField(Generic[A]):
 
 
 class MaybeField(Generic[A]):
-    def __init__(self, validator: TransformableValidator[Any, A, Jsonish]) -> None:
+    def __init__(self, validator: Validator[Any, A, JSONValue]) -> None:
         self.validator = validator
 
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Jsonish]:
+    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], JSONValue]:
         if isinstance(maybe_val, Just):
-            result: Result[Maybe[A], Jsonish] = self.validator(maybe_val.val).map(
+            result: Result[Maybe[A], JSONValue] = self.validator(maybe_val.val).map(
                 _to_just
             )
         else:
@@ -703,8 +705,8 @@ class MaybeField(Generic[A]):
 
 
 def deserialize_and_validate(
-    validator: TransformableValidator[Any, A, Jsonish], data: AnyStr
-) -> Result[A, Jsonish]:
+    validator: Validator[Any, A, JSONValue], data: AnyStr
+) -> Result[A, JSONValue]:
     try:
         deserialized = loads(data)
     except Exception:
@@ -720,23 +722,23 @@ def _to_just(x: A) -> Maybe[A]:
     return Just(x)
 
 
-def _variant_errors(*variants: Jsonish) -> Jsonish:
+def _variant_errors(*variants: JSONValue) -> JSONValue:
     return {f"variant {i + 1}": v for i, v in enumerate(variants)}
 
 
-class Nullable(TransformableValidator[Any, Maybe[A], Jsonish]):
+class Nullable(Validator[Any, Maybe[A], JSONValue]):
     """
     We have a value for a key, but it can be null (None)
     """
 
-    def __init__(self, validator: TransformableValidator[Any, A, Jsonish]) -> None:
+    def __init__(self, validator: Validator[Any, A, JSONValue]) -> None:
         self.validator = validator
 
-    def __call__(self, val: Optional[Any]) -> Result[Maybe[A], Jsonish]:
+    def __call__(self, val: Optional[Any]) -> Result[Maybe[A], JSONValue]:
         if val is None:
             return Ok(nothing)
         else:
-            result: Result[A, Jsonish] = self.validator(val)
+            result: Result[A, JSONValue] = self.validator(val)
             if isinstance(result, Ok):
                 return result.map(_to_just)
             else:
@@ -749,7 +751,7 @@ Num = TypeVar("Num", int, float, DecimalStdLib)
 
 
 @dataclass(frozen=True)
-class Minimum(PredicateValidatorJson[Num]):
+class Minimum(PredicateJson[Num]):
     minimum: Num
     exclusive_minimum: bool = False
 
@@ -764,7 +766,7 @@ class Minimum(PredicateValidatorJson[Num]):
 
 
 @dataclass(frozen=True)
-class Maximum(PredicateValidatorJson[Num]):
+class Maximum(PredicateJson[Num]):
     maximum: Num
     exclusive_maximum: bool = False
 
@@ -779,7 +781,7 @@ class Maximum(PredicateValidatorJson[Num]):
 
 
 @dataclass(frozen=True)
-class MultipleOf(PredicateValidatorJson[Num]):
+class MultipleOf(PredicateJson[Num]):
     factor: Num
 
     def is_valid(self, val: Num) -> bool:
@@ -789,8 +791,8 @@ class MultipleOf(PredicateValidatorJson[Num]):
         return f"expected multiple of {self.factor}"
 
 
-class NoneValidator(TransformableValidator[Any, None, Jsonish]):
-    def __call__(self, val: Any) -> Result[None, Jsonish]:
+class NoneValidator(Validator[Any, None, JSONValue]):
+    def __call__(self, val: Any) -> Result[None, JSONValue]:
         if val is None:
             return Ok(val)
         else:
@@ -801,34 +803,34 @@ none_validator = NoneValidator()
 
 
 def key(
-    prop_: str, validator: TransformableValidator[Any, A, Jsonish]
-) -> Tuple[str, Callable[[Any], Result[A, Jsonish]]]:
+    prop_: str, validator: Validator[Any, A, JSONValue]
+) -> Tuple[str, Callable[[Any], Result[A, JSONValue]]]:
     return prop_, RequiredField(validator)
 
 
 def maybe_key(
-    prop_: str, validator: TransformableValidator[Any, A, Jsonish]
-) -> Tuple[str, Callable[[Any], Result[Maybe[A], Jsonish]]]:
+    prop_: str, validator: Validator[Any, A, JSONValue]
+) -> Tuple[str, Callable[[Any], Result[Maybe[A], JSONValue]]]:
     return prop_, MaybeField(validator)
 
 
-def _tuples_to_jo_dict(data: Tuple[Tuple[str, Jsonish], ...]) -> Jsonish:
+def _tuples_to_jo_dict(data: Tuple[Tuple[str, JSONValue], ...]) -> JSONValue:
     return dict(data)
 
 
-class Dict1KeyValidator(Generic[A, Ret], TransformableValidator[Any, Ret, Jsonish]):
+class Dict1KeyValidator(Generic[A, Ret], Validator[Any, Ret, JSONValue]):
     def __init__(
         self,
         field1: KeyValidator[A],
         *,
         into: Callable[[A], Ret],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Jsonish]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.fields = (field1,)
         self.into = into
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Jsonish]:
+    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         # ok, not sure why this works, but {f.key for f in self.fields} doesn't
         result = _dict_without_extra_keys(
             {self.fields[x][0] for x in range(len(self.fields))}, data
@@ -845,14 +847,14 @@ class Dict1KeyValidator(Generic[A, Ret], TransformableValidator[Any, Ret, Jsonis
             )
 
 
-class Dict2KeysValidator(Generic[A, B, Ret], TransformableValidator[Any, Ret, Jsonish]):
+class Dict2KeysValidator(Generic[A, B, Ret], Validator[Any, Ret, JSONValue]):
     def __init__(
         self,
         field1: KeyValidator[A],
         field2: KeyValidator[B],
         *,
         into: Callable[[A, B], Ret],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Jsonish]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -861,7 +863,7 @@ class Dict2KeysValidator(Generic[A, B, Ret], TransformableValidator[Any, Ret, Js
         self.into = into
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Jsonish]:
+    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         # ok, not sure why this works, but {f.key for f in self.fields} doesn't
         result = _dict_without_extra_keys(
             {self.fields[x][0] for x in range(len(self.fields))}, data
@@ -880,9 +882,7 @@ class Dict2KeysValidator(Generic[A, B, Ret], TransformableValidator[Any, Ret, Js
             )
 
 
-class Dict3KeysValidator(
-    Generic[A, B, C, Ret], TransformableValidator[Any, Ret, Jsonish]
-):
+class Dict3KeysValidator(Generic[A, B, C, Ret], Validator[Any, Ret, JSONValue]):
     def __init__(
         self,
         field1: KeyValidator[A],
@@ -890,7 +890,7 @@ class Dict3KeysValidator(
         field3: KeyValidator[C],
         *,
         into: Callable[[A, B, C], Ret],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Jsonish]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -900,7 +900,7 @@ class Dict3KeysValidator(
         self.into = into
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Jsonish]:
+    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         # ok, not sure why this works, but {f.key for f in self.fields} doesn't
         result = _dict_without_extra_keys(
             {self.fields[x][0] for x in range(len(self.fields))}, data
@@ -920,9 +920,7 @@ class Dict3KeysValidator(
             )
 
 
-class Dict4KeysValidator(
-    Generic[A, B, C, D, Ret], TransformableValidator[Any, Ret, Jsonish]
-):
+class Dict4KeysValidator(Generic[A, B, C, D, Ret], Validator[Any, Ret, JSONValue]):
     def __init__(
         self,
         field1: KeyValidator[A],
@@ -931,7 +929,7 @@ class Dict4KeysValidator(
         field4: KeyValidator[D],
         *,
         into: Callable[[A, B, C, D], Ret],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Jsonish]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -942,7 +940,7 @@ class Dict4KeysValidator(
         self.into = into
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Jsonish]:
+    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         # ok, not sure why this works, but {f.key for f in self.fields} doesn't
         result = _dict_without_extra_keys(
             {self.fields[x][0] for x in range(len(self.fields))}, data
@@ -963,9 +961,7 @@ class Dict4KeysValidator(
             )
 
 
-class Dict5KeysValidator(
-    Generic[A, B, C, D, E, Ret], TransformableValidator[Any, Ret, Jsonish]
-):
+class Dict5KeysValidator(Generic[A, B, C, D, E, Ret], Validator[Any, Ret, JSONValue]):
     def __init__(
         self,
         field1: KeyValidator[A],
@@ -975,7 +971,7 @@ class Dict5KeysValidator(
         field5: KeyValidator[E],
         *,
         into: Callable[[A, B, C, D, E], Ret],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Jsonish]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -987,7 +983,7 @@ class Dict5KeysValidator(
         self.into = into
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Jsonish]:
+    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         # ok, not sure why this works, but {f.key for f in self.fields} doesn't
         result = _dict_without_extra_keys(
             {self.fields[x][0] for x in range(len(self.fields))}, data
@@ -1009,9 +1005,7 @@ class Dict5KeysValidator(
             )
 
 
-class Dict6KeysValidator(
-    Generic[A, B, C, D, E, F, Ret], TransformableValidator[Any, Ret, Jsonish]
-):
+class Dict6KeysValidator(Generic[A, B, C, D, E, F, Ret], Validator[Any, Ret, JSONValue]):
     def __init__(
         self,
         field1: KeyValidator[A],
@@ -1022,7 +1016,7 @@ class Dict6KeysValidator(
         field6: KeyValidator[F],
         *,
         into: Callable[[A, B, C, D, E, F], Ret],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Jsonish]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -1035,7 +1029,7 @@ class Dict6KeysValidator(
         self.into = into
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Jsonish]:
+    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         # ok, not sure why this works, but {f.key for f in self.fields} doesn't
         result = _dict_without_extra_keys(
             {self.fields[x][0] for x in range(len(self.fields))}, data
@@ -1059,7 +1053,7 @@ class Dict6KeysValidator(
 
 
 class Dict7KeysValidator(
-    Generic[A, B, C, D, E, F, G, Ret], TransformableValidator[Any, Ret, Jsonish]
+    Generic[A, B, C, D, E, F, G, Ret], Validator[Any, Ret, JSONValue]
 ):
     def __init__(
         self,
@@ -1072,7 +1066,7 @@ class Dict7KeysValidator(
         field7: KeyValidator[G],
         *,
         into: Callable[[A, B, C, D, E, F, G], Ret],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Jsonish]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -1086,7 +1080,7 @@ class Dict7KeysValidator(
         self.into = into
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Jsonish]:
+    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         # ok, not sure why this works, but {f.key for f in self.fields} doesn't
         result = _dict_without_extra_keys(
             {self.fields[x][0] for x in range(len(self.fields))}, data
@@ -1111,7 +1105,7 @@ class Dict7KeysValidator(
 
 
 class Dict8KeysValidator(
-    Generic[A, B, C, D, E, F, G, H, Ret], TransformableValidator[Any, Ret, Jsonish]
+    Generic[A, B, C, D, E, F, G, H, Ret], Validator[Any, Ret, JSONValue]
 ):
     def __init__(
         self,
@@ -1125,7 +1119,7 @@ class Dict8KeysValidator(
         field8: KeyValidator[H],
         *,
         into: Callable[[A, B, C, D, E, F, G, H], Ret],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Jsonish]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -1140,7 +1134,7 @@ class Dict8KeysValidator(
         self.into = into
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Jsonish]:
+    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         # ok, not sure why this works, but {f.key for f in self.fields} doesn't
         result = _dict_without_extra_keys(
             {self.fields[x][0] for x in range(len(self.fields))}, data
@@ -1166,7 +1160,7 @@ class Dict8KeysValidator(
 
 
 class Dict9KeysValidator(
-    Generic[A, B, C, D, E, F, G, H, I, Ret], TransformableValidator[Any, Ret, Jsonish]
+    Generic[A, B, C, D, E, F, G, H, I, Ret], Validator[Any, Ret, JSONValue]
 ):
     def __init__(
         self,
@@ -1181,7 +1175,7 @@ class Dict9KeysValidator(
         field9: KeyValidator[I],
         *,
         into: Callable[[A, B, C, D, E, F, G, H, I], Ret],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Jsonish]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -1197,7 +1191,7 @@ class Dict9KeysValidator(
         self.into = into
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Jsonish]:
+    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         # ok, not sure why this works, but {f.key for f in self.fields} doesn't
         result = _dict_without_extra_keys(
             {self.fields[x][0] for x in range(len(self.fields))}, data
@@ -1225,7 +1219,7 @@ class Dict9KeysValidator(
 
 class Dict10KeysValidator(
     Generic[A, B, C, D, E, F, G, H, I, J, Ret],
-    TransformableValidator[Any, Ret, Jsonish],
+    Validator[Any, Ret, JSONValue],
 ):
     def __init__(
         self,
@@ -1241,7 +1235,7 @@ class Dict10KeysValidator(
         field10: KeyValidator[J],
         *,
         into: Callable[[A, B, C, D, E, F, G, H, I, J], Ret],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Jsonish]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.fields = (
             field1,
@@ -1258,7 +1252,7 @@ class Dict10KeysValidator(
         self.into = into
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Jsonish]:
+    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         # ok, not sure why this works, but {f.key for f in self.fields} doesn't
         result = _dict_without_extra_keys(
             {self.fields[x][0] for x in range(len(self.fields))}, data

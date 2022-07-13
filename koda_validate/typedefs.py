@@ -1,20 +1,17 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Callable, Generic, Union, final
+from typing import Any, Generic, Union, final
 
 from koda import Err, Ok, Result
 
-from koda_validate._cruft import _Validator
+from koda_validate._cruft import _ValidatorFunc
 from koda_validate._generics import A, B, FailT
 
-Validator = _Validator[A, B, FailT]
+ValidatorFunc = _ValidatorFunc[A, B, FailT]
 
 
-Predicate = Callable[[A], bool]
-
-
-class TransformableValidator(Generic[A, B, FailT]):
+class Validator(Generic[A, B, FailT]):
     """
     A Callable exactly as the `Validator` type alias requires, but allows us to
     retain metadata from the validator (instead of hiding inside a closure). For
@@ -29,9 +26,9 @@ class TransformableValidator(Generic[A, B, FailT]):
         raise NotImplementedError
 
 
-class PredicateValidator(Generic[A, FailT]):
+class Predicate(Generic[A, FailT]):
     """
-    The important aspect of a `PredicateValidator` is that it is not
+    The important aspect of a `Predicate` is that it is not
     possible to change the data passed in (it is technically possible to mutate
     mutable values in the course of json, but that is considered an
     error in the opinion of this library).
@@ -53,11 +50,11 @@ class PredicateValidator(Generic[A, FailT]):
             return Err(self.err_message(val))
 
 
-_Jsonish1 = Union[None, int, str, bool, float, list[Any], dict[str, Any]]
-Jsonish = Union[None, int, str, bool, float, list[_Jsonish1], dict[str, _Jsonish1]]
+_JSONValue1 = Union[None, int, str, bool, float, list[Any], dict[str, Any]]
+JSONValue = Union[None, int, str, bool, float, list[_JSONValue1], dict[str, _JSONValue1]]
 
 
-class PredicateValidatorJson(PredicateValidator[A, Jsonish]):
+class PredicateJson(Predicate[A, JSONValue]):
     """
     This class only exists as a convenience. If the error
     messages you're writing are `str`, you can override
@@ -71,5 +68,5 @@ class PredicateValidatorJson(PredicateValidator[A, Jsonish]):
     def err_message_str(self, val: A) -> str:
         raise NotImplementedError
 
-    def err_message(self, val: A) -> Jsonish:
+    def err_message(self, val: A) -> JSONValue:
         return self.err_message_str(val)
