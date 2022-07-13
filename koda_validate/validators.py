@@ -24,11 +24,13 @@ from typing import (
 )
 
 from koda import mapping_get, safe_try
+from koda._generics import A
 from koda.either import Either, Either3, First, Second, Third
 from koda.maybe import Just, Maybe, Nothing, nothing
 from koda.result import Err, Ok, Result
 
 from koda_validate._cruft import _flat_map_same_type_if_not_none, _typed_tuple
+from koda_validate._generics import B, C, D, E, F, G, H, I, J, Ret
 from koda_validate.typedefs import (
     JSONValue,
     Predicate,
@@ -37,23 +39,6 @@ from koda_validate.typedefs import (
     ValidatorFunc,
 )
 from koda_validate.utils import accum_errors, expected, validate_and_map
-
-A = TypeVar("A")
-B = TypeVar("B")
-C = TypeVar("C")
-D = TypeVar("D")
-E = TypeVar("E")
-F = TypeVar("F")
-G = TypeVar("G")
-H = TypeVar("H")
-I = TypeVar("I")
-J = TypeVar("J")
-K = TypeVar("K")
-L = TypeVar("L")
-
-Ret = TypeVar("Ret")
-
-FailT = TypeVar("FailT")
 
 OBJECT_ERRORS_FIELD: Final[str] = "__object__"
 
