@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "koda-validate"
-version = "1.0-dev3"
+version = "1.0-dev4"
 description = ""
 authors = ["Keith Philpott"]
 

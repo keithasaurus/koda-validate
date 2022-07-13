@@ -6,7 +6,7 @@ from koda import Err, Ok, Result
 
 from koda_validate._cruft import _chain, _validate_and_map
 from koda_validate._generics import A, FailT
-from koda_validate.typedefs import PredicateValidator
+from koda_validate.typedefs import Predicate
 
 
 def expected(val: str) -> str:
@@ -14,7 +14,7 @@ def expected(val: str) -> str:
 
 
 def accum_errors(
-    val: A, validators: Iterable[PredicateValidator[A, FailT]]
+    val: A, validators: Iterable[Predicate[A, FailT]]
 ) -> Result[A, list[FailT]]:
     errors: list[FailT] = []
     result: Result[A, FailT] = Ok(val)

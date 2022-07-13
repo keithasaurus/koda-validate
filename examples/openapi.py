@@ -1,7 +1,7 @@
 # from typing import Any, Dict, List, NoReturn, Union
 #
 # from koda_validate.serialization import JsonSerializable
-# from koda_validate.typedefs import PredicateValidator, TransformableValidator
+# from koda_validate.typedefs import Predicate, TransformableValidator
 # from koda_validate.validation import (
 #     BooleanValidator,
 #     Dict1KeyValidator,
@@ -150,7 +150,7 @@
 #
 #
 # def generate_schema_predicate(
-#     validator: PredicateValidator[Any, Any]
+#     validator: Predicate[Any, Any]
 # ) -> Dict[str, JsonSerializable]:
 #     # strings
 #     if isinstance(validator, Email):
@@ -288,7 +288,7 @@
 # def generate_schema_base(schema_name: str, obj: Any) -> Dict[str, JsonSerializable]:
 #     if isinstance(obj, TransformableValidator):
 #         return generate_schema_transformable(schema_name, obj)
-#     elif isinstance(obj, PredicateValidator):
+#     elif isinstance(obj, Predicate):
 #         return generate_schema_predicate(obj)
 #     else:
 #         unhandled_type(obj)
