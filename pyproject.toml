@@ -16,7 +16,7 @@ isort = "5.10.1"
 black = "22.6.0"
 flake8 = "4.0.1"
 pre-commit = "2.19.0"
-mypy = "0.961"
+mypy = "0.971"
 
 
 [tool.mypy]

@@ -11,7 +11,7 @@ Let's start as simple as possible.
 
 ```python3
 from koda import Ok
-from koda_validate.validation import StringValidator, Err
+from koda_validate.validators import StringValidator, Err
 
 string_validator = StringValidator()
 
@@ -23,7 +23,7 @@ Testing if something is a string can be useful, but we often want to constrain v
 
 ```python
 from koda import Ok
-from koda_validate.validation import StringValidator, Err, not_blank, MinLength
+from koda_validate.validators import StringValidator, Err, not_blank, MinLength
 
 string_validator = StringValidator(not_blank, MinLength(5))
 

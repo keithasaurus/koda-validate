@@ -2,12 +2,22 @@ import re
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal as DecimalStdLib
-from typing import Any, Dict, List, Protocol, Tuple
+from typing import Any, Dict, List, NoReturn, Protocol, Tuple
 
 from koda.either import First, Second, Third
 from koda.maybe import Just, Maybe, nothing
 from koda.result import Err, Ok, Result
 
+from koda_validate.generated import (
+    Dict2KeysValidator,
+    Dict4KeysValidator,
+    Dict5KeysValidator,
+    Dict6KeysValidator,
+    Dict7KeysValidator,
+    Dict8KeysValidator,
+    Dict9KeysValidator,
+    Dict10KeysValidator,
+)
 from koda_validate.typedefs import JSONValue, Predicate
 from koda_validate.validators import (
     BLANK_STRING_MSG,
@@ -16,16 +26,6 @@ from koda_validate.validators import (
     Choices,
     DateValidator,
     DecimalValidator,
-    Dict1KeyValidator,
-    Dict2KeysValidator,
-    Dict3KeysValidator,
-    Dict4KeysValidator,
-    Dict5KeysValidator,
-    Dict6KeysValidator,
-    Dict7KeysValidator,
-    Dict8KeysValidator,
-    Dict9KeysValidator,
-    Dict10KeysValidator,
     Email,
     FloatValidator,
     IntValidator,
@@ -50,6 +50,7 @@ from koda_validate.validators import (
     Tuple2Validator,
     Tuple3Validator,
     deserialize_and_validate,
+    dict_validator,
     key,
     maybe_key,
     none_validator,
@@ -445,7 +446,7 @@ def test_obj_1() -> None:
     class Person:
         name: str
 
-    validator = Dict1KeyValidator(key("name", StringValidator()), into=Person)
+    validator = dict_validator(Person, key("name", StringValidator()))
 
     assert validator("not a dict") == Err({"__object__": ["expected an object"]})
 
@@ -466,8 +467,8 @@ def test_obj_2() -> None:
         name: str
         age: Maybe[int]
 
-    validator = Dict2KeysValidator(
-        key("name", StringValidator()), maybe_key("age", IntValidator()), into=Person
+    validator = dict_validator(
+        Person, key("name", StringValidator()), maybe_key("age", IntValidator())
     )
 
     assert validator("not a dict") == Err({"__object__": ["expected an object"]})
@@ -493,11 +494,11 @@ def test_obj_3() -> None:
         last_name: str
         age: int
 
-    validator = Dict3KeysValidator(
+    validator = dict_validator(
+        Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
         key("age", IntValidator()),
-        into=Person,
     )
 
     assert validator({"first_name": "bob", "last_name": "smith", "age": 50}) == Ok(
@@ -535,11 +536,11 @@ def test_obj_4() -> None:
         eye_color: str
 
     validator = Dict4KeysValidator(
+        Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
-        into=Person,
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -564,12 +565,12 @@ def test_obj_5() -> None:
         can_fly: bool
 
     validator = Dict5KeysValidator(
+        Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
         key("can-fly", BooleanValidator()),
-        into=Person,
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -607,13 +608,13 @@ def test_obj_6() -> None:
         fingers: float
 
     validator = Dict6KeysValidator(
+        Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
         key("can-fly", BooleanValidator()),
         key("number_of_fingers", FloatValidator()),
-        into=Person,
     )
 
     assert validator(
@@ -642,6 +643,7 @@ def test_obj_7() -> None:
         toes: float
 
     validator = Dict7KeysValidator(
+        Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
         key("age", IntValidator()),
@@ -649,7 +651,6 @@ def test_obj_7() -> None:
         key("can-fly", BooleanValidator()),
         key("number_of_fingers", FloatValidator()),
         key("number of toes", FloatValidator()),
-        into=Person,
     )
 
     assert validator(
@@ -680,6 +681,7 @@ def test_obj_8() -> None:
         favorite_color: Maybe[str]
 
     validator = Dict8KeysValidator(
+        Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
         key("age", IntValidator()),
@@ -688,7 +690,6 @@ def test_obj_8() -> None:
         key("number_of_fingers", FloatValidator()),
         key("number of toes", FloatValidator()),
         maybe_key("favorite_color", StringValidator()),
-        into=Person,
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -747,6 +748,7 @@ def test_obj_9() -> None:
         requires_none: None
 
     validator = Dict9KeysValidator(
+        Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
         key("age", IntValidator()),
@@ -756,7 +758,6 @@ def test_obj_9() -> None:
         key("number of toes", FloatValidator()),
         maybe_key("favorite_color", StringValidator()),
         key("requires_none", none_validator),
-        into=Person,
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -792,6 +793,7 @@ def test_obj_10() -> None:
         something_else: List[str]
 
     validator = Dict10KeysValidator(
+        Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
         key("age", IntValidator()),
@@ -802,7 +804,6 @@ def test_obj_10() -> None:
         maybe_key("favorite_color", StringValidator()),
         key("requires_none", none_validator),
         key("favorite_books", ListValidator(StringValidator())),
-        into=Person,
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -917,7 +918,9 @@ def deserialize_and_validate_tests() -> None:
         age: int
 
     validator = Dict2KeysValidator(
-        key("name", StringValidator()), key("int", IntValidator()), into=Person
+        Person,
+        key("name", StringValidator()),
+        key("int", IntValidator()),
     )
 
     assert deserialize_and_validate(validator, "") == Err(
@@ -945,9 +948,9 @@ def test_lazy() -> None:
     nel_validator: Dict2KeysValidator[
         int, Maybe[TestNonEmptyList], TestNonEmptyList
     ] = Dict2KeysValidator(
+        TestNonEmptyList,
         key("val", IntValidator()),
         maybe_key("next", Lazy(recur_tnel)),
-        into=TestNonEmptyList,
     )
 
     assert nel_validator({"val": 5, "next": {"val": 6, "next": {"val": 7}}}) == Ok(

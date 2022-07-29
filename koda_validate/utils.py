@@ -34,4 +34,3 @@ def accum_errors(
 
 
 chain = _chain
-validate_and_map = _validate_and_map
