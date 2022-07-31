@@ -1,28 +1,121 @@
+from codegen.utils import add_type_vars, get_type_vars
+
+
 def generate_code(num_keys: int) -> str:
-    type_vars = [f"T{i}" for i in range(1, num_keys + 1)]
+
     dict_validator_into_signatures: list[str] = []
     dict_validator_fields: list[str] = []
     dict_validator_overloads: list[str] = []
-    vm_validator_fields: list[str] = []
-    vm_overloads: list[str] = []
-    ret = """from functools import partial
-from typing import TypeVar, Generic, Any, Callable, Optional, cast, overload, Union
+    ret = """from typing import TypeVar, Generic, Any, Callable, Optional, cast, overload, Union, Final
 
 from koda import Err, Maybe, Ok, Result, mapping_get
 
-from koda_validate._cruft import _flat_map_same_type_if_not_none
-from koda_validate.typedefs import Validator, JSONValue
-from koda_validate.validators import _dict_without_extra_keys, _validate_with_key
-
+from koda_validate.utils import expected
+from koda_validate.validators.utils import _flat_map_same_type_if_not_none
+from koda_validate.typedefs import Validator, ValidatorFunc, JSONValue, Predicate
+from koda_validate.validators.validate_and_map import validate_and_map
 
 """
-    for type_var in type_vars:
-        ret += f'{type_var} = TypeVar("{type_var}")\n'
-
-    ret += 'Ret = TypeVar("Ret")\n'
-    ret += 'FailT = TypeVar("FailT")\n'
+    type_vars = get_type_vars(num_keys)
+    ret += add_type_vars(type_vars)
 
     ret += """
+
+OBJECT_ERRORS_FIELD: Final[str] = "__object__"
+
+
+class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):
+    \"\""\
+    Note that while a key should always be expected to be received as a string,
+    it's possible that we may want to validate and cast it to a different
+    type (i.e. a date)
+    \"\"\"
+
+    def __init__(
+        self,
+        key_validator: Validator[Any, T1, JSONValue],
+        value_validator: Validator[Any, T2, JSONValue],
+        *dict_validators: Predicate[dict[T1, T2], JSONValue],
+    ) -> None:
+        self.key_validator = key_validator
+        self.value_validator = value_validator
+        self.dict_validators = dict_validators
+
+    def __call__(self, data: Any) -> Result[dict[T1, T2], JSONValue]:
+        if isinstance(data, dict):
+            return_dict: dict[T1, T2] = {}
+            errors: dict[str, JSONValue] = {}
+            for key, val in data.items():
+                key_result = self.key_validator(key)
+                val_result = self.value_validator(val)
+
+                if isinstance(key_result, Ok) and isinstance(val_result, Ok):
+                    return_dict[key_result.val] = val_result.val
+                else:
+                    if isinstance(key_result, Err):
+                        errors[f"{key} (key)"] = key_result.val
+
+                    if isinstance(val_result, Err):
+                        errors[key] = val_result.val
+
+            dict_validator_errors: list[JSONValue] = []
+            for validator in self.dict_validators:
+                # Note that the expectation here is that validators will likely
+                # be doing json like number of keys; they aren't expected
+                # to be drilling down into specific keys and values. That may be
+                # an incorrect assumption; if so, some minor refactoring is probably
+                # necessary.
+                result = validator(data)
+                if isinstance(result, Err):
+                    dict_validator_errors.append(result.val)
+
+            if len(dict_validator_errors) > 0:
+                # in case somehow there are already errors in this field
+                if OBJECT_ERRORS_FIELD in errors:
+                    dict_validator_errors.append(errors[OBJECT_ERRORS_FIELD])
+
+                errors[OBJECT_ERRORS_FIELD] = dict_validator_errors
+
+            if errors:
+                return Err(errors)
+            else:
+                return Ok(return_dict)
+        else:
+            return Err({"invalid type": [expected("a map")]})
+
+
+class IsDict(Validator[Any, dict[Any, Any], JSONValue]):
+    def __call__(self, val: Any) -> Result[dict[Any, Any], JSONValue]:
+        if isinstance(val, dict):
+            return Ok(val)
+        else:
+            return Err({OBJECT_ERRORS_FIELD: [expected("an object")]})
+
+
+def _has_no_extra_keys(
+    keys: set[str],
+) -> ValidatorFunc[dict[T1, T2], dict[T1, T2], JSONValue]:
+    def inner(mapping: dict[T1, T2]) -> Result[dict[T1, T2], JSONValue]:
+        if len(mapping.keys() - keys) > 0:
+            return Err(
+                {
+                    OBJECT_ERRORS_FIELD: [
+                        f"Received unknown keys. Only expected {sorted(keys)}"
+                    ]
+                }
+            )
+        else:
+            return Ok(mapping)
+
+    return inner
+
+
+def _dict_without_extra_keys(
+    keys: set[str], data: Any
+) -> Result[dict[Any, Any], JSONValue]:
+    return IsDict()(data).flat_map(_has_no_extra_keys(keys))
+
+
 
 def _tuples_to_json_dict(data: tuple[tuple[str, JSONValue], ...]) -> JSONValue:
     return dict(data)
@@ -50,11 +143,6 @@ def _validate_with_key(
             f"field{i+1}: KeyValidator[{type_vars[i]}]"
             if i == 0
             else f"field{i+1}: Optional[KeyValidator[{type_vars[i]}]]"
-        )
-        vm_validator_fields.append(
-            f"r{i + 1}: Result[{type_vars[i]}, FailT]"
-            if i == 0
-            else f"r{i + 1}: Optional[Result[{type_vars[i]}, FailT]]"
         )
 
         ret += f"""
@@ -109,11 +197,11 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, J
             )
 """
 
-        # overload for _dict_validator
+        # overload for dict_validator
         dv_overload = f"""
 
 @overload
-def _dict_validator(
+def dict_validator(
     into: {dict_validator_into_signatures[-1]},"""
         dv_overload += "".join(
             [
@@ -129,86 +217,19 @@ def _dict_validator(
 """
         dict_validator_overloads.append(dv_overload)
 
-        vm_overload = f"""
-
-@overload
-def validate_and_map(
-    into: {dict_validator_into_signatures[-1]},"""
-        vm_overload += "".join(
-            [
-                f"\n    r{j+1}: Result[{type_var}, FailT],"
-                for j, type_var in enumerate(key_type_vars)
-            ]
-        )
-        vm_overload += f"""
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
-) -> Result[Ret, tuple[FailT, ...]]:
-    ...
-
-"""
-        vm_overloads.append(vm_overload)
-
-        vh_fields = ",\n".join(
-            [
-                f"    r{j+1}: Result[{type_var}, FailT]"
-                for j, type_var in enumerate(key_type_vars)
-            ]
-        )
-        vh_next_step_params = ", ".join([f"r{i + 1}" for i in range(1, i + 1)])
-        if i == 0:
-            ret += f"""
-def _validate1_helper(
-    state: Result[Callable[[T1], Ret], tuple[FailT, ...]], r: Result[T1, FailT]
-) -> Result[Ret, tuple[FailT, ...]]:
-    if isinstance(r, Err):
-        if isinstance(state, Err):
-            return Err(state.val + (r.val,))
-        else:
-            return Err((r.val,))
-    else:
-        if isinstance(state, Err):
-            return state
-        else:
-            return Ok(state.val(r.val))
-"""
-        else:
-            next_state_call_sig_params = ", ".join(key_type_vars[1:])
-            ret += f"""
-def _validate{i+1}_helper(
-    state: Result[{dict_validator_into_signatures[-1]}, tuple[FailT, ...]],
-{vh_fields},
-) -> Result[Ret, tuple[FailT, ...]]:
-    if isinstance(r1, Err):
-        if isinstance(state, Err):
-            next_state: Result[Callable[[{next_state_call_sig_params}], Ret], tuple[FailT, ...]] = Err(
-                state.val + (r1.val,)
-            )
-        else:
-            next_state = Err((r1.val,))
-    else:
-        if isinstance(state, Err):
-            next_state = state
-        else:
-            next_state = Ok(partial(state.val, r1.val))
-
-    return _validate{i}_helper(next_state, {vh_next_step_params})
-
-"""
-
     ret += "\n".join(dict_validator_overloads)
 
     dv_field_lines: str = ",\n".join([f"    {f}" for f in dict_validator_fields])
 
     ret += f"""
 
-def _dict_validator(
+def dict_validator(
     into: Union[
         {", ".join(dict_validator_into_signatures)}
     ],
 {dv_field_lines},
     *,
-    validate_object: Callable[[Ret], Result[Ret, JSONValue]]
+    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None
 ) -> Validator[Any, Ret, JSONValue]: 
 """
     for i in range(1, num_keys + 1):
@@ -226,41 +247,6 @@ def _dict_validator(
         else:
             ret += f"""
     elif field{i+1} is None:
-{ret_stmt} 
-"""
-    ret += "\n".join(vm_overloads)
-
-    vm_field_lines: str = ",\n".join([f"    {f}" for f in vm_validator_fields])
-
-    ret += f"""
-def validate_and_map(
-    into: Union[
-        {", ".join(dict_validator_into_signatures)}
-    ],
-{vm_field_lines},
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, tuple[FailT, ...]]]] = None
-) -> Result[Ret, tuple[FailT, ...]]: 
-"""
-    for i in range(1, num_keys + 1):
-        r_params = ", ".join([f"r{j}" for j in range(1, i + 1)])
-        ret_stmt = f"""
-        return _flat_map_same_type_if_not_none(
-            validate_object,
-            _validate{i}_helper(Ok(cast({dict_validator_into_signatures[i - 1]}, into)), {r_params})
-        )"""
-        if i == 1:
-            ret += f"""
-    if r{i + 1} is None:
-{ret_stmt}"""
-        elif i == num_keys:
-            ret += f"""
-    else:
-{ret_stmt}    
-"""
-        else:
-            ret += f"""
-    elif r{i+1} is None:
 {ret_stmt} 
 """
 

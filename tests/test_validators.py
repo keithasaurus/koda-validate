@@ -8,7 +8,9 @@ from koda.either import First, Second, Third
 from koda.maybe import Just, Maybe, nothing
 from koda.result import Err, Ok, Result
 
-from koda_validate.generated import (
+from koda_validate.typedefs import JSONValue, Predicate
+from koda_validate.validators.dicts import (
+    OBJECT_ERRORS_FIELD,
     Dict2KeysValidator,
     Dict4KeysValidator,
     Dict5KeysValidator,
@@ -17,11 +19,12 @@ from koda_validate.generated import (
     Dict8KeysValidator,
     Dict9KeysValidator,
     Dict10KeysValidator,
+    MapValidator,
+    dict_validator,
 )
-from koda_validate.typedefs import JSONValue, Predicate
-from koda_validate.validators import (
+from koda_validate.validators.tuples import Tuple2Validator, Tuple3Validator
+from koda_validate.validators.validators import (
     BLANK_STRING_MSG,
-    OBJECT_ERRORS_FIELD,
     BooleanValidator,
     Choices,
     DateValidator,
@@ -31,7 +34,6 @@ from koda_validate.validators import (
     IntValidator,
     Lazy,
     ListValidator,
-    MapValidator,
     Maximum,
     MaxItems,
     MaxKeys,
@@ -47,10 +49,7 @@ from koda_validate.validators import (
     OneOf3,
     RegexValidator,
     StringValidator,
-    Tuple2Validator,
-    Tuple3Validator,
     deserialize_and_validate,
-    dict_validator,
     key,
     maybe_key,
     none_validator,

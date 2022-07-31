@@ -3,7 +3,7 @@ from enum import Enum
 
 from koda import Err, Ok
 
-from koda_validate.generated import validate_and_map
+from koda_validate.validators.dicts import validate_and_map
 
 
 def test_map_1() -> None:
@@ -15,7 +15,7 @@ def test_map_1() -> None:
         Err("just returns failure"),
     ) == Err(("just returns failure",))
 
-    assert validate_and_map(Ok("hooray"), string_thing) == Ok("valid hooray")
+    assert validate_and_map(string_thing, Ok("hooray")) == Ok("valid hooray")
 
 
 def test_map_2() -> None:
@@ -47,7 +47,7 @@ def test_map_3() -> None:
     ) == Err(("invalid first name", "invalid last name", "invalid age"))
 
     assert validate_and_map(
-        Err("invalid first name"), Err("invalid last name"), Ok(25), Person
+        Person, Err("invalid first name"), Err("invalid last name"), Ok(25)
     ) == Err(("invalid first name", "invalid last name"))
 
     assert validate_and_map(
@@ -89,7 +89,7 @@ def test_map_4() -> None:
         Person, Err("invalid first name"), Ok("Smith"), Ok(25), Err("invalid eye color")
     ) == Err(("invalid first name", "invalid eye color"))
 
-    assert validate_and_map(Ok("John"), Ok("Doe"), Ok(25), Ok("brown"), Person) == Ok(
+    assert validate_and_map(Person, Ok("John"), Ok("Doe"), Ok(25), Ok("brown")) == Ok(
         Person(first_name="John", last_name="Doe", age=25, eye_color="brown")
     )
 
@@ -505,6 +505,7 @@ def test_map_10() -> None:
         region: str
 
     assert validate_and_map(
+        Person,
         Err("invalid first name"),
         Err("invalid last name"),
         Err("invalid age"),
@@ -515,7 +516,6 @@ def test_map_10() -> None:
         Err("invalid number of toes"),
         Err("invalid country"),
         Err("invalid region"),
-        Person,
     ) == Err(
         (
             "invalid first name",

@@ -31,7 +31,6 @@ from koda.result import Err, Ok, Result
 
 from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import B, C, Ret
-from koda_validate.generated import _dict_validator, validate_and_map
 from koda_validate.typedefs import (
     JSONValue,
     Predicate,
@@ -40,8 +39,7 @@ from koda_validate.typedefs import (
     ValidatorFunc,
 )
 from koda_validate.utils import accum_errors, expected
-
-OBJECT_ERRORS_FIELD: Final[str] = "__object__"
+from koda_validate.validators.validate_and_map import validate_and_map
 
 
 def accum_errors_jsonish(
@@ -283,66 +281,6 @@ class DateValidator(Validator[Any, date, JSONValue]):
             return fail_msg
 
 
-class MapValidator(Validator[Any, dict[A, B], JSONValue]):
-    """
-    Note that while a key should always be expected to be received as a string,
-    it's possible that we may want to validate and cast it to a different
-    type (i.e. a date)
-    """
-
-    def __init__(
-        self,
-        key_validator: Validator[Any, A, JSONValue],
-        value_validator: Validator[Any, B, JSONValue],
-        *dict_validators: Predicate[dict[A, B], JSONValue],
-    ) -> None:
-        self.key_validator = key_validator
-        self.value_validator = value_validator
-        self.dict_validators = dict_validators
-
-    def __call__(self, data: Any) -> Result[dict[A, B], JSONValue]:
-        if isinstance(data, dict):
-            return_dict: dict[A, B] = {}
-            errors: dict[str, JSONValue] = {}
-            for key, val in data.items():
-                key_result = self.key_validator(key)
-                val_result = self.value_validator(val)
-
-                if isinstance(key_result, Ok) and isinstance(val_result, Ok):
-                    return_dict[key_result.val] = val_result.val
-                else:
-                    if isinstance(key_result, Err):
-                        errors[f"{key} (key)"] = key_result.val
-
-                    if isinstance(val_result, Err):
-                        errors[key] = val_result.val
-
-            dict_validator_errors: list[JSONValue] = []
-            for validator in self.dict_validators:
-                # Note that the expectation here is that validators will likely
-                # be doing json like number of keys; they aren't expected
-                # to be drilling down into specific keys and values. That may be
-                # an incorrect assumption; if so, some minor refactoring is probably
-                # necessary.
-                result = validator(data)
-                if isinstance(result, Err):
-                    dict_validator_errors.append(result.val)
-
-            if len(dict_validator_errors) > 0:
-                # in case somehow there are already errors in this field
-                if OBJECT_ERRORS_FIELD in errors:
-                    dict_validator_errors.append(errors[OBJECT_ERRORS_FIELD])
-
-                errors[OBJECT_ERRORS_FIELD] = dict_validator_errors
-
-            if errors:
-                return Err(errors)
-            else:
-                return Ok(return_dict)
-        else:
-            return Err({"invalid type": [expected("a map")]})
-
-
 class ListValidator(Validator[Any, list[A], JSONValue]):
     def __init__(
         self,
@@ -433,20 +371,6 @@ def _validate_with_key(
         return key, val
 
     return fn(mapping_get(data, key)).map_err(add_key)
-
-
-class IsDict(Validator[Any, dict[Any, Any], JSONValue]):
-    def __call__(self, val: Any) -> Result[dict[Any, Any], JSONValue]:
-        if isinstance(val, dict):
-            return Ok(val)
-        else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("an object")]})
-
-
-def _dict_without_extra_keys(
-    keys: Set[str], data: Any
-) -> Result[dict[Any, Any], JSONValue]:
-    return IsDict()(data).flat_map(_has_no_extra_keys(keys))
 
 
 class OneOf2(Validator[Any, Either[A, B], JSONValue]):
@@ -549,103 +473,6 @@ class OneOf3(Validator[Any, Either3[A, B, C], JSONValue]):
                             self.variant_three_label: v3_result.val,
                         }
                     )
-
-
-def _tuple_to_dict_errors(errs: Tuple[JSONValue, ...]) -> dict[str, JSONValue]:
-    return {f"index {i}": err for i, err in enumerate(errs)}
-
-
-class Tuple2Validator(Validator[Any, Tuple[A, B], JSONValue]):
-    required_length: int = 2
-
-    def __init__(
-        self,
-        slot1_validator: Callable[[Any], Result[A, JSONValue]],
-        slot2_validator: Callable[[Any], Result[B, JSONValue]],
-        tuple_validator: Optional[
-            Callable[[Tuple[A, B]], Result[Tuple[A, B], JSONValue]]
-        ] = None,
-    ) -> None:
-        self.slot1_validator = slot1_validator
-        self.slot2_validator = slot2_validator
-        self.tuple_validator = tuple_validator
-
-    def __call__(self, data: Any) -> Result[Tuple[A, B], JSONValue]:
-        if isinstance(data, list) and len(data) == self.required_length:
-            result: Result[Tuple[A, B], Tuple[JSONValue, ...]] = validate_and_map(
-                _typed_tuple,
-                self.slot1_validator(data[0]),
-                self.slot2_validator(data[1]),
-            )
-
-            if isinstance(result, Err):
-                return result.map_err(_tuple_to_dict_errors)
-            else:
-                if self.tuple_validator is None:
-                    return result
-                else:
-                    return result.flat_map(self.tuple_validator)
-        else:
-            return Err(
-                {"invalid type": [f"expected array of length {self.required_length}"]}
-            )
-
-
-class Tuple3Validator(Validator[Any, Tuple[A, B, C], JSONValue]):
-    required_length: int = 3
-
-    def __init__(
-        self,
-        slot1_validator: Callable[[Any], Result[A, JSONValue]],
-        slot2_validator: Callable[[Any], Result[B, JSONValue]],
-        slot3_validator: Callable[[Any], Result[C, JSONValue]],
-        tuple_validator: Optional[
-            Callable[[Tuple[A, B, C]], Result[Tuple[A, B, C], JSONValue]]
-        ] = None,
-    ) -> None:
-        self.slot1_validator = slot1_validator
-        self.slot2_validator = slot2_validator
-        self.slot3_validator = slot3_validator
-        self.tuple_validator = tuple_validator
-
-    def __call__(self, data: Any) -> Result[Tuple[A, B, C], JSONValue]:
-        if isinstance(data, list) and len(data) == self.required_length:
-            result: Result[Tuple[A, B, C], Tuple[JSONValue, ...]] = validate_and_map(
-                self.slot1_validator(data[0]),
-                self.slot2_validator(data[1]),
-                self.slot3_validator(data[2]),
-                _typed_tuple,
-            )
-
-            if isinstance(result, Err):
-                return result.map_err(_tuple_to_dict_errors)
-            else:
-                if self.tuple_validator is None:
-                    return result
-                else:
-                    return result.flat_map(self.tuple_validator)
-        else:
-            return Err(
-                {"invalid type": [f"expected array of length {self.required_length}"]}
-            )
-
-
-def _has_no_extra_keys(
-    keys: Set[str],
-) -> ValidatorFunc[dict[A, B], dict[A, B], JSONValue]:
-    def inner(mapping: dict[A, B]) -> Result[dict[A, B], JSONValue]:
-        if len(mapping.keys() - keys) > 0:
-            return Err(
-                {
-                    OBJECT_ERRORS_FIELD: [
-                        f"Received unknown keys. Only expected {sorted(keys)}"
-                    ]
-                }
-            )
-        else:
-            return Ok(mapping)
-
-    return inner
 
 
 BLANK_STRING_MSG: Final[str] = "cannot be blank"
@@ -788,6 +615,3 @@ def maybe_key(
     prop_: str, validator: Validator[Any, A, JSONValue]
 ) -> Tuple[str, Callable[[Any], Result[Maybe[A], JSONValue]]]:
     return prop_, MaybeField(validator)
-
-
-dict_validator = _dict_validator
