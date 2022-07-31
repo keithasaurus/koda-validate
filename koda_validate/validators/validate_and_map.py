@@ -1335,725 +1335,677 @@ def validate_and_map(
 ) -> Result[Ret, tuple[FailT, ...]]:
     ...
 
-    def validate_and_map(
-        into: Union[
-            Callable[[T1], Ret],
-            Callable[[T1, T2], Ret],
-            Callable[[T1, T2, T3], Ret],
-            Callable[[T1, T2, T3, T4], Ret],
-            Callable[[T1, T2, T3, T4, T5], Ret],
-            Callable[[T1, T2, T3, T4, T5, T6], Ret],
-            Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
-            Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
-            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
-            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
-            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
-            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
-            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
-            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret],
-            Callable[
-                [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
-            ],
-            Callable[
-                [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16],
-                Ret,
-            ],
-            Callable[
-                [
-                    T1,
-                    T2,
-                    T3,
-                    T4,
-                    T5,
-                    T6,
-                    T7,
-                    T8,
-                    T9,
-                    T10,
-                    T11,
-                    T12,
-                    T13,
-                    T14,
-                    T15,
-                    T16,
-                    T17,
-                ],
-                Ret,
-            ],
-            Callable[
-                [
-                    T1,
-                    T2,
-                    T3,
-                    T4,
-                    T5,
-                    T6,
-                    T7,
-                    T8,
-                    T9,
-                    T10,
-                    T11,
-                    T12,
-                    T13,
-                    T14,
-                    T15,
-                    T16,
-                    T17,
-                    T18,
-                ],
-                Ret,
-            ],
-            Callable[
-                [
-                    T1,
-                    T2,
-                    T3,
-                    T4,
-                    T5,
-                    T6,
-                    T7,
-                    T8,
-                    T9,
-                    T10,
-                    T11,
-                    T12,
-                    T13,
-                    T14,
-                    T15,
-                    T16,
-                    T17,
-                    T18,
-                    T19,
-                ],
-                Ret,
-            ],
-            Callable[
-                [
-                    T1,
-                    T2,
-                    T3,
-                    T4,
-                    T5,
-                    T6,
-                    T7,
-                    T8,
-                    T9,
-                    T10,
-                    T11,
-                    T12,
-                    T13,
-                    T14,
-                    T15,
-                    T16,
-                    T17,
-                    T18,
-                    T19,
-                    T20,
-                ],
-                Ret,
-            ],
+
+def validate_and_map(
+    into: Union[
+        Callable[[T1], Ret],
+        Callable[[T1, T2], Ret],
+        Callable[[T1, T2, T3], Ret],
+        Callable[[T1, T2, T3, T4], Ret],
+        Callable[[T1, T2, T3, T4, T5], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret],
+        Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
         ],
-        r1: Result[T1, FailT],
-        r2: Optional[Result[T2, FailT]],
-        r3: Optional[Result[T3, FailT]],
-        r4: Optional[Result[T4, FailT]],
-        r5: Optional[Result[T5, FailT]],
-        r6: Optional[Result[T6, FailT]],
-        r7: Optional[Result[T7, FailT]],
-        r8: Optional[Result[T8, FailT]],
-        r9: Optional[Result[T9, FailT]],
-        r10: Optional[Result[T10, FailT]],
-        r11: Optional[Result[T11, FailT]],
-        r12: Optional[Result[T12, FailT]],
-        r13: Optional[Result[T13, FailT]],
-        r14: Optional[Result[T14, FailT]],
-        r15: Optional[Result[T15, FailT]],
-        r16: Optional[Result[T16, FailT]],
-        r17: Optional[Result[T17, FailT]],
-        r18: Optional[Result[T18, FailT]],
-        r19: Optional[Result[T19, FailT]],
-        r20: Optional[Result[T20, FailT]],
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, tuple[FailT, ...]]]] = None,
-    ) -> Result[Ret, tuple[FailT, ...]]:
+        Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+            ],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+            ],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+            ],
+            Ret,
+        ],
+    ],
+    r1: Result[T1, FailT],
+    r2: Optional[Result[T2, FailT]],
+    r3: Optional[Result[T3, FailT]],
+    r4: Optional[Result[T4, FailT]],
+    r5: Optional[Result[T5, FailT]],
+    r6: Optional[Result[T6, FailT]],
+    r7: Optional[Result[T7, FailT]],
+    r8: Optional[Result[T8, FailT]],
+    r9: Optional[Result[T9, FailT]],
+    r10: Optional[Result[T10, FailT]],
+    r11: Optional[Result[T11, FailT]],
+    r12: Optional[Result[T12, FailT]],
+    r13: Optional[Result[T13, FailT]],
+    r14: Optional[Result[T14, FailT]],
+    r15: Optional[Result[T15, FailT]],
+    r16: Optional[Result[T16, FailT]],
+    r17: Optional[Result[T17, FailT]],
+    r18: Optional[Result[T18, FailT]],
+    r19: Optional[Result[T19, FailT]],
+    r20: Optional[Result[T20, FailT]],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, tuple[FailT, ...]]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
 
-        if r2 is None:
+    if r2 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate1_helper(Ok(cast(Callable[[T1], Ret], into)), r1),
-            )
-        elif r3 is None:
+        return _flat_map_same_type_if_not_none(
+            validate_object, _validate1_helper(Ok(cast(Callable[[T1], Ret], into)), r1)
+        )
+    elif r3 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate2_helper(Ok(cast(Callable[[T1, T2], Ret], into)), r1, r2),
-            )
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate2_helper(Ok(cast(Callable[[T1, T2], Ret], into)), r1, r2),
+        )
 
-        elif r4 is None:
+    elif r4 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate3_helper(
-                    Ok(cast(Callable[[T1, T2, T3], Ret], into)), r1, r2, r3
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate3_helper(Ok(cast(Callable[[T1, T2, T3], Ret], into)), r1, r2, r3),
+        )
+
+    elif r5 is None:
+
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate4_helper(
+                Ok(cast(Callable[[T1, T2, T3, T4], Ret], into)), r1, r2, r3, r4
+            ),
+        )
+
+    elif r6 is None:
+
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate5_helper(
+                Ok(cast(Callable[[T1, T2, T3, T4, T5], Ret], into)), r1, r2, r3, r4, r5
+            ),
+        )
+
+    elif r7 is None:
+
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate6_helper(
+                Ok(cast(Callable[[T1, T2, T3, T4, T5, T6], Ret], into)),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+            ),
+        )
+
+    elif r8 is None:
+
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate7_helper(
+                Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7], Ret], into)),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+            ),
+        )
+
+    elif r9 is None:
+
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate8_helper(
+                Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret], into)),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+            ),
+        )
+
+    elif r10 is None:
+
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate9_helper(
+                Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret], into)),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+            ),
+        )
+
+    elif r11 is None:
+
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate10_helper(
+                Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret], into)),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+            ),
+        )
+
+    elif r12 is None:
+
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate11_helper(
+                Ok(
+                    cast(
+                        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+                        into,
+                    )
                 ),
-            )
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+            ),
+        )
 
-        elif r5 is None:
+    elif r13 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate4_helper(
-                    Ok(cast(Callable[[T1, T2, T3, T4], Ret], into)), r1, r2, r3, r4
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate12_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret
+                        ],
+                        into,
+                    )
                 ),
-            )
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+            ),
+        )
 
-        elif r6 is None:
+    elif r14 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate5_helper(
-                    Ok(cast(Callable[[T1, T2, T3, T4, T5], Ret], into)),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate13_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret
+                        ],
+                        into,
+                    )
                 ),
-            )
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+            ),
+        )
 
-        elif r7 is None:
+    elif r15 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate6_helper(
-                    Ok(cast(Callable[[T1, T2, T3, T4, T5, T6], Ret], into)),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate14_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14],
+                            Ret,
+                        ],
+                        into,
+                    )
                 ),
-            )
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+            ),
+        )
 
-        elif r8 is None:
+    elif r16 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate7_helper(
-                    Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7], Ret], into)),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                ),
-            )
-
-        elif r9 is None:
-
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate8_helper(
-                    Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret], into)),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                ),
-            )
-
-        elif r10 is None:
-
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate9_helper(
-                    Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret], into)),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                ),
-            )
-
-        elif r11 is None:
-
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate10_helper(
-                    Ok(
-                        cast(
-                            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret], into
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                ),
-            )
-
-        elif r12 is None:
-
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate11_helper(
-                    Ok(
-                        cast(
-                            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
-                            into,
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                    r11,
-                ),
-            )
-
-        elif r13 is None:
-
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate12_helper(
-                    Ok(
-                        cast(
-                            Callable[
-                                [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate15_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
                             ],
-                            into,
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                    r11,
-                    r12,
+                            Ret,
+                        ],
+                        into,
+                    )
                 ),
-            )
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+            ),
+        )
 
-        elif r14 is None:
+    elif r17 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate13_helper(
-                    Ok(
-                        cast(
-                            Callable[
-                                [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13],
-                                Ret,
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate16_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
                             ],
-                            into,
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                    r11,
-                    r12,
-                    r13,
+                            Ret,
+                        ],
+                        into,
+                    )
                 ),
-            )
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+            ),
+        )
 
-        elif r15 is None:
+    elif r18 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate14_helper(
-                    Ok(
-                        cast(
-                            Callable[
-                                [
-                                    T1,
-                                    T2,
-                                    T3,
-                                    T4,
-                                    T5,
-                                    T6,
-                                    T7,
-                                    T8,
-                                    T9,
-                                    T10,
-                                    T11,
-                                    T12,
-                                    T13,
-                                    T14,
-                                ],
-                                Ret,
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate17_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
                             ],
-                            into,
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                    r11,
-                    r12,
-                    r13,
-                    r14,
+                            Ret,
+                        ],
+                        into,
+                    )
                 ),
-            )
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+            ),
+        )
 
-        elif r16 is None:
+    elif r19 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate15_helper(
-                    Ok(
-                        cast(
-                            Callable[
-                                [
-                                    T1,
-                                    T2,
-                                    T3,
-                                    T4,
-                                    T5,
-                                    T6,
-                                    T7,
-                                    T8,
-                                    T9,
-                                    T10,
-                                    T11,
-                                    T12,
-                                    T13,
-                                    T14,
-                                    T15,
-                                ],
-                                Ret,
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate18_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
                             ],
-                            into,
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                    r11,
-                    r12,
-                    r13,
-                    r14,
-                    r15,
+                            Ret,
+                        ],
+                        into,
+                    )
                 ),
-            )
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+            ),
+        )
 
-        elif r17 is None:
+    elif r20 is None:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate16_helper(
-                    Ok(
-                        cast(
-                            Callable[
-                                [
-                                    T1,
-                                    T2,
-                                    T3,
-                                    T4,
-                                    T5,
-                                    T6,
-                                    T7,
-                                    T8,
-                                    T9,
-                                    T10,
-                                    T11,
-                                    T12,
-                                    T13,
-                                    T14,
-                                    T15,
-                                    T16,
-                                ],
-                                Ret,
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate19_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
+                                T19,
                             ],
-                            into,
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                    r11,
-                    r12,
-                    r13,
-                    r14,
-                    r15,
-                    r16,
+                            Ret,
+                        ],
+                        into,
+                    )
                 ),
-            )
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+                r19,
+            ),
+        )
 
-        elif r18 is None:
+    else:
 
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate17_helper(
-                    Ok(
-                        cast(
-                            Callable[
-                                [
-                                    T1,
-                                    T2,
-                                    T3,
-                                    T4,
-                                    T5,
-                                    T6,
-                                    T7,
-                                    T8,
-                                    T9,
-                                    T10,
-                                    T11,
-                                    T12,
-                                    T13,
-                                    T14,
-                                    T15,
-                                    T16,
-                                    T17,
-                                ],
-                                Ret,
+        return _flat_map_same_type_if_not_none(
+            validate_object,
+            _validate20_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
+                                T19,
+                                T20,
                             ],
-                            into,
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                    r11,
-                    r12,
-                    r13,
-                    r14,
-                    r15,
-                    r16,
-                    r17,
+                            Ret,
+                        ],
+                        into,
+                    )
                 ),
-            )
-
-        elif r19 is None:
-
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate18_helper(
-                    Ok(
-                        cast(
-                            Callable[
-                                [
-                                    T1,
-                                    T2,
-                                    T3,
-                                    T4,
-                                    T5,
-                                    T6,
-                                    T7,
-                                    T8,
-                                    T9,
-                                    T10,
-                                    T11,
-                                    T12,
-                                    T13,
-                                    T14,
-                                    T15,
-                                    T16,
-                                    T17,
-                                    T18,
-                                ],
-                                Ret,
-                            ],
-                            into,
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                    r11,
-                    r12,
-                    r13,
-                    r14,
-                    r15,
-                    r16,
-                    r17,
-                    r18,
-                ),
-            )
-
-        elif r20 is None:
-
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate19_helper(
-                    Ok(
-                        cast(
-                            Callable[
-                                [
-                                    T1,
-                                    T2,
-                                    T3,
-                                    T4,
-                                    T5,
-                                    T6,
-                                    T7,
-                                    T8,
-                                    T9,
-                                    T10,
-                                    T11,
-                                    T12,
-                                    T13,
-                                    T14,
-                                    T15,
-                                    T16,
-                                    T17,
-                                    T18,
-                                    T19,
-                                ],
-                                Ret,
-                            ],
-                            into,
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                    r11,
-                    r12,
-                    r13,
-                    r14,
-                    r15,
-                    r16,
-                    r17,
-                    r18,
-                    r19,
-                ),
-            )
-
-        else:
-
-            return _flat_map_same_type_if_not_none(
-                validate_object,
-                _validate20_helper(
-                    Ok(
-                        cast(
-                            Callable[
-                                [
-                                    T1,
-                                    T2,
-                                    T3,
-                                    T4,
-                                    T5,
-                                    T6,
-                                    T7,
-                                    T8,
-                                    T9,
-                                    T10,
-                                    T11,
-                                    T12,
-                                    T13,
-                                    T14,
-                                    T15,
-                                    T16,
-                                    T17,
-                                    T18,
-                                    T19,
-                                    T20,
-                                ],
-                                Ret,
-                            ],
-                            into,
-                        )
-                    ),
-                    r1,
-                    r2,
-                    r3,
-                    r4,
-                    r5,
-                    r6,
-                    r7,
-                    r8,
-                    r9,
-                    r10,
-                    r11,
-                    r12,
-                    r13,
-                    r14,
-                    r15,
-                    r16,
-                    r17,
-                    r18,
-                    r19,
-                    r20,
-                ),
-            )
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+                r19,
+                r20,
+            ),
+        )

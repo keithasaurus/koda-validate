@@ -99,14 +99,14 @@ def validate_and_map(
     vm_field_lines: str = ",\n".join([f"    {f}" for f in vm_validator_fields])
 
     ret += f"""
-    def validate_and_map(
-        into: Union[
-            {", ".join(into_signatures)}
-        ],
-    {vm_field_lines},
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, tuple[FailT, ...]]]] = None
-    ) -> Result[Ret, tuple[FailT, ...]]: 
+def validate_and_map(
+    into: Union[
+        {", ".join(into_signatures)}
+    ],
+{vm_field_lines},
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, tuple[FailT, ...]]]] = None
+) -> Result[Ret, tuple[FailT, ...]]: 
     """
     for i in range(1, num_fields + 1):
         r_params = ", ".join([f"r{j}" for j in range(1, i + 1)])
