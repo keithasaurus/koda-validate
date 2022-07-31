@@ -4,7 +4,7 @@ from typing import Iterable
 
 from koda import Err, Ok, Result
 
-from koda_validate._cruft import _chain, _validate_and_map
+from koda_validate._cruft import _chain
 from koda_validate._generics import A, FailT
 from koda_validate.typedefs import Predicate
 

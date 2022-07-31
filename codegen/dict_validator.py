@@ -1,11 +1,10 @@
-from pathlib import Path
-
-
-def generate_code(num_keys: int):
+def generate_code(num_keys: int) -> str:
     type_vars = [f"T{i}" for i in range(1, num_keys + 1)]
     dict_validator_into_signatures: list[str] = []
     dict_validator_fields: list[str] = []
+    dict_validator_overloads: list[str] = []
     vm_validator_fields: list[str] = []
+    vm_overloads: list[str] = []
     ret = """from functools import partial
 from typing import TypeVar, Generic, Any, Callable, Optional, cast, overload, Union
 
@@ -111,41 +110,45 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, J
 """
 
         # overload for _dict_validator
-        ret += f"""
+        dv_overload = f"""
 
 @overload
 def _dict_validator(
     into: {dict_validator_into_signatures[-1]},"""
-        ret += "".join(
+        dv_overload += "".join(
             [
                 f"\n    field{j+1}: KeyValidator[{type_var}],"
                 for j, type_var in enumerate(key_type_vars)
             ]
         )
-        ret += """
+        dv_overload += """
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
 ) -> Validator[Any, Ret, JSONValue]:
     ...
 """
-        ret += f"""
+        dict_validator_overloads.append(dv_overload)
+
+        vm_overload = f"""
 
 @overload
 def validate_and_map(
     into: {dict_validator_into_signatures[-1]},"""
-        ret += "".join(
+        vm_overload += "".join(
             [
                 f"\n    r{j+1}: Result[{type_var}, FailT],"
                 for j, type_var in enumerate(key_type_vars)
             ]
         )
-        ret += f"""
+        vm_overload += f"""
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
 ) -> Result[Ret, tuple[FailT, ...]]:
     ...
 
 """
+        vm_overloads.append(vm_overload)
+
         vh_fields = ",\n".join(
             [
                 f"    r{j+1}: Result[{type_var}, FailT]"
@@ -170,6 +173,7 @@ def _validate1_helper(
             return Ok(state.val(r.val))
 """
         else:
+            next_state_call_sig_params = ", ".join(key_type_vars[1:])
             ret += f"""
 def _validate{i+1}_helper(
     state: Result[{dict_validator_into_signatures[-1]}, tuple[FailT, ...]],
@@ -177,7 +181,7 @@ def _validate{i+1}_helper(
 ) -> Result[Ret, tuple[FailT, ...]]:
     if isinstance(r1, Err):
         if isinstance(state, Err):
-            next_state: Result[{dict_validator_into_signatures[-1]}, tuple[FailT, ...]] = Err(
+            next_state: Result[Callable[[{next_state_call_sig_params}], Ret], tuple[FailT, ...]] = Err(
                 state.val + (r1.val,)
             )
         else:
@@ -191,6 +195,9 @@ def _validate{i+1}_helper(
     return _validate{i}_helper(next_state, {vh_next_step_params})
 
 """
+
+    ret += "\n".join(dict_validator_overloads)
+
     dv_field_lines: str = ",\n".join([f"    {f}" for f in dict_validator_fields])
 
     ret += f"""
@@ -206,7 +213,7 @@ def _dict_validator(
 """
     for i in range(1, num_keys + 1):
         dv_field_lines = ", ".join([f"field{j}" for j in range(1, i + 1)])
-        ret_stmt = f"        return Dict{i}KeysValidator(into, {dv_field_lines}, validate_object=validate_object)"
+        ret_stmt = f"        return Dict{i}KeysValidator(cast({dict_validator_into_signatures[i-1]}, into), {dv_field_lines}, validate_object=validate_object)"
         if i == 1:
             ret += f"""
     if field{i + 1} is None:
@@ -221,6 +228,7 @@ def _dict_validator(
     elif field{i+1} is None:
 {ret_stmt} 
 """
+    ret += "\n".join(vm_overloads)
 
     vm_field_lines: str = ",\n".join([f"    {f}" for f in vm_validator_fields])
 
@@ -231,7 +239,7 @@ def validate_and_map(
     ],
 {vm_field_lines},
     *,
-    validate_object: Callable[[Ret], Result[Ret, JSONValue]]
+    validate_object: Optional[Callable[[Ret], Result[Ret, tuple[FailT, ...]]]] = None
 ) -> Result[Ret, tuple[FailT, ...]]: 
 """
     for i in range(1, num_keys + 1):
