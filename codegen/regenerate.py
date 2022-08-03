@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from codegen import dict_validator, validate_and_map
+from codegen import dict_validator, validate_and_map  # type: ignore
 
 if __name__ == "__main__":
-    num_iterations = 20
+    num_iterations = 10
 
     dict_code = dict_validator.generate_code(num_iterations)
     with open(

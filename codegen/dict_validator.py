@@ -1,4 +1,4 @@
-from codegen.utils import add_type_vars, get_type_vars
+from codegen.utils import add_type_vars, get_type_vars  # type: ignore
 
 
 def generate_code(num_keys: int) -> str:
@@ -142,7 +142,7 @@ def _validate_with_key(
         dict_validator_fields.append(
             f"field{i+1}: KeyValidator[{type_vars[i]}]"
             if i == 0
-            else f"field{i+1}: Optional[KeyValidator[{type_vars[i]}]]"
+            else f"field{i+1}: Optional[KeyValidator[{type_vars[i]}]] = None"
         )
 
         ret += f"""

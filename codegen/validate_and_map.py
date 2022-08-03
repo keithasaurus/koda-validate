@@ -1,4 +1,4 @@
-from codegen.utils import add_type_vars, get_type_vars
+from codegen.utils import add_type_vars, get_type_vars  # type: ignore
 
 
 def generate_code(num_fields: int) -> str:
@@ -67,11 +67,10 @@ def _validate{i + 1}_helper(
     return _validate{i}_helper(next_state, {vh_next_step_params})
 
 """
-
         vm_validator_fields.append(
             f"r{i + 1}: Result[{type_vars[i]}, FailT]"
             if i == 0
-            else f"r{i + 1}: Optional[Result[{type_vars[i]}, FailT]]"
+            else f"r{i + 1}: Optional[Result[{type_vars[i]}, FailT]] = None"
         )
 
         vm_overload = f"""
@@ -94,6 +93,24 @@ def validate_and_map(
 """
         vm_overloads.append(vm_overload)
 
+    ret += """
+def _tupled(a: T1) -> tuple[T1, ...]:
+    return a,
+
+
+def tupled_err_func(validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]]) -> Callable[
+    [Ret], Result[Ret, tuple[FailT, ...]]]:
+
+    def inner(obj: Ret) -> Result[Ret, tuple[FailT, ...]]:
+        if validate_object is None:
+            return Ok(obj)
+        else:
+            return validate_object(obj).map_err(_tupled)
+
+    return inner
+
+"""
+
     ret += "\n".join(vm_overloads)
 
     vm_field_lines: str = ",\n".join([f"    {f}" for f in vm_validator_fields])
@@ -105,14 +122,14 @@ def validate_and_map(
     ],
 {vm_field_lines},
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, tuple[FailT, ...]]]] = None
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None
 ) -> Result[Ret, tuple[FailT, ...]]: 
     """
     for i in range(1, num_fields + 1):
         r_params = ", ".join([f"r{j}" for j in range(1, i + 1)])
         ret_stmt = f"""
             return _flat_map_same_type_if_not_none(
-                validate_object,
+                tupled_err_func(validate_object),
                 _validate{i}_helper(Ok(cast({into_signatures[i - 1]}, into)), {r_params})
             )"""
         if i == 1:
