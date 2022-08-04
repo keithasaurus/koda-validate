@@ -1,5 +1,3 @@
-from __future__ import annotations  # for | Union type syntax
-
 import decimal
 import re
 from dataclasses import dataclass
@@ -29,21 +27,14 @@ from koda.either import Either, Either3, First, Second, Third
 from koda.maybe import Just, Maybe, Nothing, nothing
 from koda.result import Err, Ok, Result
 
-from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import B, C, Ret
-from koda_validate.typedefs import (
-    JSONValue,
-    Predicate,
-    PredicateJson,
-    Validator,
-    ValidatorFunc,
-)
+from koda_validate.typedefs import JSONValue, Predicate, Validator
 from koda_validate.utils import accum_errors, expected
 from koda_validate.validators.validate_and_map import validate_and_map
 
 
 def accum_errors_jsonish(
-    val: A, validators: Iterable[PredicateJson[A]]
+    val: A, validators: Iterable[Predicate[A, JSONValue]]
 ) -> Result[A, JSONValue]:
     """
     Helper that exists only because mypy is not always great at narrowing types
@@ -52,7 +43,7 @@ def accum_errors_jsonish(
 
 
 @dataclass(frozen=True)
-class MaxLength(PredicateJson[str]):
+class MaxLength(Predicate[str, JSONValue]):
     length: int
 
     def __post_init__(self) -> None:
@@ -66,7 +57,7 @@ class MaxLength(PredicateJson[str]):
 
 
 @dataclass(frozen=True)
-class MinLength(PredicateJson[str]):
+class MinLength(Predicate[str, JSONValue]):
     length: int
 
     def __post_init__(self) -> None:
@@ -80,7 +71,7 @@ class MinLength(PredicateJson[str]):
 
 
 @dataclass(frozen=True)
-class MinItems(PredicateJson[list[Any]]):
+class MinItems(Predicate[list[Any], JSONValue]):
     length: int
 
     def __post_init__(self) -> None:
@@ -94,7 +85,7 @@ class MinItems(PredicateJson[list[Any]]):
 
 
 @dataclass(frozen=True)
-class MaxItems(PredicateJson[list[Any]]):
+class MaxItems(Predicate[list[Any], JSONValue]):
     length: int
 
     def __post_init__(self) -> None:
@@ -108,7 +99,7 @@ class MaxItems(PredicateJson[list[Any]]):
 
 
 @dataclass(frozen=True)
-class MinKeys(PredicateJson[dict[Any, Any]]):
+class MinKeys(Predicate[dict[Any, Any], JSONValue]):
     size: int
 
     def __post_init__(self) -> None:
@@ -122,7 +113,7 @@ class MinKeys(PredicateJson[dict[Any, Any]]):
 
 
 @dataclass(frozen=True)
-class MaxKeys(PredicateJson[dict[Any, Any]]):
+class MaxKeys(Predicate[dict[Any, Any], JSONValue]):
     size: int
 
     def __post_init__(self) -> None:
@@ -135,7 +126,7 @@ class MaxKeys(PredicateJson[dict[Any, Any]]):
         return f"maximum allowed properties is {self.size}"
 
 
-class UniqueItems(PredicateJson[list[Any]]):
+class UniqueItems(Predicate[list[Any], JSONValue]):
     def is_valid(self, val: list[Any]) -> bool:
         hashable_items: Set[Tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables
@@ -165,7 +156,7 @@ unique_items = UniqueItems()
 
 
 class BooleanValidator(Validator[Any, bool, JSONValue]):
-    def __init__(self, *validators: PredicateJson[bool]) -> None:
+    def __init__(self, *validators: Predicate[bool, JSONValue]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[bool, JSONValue]:
@@ -176,7 +167,7 @@ class BooleanValidator(Validator[Any, bool, JSONValue]):
 
 
 class StringValidator(Validator[Any, str, JSONValue]):
-    def __init__(self, *validators: PredicateJson[str]) -> None:
+    def __init__(self, *validators: Predicate[str, JSONValue]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[str, JSONValue]:
@@ -187,7 +178,7 @@ class StringValidator(Validator[Any, str, JSONValue]):
 
 
 @dataclass(frozen=True)
-class RegexValidator(PredicateJson[str]):
+class RegexValidator(Predicate[str, JSONValue]):
     pattern: Pattern[str]
 
     def is_valid(self, val: str) -> bool:
@@ -198,7 +189,7 @@ class RegexValidator(PredicateJson[str]):
 
 
 @dataclass(frozen=True)
-class Email(PredicateJson[str]):
+class Email(Predicate[str, JSONValue]):
     pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
 
     def is_valid(self, val: str) -> bool:
@@ -209,7 +200,7 @@ class Email(PredicateJson[str]):
 
 
 class IntValidator(Validator[Any, int, JSONValue]):
-    def __init__(self, *validators: PredicateJson[int]) -> None:
+    def __init__(self, *validators: Predicate[int, JSONValue]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[int, JSONValue]:
@@ -221,7 +212,7 @@ class IntValidator(Validator[Any, int, JSONValue]):
 
 
 class FloatValidator(Validator[Any, float, JSONValue]):
-    def __init__(self, *validators: PredicateJson[float]) -> None:
+    def __init__(self, *validators: Predicate[float, JSONValue]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[float, JSONValue]:
@@ -232,7 +223,7 @@ class FloatValidator(Validator[Any, float, JSONValue]):
 
 
 class DecimalValidator(Validator[Any, DecimalStdLib, JSONValue]):
-    def __init__(self, *validators: PredicateJson[DecimalStdLib]) -> None:
+    def __init__(self, *validators: Predicate[DecimalStdLib, JSONValue]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[DecimalStdLib, JSONValue]:
@@ -257,7 +248,7 @@ class DateValidator(Validator[Any, date, JSONValue]):
     Expects dates to be yyyy-mm-dd
     """
 
-    def __init__(self, *validators: PredicateJson[date]) -> None:
+    def __init__(self, *validators: Predicate[date, JSONValue]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[date, JSONValue]:
@@ -285,7 +276,7 @@ class ListValidator(Validator[Any, list[A], JSONValue]):
     def __init__(
         self,
         item_validator: Validator[Any, A, JSONValue],
-        *list_validators: PredicateJson[list[Any]],
+        *list_validators: Predicate[list[Any], JSONValue],
     ) -> None:
         self.item_validator = item_validator
         self.list_validators = list_validators
@@ -343,7 +334,7 @@ class Lazy(Validator[A, Ret, JSONValue]):
         return self.validator()(data)
 
 
-class Choices(PredicateJson[EnumT]):
+class Choices(Predicate[EnumT, JSONValue]):
     """
     This only exists separately from a more generic form because
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
@@ -478,7 +469,7 @@ class OneOf3(Validator[Any, Either3[A, B, C], JSONValue]):
 BLANK_STRING_MSG: Final[str] = "cannot be blank"
 
 
-class NotBlank(PredicateJson[str]):
+class NotBlank(Predicate[str, JSONValue]):
     def is_valid(self, val: str) -> bool:
         return len(val.strip()) != 0
 
@@ -554,7 +545,7 @@ Num = TypeVar("Num", int, float, DecimalStdLib)
 
 
 @dataclass(frozen=True)
-class Minimum(PredicateJson[Num]):
+class Minimum(Predicate[Num, JSONValue]):
     minimum: Num
     exclusive_minimum: bool = False
 
@@ -569,7 +560,7 @@ class Minimum(PredicateJson[Num]):
 
 
 @dataclass(frozen=True)
-class Maximum(PredicateJson[Num]):
+class Maximum(Predicate[Num, JSONValue]):
     maximum: Num
     exclusive_maximum: bool = False
 
@@ -584,7 +575,7 @@ class Maximum(PredicateJson[Num]):
 
 
 @dataclass(frozen=True)
-class MultipleOf(PredicateJson[Num]):
+class MultipleOf(Predicate[Num, JSONValue]):
     factor: Num
 
     def is_valid(self, val: Num) -> bool:

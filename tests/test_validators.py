@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal as DecimalStdLib
-from typing import Any, Dict, List, NoReturn, Protocol, Tuple
+from typing import Any, Dict, List, Protocol, Tuple
 
 from koda.either import First, Second, Third
 from koda.maybe import Just, Maybe, nothing

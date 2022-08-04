@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Callable, Generic, NewType, Union, final
+from typing import Any, Callable, Generic, Union, final
 
 from koda import Err, Ok, Result
 
