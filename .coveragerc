@@ -1,0 +1,4 @@
+[run]
+omit =
+    koda_validate/validators/dicts.py
+    koda_validate/validators/validate_and_map.py

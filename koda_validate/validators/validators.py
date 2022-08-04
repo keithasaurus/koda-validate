@@ -43,7 +43,7 @@ from koda_validate.validators.validate_and_map import validate_and_map
 
 
 def accum_errors_jsonish(
-    val: A, validators: Iterable[Predicate[A, JSONValue]]
+    val: A, validators: Iterable[PredicateJson[A]]
 ) -> Result[A, JSONValue]:
     """
     Helper that exists only because mypy is not always great at narrowing types
@@ -61,7 +61,7 @@ class MaxLength(PredicateJson[str]):
     def is_valid(self, val: str) -> bool:
         return len(val) <= self.length
 
-    def err_message_str(self, val: str) -> str:
+    def err_message(self, val: str) -> JSONValue:
         return f"maximum allowed length is {self.length}"
 
 
@@ -75,7 +75,7 @@ class MinLength(PredicateJson[str]):
     def is_valid(self, val: str) -> bool:
         return len(val) >= self.length
 
-    def err_message_str(self, val: str) -> str:
+    def err_message(self, val: str) -> str:
         return f"minimum allowed length is {self.length}"
 
 
@@ -89,7 +89,7 @@ class MinItems(PredicateJson[list[Any]]):
     def is_valid(self, val: list[Any]) -> bool:
         return len(val) >= self.length
 
-    def err_message_str(self, val: list[Any]) -> str:
+    def err_message(self, val: list[Any]) -> str:
         return f"minimum allowed length is {self.length}"
 
 
@@ -103,7 +103,7 @@ class MaxItems(PredicateJson[list[Any]]):
     def is_valid(self, val: list[Any]) -> bool:
         return len(val) <= self.length
 
-    def err_message_str(self, val: list[Any]) -> str:
+    def err_message(self, val: list[Any]) -> str:
         return f"maximum allowed length is {self.length}"
 
 
@@ -117,7 +117,7 @@ class MinKeys(PredicateJson[dict[Any, Any]]):
     def is_valid(self, val: dict[Any, Any]) -> bool:
         return len(val) >= self.size
 
-    def err_message_str(self, val: dict[Any, Any]) -> str:
+    def err_message(self, val: dict[Any, Any]) -> str:
         return f"minimum allowed properties is {self.size}"
 
 
@@ -131,7 +131,7 @@ class MaxKeys(PredicateJson[dict[Any, Any]]):
     def is_valid(self, val: dict[Any, Any]) -> bool:
         return len(val) <= self.size
 
-    def err_message_str(self, val: dict[Any, Any]) -> str:
+    def err_message(self, val: dict[Any, Any]) -> str:
         return f"maximum allowed properties is {self.size}"
 
 
@@ -157,7 +157,7 @@ class UniqueItems(PredicateJson[list[Any]]):
         else:
             return True
 
-    def err_message_str(self, val: list[Any]) -> str:
+    def err_message(self, val: list[Any]) -> str:
         return "all items must be unique"
 
 
@@ -165,7 +165,7 @@ unique_items = UniqueItems()
 
 
 class BooleanValidator(Validator[Any, bool, JSONValue]):
-    def __init__(self, *validators: Predicate[bool, JSONValue]) -> None:
+    def __init__(self, *validators: PredicateJson[bool]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[bool, JSONValue]:
@@ -176,7 +176,7 @@ class BooleanValidator(Validator[Any, bool, JSONValue]):
 
 
 class StringValidator(Validator[Any, str, JSONValue]):
-    def __init__(self, *validators: Predicate[str, JSONValue]) -> None:
+    def __init__(self, *validators: PredicateJson[str]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[str, JSONValue]:
@@ -193,7 +193,7 @@ class RegexValidator(PredicateJson[str]):
     def is_valid(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
 
-    def err_message_str(self, val: str) -> str:
+    def err_message(self, val: str) -> str:
         return rf"must match pattern {self.pattern.pattern}"
 
 
@@ -204,12 +204,12 @@ class Email(PredicateJson[str]):
     def is_valid(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
 
-    def err_message_str(self, val: str) -> str:
+    def err_message(self, val: str) -> str:
         return "expected a valid email address"
 
 
 class IntValidator(Validator[Any, int, JSONValue]):
-    def __init__(self, *validators: Predicate[int, JSONValue]) -> None:
+    def __init__(self, *validators: PredicateJson[int]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[int, JSONValue]:
@@ -221,7 +221,7 @@ class IntValidator(Validator[Any, int, JSONValue]):
 
 
 class FloatValidator(Validator[Any, float, JSONValue]):
-    def __init__(self, *validators: Predicate[float, JSONValue]) -> None:
+    def __init__(self, *validators: PredicateJson[float]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[float, JSONValue]:
@@ -232,7 +232,7 @@ class FloatValidator(Validator[Any, float, JSONValue]):
 
 
 class DecimalValidator(Validator[Any, DecimalStdLib, JSONValue]):
-    def __init__(self, *validators: Predicate[DecimalStdLib, JSONValue]) -> None:
+    def __init__(self, *validators: PredicateJson[DecimalStdLib]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[DecimalStdLib, JSONValue]:
@@ -257,7 +257,7 @@ class DateValidator(Validator[Any, date, JSONValue]):
     Expects dates to be yyyy-mm-dd
     """
 
-    def __init__(self, *validators: Predicate[date, JSONValue]) -> None:
+    def __init__(self, *validators: PredicateJson[date]) -> None:
         self.validators = validators
 
     def __call__(self, val: Any) -> Result[date, JSONValue]:
@@ -285,7 +285,7 @@ class ListValidator(Validator[Any, list[A], JSONValue]):
     def __init__(
         self,
         item_validator: Validator[Any, A, JSONValue],
-        *list_validators: Predicate[list[Any], JSONValue],
+        *list_validators: PredicateJson[list[Any]],
     ) -> None:
         self.item_validator = item_validator
         self.list_validators = list_validators
@@ -355,7 +355,7 @@ class Choices(PredicateJson[EnumT]):
     def is_valid(self, val: EnumT) -> bool:
         return val in self.choices
 
-    def err_message_str(self, val: EnumT) -> str:
+    def err_message(self, val: EnumT) -> JSONValue:
         return f"expected one of {sorted(self.choices)}"
 
 
@@ -478,7 +478,7 @@ class OneOf3(Validator[Any, Either3[A, B, C], JSONValue]):
 BLANK_STRING_MSG: Final[str] = "cannot be blank"
 
 
-class NotBlank(Predicate[str, JSONValue]):
+class NotBlank(PredicateJson[str]):
     def is_valid(self, val: str) -> bool:
         return len(val.strip()) != 0
 
@@ -564,7 +564,7 @@ class Minimum(PredicateJson[Num]):
         else:
             return val >= self.minimum
 
-    def err_message_str(self, val: Num) -> str:
+    def err_message(self, val: Num) -> str:
         return f"minimum allowed value is {self.minimum}"
 
 
@@ -579,7 +579,7 @@ class Maximum(PredicateJson[Num]):
         else:
             return val <= self.maximum
 
-    def err_message_str(self, val: Num) -> str:
+    def err_message(self, val: Num) -> str:
         return f"maximum allowed value is {self.maximum}"
 
 
@@ -590,7 +590,7 @@ class MultipleOf(PredicateJson[Num]):
     def is_valid(self, val: Num) -> bool:
         return val % self.factor == 0
 
-    def err_message_str(self, val: Num) -> str:
+    def err_message(self, val: Num) -> str:
         return f"expected multiple of {self.factor}"
 
 

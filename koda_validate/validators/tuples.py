@@ -12,6 +12,7 @@ def _tuple_to_dict_errors(errs: tuple[JSONValue, ...]) -> dict[str, JSONValue]:
     return {f"index {i}": err for i, err in enumerate(errs)}
 
 
+# todo: auto-generate
 class Tuple2Validator(Validator[Any, tuple[A, B], JSONValue]):
     required_length: int = 2
 

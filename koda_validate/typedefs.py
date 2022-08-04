@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Generic, Union, final
+from typing import Any, Callable, Generic, NewType, Union, final
 
 from koda import Err, Ok, Result
 
-from koda_validate._cruft import _ValidatorFunc
 from koda_validate._generics import A, B, FailT
 
-ValidatorFunc = _ValidatorFunc[A, B, FailT]
+ValidatorFunc = Callable[[A], Result[B, FailT]]
 
 
 class Validator(Generic[A, B, FailT]):
@@ -54,19 +53,4 @@ _JSONValue1 = Union[None, int, str, bool, float, list[Any], dict[str, Any]]
 JSONValue = Union[None, int, str, bool, float, list[_JSONValue1], dict[str, _JSONValue1]]
 
 
-class PredicateJson(Predicate[A, JSONValue]):
-    """
-    This class only exists as a convenience. If the error
-    messages you're writing are `str`, you can override
-    `err_message_str` method and simply return a string.
-
-    Otherwise you can override the `err_message` method
-    and return any kind of `Jsonish`
-    """
-
-    @abstractmethod
-    def err_message_str(self, val: A) -> str:
-        raise NotImplementedError
-
-    def err_message(self, val: A) -> JSONValue:
-        return self.err_message_str(val)
+PredicateJson = Predicate[A, JSONValue]

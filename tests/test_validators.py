@@ -8,7 +8,7 @@ from koda.either import First, Second, Third
 from koda.maybe import Just, Maybe, nothing
 from koda.result import Err, Ok, Result
 
-from koda_validate.typedefs import JSONValue, Predicate
+from koda_validate.typedefs import JSONValue, Predicate, PredicateJson
 from koda_validate.validators.dicts import (
     OBJECT_ERRORS_FIELD,
     Dict2KeysValidator,
@@ -74,7 +74,7 @@ def test_float() -> None:
 
     assert FloatValidator(Minimum(5.0))(5.0) == Ok(5.0)
 
-    class MustHaveAZeroSomewhere(Predicate[float, JSONValue]):
+    class MustHaveAZeroSomewhere(PredicateJson[float]):
         def is_valid(self, val: float) -> bool:
             for char in str(val):
                 if char == "0":

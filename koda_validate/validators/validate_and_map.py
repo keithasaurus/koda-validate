@@ -15,6 +15,21 @@ T7 = TypeVar("T7")
 T8 = TypeVar("T8")
 T9 = TypeVar("T9")
 T10 = TypeVar("T10")
+T11 = TypeVar("T11")
+T12 = TypeVar("T12")
+T13 = TypeVar("T13")
+T14 = TypeVar("T14")
+T15 = TypeVar("T15")
+T16 = TypeVar("T16")
+T17 = TypeVar("T17")
+T18 = TypeVar("T18")
+T19 = TypeVar("T19")
+T20 = TypeVar("T20")
+T21 = TypeVar("T21")
+T22 = TypeVar("T22")
+T23 = TypeVar("T23")
+T24 = TypeVar("T24")
+T25 = TypeVar("T25")
 Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
@@ -261,6 +276,1240 @@ def _validate10_helper(
     return _validate9_helper(next_state, r2, r3, r4, r5, r6, r7, r8, r9, r10)
 
 
+def _validate11_helper(
+    state: Result[
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret], tuple[FailT, ...]
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate10_helper(next_state, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11)
+
+
+def _validate12_helper(
+    state: Result[
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate11_helper(next_state, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12)
+
+
+def _validate13_helper(
+    state: Result[
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate12_helper(
+        next_state, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13
+    )
+
+
+def _validate14_helper(
+    state: Result[
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate13_helper(
+        next_state, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14
+    )
+
+
+def _validate15_helper(
+    state: Result[
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate14_helper(
+        next_state, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15
+    )
+
+
+def _validate16_helper(
+    state: Result[
+        Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
+        ],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16],
+                    Ret,
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate15_helper(
+        next_state, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16
+    )
+
+
+def _validate17_helper(
+    state: Result[
+        Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17],
+            Ret,
+        ],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [
+                        T2,
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9,
+                        T10,
+                        T11,
+                        T12,
+                        T13,
+                        T14,
+                        T15,
+                        T16,
+                        T17,
+                    ],
+                    Ret,
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate16_helper(
+        next_state, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17
+    )
+
+
+def _validate18_helper(
+    state: Result[
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+            ],
+            Ret,
+        ],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [
+                        T2,
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9,
+                        T10,
+                        T11,
+                        T12,
+                        T13,
+                        T14,
+                        T15,
+                        T16,
+                        T17,
+                        T18,
+                    ],
+                    Ret,
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate17_helper(
+        next_state,
+        r2,
+        r3,
+        r4,
+        r5,
+        r6,
+        r7,
+        r8,
+        r9,
+        r10,
+        r11,
+        r12,
+        r13,
+        r14,
+        r15,
+        r16,
+        r17,
+        r18,
+    )
+
+
+def _validate19_helper(
+    state: Result[
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+            ],
+            Ret,
+        ],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [
+                        T2,
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9,
+                        T10,
+                        T11,
+                        T12,
+                        T13,
+                        T14,
+                        T15,
+                        T16,
+                        T17,
+                        T18,
+                        T19,
+                    ],
+                    Ret,
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate18_helper(
+        next_state,
+        r2,
+        r3,
+        r4,
+        r5,
+        r6,
+        r7,
+        r8,
+        r9,
+        r10,
+        r11,
+        r12,
+        r13,
+        r14,
+        r15,
+        r16,
+        r17,
+        r18,
+        r19,
+    )
+
+
+def _validate20_helper(
+    state: Result[
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+            ],
+            Ret,
+        ],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [
+                        T2,
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9,
+                        T10,
+                        T11,
+                        T12,
+                        T13,
+                        T14,
+                        T15,
+                        T16,
+                        T17,
+                        T18,
+                        T19,
+                        T20,
+                    ],
+                    Ret,
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate19_helper(
+        next_state,
+        r2,
+        r3,
+        r4,
+        r5,
+        r6,
+        r7,
+        r8,
+        r9,
+        r10,
+        r11,
+        r12,
+        r13,
+        r14,
+        r15,
+        r16,
+        r17,
+        r18,
+        r19,
+        r20,
+    )
+
+
+def _validate21_helper(
+    state: Result[
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+                T21,
+            ],
+            Ret,
+        ],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    r21: Result[T21, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [
+                        T2,
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9,
+                        T10,
+                        T11,
+                        T12,
+                        T13,
+                        T14,
+                        T15,
+                        T16,
+                        T17,
+                        T18,
+                        T19,
+                        T20,
+                        T21,
+                    ],
+                    Ret,
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate20_helper(
+        next_state,
+        r2,
+        r3,
+        r4,
+        r5,
+        r6,
+        r7,
+        r8,
+        r9,
+        r10,
+        r11,
+        r12,
+        r13,
+        r14,
+        r15,
+        r16,
+        r17,
+        r18,
+        r19,
+        r20,
+        r21,
+    )
+
+
+def _validate22_helper(
+    state: Result[
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+                T21,
+                T22,
+            ],
+            Ret,
+        ],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    r21: Result[T21, FailT],
+    r22: Result[T22, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [
+                        T2,
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9,
+                        T10,
+                        T11,
+                        T12,
+                        T13,
+                        T14,
+                        T15,
+                        T16,
+                        T17,
+                        T18,
+                        T19,
+                        T20,
+                        T21,
+                        T22,
+                    ],
+                    Ret,
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate21_helper(
+        next_state,
+        r2,
+        r3,
+        r4,
+        r5,
+        r6,
+        r7,
+        r8,
+        r9,
+        r10,
+        r11,
+        r12,
+        r13,
+        r14,
+        r15,
+        r16,
+        r17,
+        r18,
+        r19,
+        r20,
+        r21,
+        r22,
+    )
+
+
+def _validate23_helper(
+    state: Result[
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+                T21,
+                T22,
+                T23,
+            ],
+            Ret,
+        ],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    r21: Result[T21, FailT],
+    r22: Result[T22, FailT],
+    r23: Result[T23, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [
+                        T2,
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9,
+                        T10,
+                        T11,
+                        T12,
+                        T13,
+                        T14,
+                        T15,
+                        T16,
+                        T17,
+                        T18,
+                        T19,
+                        T20,
+                        T21,
+                        T22,
+                        T23,
+                    ],
+                    Ret,
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate22_helper(
+        next_state,
+        r2,
+        r3,
+        r4,
+        r5,
+        r6,
+        r7,
+        r8,
+        r9,
+        r10,
+        r11,
+        r12,
+        r13,
+        r14,
+        r15,
+        r16,
+        r17,
+        r18,
+        r19,
+        r20,
+        r21,
+        r22,
+        r23,
+    )
+
+
+def _validate24_helper(
+    state: Result[
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+                T21,
+                T22,
+                T23,
+                T24,
+            ],
+            Ret,
+        ],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    r21: Result[T21, FailT],
+    r22: Result[T22, FailT],
+    r23: Result[T23, FailT],
+    r24: Result[T24, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [
+                        T2,
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9,
+                        T10,
+                        T11,
+                        T12,
+                        T13,
+                        T14,
+                        T15,
+                        T16,
+                        T17,
+                        T18,
+                        T19,
+                        T20,
+                        T21,
+                        T22,
+                        T23,
+                        T24,
+                    ],
+                    Ret,
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate23_helper(
+        next_state,
+        r2,
+        r3,
+        r4,
+        r5,
+        r6,
+        r7,
+        r8,
+        r9,
+        r10,
+        r11,
+        r12,
+        r13,
+        r14,
+        r15,
+        r16,
+        r17,
+        r18,
+        r19,
+        r20,
+        r21,
+        r22,
+        r23,
+        r24,
+    )
+
+
+def _validate25_helper(
+    state: Result[
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+                T21,
+                T22,
+                T23,
+                T24,
+                T25,
+            ],
+            Ret,
+        ],
+        tuple[FailT, ...],
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    r21: Result[T21, FailT],
+    r22: Result[T22, FailT],
+    r23: Result[T23, FailT],
+    r24: Result[T24, FailT],
+    r25: Result[T25, FailT],
+) -> Result[Ret, tuple[FailT, ...]]:
+    if isinstance(r1, Err):
+        if isinstance(state, Err):
+            next_state: Result[
+                Callable[
+                    [
+                        T2,
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9,
+                        T10,
+                        T11,
+                        T12,
+                        T13,
+                        T14,
+                        T15,
+                        T16,
+                        T17,
+                        T18,
+                        T19,
+                        T20,
+                        T21,
+                        T22,
+                        T23,
+                        T24,
+                        T25,
+                    ],
+                    Ret,
+                ],
+                tuple[FailT, ...],
+            ] = Err(state.val + (r1.val,))
+        else:
+            next_state = Err((r1.val,))
+    else:
+        if isinstance(state, Err):
+            next_state = state
+        else:
+            next_state = Ok(partial(state.val, r1.val))
+
+    return _validate24_helper(
+        next_state,
+        r2,
+        r3,
+        r4,
+        r5,
+        r6,
+        r7,
+        r8,
+        r9,
+        r10,
+        r11,
+        r12,
+        r13,
+        r14,
+        r15,
+        r16,
+        r17,
+        r18,
+        r19,
+        r20,
+        r21,
+        r22,
+        r23,
+        r24,
+        r25,
+    )
+
+
 def _tupled(a: T1) -> tuple[T1, ...]:
     return (a,)
 
@@ -422,6 +1671,602 @@ def validate_and_map(
     ...
 
 
+@overload
+def validate_and_map(
+    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17], Ret
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18],
+        Ret,
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [
+            T1,
+            T2,
+            T3,
+            T4,
+            T5,
+            T6,
+            T7,
+            T8,
+            T9,
+            T10,
+            T11,
+            T12,
+            T13,
+            T14,
+            T15,
+            T16,
+            T17,
+            T18,
+            T19,
+        ],
+        Ret,
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [
+            T1,
+            T2,
+            T3,
+            T4,
+            T5,
+            T6,
+            T7,
+            T8,
+            T9,
+            T10,
+            T11,
+            T12,
+            T13,
+            T14,
+            T15,
+            T16,
+            T17,
+            T18,
+            T19,
+            T20,
+        ],
+        Ret,
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [
+            T1,
+            T2,
+            T3,
+            T4,
+            T5,
+            T6,
+            T7,
+            T8,
+            T9,
+            T10,
+            T11,
+            T12,
+            T13,
+            T14,
+            T15,
+            T16,
+            T17,
+            T18,
+            T19,
+            T20,
+            T21,
+        ],
+        Ret,
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    r21: Result[T21, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [
+            T1,
+            T2,
+            T3,
+            T4,
+            T5,
+            T6,
+            T7,
+            T8,
+            T9,
+            T10,
+            T11,
+            T12,
+            T13,
+            T14,
+            T15,
+            T16,
+            T17,
+            T18,
+            T19,
+            T20,
+            T21,
+            T22,
+        ],
+        Ret,
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    r21: Result[T21, FailT],
+    r22: Result[T22, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [
+            T1,
+            T2,
+            T3,
+            T4,
+            T5,
+            T6,
+            T7,
+            T8,
+            T9,
+            T10,
+            T11,
+            T12,
+            T13,
+            T14,
+            T15,
+            T16,
+            T17,
+            T18,
+            T19,
+            T20,
+            T21,
+            T22,
+            T23,
+        ],
+        Ret,
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    r21: Result[T21, FailT],
+    r22: Result[T22, FailT],
+    r23: Result[T23, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [
+            T1,
+            T2,
+            T3,
+            T4,
+            T5,
+            T6,
+            T7,
+            T8,
+            T9,
+            T10,
+            T11,
+            T12,
+            T13,
+            T14,
+            T15,
+            T16,
+            T17,
+            T18,
+            T19,
+            T20,
+            T21,
+            T22,
+            T23,
+            T24,
+        ],
+        Ret,
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    r21: Result[T21, FailT],
+    r22: Result[T22, FailT],
+    r23: Result[T23, FailT],
+    r24: Result[T24, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
+@overload
+def validate_and_map(
+    into: Callable[
+        [
+            T1,
+            T2,
+            T3,
+            T4,
+            T5,
+            T6,
+            T7,
+            T8,
+            T9,
+            T10,
+            T11,
+            T12,
+            T13,
+            T14,
+            T15,
+            T16,
+            T17,
+            T18,
+            T19,
+            T20,
+            T21,
+            T22,
+            T23,
+            T24,
+            T25,
+        ],
+        Ret,
+    ],
+    r1: Result[T1, FailT],
+    r2: Result[T2, FailT],
+    r3: Result[T3, FailT],
+    r4: Result[T4, FailT],
+    r5: Result[T5, FailT],
+    r6: Result[T6, FailT],
+    r7: Result[T7, FailT],
+    r8: Result[T8, FailT],
+    r9: Result[T9, FailT],
+    r10: Result[T10, FailT],
+    r11: Result[T11, FailT],
+    r12: Result[T12, FailT],
+    r13: Result[T13, FailT],
+    r14: Result[T14, FailT],
+    r15: Result[T15, FailT],
+    r16: Result[T16, FailT],
+    r17: Result[T17, FailT],
+    r18: Result[T18, FailT],
+    r19: Result[T19, FailT],
+    r20: Result[T20, FailT],
+    r21: Result[T21, FailT],
+    r22: Result[T22, FailT],
+    r23: Result[T23, FailT],
+    r24: Result[T24, FailT],
+    r25: Result[T25, FailT],
+    *,
+    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
+) -> Result[Ret, tuple[FailT, ...]]:
+    ...
+
+
 def validate_and_map(
     into: Union[
         Callable[[T1], Ret],
@@ -434,6 +2279,230 @@ def validate_and_map(
         Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
         Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
         Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret],
+        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret],
+        Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
+        ],
+        Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+            ],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+            ],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+            ],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+                T21,
+            ],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+                T21,
+                T22,
+            ],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+                T21,
+                T22,
+                T23,
+            ],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+                T21,
+                T22,
+                T23,
+                T24,
+            ],
+            Ret,
+        ],
+        Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+                T21,
+                T22,
+                T23,
+                T24,
+                T25,
+            ],
+            Ret,
+        ],
     ],
     r1: Result[T1, FailT],
     r2: Optional[Result[T2, FailT]] = None,
@@ -445,6 +2514,21 @@ def validate_and_map(
     r8: Optional[Result[T8, FailT]] = None,
     r9: Optional[Result[T9, FailT]] = None,
     r10: Optional[Result[T10, FailT]] = None,
+    r11: Optional[Result[T11, FailT]] = None,
+    r12: Optional[Result[T12, FailT]] = None,
+    r13: Optional[Result[T13, FailT]] = None,
+    r14: Optional[Result[T14, FailT]] = None,
+    r15: Optional[Result[T15, FailT]] = None,
+    r16: Optional[Result[T16, FailT]] = None,
+    r17: Optional[Result[T17, FailT]] = None,
+    r18: Optional[Result[T18, FailT]] = None,
+    r19: Optional[Result[T19, FailT]] = None,
+    r20: Optional[Result[T20, FailT]] = None,
+    r21: Optional[Result[T21, FailT]] = None,
+    r22: Optional[Result[T22, FailT]] = None,
+    r23: Optional[Result[T23, FailT]] = None,
+    r24: Optional[Result[T24, FailT]] = None,
+    r25: Optional[Result[T25, FailT]] = None,
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
 ) -> Result[Ret, tuple[FailT, ...]]:
@@ -553,7 +2637,7 @@ def validate_and_map(
             ),
         )
 
-    else:
+    elif r11 is None:
 
         return _flat_map_same_type_if_not_none(
             tupled_err_func(validate_object),
@@ -569,5 +2653,756 @@ def validate_and_map(
                 r8,
                 r9,
                 r10,
+            ),
+        )
+
+    elif r12 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate11_helper(
+                Ok(
+                    cast(
+                        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+            ),
+        )
+
+    elif r13 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate12_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+            ),
+        )
+
+    elif r14 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate13_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+            ),
+        )
+
+    elif r15 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate14_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+            ),
+        )
+
+    elif r16 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate15_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+            ),
+        )
+
+    elif r17 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate16_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+            ),
+        )
+
+    elif r18 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate17_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+            ),
+        )
+
+    elif r19 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate18_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+            ),
+        )
+
+    elif r20 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate19_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
+                                T19,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+                r19,
+            ),
+        )
+
+    elif r21 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate20_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
+                                T19,
+                                T20,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+                r19,
+                r20,
+            ),
+        )
+
+    elif r22 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate21_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
+                                T19,
+                                T20,
+                                T21,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+                r19,
+                r20,
+                r21,
+            ),
+        )
+
+    elif r23 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate22_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
+                                T19,
+                                T20,
+                                T21,
+                                T22,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+                r19,
+                r20,
+                r21,
+                r22,
+            ),
+        )
+
+    elif r24 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate23_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
+                                T19,
+                                T20,
+                                T21,
+                                T22,
+                                T23,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+                r19,
+                r20,
+                r21,
+                r22,
+                r23,
+            ),
+        )
+
+    elif r25 is None:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate24_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
+                                T19,
+                                T20,
+                                T21,
+                                T22,
+                                T23,
+                                T24,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+                r19,
+                r20,
+                r21,
+                r22,
+                r23,
+                r24,
+            ),
+        )
+
+    else:
+
+        return _flat_map_same_type_if_not_none(
+            tupled_err_func(validate_object),
+            _validate25_helper(
+                Ok(
+                    cast(
+                        Callable[
+                            [
+                                T1,
+                                T2,
+                                T3,
+                                T4,
+                                T5,
+                                T6,
+                                T7,
+                                T8,
+                                T9,
+                                T10,
+                                T11,
+                                T12,
+                                T13,
+                                T14,
+                                T15,
+                                T16,
+                                T17,
+                                T18,
+                                T19,
+                                T20,
+                                T21,
+                                T22,
+                                T23,
+                                T24,
+                                T25,
+                            ],
+                            Ret,
+                        ],
+                        into,
+                    )
+                ),
+                r1,
+                r2,
+                r3,
+                r4,
+                r5,
+                r6,
+                r7,
+                r8,
+                r9,
+                r10,
+                r11,
+                r12,
+                r13,
+                r14,
+                r15,
+                r16,
+                r17,
+                r18,
+                r19,
+                r20,
+                r21,
+                r22,
+                r23,
+                r24,
+                r25,
             ),
         )
