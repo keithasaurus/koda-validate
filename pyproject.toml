@@ -10,13 +10,13 @@ koda = "1.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "7.1.2"
-pyright = "1.1.256"
+pyright = "1.1.275"
 pytest-cov = "3.0.0"
 isort = "5.10.1"
 black = "22.6.0"
 flake8 = "4.0.1"
 pre-commit = "2.19.0"
-mypy = "0.961"
+mypy = "0.982"
 
 
 [tool.mypy]
@@ -28,6 +28,7 @@ disallow_subclassing_any = true
 disallow_untyped_calls = true
 disallow_untyped_decorators = true
 disallow_untyped_defs = true
+enable_recursive_aliases = true
 ignore_errors = false
 ignore_missing_imports = false
 local_partial_types = true
