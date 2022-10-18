@@ -701,7 +701,7 @@ def _variant_errors(*variants: JSONValue) -> JSONValue:
     return {f"variant {i + 1}": v for i, v in enumerate(variants)}
 
 
-class Nullable(Validator[Any, Maybe[A], JSONValue]):
+class Noneable(Validator[Any, Maybe[A], JSONValue]):
     """
     We have a value for a key, but it can be null (None)
     """

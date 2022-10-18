@@ -41,8 +41,8 @@ from koda_validate.validators import (
     MinKeys,
     MinLength,
     MultipleOf,
+    Noneable,
     NotBlank,
-    Nullable,
     OneOf2,
     OneOf3,
     RegexValidator,
@@ -192,11 +192,11 @@ def test_array_of() -> None:
 
 
 def test_maybe_val() -> None:
-    assert Nullable(StringValidator())(None) == Ok(nothing)
-    assert Nullable(StringValidator())(5) == Err(
+    assert Noneable(StringValidator())(None) == Ok(nothing)
+    assert Noneable(StringValidator())(5) == Err(
         val={"variant 1": ["must be None"], "variant 2": ["expected a string"]}
     )
-    assert Nullable(StringValidator())("okok") == Ok(Just("okok"))
+    assert Noneable(StringValidator())("okok") == Ok(Just("okok"))
 
 
 def test_map_of() -> None:
