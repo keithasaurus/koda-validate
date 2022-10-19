@@ -40,7 +40,7 @@ from koda_validate.typedefs import (
 )
 from koda_validate.utils import accum_errors, expected, validate_and_map
 
-OBJECT_ERRORS_FIELD: Final[str] = "__object__"
+OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 
 def accum_errors_jsonish(
@@ -364,7 +364,7 @@ class ListValidator(Validator[Any, list[A], JSONValue]):
                     list_errors.append(result.val)
 
             if len(list_errors) > 0:
-                errors["__array__"] = list_errors
+                errors["__container__"] = list_errors
 
             for i, item in enumerate(val):
                 item_result = self.item_validator(item)

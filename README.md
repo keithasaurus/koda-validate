@@ -1,14 +1,33 @@
 # Koda Validate
 
-Koda validate is a typesafe validation library built on top of [koda](https://pypi.org/project/koda/). This project
-aims to facilitate:
+Explicit and Flexible Validation
+```python
+string_validator = StringValidator() 
+assert string_validator("neat") == Ok("neat")
+
+length_validator = StringValidator(
+    MinLength(2),
+    MaxLength(5)
+)
+
+assert string_validator("neat") == Ok("neat")
+assert length_validator("") == Err(["minimum allowed length is 5"])
+
+
+list_validator = ListValidator(
+    String(MinLength(2)),
+    MinItems(2) 
+)
+
+assert list_validator(["ok", "cool", "wow"]) == Ok(["ok", "cool", "wow"])
+assert list_validator([]) == Err([])
+# assert list_validator(["ok", "a"]) == Err()
+``` 
+
+Koda Validate is built on top of [koda](https://pypi.org/project/koda/) and aims to facilitate:
 - straightforward combination of validators
 - type-based code quality assurance
 - reuse of validator metadata (like making schemas)
-
-```python
-
-``` 
 
 
 ## Quickstart

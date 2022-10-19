@@ -186,7 +186,7 @@ def test_array_of() -> None:
         {
             "index 2": ["minimum allowed value is 5.5"],
             "index 3": ["expected a float"],
-            "__array__": ["maximum allowed length is 3"],
+            "__container__": ["maximum allowed length is 3"],
         }
     )
 
@@ -227,7 +227,7 @@ def test_map_of() -> None:
         {
             "key1a": ["minimum allowed value is 5"],
             "key1a (key)": ["maximum allowed length is 4"],
-            "__object__": ["max 1 key(s) allowed"],
+            "__container__": ["max 1 key(s) allowed"],
         }
     )
 
@@ -382,7 +382,7 @@ def test_tuple2() -> None:
             if ab[0] == "a":
                 return Ok(ab)
             else:
-                return Err({"__array__": ["must be a if int is 1"]})
+                return Err({"__container__": ["must be a if int is 1"]})
         else:
             return Ok(ab)
 
@@ -391,7 +391,7 @@ def test_tuple2() -> None:
     )
 
     assert a1_validator(["a", 1]) == Ok(("a", 1))
-    assert a1_validator(["b", 1]) == Err({"__array__": ["must be a if int is 1"]})
+    assert a1_validator(["b", 1]) == Err({"__container__": ["must be a if int is 1"]})
     assert a1_validator(["b", 2]) == Ok(("b", 2))
 
 
@@ -425,7 +425,7 @@ def test_tuple3() -> None:
             if abc[0] == "a":
                 return Ok(abc)
             else:
-                return Err({"__array__": ["must be a if int is 1 and bool is True"]})
+                return Err({"__container__": ["must be a if int is 1 and bool is True"]})
         else:
             return Ok(abc)
 
@@ -435,7 +435,7 @@ def test_tuple3() -> None:
 
     assert a1_validator(["a", 1, True]) == Ok(("a", 1, True))
     assert a1_validator(["b", 1, True]) == Err(
-        {"__array__": ["must be a if int is 1 and bool is True"]}
+        {"__container__": ["must be a if int is 1 and bool is True"]}
     )
     assert a1_validator(["b", 2, False]) == Ok(("b", 2, False))
 
@@ -447,14 +447,14 @@ def test_obj_1() -> None:
 
     validator = Dict1KeyValidator(key("name", StringValidator()), into=Person)
 
-    assert validator("not a dict") == Err({"__object__": ["expected an object"]})
+    assert validator("not a dict") == Err({"__container__": ["expected an object"]})
 
     assert validator({}) == Err({"name": ["key missing"]})
 
     assert validator({"name": 5}) == Err({"name": ["expected a string"]})
 
     assert validator({"name": "bob", "age": 50}) == Err(
-        {"__object__": ["Received unknown keys. Only expected ['name']"]}
+        {"__container__": ["Received unknown keys. Only expected ['name']"]}
     )
 
     assert validator({"name": "bob"}) == Ok(Person("bob"))
@@ -470,7 +470,7 @@ def test_obj_2() -> None:
         key("name", StringValidator()), maybe_key("age", IntValidator()), into=Person
     )
 
-    assert validator("not a dict") == Err({"__object__": ["expected an object"]})
+    assert validator("not a dict") == Err({"__container__": ["expected an object"]})
 
     assert validator({}) == Err({"name": ["key missing"]})
 
@@ -479,7 +479,7 @@ def test_obj_2() -> None:
     )
 
     assert validator({"name": "bob", "age": 50, "eye_color": "brown"}) == Err(
-        {"__object__": ["Received unknown keys. Only expected ['age', 'name']"]}
+        {"__container__": ["Received unknown keys. Only expected ['age', 'name']"]}
     )
 
     assert validator({"name": "bob", "age": 50}) == Ok(Person("bob", Just(50)))
@@ -504,7 +504,7 @@ def test_obj_3() -> None:
         Person("bob", "smith", 50)
     )
 
-    assert validator("") == Err({"__object__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected an object"]})
 
 
 class PersonLike(Protocol):
@@ -513,7 +513,7 @@ class PersonLike(Protocol):
 
 
 _JONES_ERROR_MSG: JSONValue = {
-    "__object__": ["can't have last_name of jones and eye color of brown"]
+    "__container__": ["can't have last_name of jones and eye color of brown"]
 }
 
 
@@ -551,7 +551,7 @@ def test_obj_4() -> None:
         {"first_name": "bob", "last_name": "Jones", "age": 50, "eye color": "brown"}
     ) == Err(_JONES_ERROR_MSG)
 
-    assert validator("") == Err({"__object__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected an object"]})
 
 
 def test_obj_5() -> None:
@@ -593,7 +593,7 @@ def test_obj_5() -> None:
         }
     ) == Err(_JONES_ERROR_MSG)
 
-    assert validator("") == Err({"__object__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected an object"]})
 
 
 def test_obj_6() -> None:
@@ -627,7 +627,7 @@ def test_obj_6() -> None:
         }
     ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5))
 
-    assert validator("") == Err({"__object__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected an object"]})
 
 
 def test_obj_7() -> None:
@@ -664,7 +664,7 @@ def test_obj_7() -> None:
         }
     ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8))
 
-    assert validator("") == Err({"__object__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected an object"]})
 
 
 def test_obj_8() -> None:
@@ -730,7 +730,7 @@ def test_obj_8() -> None:
         }
     ) == Err(_JONES_ERROR_MSG)
 
-    assert validator("") == Err({"__object__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected an object"]})
 
 
 def test_obj_9() -> None:
@@ -774,7 +774,7 @@ def test_obj_9() -> None:
         }
     ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, Just("blue"), None))
 
-    assert validator("") == Err({"__object__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected an object"]})
 
 
 def test_obj_10() -> None:
@@ -834,7 +834,7 @@ def test_obj_10() -> None:
         )
     )
 
-    assert validator("") == Err({"__object__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected an object"]})
 
 
 def test_choices() -> None:
