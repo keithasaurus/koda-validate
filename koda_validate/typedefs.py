@@ -49,8 +49,7 @@ class Predicate(Generic[A, FailT]):
             return Err(self.err_message(val))
 
 
-_JSONValue1 = Union[None, int, str, bool, float, list[Any], dict[str, Any]]
-JSONValue = Union[None, int, str, bool, float, list[_JSONValue1], dict[str, _JSONValue1]]
+JSONValue = Union[None, int, str, bool, float, list["JSONValue"], dict[str, "JSONValue"]]
 
 
 PredicateJson = Predicate[A, JSONValue]
