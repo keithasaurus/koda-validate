@@ -162,7 +162,7 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, J
                  validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None
                  ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             {" ".join([f'field{j+1},' for j in range(i + 1)])}
         )
         self.validate_object = validate_object
@@ -172,7 +172,7 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, J
         result = _dict_without_extra_keys(
     """
         ret += "        {"
-        ret += ", ".join([f"self.dv_field_lines[{j}][0]" for j in range(i + 1)])
+        ret += ", ".join([f"self.dv_fields[{j}][0]" for j in range(i + 1)])
         ret += "},"
         ret += "\n            data"
         ret += """
@@ -186,7 +186,7 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, J
 """
         ret += "\n".join(
             [
-                f"                _validate_with_key(self.dv_field_lines[{j}], result.val),"
+                f"                _validate_with_key(self.dv_fields[{j}], result.val),"
                 for j in range(i + 1)
             ]
         )
@@ -219,7 +219,7 @@ def dict_validator(
 
     ret += "\n".join(dict_validator_overloads)
 
-    dv_field_lines: str = ",\n".join([f"    {f}" for f in dict_validator_fields])
+    dv_fields: str = ",\n".join([f"    {f}" for f in dict_validator_fields])
 
     ret += f"""
 
@@ -227,14 +227,14 @@ def dict_validator(
     into: Union[
         {", ".join(dict_validator_into_signatures)}
     ],
-{dv_field_lines},
+{dv_fields},
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None
 ) -> Validator[Any, Ret, JSONValue]: 
 """
     for i in range(1, num_keys + 1):
-        dv_field_lines = ", ".join([f"field{j}" for j in range(1, i + 1)])
-        ret_stmt = f"        return Dict{i}KeysValidator(cast({dict_validator_into_signatures[i-1]}, into), {dv_field_lines}, validate_object=validate_object)"
+        dv_fields = ", ".join([f"field{j}" for j in range(1, i + 1)])
+        ret_stmt = f"        return Dict{i}KeysValidator(cast({dict_validator_into_signatures[i-1]}, into), {dv_fields}, validate_object=validate_object)"
         if i == 1:
             ret += f"""
     if field{i + 1} is None:

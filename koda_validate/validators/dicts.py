@@ -157,18 +157,18 @@ class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, JSONValue]):
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (field1,)
+        self.dv_fields = (field1,)
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
-        result = _dict_without_extra_keys({self.dv_field_lines[0][0]}, data)
+        result = _dict_without_extra_keys({self.dv_fields[0][0]}, data)
 
         if isinstance(result, Err):
             return result
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -185,7 +185,7 @@ class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
         )
@@ -193,7 +193,7 @@ class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
 
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
-            {self.dv_field_lines[0][0], self.dv_field_lines[1][0]}, data
+            {self.dv_fields[0][0], self.dv_fields[1][0]}, data
         )
 
         if isinstance(result, Err):
@@ -201,8 +201,8 @@ class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -220,7 +220,7 @@ class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -229,12 +229,7 @@ class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue
 
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
-            {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-            },
-            data,
+            {self.dv_fields[0][0], self.dv_fields[1][0], self.dv_fields[2][0]}, data
         )
 
         if isinstance(result, Err):
@@ -242,9 +237,9 @@ class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -263,7 +258,7 @@ class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONV
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -274,10 +269,10 @@ class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONV
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
             },
             data,
         )
@@ -287,10 +282,10 @@ class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONV
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -312,7 +307,7 @@ class Dict5KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -324,11 +319,11 @@ class Dict5KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
             },
             data,
         )
@@ -338,11 +333,11 @@ class Dict5KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -365,7 +360,7 @@ class Dict6KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -378,12 +373,12 @@ class Dict6KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
             },
             data,
         )
@@ -393,12 +388,12 @@ class Dict6KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -422,7 +417,7 @@ class Dict7KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -436,13 +431,13 @@ class Dict7KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
             },
             data,
         )
@@ -452,13 +447,13 @@ class Dict7KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -483,7 +478,7 @@ class Dict8KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -498,14 +493,14 @@ class Dict8KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
             },
             data,
         )
@@ -515,14 +510,14 @@ class Dict8KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -548,7 +543,7 @@ class Dict9KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -564,15 +559,15 @@ class Dict9KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
             },
             data,
         )
@@ -582,15 +577,15 @@ class Dict9KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -617,7 +612,7 @@ class Dict10KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -634,16 +629,16 @@ class Dict10KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
             },
             data,
         )
@@ -653,16 +648,16 @@ class Dict10KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -691,7 +686,7 @@ class Dict11KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -709,17 +704,17 @@ class Dict11KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
             },
             data,
         )
@@ -729,17 +724,17 @@ class Dict11KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -769,7 +764,7 @@ class Dict12KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -788,18 +783,18 @@ class Dict12KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
             },
             data,
         )
@@ -809,18 +804,18 @@ class Dict12KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -851,7 +846,7 @@ class Dict13KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -871,19 +866,19 @@ class Dict13KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
             },
             data,
         )
@@ -893,19 +888,19 @@ class Dict13KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -939,7 +934,7 @@ class Dict14KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -960,20 +955,20 @@ class Dict14KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
             },
             data,
         )
@@ -983,20 +978,20 @@ class Dict14KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -1031,7 +1026,7 @@ class Dict15KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -1053,21 +1048,21 @@ class Dict15KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
             },
             data,
         )
@@ -1077,21 +1072,21 @@ class Dict15KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -1127,7 +1122,7 @@ class Dict16KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -1150,22 +1145,22 @@ class Dict16KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
-                self.dv_field_lines[15][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
+                self.dv_fields[15][0],
             },
             data,
         )
@@ -1175,22 +1170,22 @@ class Dict16KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
-                _validate_with_key(self.dv_field_lines[15], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
+                _validate_with_key(self.dv_fields[15], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -1230,7 +1225,7 @@ class Dict17KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -1254,23 +1249,23 @@ class Dict17KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
-                self.dv_field_lines[15][0],
-                self.dv_field_lines[16][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
+                self.dv_fields[15][0],
+                self.dv_fields[16][0],
             },
             data,
         )
@@ -1280,23 +1275,23 @@ class Dict17KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
-                _validate_with_key(self.dv_field_lines[15], result.val),
-                _validate_with_key(self.dv_field_lines[16], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
+                _validate_with_key(self.dv_fields[15], result.val),
+                _validate_with_key(self.dv_fields[16], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -1374,7 +1369,7 @@ class Dict18KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -1399,24 +1394,24 @@ class Dict18KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
-                self.dv_field_lines[15][0],
-                self.dv_field_lines[16][0],
-                self.dv_field_lines[17][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
+                self.dv_fields[15][0],
+                self.dv_fields[16][0],
+                self.dv_fields[17][0],
             },
             data,
         )
@@ -1426,24 +1421,24 @@ class Dict18KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
-                _validate_with_key(self.dv_field_lines[15], result.val),
-                _validate_with_key(self.dv_field_lines[16], result.val),
-                _validate_with_key(self.dv_field_lines[17], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
+                _validate_with_key(self.dv_fields[15], result.val),
+                _validate_with_key(self.dv_fields[16], result.val),
+                _validate_with_key(self.dv_fields[17], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -1524,7 +1519,7 @@ class Dict19KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -1550,25 +1545,25 @@ class Dict19KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
-                self.dv_field_lines[15][0],
-                self.dv_field_lines[16][0],
-                self.dv_field_lines[17][0],
-                self.dv_field_lines[18][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
+                self.dv_fields[15][0],
+                self.dv_fields[16][0],
+                self.dv_fields[17][0],
+                self.dv_fields[18][0],
             },
             data,
         )
@@ -1578,25 +1573,25 @@ class Dict19KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
-                _validate_with_key(self.dv_field_lines[15], result.val),
-                _validate_with_key(self.dv_field_lines[16], result.val),
-                _validate_with_key(self.dv_field_lines[17], result.val),
-                _validate_with_key(self.dv_field_lines[18], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
+                _validate_with_key(self.dv_fields[15], result.val),
+                _validate_with_key(self.dv_fields[16], result.val),
+                _validate_with_key(self.dv_fields[17], result.val),
+                _validate_with_key(self.dv_fields[18], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -1680,7 +1675,7 @@ class Dict20KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -1707,26 +1702,26 @@ class Dict20KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
-                self.dv_field_lines[15][0],
-                self.dv_field_lines[16][0],
-                self.dv_field_lines[17][0],
-                self.dv_field_lines[18][0],
-                self.dv_field_lines[19][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
+                self.dv_fields[15][0],
+                self.dv_fields[16][0],
+                self.dv_fields[17][0],
+                self.dv_fields[18][0],
+                self.dv_fields[19][0],
             },
             data,
         )
@@ -1736,26 +1731,26 @@ class Dict20KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
-                _validate_with_key(self.dv_field_lines[15], result.val),
-                _validate_with_key(self.dv_field_lines[16], result.val),
-                _validate_with_key(self.dv_field_lines[17], result.val),
-                _validate_with_key(self.dv_field_lines[18], result.val),
-                _validate_with_key(self.dv_field_lines[19], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
+                _validate_with_key(self.dv_fields[15], result.val),
+                _validate_with_key(self.dv_fields[16], result.val),
+                _validate_with_key(self.dv_fields[17], result.val),
+                _validate_with_key(self.dv_fields[18], result.val),
+                _validate_with_key(self.dv_fields[19], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -1842,7 +1837,7 @@ class Dict21KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -1870,27 +1865,27 @@ class Dict21KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
-                self.dv_field_lines[15][0],
-                self.dv_field_lines[16][0],
-                self.dv_field_lines[17][0],
-                self.dv_field_lines[18][0],
-                self.dv_field_lines[19][0],
-                self.dv_field_lines[20][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
+                self.dv_fields[15][0],
+                self.dv_fields[16][0],
+                self.dv_fields[17][0],
+                self.dv_fields[18][0],
+                self.dv_fields[19][0],
+                self.dv_fields[20][0],
             },
             data,
         )
@@ -1900,27 +1895,27 @@ class Dict21KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
-                _validate_with_key(self.dv_field_lines[15], result.val),
-                _validate_with_key(self.dv_field_lines[16], result.val),
-                _validate_with_key(self.dv_field_lines[17], result.val),
-                _validate_with_key(self.dv_field_lines[18], result.val),
-                _validate_with_key(self.dv_field_lines[19], result.val),
-                _validate_with_key(self.dv_field_lines[20], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
+                _validate_with_key(self.dv_fields[15], result.val),
+                _validate_with_key(self.dv_fields[16], result.val),
+                _validate_with_key(self.dv_fields[17], result.val),
+                _validate_with_key(self.dv_fields[18], result.val),
+                _validate_with_key(self.dv_fields[19], result.val),
+                _validate_with_key(self.dv_fields[20], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -2010,7 +2005,7 @@ class Dict22KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -2039,28 +2034,28 @@ class Dict22KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
-                self.dv_field_lines[15][0],
-                self.dv_field_lines[16][0],
-                self.dv_field_lines[17][0],
-                self.dv_field_lines[18][0],
-                self.dv_field_lines[19][0],
-                self.dv_field_lines[20][0],
-                self.dv_field_lines[21][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
+                self.dv_fields[15][0],
+                self.dv_fields[16][0],
+                self.dv_fields[17][0],
+                self.dv_fields[18][0],
+                self.dv_fields[19][0],
+                self.dv_fields[20][0],
+                self.dv_fields[21][0],
             },
             data,
         )
@@ -2070,28 +2065,28 @@ class Dict22KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
-                _validate_with_key(self.dv_field_lines[15], result.val),
-                _validate_with_key(self.dv_field_lines[16], result.val),
-                _validate_with_key(self.dv_field_lines[17], result.val),
-                _validate_with_key(self.dv_field_lines[18], result.val),
-                _validate_with_key(self.dv_field_lines[19], result.val),
-                _validate_with_key(self.dv_field_lines[20], result.val),
-                _validate_with_key(self.dv_field_lines[21], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
+                _validate_with_key(self.dv_fields[15], result.val),
+                _validate_with_key(self.dv_fields[16], result.val),
+                _validate_with_key(self.dv_fields[17], result.val),
+                _validate_with_key(self.dv_fields[18], result.val),
+                _validate_with_key(self.dv_fields[19], result.val),
+                _validate_with_key(self.dv_fields[20], result.val),
+                _validate_with_key(self.dv_fields[21], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -2184,7 +2179,7 @@ class Dict23KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -2214,29 +2209,29 @@ class Dict23KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
-                self.dv_field_lines[15][0],
-                self.dv_field_lines[16][0],
-                self.dv_field_lines[17][0],
-                self.dv_field_lines[18][0],
-                self.dv_field_lines[19][0],
-                self.dv_field_lines[20][0],
-                self.dv_field_lines[21][0],
-                self.dv_field_lines[22][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
+                self.dv_fields[15][0],
+                self.dv_fields[16][0],
+                self.dv_fields[17][0],
+                self.dv_fields[18][0],
+                self.dv_fields[19][0],
+                self.dv_fields[20][0],
+                self.dv_fields[21][0],
+                self.dv_fields[22][0],
             },
             data,
         )
@@ -2246,29 +2241,29 @@ class Dict23KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
-                _validate_with_key(self.dv_field_lines[15], result.val),
-                _validate_with_key(self.dv_field_lines[16], result.val),
-                _validate_with_key(self.dv_field_lines[17], result.val),
-                _validate_with_key(self.dv_field_lines[18], result.val),
-                _validate_with_key(self.dv_field_lines[19], result.val),
-                _validate_with_key(self.dv_field_lines[20], result.val),
-                _validate_with_key(self.dv_field_lines[21], result.val),
-                _validate_with_key(self.dv_field_lines[22], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
+                _validate_with_key(self.dv_fields[15], result.val),
+                _validate_with_key(self.dv_fields[16], result.val),
+                _validate_with_key(self.dv_fields[17], result.val),
+                _validate_with_key(self.dv_fields[18], result.val),
+                _validate_with_key(self.dv_fields[19], result.val),
+                _validate_with_key(self.dv_fields[20], result.val),
+                _validate_with_key(self.dv_fields[21], result.val),
+                _validate_with_key(self.dv_fields[22], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -2364,7 +2359,7 @@ class Dict24KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -2395,30 +2390,30 @@ class Dict24KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
-                self.dv_field_lines[15][0],
-                self.dv_field_lines[16][0],
-                self.dv_field_lines[17][0],
-                self.dv_field_lines[18][0],
-                self.dv_field_lines[19][0],
-                self.dv_field_lines[20][0],
-                self.dv_field_lines[21][0],
-                self.dv_field_lines[22][0],
-                self.dv_field_lines[23][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
+                self.dv_fields[15][0],
+                self.dv_fields[16][0],
+                self.dv_fields[17][0],
+                self.dv_fields[18][0],
+                self.dv_fields[19][0],
+                self.dv_fields[20][0],
+                self.dv_fields[21][0],
+                self.dv_fields[22][0],
+                self.dv_fields[23][0],
             },
             data,
         )
@@ -2428,30 +2423,30 @@ class Dict24KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
-                _validate_with_key(self.dv_field_lines[15], result.val),
-                _validate_with_key(self.dv_field_lines[16], result.val),
-                _validate_with_key(self.dv_field_lines[17], result.val),
-                _validate_with_key(self.dv_field_lines[18], result.val),
-                _validate_with_key(self.dv_field_lines[19], result.val),
-                _validate_with_key(self.dv_field_lines[20], result.val),
-                _validate_with_key(self.dv_field_lines[21], result.val),
-                _validate_with_key(self.dv_field_lines[22], result.val),
-                _validate_with_key(self.dv_field_lines[23], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
+                _validate_with_key(self.dv_fields[15], result.val),
+                _validate_with_key(self.dv_fields[16], result.val),
+                _validate_with_key(self.dv_fields[17], result.val),
+                _validate_with_key(self.dv_fields[18], result.val),
+                _validate_with_key(self.dv_fields[19], result.val),
+                _validate_with_key(self.dv_fields[20], result.val),
+                _validate_with_key(self.dv_fields[21], result.val),
+                _validate_with_key(self.dv_fields[22], result.val),
+                _validate_with_key(self.dv_fields[23], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -2550,7 +2545,7 @@ class Dict25KeysValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
     ) -> None:
         self.into = into
-        self.dv_field_lines = (
+        self.dv_fields = (
             field1,
             field2,
             field3,
@@ -2582,31 +2577,31 @@ class Dict25KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
             {
-                self.dv_field_lines[0][0],
-                self.dv_field_lines[1][0],
-                self.dv_field_lines[2][0],
-                self.dv_field_lines[3][0],
-                self.dv_field_lines[4][0],
-                self.dv_field_lines[5][0],
-                self.dv_field_lines[6][0],
-                self.dv_field_lines[7][0],
-                self.dv_field_lines[8][0],
-                self.dv_field_lines[9][0],
-                self.dv_field_lines[10][0],
-                self.dv_field_lines[11][0],
-                self.dv_field_lines[12][0],
-                self.dv_field_lines[13][0],
-                self.dv_field_lines[14][0],
-                self.dv_field_lines[15][0],
-                self.dv_field_lines[16][0],
-                self.dv_field_lines[17][0],
-                self.dv_field_lines[18][0],
-                self.dv_field_lines[19][0],
-                self.dv_field_lines[20][0],
-                self.dv_field_lines[21][0],
-                self.dv_field_lines[22][0],
-                self.dv_field_lines[23][0],
-                self.dv_field_lines[24][0],
+                self.dv_fields[0][0],
+                self.dv_fields[1][0],
+                self.dv_fields[2][0],
+                self.dv_fields[3][0],
+                self.dv_fields[4][0],
+                self.dv_fields[5][0],
+                self.dv_fields[6][0],
+                self.dv_fields[7][0],
+                self.dv_fields[8][0],
+                self.dv_fields[9][0],
+                self.dv_fields[10][0],
+                self.dv_fields[11][0],
+                self.dv_fields[12][0],
+                self.dv_fields[13][0],
+                self.dv_fields[14][0],
+                self.dv_fields[15][0],
+                self.dv_fields[16][0],
+                self.dv_fields[17][0],
+                self.dv_fields[18][0],
+                self.dv_fields[19][0],
+                self.dv_fields[20][0],
+                self.dv_fields[21][0],
+                self.dv_fields[22][0],
+                self.dv_fields[23][0],
+                self.dv_fields[24][0],
             },
             data,
         )
@@ -2616,31 +2611,31 @@ class Dict25KeysValidator(
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_field_lines[0], result.val),
-                _validate_with_key(self.dv_field_lines[1], result.val),
-                _validate_with_key(self.dv_field_lines[2], result.val),
-                _validate_with_key(self.dv_field_lines[3], result.val),
-                _validate_with_key(self.dv_field_lines[4], result.val),
-                _validate_with_key(self.dv_field_lines[5], result.val),
-                _validate_with_key(self.dv_field_lines[6], result.val),
-                _validate_with_key(self.dv_field_lines[7], result.val),
-                _validate_with_key(self.dv_field_lines[8], result.val),
-                _validate_with_key(self.dv_field_lines[9], result.val),
-                _validate_with_key(self.dv_field_lines[10], result.val),
-                _validate_with_key(self.dv_field_lines[11], result.val),
-                _validate_with_key(self.dv_field_lines[12], result.val),
-                _validate_with_key(self.dv_field_lines[13], result.val),
-                _validate_with_key(self.dv_field_lines[14], result.val),
-                _validate_with_key(self.dv_field_lines[15], result.val),
-                _validate_with_key(self.dv_field_lines[16], result.val),
-                _validate_with_key(self.dv_field_lines[17], result.val),
-                _validate_with_key(self.dv_field_lines[18], result.val),
-                _validate_with_key(self.dv_field_lines[19], result.val),
-                _validate_with_key(self.dv_field_lines[20], result.val),
-                _validate_with_key(self.dv_field_lines[21], result.val),
-                _validate_with_key(self.dv_field_lines[22], result.val),
-                _validate_with_key(self.dv_field_lines[23], result.val),
-                _validate_with_key(self.dv_field_lines[24], result.val),
+                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[1], result.val),
+                _validate_with_key(self.dv_fields[2], result.val),
+                _validate_with_key(self.dv_fields[3], result.val),
+                _validate_with_key(self.dv_fields[4], result.val),
+                _validate_with_key(self.dv_fields[5], result.val),
+                _validate_with_key(self.dv_fields[6], result.val),
+                _validate_with_key(self.dv_fields[7], result.val),
+                _validate_with_key(self.dv_fields[8], result.val),
+                _validate_with_key(self.dv_fields[9], result.val),
+                _validate_with_key(self.dv_fields[10], result.val),
+                _validate_with_key(self.dv_fields[11], result.val),
+                _validate_with_key(self.dv_fields[12], result.val),
+                _validate_with_key(self.dv_fields[13], result.val),
+                _validate_with_key(self.dv_fields[14], result.val),
+                _validate_with_key(self.dv_fields[15], result.val),
+                _validate_with_key(self.dv_fields[16], result.val),
+                _validate_with_key(self.dv_fields[17], result.val),
+                _validate_with_key(self.dv_fields[18], result.val),
+                _validate_with_key(self.dv_fields[19], result.val),
+                _validate_with_key(self.dv_fields[20], result.val),
+                _validate_with_key(self.dv_fields[21], result.val),
+                _validate_with_key(self.dv_fields[22], result.val),
+                _validate_with_key(self.dv_fields[23], result.val),
+                _validate_with_key(self.dv_fields[24], result.val),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
