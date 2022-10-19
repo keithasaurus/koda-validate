@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 from koda import Err, Ok, Result
 
@@ -29,7 +29,8 @@ def accum_errors(
         return Err(errors)
     else:
         # has to be because there are no errors
-        assert isinstance(result, Ok)
+        if TYPE_CHECKING:
+            assert isinstance(result, Ok)
         return Ok(result.val)
 
 

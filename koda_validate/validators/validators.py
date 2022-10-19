@@ -294,7 +294,7 @@ class ListValidator(Validator[Any, list[A], JSONValue]):
                     list_errors.append(result.val)
 
             if len(list_errors) > 0:
-                errors["__array__"] = list_errors
+                errors["__container__"] = list_errors
 
             for i, item in enumerate(val):
                 item_result = self.item_validator(item)

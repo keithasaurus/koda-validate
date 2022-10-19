@@ -1,47 +1,73 @@
 # Koda Validate
 
-Koda validate is a typesafe validation library built on top of [koda](https://pypi.org/project/koda/). This project
-aims to facilitate:
-- straightforward combination of validators
-- type-based code quality assurance
-- ability to produce schemas from validator metadata
+10,000 meter view:
 
-# Quickstart
-Let's start as simple as possible.
+```python
+
+``` 
+
+Koda Validate is built on top of [koda](https://pypi.org/project/koda/) and aims to facilitate:
+- writing complex validators faster
+- type-based code quality assurance
+- reuse of validator metadata (i.e. rendering API schemas)
+
+
+## Quickstart
+Let's start as simply as possible.
 
 ```python3
 from koda import Ok
 from koda_validate.validators import StringValidator, Err
+from koda_validate.validators import not_blank, MaxLength
 
 string_validator = StringValidator()
 
 assert string_validator("s") == Ok("s")
 assert string_validator(None) == Err(["expected a string"])
+
+string_validator = StringValidator(not_blank, MaxLength(5))
+
+assert string_validator("too long") == Err(["cannot be blank", "maximum allowed length is 5"])
+assert string_validator("neat") == Ok("neat")
 ```
 
-Testing if something is a string can be useful, but we often want to constrain values in some way.
-
-```python
-from koda import Ok
-from koda_validate.validators import StringValidator, Err, not_blank, MinLength
-
-string_validator = StringValidator(not_blank, MinLength(5))
-
-assert string_validator("  ") == Err(["cannot be blank", "minimum allowed length is 5"])
-assert string_validator("long enough") == Ok("long enough")
-```
-Note that we return errors from all failing value-level validators, instead of 
-failing and exiting on the first error. This is possible because of certain type-level guarantees within
+You might notice that we return errors from all failing value-level (as opposed to type-level) validators, 
+instead of failing and exiting on the first error. This is possible because of certain type-level guarantees within
 Koda Validate, but we'll get into that later.
 
 One thing to note is that we can express validators with
 multiple acceptable types. A common need is to be able to express
 values that can be some concrete type or `None`. For this case we
-have `Nullable`
+have `Noneable`
 
 ```python
-from koda_validate import Nullable, IntValidator
-Nullable(IntegerValidator())
+from koda_validate.validators import Noneable, IntValidator
+from koda import Ok
+
+validator = Noneable(IntValidator())
+
+assert validator(5) == Ok(5)
+assert validator(None) == Ok(None)
+```
+
+Some other utilities for expressing multiple valid forms of input is with
+`OneOf2` and `OneOf3`
+```python
+from koda import First, Ok, Second, Err
+
+from koda_validate.validators import IntValidator, StringValidator, OneOf2
+
+validator = OneOf2(StringValidator(), IntValidator())
+
+assert validator("ok") == Ok(First("ok"))
+assert validator(5) == Ok(Second(5))
+
+
+assert validator(None) == Err({
+    'variant 1': ['expected a string'],
+    'variant 2': ['expected an integer']
+})
+
 ```
 
 

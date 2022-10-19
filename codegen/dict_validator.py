@@ -21,7 +21,7 @@ from koda_validate.validators.validate_and_map import validate_and_map
 
     ret += """
 
-OBJECT_ERRORS_FIELD: Final[str] = "__object__"
+OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 
 class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):

@@ -36,7 +36,7 @@ Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
 
-OBJECT_ERRORS_FIELD: Final[str] = "__object__"
+OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 
 class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):
