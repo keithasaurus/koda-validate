@@ -2,9 +2,36 @@
 
 10,000 meter view:
 
+```python3
+@dataclass
+class Person:
+    name: str
+    age: int
+
+
+person_validator = dict_validator(
+    Person,  # <- if successful, we'll send the validated values as arguments here
+    key("name", StringValidator(MinLength(1))),  # <- keys we're validating for
+    key("age", IntValidator(Minimum(0)))
+)
+
+person_data = {
+    "name": "John Doe",
+    "age": 30
+}
+
+match person_validator(person_data):
+    case Ok(Person(name, age)):
+        print(f"{name} is {age} years old")
+    case Err(errs):
+        print(errs)
+
+```
+OK, let's build something more complex
+
 ```python
 
-``` 
+```
 
 Koda Validate is built on top of [koda](https://pypi.org/project/koda/) and aims to facilitate:
 - writing complex validators faster

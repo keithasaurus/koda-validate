@@ -301,14 +301,14 @@ class ListValidator(Validator[Any, list[A], JSONValue]):
                 if isinstance(item_result, Ok):
                     return_list.append(item_result.val)
                 else:
-                    errors[f"index {i}"] = item_result.val
+                    errors[str(i)] = item_result.val
 
             if len(errors) > 0:
                 return Err(errors)
             else:
                 return Ok(return_list)
         else:
-            return Err({"invalid type": [expected("an array")]})
+            return Err({"__container__": [expected("a list")]})
 
 
 EnumT = TypeVar("EnumT", str, int)

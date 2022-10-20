@@ -169,11 +169,11 @@ def test_integer() -> None:
 
 def test_array_of() -> None:
     assert ListValidator(FloatValidator())("a string") == Err(
-        {"invalid type": ["expected an array"]}
+        {"__container__": ["expected a list"]}
     )
 
     assert ListValidator(FloatValidator())([5.5, "something else"]) == Err(
-        {"index 1": ["expected a float"]}
+        {"1": ["expected a float"]}
     )
 
     assert ListValidator(FloatValidator())([5.5, 10.1]) == Ok([5.5, 10.1])
@@ -184,8 +184,8 @@ def test_array_of() -> None:
         [10.1, 7.7, 2.2, 5]
     ) == Err(
         {
-            "index 2": ["minimum allowed value is 5.5"],
-            "index 3": ["expected a float"],
+            "2": ["minimum allowed value is 5.5"],
+            "3": ["expected a float"],
             "__container__": ["maximum allowed length is 3"],
         }
     )
@@ -201,7 +201,7 @@ def test_maybe_val() -> None:
 
 def test_map_of() -> None:
     assert MapValidator(StringValidator(), StringValidator())(5) == Err(
-        {"invalid type": ["expected a map"]}
+        {"__container__": ["expected a map"]}
     )
 
     assert MapValidator(StringValidator(), StringValidator())({}) == Ok({})
@@ -362,17 +362,17 @@ def test_min_properties() -> None:
 
 def test_tuple2() -> None:
     assert Tuple2Validator(StringValidator(), IntValidator())({}) == Err(
-        {"invalid type": ["expected array of length 2"]}
+        {"__container__": ["expected list or tuple of length 2"]}
     )
 
     assert Tuple2Validator(StringValidator(), IntValidator())([]) == Err(
-        {"invalid type": ["expected array of length 2"]}
+        {"__container__": ["expected list or tuple of length 2"]}
     )
 
     assert Tuple2Validator(StringValidator(), IntValidator())(["a", 1]) == Ok(("a", 1))
 
     assert Tuple2Validator(StringValidator(), IntValidator())([1, "a"]) == Err(
-        {"index 0": ["expected a string"], "index 1": ["expected an integer"]}
+        {"0": ["expected a string"], "1": ["expected an integer"]}
     )
 
     def must_be_a_if_integer_is_1(
@@ -398,11 +398,11 @@ def test_tuple2() -> None:
 def test_tuple3() -> None:
     assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
         {}
-    ) == Err({"invalid type": ["expected array of length 3"]})
+    ) == Err({"__container__": ["expected list or tuple of length 3"]})
 
     assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
         []
-    ) == Err({"invalid type": ["expected array of length 3"]})
+    ) == Err({"__container__": ["expected list or tuple of length 3"]})
 
     assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
         ["a", 1, False]
@@ -412,9 +412,9 @@ def test_tuple3() -> None:
         [1, "a", 7.42]
     ) == Err(
         {
-            "index 0": ["expected a string"],
-            "index 1": ["expected an integer"],
-            "index 2": ["expected a boolean"],
+            "0": ["expected a string"],
+            "1": ["expected an integer"],
+            "2": ["expected a boolean"],
         }
     )
 
@@ -923,7 +923,7 @@ def deserialize_and_validate_tests() -> None:
     )
 
     assert deserialize_and_validate(validator, "") == Err(
-        {"invalid type": ["expected an object"]}
+        {"__container__": ["expected a dictionary"]}
     )
 
     assert deserialize_and_validate(validator, "[") == Err({"bad data": "invalid json"})

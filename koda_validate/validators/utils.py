@@ -1,8 +1,10 @@
-from typing import Callable, Optional
+from typing import Callable, Final, Optional
 
 from koda import Result
 
 from koda_validate._generics import A, FailT
+
+CONTAINER_KEY: Final[str] = "__container__"
 
 
 def _flat_map_same_type_if_not_none(

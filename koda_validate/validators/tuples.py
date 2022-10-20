@@ -5,11 +5,12 @@ from koda import Err, Result
 from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
 from koda_validate.typedefs import JSONValue, Validator
+from koda_validate.utils import expected
 from koda_validate.validators.validate_and_map import validate_and_map
 
 
 def _tuple_to_dict_errors(errs: tuple[JSONValue, ...]) -> dict[str, JSONValue]:
-    return {f"index {i}": err for i, err in enumerate(errs)}
+    return {str(i): err for i, err in enumerate(errs)}
 
 
 # todo: auto-generate
@@ -45,7 +46,11 @@ class Tuple2Validator(Validator[Any, tuple[A, B], JSONValue]):
                     return result.flat_map(self.tuple_validator)
         else:
             return Err(
-                {"invalid type": [f"expected array of length {self.required_length}"]}
+                {
+                    "__container__": [
+                        expected(f"list or tuple of length {self.required_length}")
+                    ]
+                }
             )
 
 
@@ -84,5 +89,9 @@ class Tuple3Validator(Validator[Any, tuple[A, B, C], JSONValue]):
                     return result.flat_map(self.tuple_validator)
         else:
             return Err(
-                {"invalid type": [f"expected array of length {self.required_length}"]}
+                {
+                    "__container__": [
+                        expected(f"list or tuple of length {self.required_length}")
+                    ]
+                }
             )
