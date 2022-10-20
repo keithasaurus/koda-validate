@@ -11,6 +11,7 @@ from koda_validate.validators.validators import (
     MinLength,
     StringValidator,
     key,
+    maybe_key,
     not_blank,
 )
 
@@ -33,7 +34,7 @@ class City:
 city_validator = dict_validator(
     City,
     key("region", StringValidator(not_blank, preprocessors=[strip])),
-    key("population", IntValidator(Min(0))),
+    maybe_key("population", IntValidator(Min(0))),
 )
 
 # all errors are json serializable. we use the key "__container__" for object-level errors

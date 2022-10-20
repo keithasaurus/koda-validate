@@ -247,7 +247,39 @@ Since we are beginning to see that Koda Validate is explicit about validation, i
 - to allow type-safe extension of validation logic
 
 ## Extension 
-Let's start as simply as possible.
+There are two kinds of callables used for validation in Koda Validate: `Validator`s and `Predicate`s. `Validator`s 
+allow for modification of the input either in its type or in it's value.
+
+```python
+from typing import Any
+
+from koda import Result, Err
+
+from koda_validate.typedefs import Validator, JSONValue, Predicate
+from koda_validate.validators.validators import accum_errors_jsonish
+
+
+
+class FloatValidator(Validator[Any, float, JSONValue]):
+    """ 
+    extends `Validator` and does the following:
+    - validates input of type `Any`
+    - if valid, produces a `float`
+    - if invalid, produces a `JSONValue`  
+    """
+    def __init__(self, *predicates: Predicate[float, JSONValue]) -> None:
+        """
+        A series of predicates
+        """
+        self.predicates = predicates
+
+    def __call__(self, val: Any) -> Result[float, JSONValue]:
+        if isinstance(val, float):
+            return accum_errors_jsonish(val, self.predicates)
+        else:
+            return Err(["expected a float"])
+
+```
 
 ```python3
 from koda import Ok
