@@ -34,7 +34,7 @@ from koda_validate.utils import accum_errors, expected
 from koda_validate.validators.validate_and_map import validate_and_map
 
 
-def accum_errors_jsonish(
+def accum_errors_json(
     val: A, validators: Iterable[Predicate[A, JSONValue]]
 ) -> Result[A, JSONValue]:
     """
@@ -162,7 +162,7 @@ class BooleanValidator(Validator[Any, bool, JSONValue]):
 
     def __call__(self, val: Any) -> Result[bool, JSONValue]:
         if isinstance(val, bool):
-            return accum_errors_jsonish(val, self.predicates)
+            return accum_errors_json(val, self.predicates)
         else:
             return Err([expected("a boolean")])
 
@@ -182,7 +182,7 @@ class StringValidator(Validator[Any, str, JSONValue]):
                 for preprocess in self.preprocessors:
                     val = preprocess(val)
 
-            return accum_errors_jsonish(val, self.predicates)
+            return accum_errors_json(val, self.predicates)
         else:
             return Err([expected("a string")])
 
@@ -216,7 +216,7 @@ class IntValidator(Validator[Any, int, JSONValue]):
     def __call__(self, val: Any) -> Result[int, JSONValue]:
         # can't use isinstance because it would return true for bools
         if type(val) == int:
-            return accum_errors_jsonish(val, self.predicates)
+            return accum_errors_json(val, self.predicates)
         else:
             return Err([expected("an integer")])
 
@@ -227,7 +227,7 @@ class FloatValidator(Validator[Any, float, JSONValue]):
 
     def __call__(self, val: Any) -> Result[float, JSONValue]:
         if isinstance(val, float):
-            return accum_errors_jsonish(val, self.predicates)
+            return accum_errors_json(val, self.predicates)
         else:
             return Err([expected("a float")])
 
@@ -277,7 +277,7 @@ class DateValidator(Validator[Any, date, JSONValue]):
                 if isinstance(result, Err):
                     return fail_msg
                 else:
-                    return accum_errors_jsonish(result.val, self.predicates)
+                    return accum_errors_json(result.val, self.predicates)
         else:
             return fail_msg
 

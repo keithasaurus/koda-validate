@@ -256,7 +256,7 @@ from typing import Any
 from koda import Result, Err
 
 from koda_validate.typedefs import Validator, JSONValue, Predicate
-from koda_validate.validators.validators import accum_errors_jsonish
+from koda_validate.validators.validators import accum_errors_json
 
 
 
@@ -269,13 +269,14 @@ class FloatValidator(Validator[Any, float, JSONValue]):
     """
     def __init__(self, *predicates: Predicate[float, JSONValue]) -> None:
         """
-        A series of predicates
+        A series of predicates allows us to check the float's _value_ in 
+        as many ways as needed
         """
         self.predicates = predicates
 
     def __call__(self, val: Any) -> Result[float, JSONValue]:
         if isinstance(val, float):
-            return accum_errors_jsonish(val, self.predicates)
+            return accum_errors_json(val, self.predicates)
         else:
             return Err(["expected a float"])
 
