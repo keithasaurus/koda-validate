@@ -530,7 +530,7 @@ def _variant_errors(*variants: JSONValue) -> JSONValue:
     return {f"variant {i + 1}": v for i, v in enumerate(variants)}
 
 
-class Nullable(Validator[Any, Maybe[A], JSONValue]):
+class Noneable(Validator[Any, Maybe[A], JSONValue]):
     """
     We have a value for a key, but it can be null (None)
     """
@@ -555,7 +555,7 @@ Num = TypeVar("Num", int, float, DecimalStdLib)
 
 
 @dataclass(frozen=True)
-class Minimum(Predicate[Num, JSONValue]):
+class Min(Predicate[Num, JSONValue]):
     minimum: Num
     exclusive_minimum: bool = False
 
@@ -570,7 +570,7 @@ class Minimum(Predicate[Num, JSONValue]):
 
 
 @dataclass(frozen=True)
-class Maximum(Predicate[Num, JSONValue]):
+class Max(Predicate[Num, JSONValue]):
     maximum: Num
     exclusive_maximum: bool = False
 

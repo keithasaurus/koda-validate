@@ -35,17 +35,17 @@ from koda_validate.validators.validators import (
     IntValidator,
     Lazy,
     ListValidator,
-    Maximum,
+    Max,
     MaxItems,
     MaxKeys,
     MaxLength,
-    Minimum,
+    Min,
     MinItems,
     MinKeys,
     MinLength,
     MultipleOf,
+    Noneable,
     NotBlank,
-    Nullable,
     OneOf2,
     OneOf3,
     RegexValidator,
@@ -66,15 +66,13 @@ def test_float() -> None:
 
     assert FloatValidator()(4) == Err(["expected a float"])
 
-    assert FloatValidator(Maximum(500.0))(503.0) == Err(
-        ["maximum allowed value is 500.0"]
-    )
+    assert FloatValidator(Max(500.0))(503.0) == Err(["maximum allowed value is 500.0"])
 
-    assert FloatValidator(Maximum(500.0))(3.5) == Ok(3.5)
+    assert FloatValidator(Max(500.0))(3.5) == Ok(3.5)
 
-    assert FloatValidator(Minimum(5.0))(4.999) == Err(["minimum allowed value is 5.0"])
+    assert FloatValidator(Min(5.0))(4.999) == Err(["minimum allowed value is 5.0"])
 
-    assert FloatValidator(Minimum(5.0))(5.0) == Ok(5.0)
+    assert FloatValidator(Min(5.0))(5.0) == Ok(5.0)
 
     class MustHaveAZeroSomewhere(PredicateJson[float]):
         def is_valid(self, val: float) -> bool:
@@ -87,9 +85,9 @@ def test_float() -> None:
         def err_message(self, val: float) -> JSONValue:
             return "There should be a zero in the number"
 
-    assert FloatValidator(Minimum(2.5), Maximum(4.0), MustHaveAZeroSomewhere())(
-        5.5
-    ) == Err(["maximum allowed value is 4.0", "There should be a zero in the number"])
+    assert FloatValidator(Min(2.5), Max(4.0), MustHaveAZeroSomewhere())(5.5) == Err(
+        ["maximum allowed value is 4.0", "There should be a zero in the number"]
+    )
 
 
 def test_decimal() -> None:
@@ -105,9 +103,9 @@ def test_decimal() -> None:
 
     assert DecimalValidator()(5) == Ok(DecimalStdLib(5))
 
-    assert DecimalValidator(Minimum(DecimalStdLib(4)), Maximum(DecimalStdLib("5.5")))(
-        5
-    ) == Ok(DecimalStdLib(5))
+    assert DecimalValidator(Min(DecimalStdLib(4)), Max(DecimalStdLib("5.5")))(5) == Ok(
+        DecimalStdLib(5)
+    )
 
 
 def test_boolean() -> None:
@@ -164,7 +162,7 @@ def test_integer() -> None:
         def err_message(self, val: int) -> JSONValue:
             return "must be divisible by 2"
 
-    assert IntValidator(Minimum(2), Maximum(10), DivisibleBy2(),)(
+    assert IntValidator(Min(2), Max(10), DivisibleBy2(),)(
         11
     ) == Err(["maximum allowed value is 10", "must be divisible by 2"])
 
@@ -182,7 +180,7 @@ def test_array_of() -> None:
 
     assert ListValidator(FloatValidator())([]) == Ok([])
 
-    assert ListValidator(FloatValidator(Minimum(5.5)), MinItems(1), MaxItems(3))(
+    assert ListValidator(FloatValidator(Min(5.5)), MinItems(1), MaxItems(3))(
         [10.1, 7.7, 2.2, 5]
     ) == Err(
         {
@@ -194,11 +192,11 @@ def test_array_of() -> None:
 
 
 def test_maybe_val() -> None:
-    assert Nullable(StringValidator())(None) == Ok(nothing)
-    assert Nullable(StringValidator())(5) == Err(
+    assert Noneable(StringValidator())(None) == Ok(nothing)
+    assert Noneable(StringValidator())(5) == Err(
         val={"variant 1": ["must be None"], "variant 2": ["expected a string"]}
     )
-    assert Nullable(StringValidator())("okok") == Ok(Just("okok"))
+    assert Noneable(StringValidator())("okok") == Ok(Just("okok"))
 
 
 def test_map_of() -> None:
@@ -223,7 +221,7 @@ def test_map_of() -> None:
             return f"max {self.max} key(s) allowed"
 
     complex_validator = MapValidator(
-        StringValidator(MaxLength(4)), IntValidator(Minimum(5)), MaxKeys(1)
+        StringValidator(MaxLength(4)), IntValidator(Min(5)), MaxKeys(1)
     )
     assert complex_validator({"key1": 10, "key1a": 2},) == Err(
         {
@@ -453,7 +451,7 @@ def test_obj_1() -> None:
 
     validator = dict_validator(Person, key("name", StringValidator()))
 
-    assert validator("not a dict") == Err({"__container__": ["expected an object"]})
+    assert validator("not a dict") == Err({"__container__": ["expected a dictionary"]})
 
     assert validator({}) == Err({"name": ["key missing"]})
 
@@ -476,7 +474,7 @@ def test_obj_2() -> None:
         Person, key("name", StringValidator()), maybe_key("age", IntValidator())
     )
 
-    assert validator("not a dict") == Err({"__container__": ["expected an object"]})
+    assert validator("not a dict") == Err({"__container__": ["expected a dictionary"]})
 
     assert validator({}) == Err({"name": ["key missing"]})
 
@@ -510,7 +508,7 @@ def test_obj_3() -> None:
         Person("bob", "smith", 50)
     )
 
-    assert validator("") == Err({"__container__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected a dictionary"]})
 
 
 class PersonLike(Protocol):
@@ -557,7 +555,7 @@ def test_obj_4() -> None:
         {"first_name": "bob", "last_name": "Jones", "age": 50, "eye color": "brown"}
     ) == Err(_JONES_ERROR_MSG)
 
-    assert validator("") == Err({"__container__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected a dictionary"]})
 
 
 def test_obj_5() -> None:
@@ -599,7 +597,7 @@ def test_obj_5() -> None:
         }
     ) == Err(_JONES_ERROR_MSG)
 
-    assert validator("") == Err({"__container__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected a dictionary"]})
 
 
 def test_obj_6() -> None:
@@ -633,7 +631,7 @@ def test_obj_6() -> None:
         }
     ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5))
 
-    assert validator("") == Err({"__container__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected a dictionary"]})
 
 
 def test_obj_7() -> None:
@@ -670,7 +668,7 @@ def test_obj_7() -> None:
         }
     ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8))
 
-    assert validator("") == Err({"__container__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected a dictionary"]})
 
 
 def test_obj_8() -> None:
@@ -736,7 +734,7 @@ def test_obj_8() -> None:
         }
     ) == Err(_JONES_ERROR_MSG)
 
-    assert validator("") == Err({"__container__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected a dictionary"]})
 
 
 def test_obj_9() -> None:
@@ -780,7 +778,7 @@ def test_obj_9() -> None:
         }
     ) == Ok(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, Just("blue"), None))
 
-    assert validator("") == Err({"__container__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected a dictionary"]})
 
 
 def test_obj_10() -> None:
@@ -840,7 +838,7 @@ def test_obj_10() -> None:
         )
     )
 
-    assert validator("") == Err({"__container__": ["expected an object"]})
+    assert validator("") == Err({"__container__": ["expected a dictionary"]})
 
 
 def test_choices() -> None:

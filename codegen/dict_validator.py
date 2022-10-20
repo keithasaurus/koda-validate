@@ -89,7 +89,7 @@ class IsDict(Validator[Any, dict[Any, Any], JSONValue]):
         if isinstance(val, dict):
             return Ok(val)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("an object")]})
+            return Err({OBJECT_ERRORS_FIELD: [expected("a dictionary")]})
 
 
 def _has_no_extra_keys(

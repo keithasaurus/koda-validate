@@ -142,7 +142,7 @@ requirements-deprecated-finder = ["pip-api", "pipreqs"]
 
 [[package]]
 name = "koda"
-version = "1.0.0"
+version = "1.1.0"
 description = "Type-safe functional tools for Python"
 category = "main"
 optional = false
@@ -289,7 +289,7 @@ diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pyright"
-version = "1.1.275"
+version = "1.1.276"
 description = "Command line wrapper for pyright"
 category = "dev"
 optional = false
@@ -402,7 +402,7 @@ testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "5bd777051cb59592784a607b82162ffbdde69484ab139c0655c44fe887a534b2"
+content-hash = "8a56784c98f366a1acf3bc0b977570db4bc4cf43f934206ea5a16581d37fa696"
 
 [metadata.files]
 attrs = [
@@ -521,8 +521,8 @@ isort = [
     {file = "isort-5.10.1.tar.gz", hash = "sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951"},
 ]
 koda = [
-    {file = "koda-1.0.0-py3-none-any.whl", hash = "sha256:f85b865d77abe97dfbf7cca9232a5ba848a43d4510335570b39af08e9721e5a3"},
-    {file = "koda-1.0.0.tar.gz", hash = "sha256:8613ccbcb68b5edcfc290475704e7f170447da77c811a4a24c63e768b51eb9d5"},
+    {file = "koda-1.1.0-py3-none-any.whl", hash = "sha256:7d4a6e8846f71f0f4ab8069c1903071b4bd17f64b3f2e100b74fbdb85100c8c0"},
+    {file = "koda-1.1.0.tar.gz", hash = "sha256:15b600808d6152ed52e842b737e115d32e42e416daa0e1e3efc33348234b38df"},
 ]
 mccabe = [
     {file = "mccabe-0.7.0-py2.py3-none-any.whl", hash = "sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e"},
@@ -599,8 +599,8 @@ pyparsing = [
     {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
 ]
 pyright = [
-    {file = "pyright-1.1.275-py3-none-any.whl", hash = "sha256:83072f509e18160f2661a2276ac85f471112dbcfc1dadf0cbb0393a4d56db72a"},
-    {file = "pyright-1.1.275.tar.gz", hash = "sha256:f0061ce47c785b9b64745b7648ff9732a99811ef7c7f3f88642aa2cb7868c81e"},
+    {file = "pyright-1.1.276-py3-none-any.whl", hash = "sha256:d9388405ea20a55446cb7809b1746158bdf557f9162b476f5aed71173f4ffd2b"},
+    {file = "pyright-1.1.276.tar.gz", hash = "sha256:debaa08f6975dd381b9408880e36bb781ba7a1a6cf24b7868e83be41b6c8cb75"},
 ]
 pytest = [
     {file = "pytest-7.1.3-py3-none-any.whl", hash = "sha256:1377bda3466d70b55e3f5cecfa55bb7cfcf219c7964629b967c37cf0bda818b7"},
