@@ -8,6 +8,7 @@ from koda.either import First, Second, Third
 from koda.maybe import Just, Maybe, nothing
 from koda.result import Err, Ok, Result
 
+from koda_validate.processors import strip
 from koda_validate.typedefs import JSONValue, Predicate, PredicateJson
 from koda_validate.validators.dicts import (
     OBJECT_ERRORS_FIELD,
@@ -53,6 +54,7 @@ from koda_validate.validators.validators import (
     key,
     maybe_key,
     none_validator,
+    not_blank,
     unique_items,
 )
 
@@ -248,7 +250,7 @@ def test_map_of() -> None:
     )
 
 
-def test_string() -> None:
+def test_string_validator() -> None:
     assert StringValidator()(False) == Err(["expected a string"])
 
     assert StringValidator()("abc") == Ok("abc")
@@ -266,6 +268,10 @@ def test_string() -> None:
     assert min_len_3_not_blank_validator("   ") == Err(["cannot be blank"])
 
     assert min_len_3_not_blank_validator("something") == Ok("something")
+
+    assert StringValidator(not_blank, preprocessors=[strip])(" strip me! ") == Ok(
+        "strip me!"
+    )
 
 
 def test_max_string_length() -> None:

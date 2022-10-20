@@ -28,6 +28,7 @@ from koda.maybe import Just, Maybe, Nothing, nothing
 from koda.result import Err, Ok, Result
 
 from koda_validate._generics import B, C, Ret
+from koda_validate.processors import Processor
 from koda_validate.typedefs import JSONValue, Predicate, Validator
 from koda_validate.utils import accum_errors, expected
 from koda_validate.validators.validate_and_map import validate_and_map
@@ -167,11 +168,20 @@ class BooleanValidator(Validator[Any, bool, JSONValue]):
 
 
 class StringValidator(Validator[Any, str, JSONValue]):
-    def __init__(self, *validators: Predicate[str, JSONValue]) -> None:
+    def __init__(
+        self,
+        *validators: Predicate[str, JSONValue],
+        preprocessors: Optional[list[Processor[str]]] = None,
+    ) -> None:
         self.validators = validators
+        self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[str, JSONValue]:
         if isinstance(val, str):
+            if self.preprocessors is not None:
+                for preprocess in self.preprocessors:
+                    val = preprocess(val)
+
             return accum_errors_jsonish(val, self.validators)
         else:
             return Err([expected("a string")])
