@@ -856,7 +856,7 @@ def test_not_blank() -> None:
     assert NotBlank()("\n") == Err(BLANK_STRING_MSG)
 
 
-def test_first_of2() -> None:
+def test_one_of2() -> None:
     str_or_int_validator = OneOf2(StringValidator(), IntValidator())
     assert str_or_int_validator("ok") == Ok(First("ok"))
     assert str_or_int_validator(5) == Ok(Second(5))
@@ -864,16 +864,8 @@ def test_first_of2() -> None:
         {"variant 1": ["expected a string"], "variant 2": ["expected an integer"]}
     )
 
-    str_or_int_validator_named = OneOf2(
-        ("name", StringValidator()), ("age", IntValidator())
-    )
 
-    assert str_or_int_validator_named(5.5) == Err(
-        {"name": ["expected a string"], "age": ["expected an integer"]}
-    )
-
-
-def test_first_of3() -> None:
+def test_one_of3() -> None:
     str_or_int_or_float_validator = OneOf3(
         StringValidator(), IntValidator(), FloatValidator()
     )
@@ -885,20 +877,6 @@ def test_first_of3() -> None:
             "variant 1": ["expected a string"],
             "variant 2": ["expected an integer"],
             "variant 3": ["expected a float"],
-        }
-    )
-
-    str_or_int_validator_named = OneOf3(
-        ("name", StringValidator()),
-        ("age", IntValidator()),
-        ("alive", FloatValidator()),
-    )
-
-    assert str_or_int_validator_named(False) == Err(
-        {
-            "name": ["expected a string"],
-            "age": ["expected an integer"],
-            "alive": ["expected a float"],
         }
     )
 

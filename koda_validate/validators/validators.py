@@ -403,29 +403,18 @@ def _validate_with_key(
     return fn(mapping_get(data, key)).map_err(add_key)
 
 
+@dataclass(frozen=True, init=False)
 class OneOf2(Validator[Any, Either[A, B], JSONValue]):
+    variant_one: Validator[Any, A, JSONValue]
+    variant_two: Validator[Any, B, JSONValue]
+
     def __init__(
         self,
-        variant_one: Union[
-            Validator[Any, A, JSONValue],
-            Tuple[str, Validator[Any, A, JSONValue]],
-        ],
-        variant_two: Union[
-            Validator[Any, B, JSONValue],
-            Tuple[str, Validator[Any, B, JSONValue]],
-        ],
+        variant_one: Validator[Any, A, JSONValue],
+        variant_two: Validator[Any, B, JSONValue],
     ) -> None:
-        if isinstance(variant_one, tuple):
-            self.variant_one_label, self.variant_one = variant_one
-        else:
-            self.variant_one = variant_one
-            self.variant_one_label = "variant 1"
-
-        if isinstance(variant_two, tuple):
-            self.variant_two_label, self.variant_two = variant_two
-        else:
-            self.variant_two = variant_two
-            self.variant_two_label = "variant 2"
+        object.__setattr__(self, "variant_one", variant_one)
+        object.__setattr__(self, "variant_two", variant_two)
 
     def __call__(self, val: Any) -> Result[Either[A, B], JSONValue]:
         v1_result = self.variant_one(val)
@@ -440,45 +429,27 @@ class OneOf2(Validator[Any, Either[A, B], JSONValue]):
             else:
                 return Err(
                     {
-                        self.variant_one_label: v1_result.val,
-                        self.variant_two_label: v2_result.val,
+                        "variant 1": v1_result.val,
+                        "variant 2": v2_result.val,
                     }
                 )
 
 
+@dataclass(init=False, frozen=True)
 class OneOf3(Validator[Any, Either3[A, B, C], JSONValue]):
+    variant_one: Validator[Any, A, JSONValue]
+    variant_two: Validator[Any, B, JSONValue]
+    variant_three: Validator[Any, C, JSONValue]
+
     def __init__(
         self,
-        variant_one: Union[
-            Validator[Any, A, JSONValue],
-            Tuple[str, Validator[Any, A, JSONValue]],
-        ],
-        variant_two: Union[
-            Validator[Any, B, JSONValue],
-            Tuple[str, Validator[Any, B, JSONValue]],
-        ],
-        variant_three: Union[
-            Validator[Any, C, JSONValue],
-            Tuple[str, Validator[Any, C, JSONValue]],
-        ],
+        variant_one: Validator[Any, A, JSONValue],
+        variant_two: Validator[Any, B, JSONValue],
+        variant_three: Validator[Any, C, JSONValue],
     ) -> None:
-        if isinstance(variant_one, tuple):
-            self.variant_one_label, self.variant_one = variant_one
-        else:
-            self.variant_one = variant_one
-            self.variant_one_label = "variant 1"
-
-        if isinstance(variant_two, tuple):
-            self.variant_two_label, self.variant_two = variant_two
-        else:
-            self.variant_two = variant_two
-            self.variant_two_label = "variant 2"
-
-        if isinstance(variant_three, tuple):
-            self.variant_three_label, self.variant_three = variant_three
-        else:
-            self.variant_three = variant_three
-            self.variant_three_label = "variant 3"
+        object.__setattr__(self, "variant_one", variant_one)
+        object.__setattr__(self, "variant_two", variant_two)
+        object.__setattr__(self, "variant_three", variant_three)
 
     def __call__(self, val: Any) -> Result[Either3[A, B, C], JSONValue]:
         v1_result = self.variant_one(val)
@@ -498,9 +469,9 @@ class OneOf3(Validator[Any, Either3[A, B, C], JSONValue]):
                 else:
                     return Err(
                         {
-                            self.variant_one_label: v1_result.val,
-                            self.variant_two_label: v2_result.val,
-                            self.variant_three_label: v3_result.val,
+                            "variant 1": v1_result.val,
+                            "variant 2": v2_result.val,
+                            "variant 3": v3_result.val,
                         }
                     )
 
@@ -521,9 +492,9 @@ not_blank = NotBlank()
 _KEY_MISSING: Final[str] = "key missing"
 
 
+@dataclass(frozen=True)
 class RequiredField(Generic[A]):
-    def __init__(self, validator: Validator[Any, A, JSONValue]) -> None:
-        self.validator = validator
+    validator: Validator[Any, A, JSONValue]
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[A, JSONValue]:
         if isinstance(maybe_val, Nothing):
@@ -532,9 +503,9 @@ class RequiredField(Generic[A]):
             return self.validator(maybe_val.val)
 
 
+@dataclass(frozen=True)
 class MaybeField(Generic[A]):
-    def __init__(self, validator: Validator[Any, A, JSONValue]) -> None:
-        self.validator = validator
+    validator: Validator[Any, A, JSONValue]
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], JSONValue]:
         if isinstance(maybe_val, Just):
@@ -559,13 +530,13 @@ def _variant_errors(*variants: JSONValue) -> JSONValue:
     return {f"variant {i + 1}": v for i, v in enumerate(variants)}
 
 
+@dataclass(frozen=True)
 class Noneable(Validator[Any, Maybe[A], JSONValue]):
     """
     We have a value for a key, but it can be null (None)
     """
 
-    def __init__(self, validator: Validator[Any, A, JSONValue]) -> None:
-        self.validator = validator
+    validator: Validator[Any, A, JSONValue]
 
     def __call__(self, val: Optional[Any]) -> Result[Maybe[A], JSONValue]:
         if val is None:

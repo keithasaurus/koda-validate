@@ -271,8 +271,8 @@ class SimpleFloatValidator(Validator[Any, float, JSONValue]):
             return Err("expected a float")
 ```
 
-This is all well and good, but we'll probably want to be able to check against values
-of the floats. For this we use `Predicate`s. This is what the `FloatValidator` in Koda Validate looks like: 
+This is all well and good, but we'll probably want to be able to check against values of the floats, such as setting 
+min or max thresholds. For this we use `Predicate`s. This is what the `FloatValidator` in Koda Validate looks like: 
 
 
 ```python
@@ -298,7 +298,7 @@ class FloatValidator(Validator[Any, float, JSONValue]):
             return Err(["expected a float"])
 ```
 
-`Predicate`s allow us to validate on known types of values. This is how you might write and use a `Predicate` 
+`Predicate`s allow us to validate the _value_ of a known type. This is how you might write and use a `Predicate` 
 for approximate `float` equality:
 
 ```python
@@ -334,16 +334,16 @@ assert close_to_validator(a) == Ok(a)
 assert close_to_validator(.01) == Err(["expected a value within 0.02 of 0.05"])
 ```
 
-In Koda Validate `Predicate`s are essentially subsets of all the possible `Validator`s, in that their types
-restrict that the types of the input and valid data must be the same. This is a very useful property 
-because it allows us to proceed sequentially through many `Predicate`s of the same type with the same value.
-(Koda Validate's `Predicate` class's `__call__` attempts to ensure the value being tested CANNOT change
-during validation, mutable types not withstanding.)
+In Koda Validate `Predicate`s are essentially subsets of all the possible `Validator`s, in that they still
+perform validation, but the type of the input and the valid data must be the same. This turns out to be
+a very useful property because it allows us to proceed sequentially through many `Predicate`s of the same 
+type with the same value. Taking it one step further, Koda Validate's `Predicate` class's `__call__` method
+ensures the value being validated CANNOT change during validation (mutable types not withstanding).
 
 ## Metadata
 Above we said an aim of Koda Validate is "to allow reuse of validator metadata". Principally this 
-is useful in generating descriptions of the validator's constraints, such as an OpenAPI schema. We'll 
-use validator metadata to build a plaintext description of a validator:
+is useful in generating descriptions of the validator's constraints -- one example could be generating
+an OpenAPI schema. We'll use validator metadata to build a plaintext description of a validator:
 
 ```python3
 from typing import Any
@@ -380,159 +380,9 @@ are `Callable`s at their core, they are also classes that can easily be inspecte
 the primary reason we use classes _at all_ in Koda Validate.) Interpreters are the recommended way to re-use
 validator metadata for non-validation purposes.
 
-
-You might notice that we return errors from all failing value-level (as opposed to type-level) validators, 
-instead of failing and exiting on the first error. This is possible because of certain type-level guarantees within
-Koda Validate, but we'll get into that later.
-
-One thing to note is that we can express validators with
-multiple acceptable types. A common need is to be able to express
-values that can be some concrete type or `None`. For this case we
-have `Noneable`
-
-```python
-from koda_validate.validators import Noneable, IntValidator
-from koda import Ok
-
-validator = Noneable(IntValidator())
-
-assert validator(5) == Ok(5)
-assert validator(None) == Ok(None)
-```
-
-Some other utilities for expressing multiple valid forms of input is with
-`OneOf2` and `OneOf3`
-```python
-from koda import First, Ok, Second, Err
-
-from koda_validate.validators import IntValidator, StringValidator, OneOf2
-
-validator = OneOf2(StringValidator(), IntValidator())
-
-assert validator("ok") == Ok(First("ok"))
-assert validator(5) == Ok(Second(5))
+## Brief Tour
 
 
-assert validator(None) == Err({
-    'variant 1': ['expected a string'],
-    'variant 2': ['expected an integer']
-})
 
-```
+## Caveats and Tradeoffs
 
-
-## What is a validator?
-
-A simple approach to a validators could start with predicates. A predicate is simply
-a function which takes some value and returns `True` or `False`:
-```python3
-from typing import Callable, TypeVar
-
-A = TypeVar('A')
-
-Predicate = Callable[[A], bool]
-```
-However, in the opinion of this library, this is not sufficient. We also want to be able (though not required) to:
-- coerce submitted data into some other form (e.g. normalization, quantization, type conversions, etc.) 
-- produce useful messages for validation failure
-
-Given these requirements, the definition of a `Validator` would become:
-```python3
-from typing import Callable, TypeVar
-from koda import Result
-
-A = TypeVar('A')
-Valid = TypeVar('Valid')
-Invalid = TypeVar('Invalid')
-
-Validator = Callable[[A], Result[Valid, Invalid]]
-```
-Some examples of validators made in this way could be:
-```python3
-from typing import Any
-from koda import Result, Ok, Err
-
-def is_int(val: Any) -> Result[int, str]:
-    try:
-        return Ok(int(val))
-    except Exception:
-        return Err("must be an integer")
-
-def positive_int(val: int) -> Result[int, str]:
-    if val > 0:
-        return Ok(val)
-    else:
-        return Err("must be greater than 0")
-```
-It's worth noting that `positive_int` doesn't change the value, but it
-still abides by the signature:
-```python3
-Callable[[A], Result[Valid, Invalid]]
-```
-In this case `A` and `Valid` happen to be the same type. Even though our
-base type signature says the type of a validated input can change,
-it doesn't mean it has to. In fact, in many instances, it's beneficial know
-that the type and/or value of the input *do not* change.
-
-Imagine we want to run a series of validators against an `int` value. If
-we want to store these validators in a homogeneous collection, like a `list`, we'll
-need the types of all the validators to be the same. In effect, this constraint also
-enforces that the input and output types are the same. For example,
-this works:
-```python3
-validators: list[Callable[[int], Result[int, str]]] = [...]
-```
-But this doesn't:
-```python3
-validators: list[Callable[[int], Result[str, str]]] = [...]
-```
-This second example doesn't work because if the output for a valid value is
-a `str`, it cannot be valid input for the next validator in the `list`, 
-since all validators in the `validators` list require an `int` argument.
-
-Even with the types resolved, one problem we still have in this scenario cannot be 
-solved by type signatures alone: even if the type is the same, we can't tell if the 
-valid returned value is the same value as the input. For this reason, we have 
-the notion of a "predicate validator": a wrapper function that accepts a predicate 
-and an error message. A first draft might look like this:
-
-```python3
-def predicate_validator(
-        predicate: Callable[[A], bool],
-        error_data: E
-) -> Callable[[A], Result[B, E]]:
-    def inner(val: A) -> Result[B, E]:
-        if predicate(a):
-            return Ok(a)
-        else:
-            return Err(error_data)
-    return inner
-
-# USAGE
-def is_less_than_5(val: int) -> bool:
-    return val < 5
-
-less_than_5_validator = predicate_validator(is_less_than_5, "must be less than 5")
-
-assert less_than_5_validator(2) == Ok(2)
-assert less_than_5_validator(10) == Err("must be less than 5")
-```
-That might seem long-winded, but we get an important guarantee from using
-`predicate_validator`: the validated value is the same as the input. 
-
-For the purpose of preserving typed metadata for the function, `PredicateValidator`
-is actually implemented as a class in this library. But it's little more than a 
-function with metadata. Implementing the previous example would look like:
-```python3
-class LessThan5(PredicateValidator[int, str]):
-    def is_valid(self, val: int) -> bool:
-        return val < 5
-    
-    def err_message(self, val: int) -> str:
-        return "must be less than 5"
-
-less_than_5_validator = LessThan5()
-
-assert less_than_5_validator(2) == Ok(2)
-assert less_than_5_validator(10) == Err("must be less than 5")
-```
