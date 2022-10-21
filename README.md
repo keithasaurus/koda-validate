@@ -380,9 +380,18 @@ are `Callable`s at their core, they are also classes that can easily be inspecte
 the primary reason we use classes _at all_ in Koda Validate.) Interpreters are the recommended way to re-use
 validator metadata for non-validation purposes.
 
-## Brief Tour
 
+## Caveats 
 
+### dict key number limit
+Currently you can have a max of 20 keys on a `dict_validator` by default. You can change this by generating code
+and storing it in your project:
+```bash
+# allow up to 30 keys
+python /path/to/koda-validate/codegen/generate.py /your/target/directory --num-keys 30
+```
+The reason for this is that the computation starts to get expensive for type checkers, and 
+it's not common to have that many keys in a dict.
 
-## Caveats and Tradeoffs
-
+### dict key only allow for strings
+This should be resolved in a later release.

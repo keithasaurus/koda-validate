@@ -22,8 +22,6 @@ def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]
             return f"minimum length {length}"
         case MaxLength(length):
             return f"maximum length {length}"
-        case Dict2KeysValidator(fields):
-            return fields
         # ...etc
         case _:
             raise TypeError(f"unhandled validator type. got {type(validator)}")
@@ -43,12 +41,3 @@ assert (
 class Person:
     name: str
     age: int
-
-
-print(
-    describe_validator(
-        Dict2KeysValidator(
-            Person, key("name", StringValidator()), key("age", IntValidator())
-        )
-    )
-)
