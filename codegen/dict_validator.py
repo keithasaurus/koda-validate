@@ -148,6 +148,7 @@ def _validate_with_key(
         ret += f"""
 
 class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, JSONValue]):
+    __match_args__: tuple[str, ...] = ('dv_fields',)
 """
         ret += f"""    def __init__(self,
                  into: {dict_validator_into_signatures[-1]},"""
@@ -167,7 +168,7 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, J
         )
         self.validate_object = validate_object
 """
-        ret += f"""
+        ret += f""" 
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
     """

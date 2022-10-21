@@ -144,6 +144,8 @@ def _validate_with_key(
 
 
 class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, JSONValue]):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1], Ret],
@@ -171,6 +173,8 @@ class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, JSONValue]):
 
 
 class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2], Ret],
@@ -205,6 +209,8 @@ class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
 
 
 class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue]):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3], Ret],
@@ -242,6 +248,8 @@ class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue
 
 
 class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONValue]):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4], Ret],
@@ -290,6 +298,8 @@ class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONV
 class Dict5KeysValidator(
     Generic[T1, T2, T3, T4, T5, Ret], Validator[Any, Ret, JSONValue]
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5], Ret],
@@ -342,6 +352,8 @@ class Dict5KeysValidator(
 class Dict6KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, Ret], Validator[Any, Ret, JSONValue]
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6], Ret],
@@ -398,6 +410,8 @@ class Dict6KeysValidator(
 class Dict7KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, Ret], Validator[Any, Ret, JSONValue]
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
@@ -458,6 +472,8 @@ class Dict7KeysValidator(
 class Dict8KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, Ret], Validator[Any, Ret, JSONValue]
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
@@ -522,6 +538,8 @@ class Dict8KeysValidator(
 class Dict9KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret], Validator[Any, Ret, JSONValue]
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
@@ -590,6 +608,8 @@ class Dict9KeysValidator(
 class Dict10KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret], Validator[Any, Ret, JSONValue]
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
@@ -663,6 +683,8 @@ class Dict11KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret],
     Validator[Any, Ret, JSONValue],
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
@@ -740,6 +762,8 @@ class Dict12KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret],
     Validator[Any, Ret, JSONValue],
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
@@ -821,6 +845,8 @@ class Dict13KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret],
     Validator[Any, Ret, JSONValue],
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
@@ -906,6 +932,8 @@ class Dict14KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret],
     Validator[Any, Ret, JSONValue],
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[
@@ -997,6 +1025,8 @@ class Dict15KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret],
     Validator[Any, Ret, JSONValue],
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[
@@ -1092,6 +1122,8 @@ class Dict16KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret],
     Validator[Any, Ret, JSONValue],
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[
@@ -1193,6 +1225,8 @@ class Dict17KeysValidator(
     ],
     Validator[Any, Ret, JSONValue],
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[
@@ -1317,6 +1351,8 @@ class Dict18KeysValidator(
     ],
     Validator[Any, Ret, JSONValue],
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[
@@ -1465,6 +1501,8 @@ class Dict19KeysValidator(
     ],
     Validator[Any, Ret, JSONValue],
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[
@@ -1619,6 +1657,8 @@ class Dict20KeysValidator(
     ],
     Validator[Any, Ret, JSONValue],
 ):
+    __match_args__: tuple[str, ...] = ("dv_fields",)
+
     def __init__(
         self,
         into: Callable[
