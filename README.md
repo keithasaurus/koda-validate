@@ -395,3 +395,7 @@ it's not common to have that many keys in a dict.
 
 ### dict key only allow for strings
 This should be resolved in a later release.
+
+
+### only supports python 3.10 +
+This may change.
