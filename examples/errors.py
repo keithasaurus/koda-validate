@@ -40,10 +40,8 @@ city_validator = dict_validator(
 # all errors are json serializable. we use the key "__container__" for object-level errors
 assert city_validator(None) == Err({"__container__": ["expected a dictionary"]})
 
-# keys are missing
-assert city_validator({}) == Err(
-    {"region": ["key missing"], "population": ["key missing"]}
-)
+# required key is missing
+assert city_validator({}) == Err({"region": ["key missing"]})
 
 # extra keys are also errors
 assert city_validator(

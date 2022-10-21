@@ -2,7 +2,7 @@ import decimal
 import re
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal as DecimalStdLib
+from decimal import Decimal as Decimal
 from json import loads
 from typing import (
     Any,
@@ -28,8 +28,7 @@ from koda.maybe import Just, Maybe, Nothing, nothing
 from koda.result import Err, Ok, Result
 
 from koda_validate._generics import B, C, Ret
-from koda_validate.processors import Processor
-from koda_validate.typedefs import JSONValue, Predicate, Validator
+from koda_validate.typedefs import JSONValue, Predicate, Processor, Validator
 from koda_validate.utils import accum_errors, expected
 from koda_validate.validators.validate_and_map import validate_and_map
 
@@ -156,9 +155,12 @@ class UniqueItems(Predicate[list[Any], JSONValue]):
 unique_items = UniqueItems()
 
 
+@dataclass(init=False, frozen=True)
 class BooleanValidator(Validator[Any, bool, JSONValue]):
+    predicates: tuple[Predicate[bool, JSONValue], ...]
+
     def __init__(self, *predicates: Predicate[bool, JSONValue]) -> None:
-        self.predicates = predicates
+        object.__setattr__(self, "predicates", predicates)
 
     def __call__(self, val: Any) -> Result[bool, JSONValue]:
         if isinstance(val, bool):
@@ -167,14 +169,18 @@ class BooleanValidator(Validator[Any, bool, JSONValue]):
             return Err([expected("a boolean")])
 
 
+@dataclass(init=False, frozen=True)
 class StringValidator(Validator[Any, str, JSONValue]):
+    predicates: tuple[Predicate[str, JSONValue], ...]
+    preprocessors: Optional[list[Processor[str]]]
+
     def __init__(
         self,
         *predicates: Predicate[str, JSONValue],
         preprocessors: Optional[list[Processor[str]]] = None,
     ) -> None:
-        self.predicates = predicates
-        self.preprocessors = preprocessors
+        object.__setattr__(self, "predicates", predicates)
+        object.__setattr__(self, "preprocessors", preprocessors)
 
     def __call__(self, val: Any) -> Result[str, JSONValue]:
         if isinstance(val, str):
@@ -188,7 +194,7 @@ class StringValidator(Validator[Any, str, JSONValue]):
 
 
 @dataclass(frozen=True)
-class RegexValidator(Predicate[str, JSONValue]):
+class RegexPredicate(Predicate[str, JSONValue]):
     pattern: Pattern[str]
 
     def is_valid(self, val: str) -> bool:
@@ -209,9 +215,12 @@ class Email(Predicate[str, JSONValue]):
         return "expected a valid email address"
 
 
+@dataclass(init=False, frozen=True)
 class IntValidator(Validator[Any, int, JSONValue]):
+    predicates: tuple[Predicate[int, JSONValue]]
+
     def __init__(self, *predicates: Predicate[int, JSONValue]) -> None:
-        self.predicates = predicates
+        object.__setattr__(self, "predicates", predicates)
 
     def __call__(self, val: Any) -> Result[int, JSONValue]:
         # can't use isinstance because it would return true for bools
@@ -221,9 +230,12 @@ class IntValidator(Validator[Any, int, JSONValue]):
             return Err([expected("an integer")])
 
 
+@dataclass(init=False, frozen=True)
 class FloatValidator(Validator[Any, float, JSONValue]):
+    predicates: tuple[Predicate[float, JSONValue], ...]
+
     def __init__(self, *predicates: Predicate[float, JSONValue]) -> None:
-        self.predicates = predicates
+        object.__setattr__(self, "predicates", predicates)
 
     def __call__(self, val: Any) -> Result[float, JSONValue]:
         if isinstance(val, float):
@@ -232,17 +244,20 @@ class FloatValidator(Validator[Any, float, JSONValue]):
             return Err([expected("a float")])
 
 
-class DecimalValidator(Validator[Any, DecimalStdLib, JSONValue]):
-    def __init__(self, *predicates: Predicate[DecimalStdLib, JSONValue]) -> None:
-        self.predicates = predicates
+@dataclass(init=False, frozen=True)
+class DecimalValidator(Validator[Any, Decimal, JSONValue]):
+    predicates: tuple[Predicate[Decimal, JSONValue], ...]
 
-    def __call__(self, val: Any) -> Result[DecimalStdLib, JSONValue]:
+    def __init__(self, *predicates: Predicate[Decimal, JSONValue]) -> None:
+        object.__setattr__(self, "predicates", predicates)
+
+    def __call__(self, val: Any) -> Result[Decimal, JSONValue]:
         expected_msg = expected("a decimal-compatible string or integer")
-        if isinstance(val, DecimalStdLib):
+        if isinstance(val, Decimal):
             return Ok(val)
         elif isinstance(val, (str, int)):
             try:
-                return Ok(DecimalStdLib(val))
+                return Ok(Decimal(val))
             except decimal.InvalidOperation:
                 return Err([expected_msg])
         else:
@@ -253,13 +268,16 @@ def _safe_try_int(val: Any) -> Result[int, Exception]:
     return safe_try(int, val)
 
 
+@dataclass(frozen=True, init=False)
 class DateValidator(Validator[Any, date, JSONValue]):
     """
     Expects dates to be yyyy-mm-dd
     """
 
+    predicates: tuple[Predicate[date, JSONValue], ...]
+
     def __init__(self, *predicates: Predicate[date, JSONValue]) -> None:
-        self.predicates = predicates
+        object.__setattr__(self, "predicates", predicates)
 
     def __call__(self, val: Any) -> Result[date, JSONValue]:
         fail_msg: Result[date, JSONValue] = Err(["expected date formatted as yyyy-mm-dd"])
@@ -282,14 +300,18 @@ class DateValidator(Validator[Any, date, JSONValue]):
             return fail_msg
 
 
+@dataclass(frozen=True, init=False)
 class ListValidator(Validator[Any, list[A], JSONValue]):
+    item_validator: Validator[Any, A, JSONValue]
+    list_validators: tuple[Predicate[list[A], JSONValue], ...]
+
     def __init__(
         self,
         item_validator: Validator[Any, A, JSONValue],
-        *list_validators: Predicate[list[Any], JSONValue],
+        *list_validators: Predicate[list[A], JSONValue],
     ) -> None:
-        self.item_validator = item_validator
-        self.list_validators = list_validators
+        object.__setattr__(self, "item_validator", item_validator)
+        object.__setattr__(self, "list_validators", list_validators)
 
     def __call__(self, val: Any) -> Result[list[A], JSONValue]:
         if isinstance(val, list):
@@ -324,7 +346,11 @@ class ListValidator(Validator[Any, list[A], JSONValue]):
 EnumT = TypeVar("EnumT", str, int)
 
 
+@dataclass(frozen=True, init=False)
 class Lazy(Validator[A, Ret, JSONValue]):
+    validator: Callable[[], Validator[A, Ret, JSONValue]]
+    recurrent: bool = True
+
     def __init__(
         self,
         validator: Callable[[], Validator[A, Ret, JSONValue]],
@@ -337,21 +363,24 @@ class Lazy(Validator[A, Ret, JSONValue]):
                 is useful, so we can avoid infinite loops when traversing
                 over validators (i.e. for openapi generation)
         """
-        self.validator = validator
-        self.recurrent = recurrent
+        object.__setattr__(self, "validator", validator)
+        object.__setattr__(self, "recurrent", recurrent)
 
     def __call__(self, data: A) -> Result[Ret, JSONValue]:
         return self.validator()(data)
 
 
+@dataclass(frozen=True, init=False)
 class Choices(Predicate[EnumT, JSONValue]):
     """
     This only exists separately from a more generic form because
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
-    def __init__(self, choices: Set[EnumT]) -> None:
-        self.choices: Set[EnumT] = choices
+    choices: set[EnumT]
+
+    def __init__(self, choices: set[EnumT]) -> None:
+        object.__setattr__(self, "choices", choices)
 
     def is_valid(self, val: EnumT) -> bool:
         return val in self.choices
@@ -551,7 +580,7 @@ class Noneable(Validator[Any, Maybe[A], JSONValue]):
                 )
 
 
-Num = TypeVar("Num", int, float, DecimalStdLib)
+Num = TypeVar("Num", int, float, Decimal)
 
 
 @dataclass(frozen=True)

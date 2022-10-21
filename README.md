@@ -248,29 +248,46 @@ Since we are beginning to see that Koda Validate is explicit about validation, i
 
 ## Extension 
 There are two kinds of callables used for validation in Koda Validate: `Validator`s and `Predicate`s. `Validator`s 
-allow for modification of the input either in its type or in it's value.
+allow for modification of the input either in its type or in it's value. If you wanted to build your own `Validator`
+for `float`s, you could write it like this:
+
+```python
+from typing import Any
+from koda import Result, Ok, Err
+from koda_validate.typedefs import Validator, JSONValue
+
+
+class SimpleFloatValidator(Validator[Any, float, JSONValue]):
+    """ 
+    extends `Validator`:
+    - `Any`: type of input allowed  
+    - `float`: the type of the validated data
+    - `JSONValue`: the type of the error in case of invalid data 
+    """ 
+    def __call__(self, val: Any) -> Result[float, JSONValue]:
+        if isinstance(val, float):
+            return Ok(val) 
+        else:
+            return Err("expected a float")
+```
+
+This is all well and good, but we'll probably want to be able to check against values
+of the floats. For this we use `Predicate`s. This is what the `FloatValidator` in Koda Validate looks like: 
+
 
 ```python
 from typing import Any
 
-from koda import Result, Err
+from koda import Err, Result
 
-from koda_validate.typedefs import Validator, JSONValue, Predicate
+from koda_validate.typedefs import JSONValue, Predicate, Validator
 from koda_validate.validators.validators import accum_errors_json
 
 
-
 class FloatValidator(Validator[Any, float, JSONValue]):
-    """ 
-    extends `Validator` and does the following:
-    - validates input of type `Any`
-    - if valid, produces a `float`
-    - if invalid, produces a `JSONValue`  
-    """
     def __init__(self, *predicates: Predicate[float, JSONValue]) -> None:
         """
-        A series of predicates allows us to check the float's _value_ in 
-        as many ways as needed
+        Predicates allow us to run multiple checks on a given value
         """
         self.predicates = predicates
 
@@ -279,24 +296,90 @@ class FloatValidator(Validator[Any, float, JSONValue]):
             return accum_errors_json(val, self.predicates)
         else:
             return Err(["expected a float"])
-
 ```
+
+`Predicate`s allow us to validate on known types of values. This is how you might write and use a `Predicate` 
+for approximate `float` equality:
+
+```python
+import math
+from dataclasses import dataclass
+
+from koda import Ok, Err
+
+from koda_validate.typedefs import Predicate, JSONValue
+from koda_validate.validators.validators import FloatValidator
+
+
+@dataclass
+class IsClose(Predicate[float, JSONValue]):
+    compare_to: float
+    tolerance: float
+
+    def is_valid(self, val: float) -> bool:
+        return math.isclose(
+            self.compare_to,
+            val,
+            abs_tol=self.tolerance
+        )
+
+    def err_message(self, val: float) -> JSONValue:
+        return f"expected a value within {self.tolerance} of {self.compare_to}"
+
+
+# let's use it
+close_to_validator = FloatValidator(IsClose(.05, .02))
+a = .06
+assert close_to_validator(a) == Ok(a)
+assert close_to_validator(.01) == Err(["expected a value within 0.02 of 0.05"])
+```
+
+In Koda Validate `Predicate`s are essentially subsets of all the possible `Validator`s, in that their types
+restrict that the types of the input and valid data must be the same. This is a very useful property 
+because it allows us to proceed sequentially through many `Predicate`s of the same type with the same value.
+(Koda Validate's `Predicate` class's `__call__` attempts to ensure the value being tested CANNOT change
+during validation, mutable types not withstanding.)
+
+## Metadata
+Above we said an aim of Koda Validate is "to allow reuse of validator metadata". Principally this 
+is useful in generating descriptions of the validator's constraints, such as an OpenAPI schema. We'll 
+use validator metadata to build a plaintext description of a validator:
 
 ```python3
-from koda import Ok
-from koda_validate.validators import StringValidator, Err
-from koda_validate.validators import not_blank, MaxLength
+from typing import Any
 
-string_validator = StringValidator()
+from koda_validate.typedefs import Validator, Predicate
+from koda_validate.validators.validators import StringValidator, MinLength, MaxLength
 
-assert string_validator("s") == Ok("s")
-assert string_validator(None) == Err(["expected a string"])
 
-string_validator = StringValidator(not_blank, MaxLength(5))
+def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]) -> str:
+    match validator:
+        case StringValidator(predicates):
+            predicate_descriptions = [
+                f"- {describe_validator(pred)}"
+                for pred in predicates
+            ]
+            return "\n".join(["validates a string"] + predicate_descriptions)
+        case MinLength(length):
+            return f"minimum length {length}"
+        case MaxLength(length):
+            return f"maximum length {length}"
+        # ...etc
+        case _:
+            raise TypeError(f"unhandled validator type. got {type(validator)}")
 
-assert string_validator("too long") == Err(["cannot be blank", "maximum allowed length is 5"])
-assert string_validator("neat") == Ok("neat")
+
+assert describe_validator(StringValidator()) == "validates a string"
+assert describe_validator(StringValidator(MinLength(5))) == "validates a string\n- minimum length 5"
+assert describe_validator(
+    StringValidator(MinLength(3), MaxLength(8))) == "validates a string\n- minimum length 3\n- maximum length 8"
+
 ```
+All we're doing here, of course, is writing an interpreter. This is easy to do because, while the validators
+are `Callable`s at their core, they are also classes that can easily be inspected. (This ease of inspection is
+the primary reason we use classes _at all_ in Koda Validate.) Interpreters are the recommended way to re-use
+validator metadata for non-validation purposes.
+
 
 You might notice that we return errors from all failing value-level (as opposed to type-level) validators, 
 instead of failing and exiting on the first error. This is possible because of certain type-level guarantees within

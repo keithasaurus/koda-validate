@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Callable, Generic, Union, final
+from typing import Callable, Generic, Union, final
 
 from koda import Err, Ok, Result
 
@@ -52,4 +52,7 @@ class Predicate(Generic[A, FailT]):
 JSONValue = Union[None, int, str, bool, float, list["JSONValue"], dict[str, "JSONValue"]]
 
 
-PredicateJson = Predicate[A, JSONValue]
+class Processor(Generic[A]):
+    @abstractmethod
+    def __call__(self, val: A) -> A:
+        raise NotImplementedError

@@ -9,7 +9,7 @@ from koda.maybe import Just, Maybe, nothing
 from koda.result import Err, Ok, Result
 
 from koda_validate.processors import strip
-from koda_validate.typedefs import JSONValue, Predicate, PredicateJson
+from koda_validate.typedefs import JSONValue, Predicate
 from koda_validate.validators.dicts import (
     OBJECT_ERRORS_FIELD,
     Dict2KeysValidator,
@@ -48,7 +48,7 @@ from koda_validate.validators.validators import (
     NotBlank,
     OneOf2,
     OneOf3,
-    RegexValidator,
+    RegexPredicate,
     StringValidator,
     deserialize_and_validate,
     key,
@@ -74,7 +74,7 @@ def test_float() -> None:
 
     assert FloatValidator(Min(5.0))(5.0) == Ok(5.0)
 
-    class MustHaveAZeroSomewhere(PredicateJson[float]):
+    class MustHaveAZeroSomewhere(Predicate[float, JSONValue]):
         def is_valid(self, val: float) -> bool:
             for char in str(val):
                 if char == "0":
@@ -971,8 +971,8 @@ def test_unique_items() -> None:
 
 
 def test_regex_validator() -> None:
-    assert RegexValidator(re.compile(r".+"))("something") == Ok("something")
-    assert RegexValidator(re.compile(r".+"))("") == Err("must match pattern .+")
+    assert RegexPredicate(re.compile(r".+"))("something") == Ok("something")
+    assert RegexPredicate(re.compile(r".+"))("") == Err("must match pattern .+")
 
 
 def test_multiple_of() -> None:

@@ -1,9 +1,25 @@
-from typing import Callable
-
-from koda_validate._generics import A
-
-Processor = Callable[[A], A]
+from koda_validate.typedefs import Processor
 
 
-def strip(val: str) -> str:
-    return val.strip()
+class Strip(Processor[str]):
+    def __call__(self, val: str) -> str:
+        return val.strip()
+
+
+strip = Strip()
+
+
+class UpperCase(Processor[str]):
+    def __call__(self, val: str) -> str:
+        return val.upper()
+
+
+upper_case = UpperCase()
+
+
+class LowerCase(Processor[str]):
+    def __call__(self, val: str) -> str:
+        return val.lower()
+
+
+lower_case = LowerCase()
