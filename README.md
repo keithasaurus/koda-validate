@@ -28,7 +28,7 @@ class Person:
 
 
 person_validator = dict_validator(
-    Person,  # <- destination of data if valid
+    Person,  # <- validated values are sent to a target callable _in order_ 
     key("name", StringValidator(MinLength(1))),  # <- first key
     key("age", IntValidator(Min(0))),  # <- second key...
 )
