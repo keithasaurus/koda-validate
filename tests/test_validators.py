@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from decimal import Decimal as DecimalStdLib
 from typing import Any, Dict, List, Protocol, Tuple
@@ -29,6 +29,7 @@ from koda_validate.validators.validators import (
     BLANK_STRING_MSG,
     BooleanValidator,
     Choices,
+    DatetimeValidator,
     DateValidator,
     DecimalValidator,
     Email,
@@ -129,10 +130,17 @@ def test_boolean() -> None:
     assert BooleanValidator()(1) == Err(["expected a boolean"])
 
 
-def test_date() -> None:
-    default_date_failure = Err(["expected date formatted as yyyy-mm-dd"])
+def test_date_validator() -> None:
     assert DateValidator()("2021-03-21") == Ok(date(2021, 3, 21))
-    assert DateValidator()("2021-3-21") == default_date_failure
+    assert DateValidator()("2021-3-21") == Err(["expected date formatted as yyyy-mm-dd"])
+
+
+def test_datetime_validator() -> None:
+    assert DatetimeValidator()("") == Err(["expected iso8601-formatted string"])
+    assert DatetimeValidator()("2011-11-04") == Ok(datetime(2011, 11, 4, 0, 0))
+    assert DatetimeValidator()("2011-11-04T00:05:23") == Ok(
+        datetime(2011, 11, 4, 0, 5, 23)
+    )
 
 
 def test_null() -> None:

@@ -1,7 +1,7 @@
 import decimal
 import re
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal as Decimal
 from json import loads
 from typing import (
@@ -31,7 +31,6 @@ from koda.result import Err, Ok, Result
 from koda_validate._generics import B, C, Ret
 from koda_validate.typedefs import JSONValue, Predicate, Processor, Validator
 from koda_validate.utils import accum_errors, expected
-from koda_validate.validators.validate_and_map import validate_and_map
 
 
 def accum_errors_json(
@@ -281,24 +280,26 @@ class DateValidator(Validator[Any, date, JSONValue]):
         object.__setattr__(self, "predicates", predicates)
 
     def __call__(self, val: Any) -> Result[date, JSONValue]:
-        fail_msg: Result[date, JSONValue] = Err(["expected date formatted as yyyy-mm-dd"])
-        if isinstance(val, str):
-            try:
-                year, month, day = val.split("-")
-            except Exception:
-                return fail_msg
-            else:
-                if len(year) != 4 or len(month) != 2 or len(day) != 2:
-                    return fail_msg
-                result = validate_and_map(
-                    date, _safe_try_int(year), _safe_try_int(month), _safe_try_int(day)
-                )
-                if isinstance(result, Err):
-                    return fail_msg
-                else:
-                    return accum_errors_json(result.val, self.predicates)
-        else:
-            return fail_msg
+        try:
+            return Ok(date.fromisoformat(val))
+        except (ValueError, TypeError):
+            return Err(["expected date formatted as yyyy-mm-dd"])
+
+
+@dataclass(frozen=True, init=False)
+class DatetimeValidator(Validator[Any, date, JSONValue]):
+    predicates: Tuple[Predicate[date, JSONValue], ...]
+
+    def __init__(self, *predicates: Predicate[date, JSONValue]) -> None:
+        object.__setattr__(self, "predicates", predicates)
+
+    def __call__(self, val: Any) -> Result[date, JSONValue]:
+        try:
+            # note isoparse from dateutil is more flexible if we want
+            # to add the dependency at some point
+            return Ok(datetime.fromisoformat(val))
+        except (ValueError, TypeError):
+            return Err([expected("iso8601-formatted string")])
 
 
 @dataclass(frozen=True, init=False)
@@ -631,4 +632,6 @@ class Exactly(Predicate[ExactT, JSONValue]):
         return val == self.match
 
     def err_message(self, val: ExactT) -> JSONValue:
-        return expected(f'"{self.match}"' if isinstance(self.match, str) else self.match)
+        return expected(
+            f'"{self.match}"' if isinstance(self.match, str) else str(self.match)
+        )
