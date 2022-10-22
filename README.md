@@ -38,31 +38,30 @@ match person_validator({"name": "John Doe", "age": 30}):
 
 ```
 
-OK, cool, we can validate two fields on a dict... Let's build something more complex.
+OK, cool, we can validate two fields on a dict... let's build something more complex.
 
-## Validators
 
 ```python
 from dataclasses import dataclass
 
-from koda import Ok, Maybe, nothing, Just, Result, Err
+from koda import Err, Just, Maybe, Ok, Result, nothing
 
 from koda_validate.processors import strip
 from koda_validate.typedefs import JSONValue
 from koda_validate.validators.dicts import dict_validator
 from koda_validate.validators.validators import (
     IntValidator,
+    ListValidator,
+    Max,
+    MaxLength,
     Min,
+    MinItems,
     MinLength,
+    Noneable,
     StringValidator,
     key,
-    not_blank,
-    ListValidator,
-    MinItems,
-    MaxLength,
-    Max,
     maybe_key,
-    Noneable,
+    not_blank,
 )
 
 
@@ -85,14 +84,6 @@ class Employee:
     person: Person
 
 
-@dataclass
-class Company:
-    name: str
-    employees: list[Employee]
-    year_founded: Maybe[int]
-    stock_ticker: Maybe[str]
-
-
 def no_dwight_regional_manager(employee: Employee) -> Result[Employee, JSONValue]:
     if (
         "schrute" in employee.person.name.lower()
@@ -112,12 +103,23 @@ employee_validator = dict_validator(
     validate_object=no_dwight_regional_manager,
 )
 
+
+# the fields are valid but the object as a whole is not.
 assert employee_validator(
     {
         "title": "Assistant Regional Manager",
         "person": {"name": "Dwight Schrute", "age": 39},
     }
 ) == Err("Assistant TO THE Regional Manager!")
+
+
+@dataclass
+class Company:
+    name: str
+    employees: list[Employee]
+    year_founded: Maybe[int]
+    stock_ticker: Maybe[str]
+
 
 company_validator = dict_validator(
     Company,
@@ -168,6 +170,7 @@ assert company_validator(dunder_mifflin_data) == Ok(
 
 # we could keep nesting, arbitrarily
 company_list_validator = ListValidator(company_validator)
+
 
 ```
 It's worth stopping and mentioning a few points about the above:

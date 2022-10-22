@@ -10,9 +10,7 @@ from koda_validate.validators.validators import (
     ListValidator,
     Max,
     MaxLength,
-    Min,
     MinItems,
-    MinLength,
     Noneable,
     StringValidator,
     key,
@@ -22,27 +20,14 @@ from koda_validate.validators.validators import (
 
 
 @dataclass
-class Person:
-    name: str
-    age: int
-
-
-person_validator = dict_validator(
-    Person,
-    key("name", StringValidator(MinLength(1))),
-    key("age", IntValidator(Min(0))),
-)
-
-
-@dataclass
 class Employee:
     title: str
-    person: Person
+    name: str
 
 
 def no_dwight_regional_manager(employee: Employee) -> Result[Employee, JSONValue]:
     if (
-        "schrute" in employee.person.name.lower()
+        "schrute" in employee.name.lower()
         and employee.title.lower() == "assistant regional manager"
     ):
         return Err("Assistant TO THE Regional Manager!")
@@ -53,8 +38,7 @@ def no_dwight_regional_manager(employee: Employee) -> Result[Employee, JSONValue
 employee_validator = dict_validator(
     Employee,
     key("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),
-    # we can nest validators
-    key("person", person_validator),
+    key("name", StringValidator(not_blank, preprocessors=[strip])),
     # After we've validated individual fields, we may want to validate them as a whole
     validate_object=no_dwight_regional_manager,
 )
@@ -64,7 +48,7 @@ employee_validator = dict_validator(
 assert employee_validator(
     {
         "title": "Assistant Regional Manager",
-        "person": {"name": "Dwight Schrute", "age": 39},
+        "name": "Dwight Schrute",
     }
 ) == Err("Assistant TO THE Regional Manager!")
 
@@ -98,11 +82,8 @@ company_validator = dict_validator(
 dunder_mifflin_data = {
     "company_name": "Dunder Mifflin",
     "employees": [
-        {"title": "Regional Manager", "person": {"name": "Michael Scott", "age": 45}},
-        {
-            "title": " Assistant to the Regional Manager ",
-            "person": {"name": "Dwigt Schrute", "age": 39},
-        },
+        {"title": "Regional Manager", "name": "Michael Scott"},
+        {"title": " Assistant to the Regional Manager ", "name": "Dwigt Schrute"},
     ],
     "stock_ticker": "DMI",
 }
@@ -111,13 +92,8 @@ assert company_validator(dunder_mifflin_data) == Ok(
     Company(
         name="Dunder Mifflin",
         employees=[
-            Employee(
-                title="Regional Manager", person=Person(name="Michael Scott", age=45)
-            ),
-            Employee(
-                title="Assistant to the Regional Manager",
-                person=Person(name="Dwigt Schrute", age=39),
-            ),
+            Employee(title="Regional Manager", name="Michael Scott"),
+            Employee(title="Assistant to the Regional Manager", name="Dwigt Schrute"),
         ],
         year_founded=nothing,
         stock_ticker=Just(val="DMI"),
