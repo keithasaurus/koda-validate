@@ -10,7 +10,7 @@ def generate_code(num_fields: int) -> str:
     type_vars = get_type_vars(num_fields)
 
     ret = """from functools import partial
-from typing import Dict, List, Tuple, Set, TypeVar, Callable, Optional, overload, Union, cast
+from typing import Tuple, TypeVar, Callable, Optional, overload, Union, cast
 
 from koda import Result, Err, Ok
 
