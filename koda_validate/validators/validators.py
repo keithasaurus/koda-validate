@@ -46,9 +46,6 @@ def accum_errors_json(
 class MaxLength(Predicate[str, JSONValue]):
     length: int
 
-    def __post_init__(self) -> None:
-        assert self.length >= 0
-
     def is_valid(self, val: str) -> bool:
         return len(val) <= self.length
 
@@ -59,9 +56,6 @@ class MaxLength(Predicate[str, JSONValue]):
 @dataclass(frozen=True)
 class MinLength(Predicate[str, JSONValue]):
     length: int
-
-    def __post_init__(self) -> None:
-        assert self.length >= 0
 
     def is_valid(self, val: str) -> bool:
         return len(val) >= self.length
@@ -74,9 +68,6 @@ class MinLength(Predicate[str, JSONValue]):
 class MinItems(Predicate[List[Any], JSONValue]):
     length: int
 
-    def __post_init__(self) -> None:
-        assert self.length >= 0
-
     def is_valid(self, val: List[Any]) -> bool:
         return len(val) >= self.length
 
@@ -87,9 +78,6 @@ class MinItems(Predicate[List[Any], JSONValue]):
 @dataclass(frozen=True)
 class MaxItems(Predicate[List[Any], JSONValue]):
     length: int
-
-    def __post_init__(self) -> None:
-        assert self.length >= 0
 
     def is_valid(self, val: List[Any]) -> bool:
         return len(val) <= self.length
@@ -102,9 +90,6 @@ class MaxItems(Predicate[List[Any], JSONValue]):
 class MinKeys(Predicate[Dict[Any, Any], JSONValue]):
     size: int
 
-    def __post_init__(self) -> None:
-        assert self.size >= 0
-
     def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) >= self.size
 
@@ -115,9 +100,6 @@ class MinKeys(Predicate[Dict[Any, Any], JSONValue]):
 @dataclass(frozen=True)
 class MaxKeys(Predicate[Dict[Any, Any], JSONValue]):
     size: int
-
-    def __post_init__(self) -> None:
-        assert self.size >= 0
 
     def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) <= self.size

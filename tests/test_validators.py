@@ -285,13 +285,6 @@ def test_string_validator() -> None:
 def test_max_string_length() -> None:
     assert MaxLength(0)("") == Ok("")
 
-    try:
-        MaxLength(-1)
-    except AssertionError:
-        pass
-    else:
-        raise AssertionError("should have raised error in try call")
-
     assert MaxLength(5)("abc") == Ok("abc")
 
     assert MaxLength(5)("something") == Err("maximum allowed length is 5")
@@ -300,13 +293,6 @@ def test_max_string_length() -> None:
 def test_min_string_length() -> None:
     assert MinLength(0)("") == Ok("")
 
-    try:
-        MinLength(-1)
-    except AssertionError:
-        pass
-    else:
-        raise AssertionError("should have raised error in try call")
-
     assert MinLength(3)("abc") == Ok("abc")
 
     assert MinLength(3)("zz") == Err("minimum allowed length is 3")
@@ -314,13 +300,6 @@ def test_min_string_length() -> None:
 
 def test_max_items() -> None:
     assert MaxItems(0)([]) == Ok([])
-
-    try:
-        MaxItems(-1)
-    except AssertionError:
-        pass
-    else:
-        raise AssertionError("should have raised error in try call")
 
     assert MaxItems(5)([1, 2, 3]) == Ok([1, 2, 3])
 
@@ -332,13 +311,6 @@ def test_max_items() -> None:
 def test_min_items() -> None:
     assert MinItems(0)([]) == Ok([])
 
-    try:
-        MinItems(-1)
-    except AssertionError:
-        pass
-    else:
-        raise AssertionError("should have raised error in try call")
-
     assert MinItems(3)([1, 2, 3]) == Ok([1, 2, 3])
 
     assert MinItems(3)([1, 2]) == Err("minimum allowed length is 3")
@@ -347,13 +319,6 @@ def test_min_items() -> None:
 def test_max_properties() -> None:
     assert MaxKeys(0)({}) == Ok({})
 
-    try:
-        MaxKeys(-1)
-    except AssertionError:
-        pass
-    else:
-        raise AssertionError("should have raised error in try call")
-
     assert MaxKeys(5)({"a": 1, "b": 2, "c": 3}) == Ok({"a": 1, "b": 2, "c": 3})
 
     assert MaxKeys(1)({"a": 1, "b": 2}) == Err("maximum allowed properties is 1")
@@ -361,13 +326,6 @@ def test_max_properties() -> None:
 
 def test_min_properties() -> None:
     assert MinKeys(0)({}) == Ok({})
-
-    try:
-        MinKeys(-1)
-    except AssertionError:
-        pass
-    else:
-        raise AssertionError("should have raised error in try call")
 
     assert MinKeys(3)({"a": 1, "b": 2, "c": 3}) == Ok({"a": 1, "b": 2, "c": 3})
 
