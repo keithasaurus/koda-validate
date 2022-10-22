@@ -1,16 +1,5 @@
 from functools import partial
-from typing import (
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import Callable, Optional, Tuple, TypeVar, Union, cast, overload
 
 from koda import Err, Ok, Result
 

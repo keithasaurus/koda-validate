@@ -31,6 +31,7 @@ person_validator = dict_validator(
 
 person_data = {"name": "John Doe", "age": 30}
 
+# for python 3.10+ only. Use `isinstance` with python < 3.10 
 match person_validator(person_data):
     case Ok(Person(name, age)):
         print(f"{name} is {age} years old")
@@ -383,8 +384,8 @@ validator metadata for non-validation purposes.
 
 ## Caveats 
 
-### dict key number limit
-Currently you can have a max of 20 keys on a `dict_validator` by default. You can change this by generating code
+### `dict_validator` max keys limit
+By default `dict_validator` can have a maximum of 20 keys. You can change this by generating code
 and storing it in your project:
 ```bash
 # allow up to 30 keys
@@ -393,5 +394,11 @@ python /path/to/koda-validate/codegen/generate.py /your/target/directory --num-k
 The reason for this is that the computation starts to get expensive for type checkers, and 
 it's not common to have that many keys in a dict.
 
-### dict key only allow for strings
+### `dict_validator` types may be hard to read / slow for your editor or type-checker
+`dict_validator` is a convenience function that delegates to different `Validator`s depending 
+on the number of keys, e.g. `Dict2KeysValidator`, `Dict3KeysValidator`, etc. These
+numbered validators are limited to a specific number of keys and can be used to mitigate
+such issues.
+
+### `dict_validator`'s keys only allow for strings
 This should be resolved in a later release.
