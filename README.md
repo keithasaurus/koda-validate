@@ -1,5 +1,7 @@
 # Koda Validate
 
+Typesafe, combinable validation. Python 3.8+
+
 ## The Basics
 
 ```python3
@@ -150,8 +152,9 @@ company_list_validator = ListValidator(company_validator)
 ```
 It's worth stopping and mentioning a few points about the above:
 - this is all typesafe in mypy without any plugins 
+- we explicitly return `Err` or `Ok` objects, instead of `raise`-ing errors 
 - we can validate lists, dicts, strings, etc., either on their own or nested
-- while the code is not the shortest ever, it is relatively simple to write
+- it is relatively simple to write
 
 ## Validation Errors
 
@@ -211,21 +214,29 @@ assert city_validator(
 
 Note that while extra keys are invalid, there are several ways of dealing with empty keys in this
 library
-- maybe_key
-- Noneable
-- OneOf2
-- OneOf3
+- maybe_key: the key does not need to be present
+- Noneable: the value can be `None` or valid according to some validator 
+- OneOf2: one of two different validators can be valid 
+- OneOf3: one of three different validators can be valid
 
-Since we are beginning to see that Koda Validate is explicit about validation, it's worth mentioning the project's aims:
-- to write complex validators faster
-- to spend little time debugging
-- to allow reuse of validator metadata (i.e. rendering API schemas)
-- to allow type-safe extension of validation logic
+Now that we're somewhat familiar with Koda Validate, let's take a look at what we're trying to accomplish...
 
-## Extension 
-There are two kinds of callables used for validation in Koda Validate: `Validator`s and `Predicate`s. `Validator`s 
-allow for modification of the input either in its type or in it's value. If you wanted to build your own `Validator`
-for `float`s, you could write it like this:
+### Project Aims
+Koda Validate aims to make writing validators easier. There are a few specific areas of focus:  
+- requiring little time debugging or reading documentation 
+- facilitating the building of complex validators
+- reusing validator metadata (i.e. rendering API schemas)
+
+To those end, some of the differentiating features you'll see in Koda Validate are:
+- valid and invalid states conveyed by returning sum types. We use a `Result` type which can either be `Ok` or `Err`
+- the combination of a functional approach with lightweight objects (for metadata)
+- generics and code generation all over the place in the source code! :)
+
+## Validators, Predicates, and Extension
+There are two kinds of `Callable`s used for validation in Koda Validate: `Validator`s and `Predicate`s. `Validator`s 
+can take an input of one type and produce a valid result of another type; or they can adjust the value (They can also
+leave the same type and/or value intact). Commonly validators are used for taking data of type `Any` and validating 
+that it conforms to some type or data shape. As an example, we'll write a simple `Validator` for `float`s here:
 
 ```python
 from typing import Any
@@ -241,16 +252,16 @@ class SimpleFloatValidator(Validator[Any, float, JSONValue]):
             return Err("expected a float")
 ```
 
-What this is doing: 
+What is this doing? 
 - extending `Validator`, using the following types:
   - `Any`: type of input allowed
   - `float`: the type of the validated data
   - `JSONValue`: the type of the error in case of invalid data
-- wrapping the submitted `val` in an `Ok` and returning that if `val` is a `float` 
+- wrapping the submitted `val` in an `Ok` and returning it if `val` is a `float` 
 - wrapping an error message in `Err` if `val` is not a float 
 
-This is all well and good, but we'll probably want to be able to check against values of the floats, such as setting 
-min or max thresholds. For this we use `Predicate`s. This is what the `FloatValidator` in Koda Validate looks like: 
+This is all well and good, but we'll probably want to be able to validate against values of the floats, such as  
+min or max checks. For this we use `Predicate`s. This is what the `FloatValidator` in Koda Validate looks like: 
 
 
 ```python
@@ -263,10 +274,7 @@ from koda_validate.validators.validators import accum_errors_json
 
 
 class FloatValidator(Validator[Any, float, JSONValue]):
-    def __init__(self, *predicates: Predicate[float, JSONValue]) -> None:
-        """
-        Predicates allow us to run multiple checks on a given value
-        """
+    def __init__(self, *predicates: Predicate[float, JSONValue]) -> None: 
         self.predicates = predicates
 
     def __call__(self, val: Any) -> Result[float, JSONValue]:
@@ -312,18 +320,17 @@ assert close_to_validator(a) == Ok(a)
 assert close_to_validator(.01) == Err(["expected a value within 0.02 of 0.05"])
 ```
 
-In Koda Validate `Predicate`s are fundamentally subsets of all possible `Validator`s. They still
-perform validation, but the input and the validated output must be the same type. This turns out to be
+Notice that in `Predicate`s we define `is_valid` and `err_message` methods, while in `Validator`s we define the 
+entire `__call__` method. This is because `Predicate`s is coded in such a way that we limit how much it can actually 
+do -- we don't want it to be able to change the value being validated during validation. This turns out to be
 useful because it allows us to proceed sequentially through many `Predicate`s of the same type with the
-same value. Taking it one step further, Koda Validate's `Predicate` class's `__call__` method
-ensures the _value_ being validated CANNOT change during validation (mutable types not withstanding). This
-allows us to be confident that we can return all `Predicate` errors for a given `Validator`.  
+same value. It's the reason we can be confident that we can return all `Predicate` errors for a given `Validator`.  
 
 ## Metadata
-Previously we said an aim of Koda Validate is "to allow reuse of validator metadata". Principally this 
+Previously we said an aim of Koda Validate is to allow reuse of validator metadata. Principally this 
 is useful in generating descriptions of the validator's constraints -- one example could be generating
-an OpenAPI schema. Here we'll use validator metadata to build a function which can return very simple 
-plaintext descriptions validators:
+an OpenAPI (or other) schema. Here we'll use validator metadata to build a function which can return very simple 
+plaintext descriptions of validators:
 
 ```python3
 from typing import Any
@@ -354,10 +361,11 @@ assert describe_validator(StringValidator(MinLength(5))) == "validates a string\
 assert describe_validator(
     StringValidator(MinLength(3), MaxLength(8))) == "validates a string\n- minimum length 3\n- maximum length 8"
 ```
-All we're doing here, of course, is writing an interpreter. This is easy to do because, while the validators
-are `Callable`s at their core, they are also classes that can easily be inspected. (This ease of inspection is
-the primary reason we use classes _at all_ in Koda Validate.) Interpreters are the recommended way to re-use
-validator metadata for non-validation purposes.
+All we're doing here, of course, is writing an interpreter. For the sake of brevity it can't do much, but it's
+straightforward to extend the logic. This is easy to do because, while the validators are `Callable`s at their 
+core, they are also classes that can easily be inspected. (This ease of inspection is the primary reason we use
+classes _at all_ in Koda Validate.) Interpreters are the recommended way to re-use validator metadata for 
+non-validation purposes.
 
 
 ## Caveats 
