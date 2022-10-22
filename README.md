@@ -2,6 +2,12 @@
 
 Typesafe, combinable validation. Python 3.8+
 
+Koda Validate aims to make writing validators easier. Specific areas of focus include:  
+- requiring little time debugging or reading documentation 
+- facilitating the building of complex validators
+- reusing validator metadata (i.e. rendering API schemas)
+
+
 ## The Basics
 
 ```python3
@@ -149,10 +155,16 @@ from dataclasses import dataclass
 
 from koda import Err, Maybe
 
-from koda_validate.dictionary import dict_validator, key, maybe_key
-from koda_validate.generic import Choices, Min
+from koda_validate.processors import strip
+from koda_validate.validators.dicts import dict_validator
+from koda_validate.validators.validators import (
+  Choices,
+  Min,
+  key,
+  maybe_key,
+)
 from koda_validate.integer import IntValidator
-from koda_validate.string import MinLength, StringValidator, not_blank, strip
+from koda_validate.string import StringValidator, not_blank, MinLength
 
 # wrong type
 assert StringValidator()(None) == Err(["expected a string"])
@@ -160,20 +172,20 @@ assert StringValidator()(None) == Err(["expected a string"])
 # all failing `Predicate`s are reported (not just the first)
 str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
 assert str_choice_validator("") == Err(
-    ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
+  ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
 )
 
 
 @dataclass
 class City:
-    region: str
-    population: Maybe[int]
+  region: str
+  population: Maybe[int]
 
 
 city_validator = dict_validator(
-    City,
-    key("region", StringValidator(not_blank, preprocessors=[strip])),
-    maybe_key("population", IntValidator(Min(0))),
+  City,
+  key("region", StringValidator(not_blank, preprocessors=[strip])),
+  maybe_key("population", IntValidator(Min(0))),
 )
 
 # all errors are json serializable. we use the key "__container__" for object-level errors
@@ -184,11 +196,10 @@ assert city_validator({}) == Err({"region": ["key missing"]})
 
 # extra keys are also errors
 assert city_validator(
-    {"region": "California", "population": 510, "country": "USA"}
+  {"region": "California", "population": 510, "country": "USA"}
 ) == Err(
-    {"__container__": ["Received unknown keys. Only expected ['population', 'region']"]}
+  {"__container__": ["Received unknown keys. Only expected ['population', 'region']"]}
 )
-
 ```
 
 Note that while extra keys are invalid, there are several ways of dealing with empty keys in this
@@ -197,19 +208,6 @@ library
 - Noneable: the value can be `None` or valid according to some validator 
 - OneOf2: one of two different validators can be valid 
 - OneOf3: one of three different validators can be valid
-
-Now that we're somewhat familiar with Koda Validate, let's take a look at what we're trying to accomplish...
-
-### Project Aims
-Koda Validate aims to make writing validators easier. There are a few specific areas of focus:  
-- requiring little time debugging or reading documentation 
-- facilitating the building of complex validators
-- reusing validator metadata (i.e. rendering API schemas)
-
-To those end, some of the differentiating features you'll see in Koda Validate are:
-- valid and invalid states conveyed by returning sum types. We use a `Result` type which can either be `Ok` or `Err`
-- the combination of a functional approach with lightweight objects (for metadata)
-- generics and code generation all over the place in the source code! :)
 
 ## Validators, Predicates, and Extension
 There are two kinds of `Callable`s used for validation in Koda Validate: `Validator`s and `Predicate`s. `Validator`s 
