@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
 from decimal import Decimal as DecimalStdLib
 from typing import Any, Dict, List, Protocol, Tuple
 
@@ -31,6 +32,7 @@ from koda_validate.validators.validators import (
     DateValidator,
     DecimalValidator,
     Email,
+    Exactly,
     FloatValidator,
     IntValidator,
     Lazy,
@@ -957,3 +959,12 @@ def test_multiple_of() -> None:
     assert MultipleOf(5)(10) == Ok(10)
     assert MultipleOf(5)(11) == Err("expected multiple of 5")
     assert MultipleOf(2.2)(4.40) == Ok(4.40)
+
+
+def test_exactly() -> None:
+    assert Exactly(5)(5) == Ok(5)
+    assert Exactly(5)(4) == Err("expected 5")
+    assert Exactly("ok")("ok") == Ok("ok")
+    assert Exactly("ok")("not ok") == Err('expected "ok"')
+    assert Exactly(Decimal("1.25"))(Decimal("1.25")) == Ok(Decimal("1.25"))
+    assert Exactly(Decimal("1.1"))(Decimal("5")) == Err("expected 1.1")

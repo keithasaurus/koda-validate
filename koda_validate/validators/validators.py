@@ -617,3 +617,18 @@ def maybe_key(
     prop_: str, validator: Validator[Any, A, JSONValue]
 ) -> Tuple[str, Callable[[Any], Result[Maybe[A], JSONValue]]]:
     return prop_, MaybeField(validator)
+
+
+# todo: consider expanding
+ExactT = TypeVar("ExactT", str, int, Decimal)
+
+
+@dataclass
+class Exactly(Predicate[ExactT, JSONValue]):
+    match: ExactT
+
+    def is_valid(self, val: ExactT) -> bool:
+        return val == self.match
+
+    def err_message(self, val: ExactT) -> JSONValue:
+        return expected(f'"{self.match}"' if isinstance(self.match, str) else self.match)
