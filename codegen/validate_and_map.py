@@ -14,7 +14,7 @@ from typing import Tuple, TypeVar, Callable, Optional, overload, Union, cast
 
 from koda import Result, Err, Ok
 
-from koda_validate.validators.utils import _flat_map_same_type_if_not_none
+from koda_validate.utils import _flat_map_same_type_if_not_none
 """
     ret += add_type_vars(type_vars)
 

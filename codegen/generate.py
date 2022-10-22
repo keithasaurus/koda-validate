@@ -19,7 +19,7 @@ if __name__ == "__main__":
         target_dir = Path(os.path.abspath(__file__)).parent.parent / "koda_validate"
 
     dict_code = dict_validator.generate_code(args.num_keys)
-    with open(target_dir / "dicts.py", "w") as f:
+    with open(target_dir / "dictionary.py", "w") as f:
         f.write(dict_code)
 
     validate_and_map_code = validate_and_map.generate_code(args.num_keys)

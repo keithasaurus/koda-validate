@@ -2,20 +2,13 @@ from dataclasses import dataclass
 
 from koda import Err, Just, Maybe, Ok, Result, nothing
 
-from koda_validate.processors import strip
-from koda_validate.string import StringValidator, not_blank
+from koda_validate.dictionary import dict_validator, key, maybe_key
+from koda_validate.generic import Max
+from koda_validate.integer import IntValidator
+from koda_validate.list import ListValidator, MinItems
+from koda_validate.none import Noneable
+from koda_validate.string import MaxLength, StringValidator, not_blank, strip
 from koda_validate.typedefs import JSONValue
-from koda_validate.validators.dicts import dict_validator
-from koda_validate.validators.validators import (
-    IntValidator,
-    ListValidator,
-    Max,
-    MaxLength,
-    MinItems,
-    Noneable,
-    key,
-    maybe_key,
-)
 
 
 @dataclass

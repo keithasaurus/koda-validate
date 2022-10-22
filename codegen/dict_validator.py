@@ -8,14 +8,15 @@ def generate_code(num_keys: int) -> str:
     dict_validator_into_signatures: List[str] = []
     dict_validator_fields: List[str] = []
     dict_validator_overloads: List[str] = []
-    ret = """from typing import Dict, List, Tuple, Set, TypeVar, Generic, Any, Callable, Optional, cast, overload, Union, Final
+    ret = """from dataclasses import dataclass
+from typing import Dict, List, Tuple, Set, TypeVar, Generic, Any, Callable, Optional, cast, overload, Union, Final
 
-from koda import Err, Maybe, Ok, Result, mapping_get
+from koda import Err, Maybe, Ok, Result, mapping_get, Nothing, Just
 
-from koda_validate.utils import expected
-from koda_validate.validators.utils import _flat_map_same_type_if_not_none
+from koda_validate._generics import A
+from koda_validate.utils import expected, _flat_map_same_type_if_not_none
 from koda_validate.typedefs import Validator, ValidatorFunc, JSONValue, Predicate
-from koda_validate.validators.validate_and_map import validate_and_map
+from koda_validate.validate_and_map import validate_and_map
 
 """
     type_vars = get_type_vars(num_keys)
@@ -24,6 +25,47 @@ from koda_validate.validators.validate_and_map import validate_and_map
     ret += """
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
+
+KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, JSONValue]]]
+
+
+_KEY_MISSING: Final[str] = "key missing"
+
+
+@dataclass(frozen=True)
+class RequiredField(Generic[A]):
+    validator: Validator[Any, A, JSONValue]
+
+    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, JSONValue]:
+        if isinstance(maybe_val, Nothing):
+            return Err([_KEY_MISSING])
+        else:
+            return self.validator(maybe_val.val)
+
+
+@dataclass(frozen=True)
+class MaybeField(Generic[A]):
+    validator: Validator[Any, A, JSONValue]
+
+    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], JSONValue]:
+        if isinstance(maybe_val, Just):
+            result: Result[Maybe[A], JSONValue] = self.validator(maybe_val.val).map(Just)
+        else:
+            result = Ok(maybe_val)
+        return result
+
+
+
+def key(
+        prop_: str, validator: Validator[Any, A, JSONValue]
+) -> Tuple[str, Callable[[Any], Result[A, JSONValue]]]:
+    return prop_, RequiredField(validator)
+
+
+def maybe_key(
+        prop_: str, validator: Validator[Any, A, JSONValue]
+) -> Tuple[str, Callable[[Any], Result[Maybe[A], JSONValue]]]:
+    return prop_, MaybeField(validator)
 
 
 class MapValidator(Validator[Any, Dict[T1, T2], JSONValue]):
@@ -119,11 +161,30 @@ def _dict_without_extra_keys(
 
 
 
+@dataclass(frozen=True)
+class MinKeys(Predicate[Dict[Any, Any], JSONValue]):
+    size: int
+
+    def is_valid(self, val: Dict[Any, Any]) -> bool:
+        return len(val) >= self.size
+
+    def err_message(self, val: Dict[Any, Any]) -> str:
+        return f"minimum allowed properties is {self.size}"
+
+
+@dataclass(frozen=True)
+class MaxKeys(Predicate[Dict[Any, Any], JSONValue]):
+    size: int
+
+    def is_valid(self, val: Dict[Any, Any]) -> bool:
+        return len(val) <= self.size
+
+    def err_message(self, val: Dict[Any, Any]) -> str:
+        return f"maximum allowed properties is {self.size}"
+
+
 def _tuples_to_json_dict(data: Tuple[Tuple[str, JSONValue], ...]) -> JSONValue:
     return dict(data)
-
-
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[T1, JSONValue]]]
 
 
 def _validate_with_key(

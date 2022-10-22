@@ -5,8 +5,7 @@ from typing import Any, Final, List, Optional, Pattern, Tuple
 from koda import Err, Result
 
 from koda_validate.typedefs import JSONValue, Predicate, Processor, Validator
-from koda_validate.utils import expected
-from koda_validate.validators.validators import accum_errors_json
+from koda_validate.utils import accum_errors_json, expected
 
 
 @dataclass(init=False, frozen=True)
@@ -67,3 +66,49 @@ class NotBlank(Predicate[str, JSONValue]):
 
 
 not_blank = NotBlank()
+
+
+@dataclass(frozen=True)
+class MaxLength(Predicate[str, JSONValue]):
+    length: int
+
+    def is_valid(self, val: str) -> bool:
+        return len(val) <= self.length
+
+    def err_message(self, val: str) -> JSONValue:
+        return f"maximum allowed length is {self.length}"
+
+
+@dataclass(frozen=True)
+class MinLength(Predicate[str, JSONValue]):
+    length: int
+
+    def is_valid(self, val: str) -> bool:
+        return len(val) >= self.length
+
+    def err_message(self, val: str) -> str:
+        return f"minimum allowed length is {self.length}"
+
+
+class Strip(Processor[str]):
+    def __call__(self, val: str) -> str:
+        return val.strip()
+
+
+strip = Strip()
+
+
+class UpperCase(Processor[str]):
+    def __call__(self, val: str) -> str:
+        return val.upper()
+
+
+upper_case = UpperCase()
+
+
+class LowerCase(Processor[str]):
+    def __call__(self, val: str) -> str:
+        return val.lower()
+
+
+lower_case = LowerCase()

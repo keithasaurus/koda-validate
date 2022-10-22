@@ -11,12 +11,11 @@ from koda import Err, Ok
 
 from koda_validate.validators.dicts import dict_validator
 from koda_validate.validators.validators import (
-  IntValidator,
   Min,
-  MinLength,
   key,
 )
-from koda_validate.string import StringValidator
+from koda_validate.integer import IntValidator
+from koda_validate.string import StringValidator, MinLength
 
 
 @dataclass
@@ -47,20 +46,17 @@ from dataclasses import dataclass
 
 from koda import Err, Just, Maybe, Ok, Result, nothing
 
-from koda_validate.processors import strip
 from koda_validate.typedefs import JSONValue
 from koda_validate.validators.dicts import dict_validator
 from koda_validate.validators.validators import (
-  IntValidator,
-  ListValidator,
   Max,
-  MaxLength,
-  MinItems,
   Noneable,
   key,
   maybe_key,
 )
-from koda_validate.string import StringValidator, not_blank
+from koda_validate.integer import IntValidator
+from koda_validate.list import MinItems, ListValidator
+from koda_validate.string import StringValidator, not_blank, MaxLength, strip
 
 
 @dataclass
@@ -164,13 +160,12 @@ from koda_validate.processors import strip
 from koda_validate.validators.dicts import dict_validator
 from koda_validate.validators.validators import (
   Choices,
-  IntValidator,
   Min,
-  MinLength,
   key,
   maybe_key,
 )
-from koda_validate.string import StringValidator, not_blank
+from koda_validate.integer import IntValidator
+from koda_validate.string import StringValidator, not_blank, MinLength
 
 # wrong type
 assert StringValidator()(None) == Err(["expected a string"])
@@ -257,8 +252,7 @@ What is this doing?
 - wrapping an error message in `Err` if `val` is not a float 
 
 This is all well and good, but we'll probably want to be able to validate against values of the floats, such as  
-min or max checks. For this we use `Predicate`s. This is what the `FloatValidator` in Koda Validate looks like: 
-
+min or max checks. For this we use `Predicate`s. This is what the `FloatValidator` in Koda Validate looks like:
 
 ```python
 from typing import Any
@@ -266,18 +260,18 @@ from typing import Any
 from koda import Err, Result
 
 from koda_validate.typedefs import JSONValue, Predicate, Validator
-from koda_validate.validators.validators import accum_errors_json
+from koda_validate.utils import accum_errors_json
 
 
 class FloatValidator(Validator[Any, float, JSONValue]):
-    def __init__(self, *predicates: Predicate[float, JSONValue]) -> None: 
-        self.predicates = predicates
+  def __init__(self, *predicates: Predicate[float, JSONValue]) -> None:
+    self.predicates = predicates
 
-    def __call__(self, val: Any) -> Result[float, JSONValue]:
-        if isinstance(val, float):
-            return accum_errors_json(val, self.predicates)
-        else:
-            return Err(["expected a float"])
+  def __call__(self, val: Any) -> Result[float, JSONValue]:
+    if isinstance(val, float):
+      return accum_errors_json(val, self.predicates)
+    else:
+      return Err(["expected a float"])
 ```
 
 `Predicate`s allow us to validate the _value_ of a known type. This is how you might write and use a `Predicate` 
@@ -290,23 +284,23 @@ from dataclasses import dataclass
 from koda import Ok, Err
 
 from koda_validate.typedefs import Predicate, JSONValue
-from koda_validate.validators.validators import FloatValidator
+from koda_validate.float import FloatValidator
 
 
 @dataclass
 class IsClose(Predicate[float, JSONValue]):
-    compare_to: float
-    tolerance: float
+  compare_to: float
+  tolerance: float
 
-    def is_valid(self, val: float) -> bool:
-        return math.isclose(
-            self.compare_to,
-            val,
-            abs_tol=self.tolerance
-        )
+  def is_valid(self, val: float) -> bool:
+    return math.isclose(
+      self.compare_to,
+      val,
+      abs_tol=self.tolerance
+    )
 
-    def err_message(self, val: float) -> JSONValue:
-        return f"expected a value within {self.tolerance} of {self.compare_to}"
+  def err_message(self, val: float) -> JSONValue:
+    return f"expected a value within {self.tolerance} of {self.compare_to}"
 
 
 # let's use it
@@ -332,8 +326,7 @@ plaintext descriptions of validators:
 from typing import Any
 
 from koda_validate.typedefs import Validator, Predicate
-from koda_validate.validators.validators import MinLength, MaxLength
-from koda_validate.string import StringValidator
+from koda_validate.string import StringValidator, MaxLength, MinLength
 
 
 def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]) -> str:

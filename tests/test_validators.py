@@ -9,7 +9,9 @@ from koda.either import First, Second, Third
 from koda.maybe import Just, Maybe, nothing
 from koda.result import Err, Ok, Result
 
-from koda_validate.dict import (
+from koda_validate.boolean import BooleanValidator
+from koda_validate.decimal import DecimalValidator
+from koda_validate.dictionary import (
     OBJECT_ERRORS_FIELD,
     Dict2KeysValidator,
     Dict4KeysValidator,
@@ -20,78 +22,29 @@ from koda_validate.dict import (
     Dict9KeysValidator,
     Dict10KeysValidator,
     MapValidator,
+    MaxKeys,
+    MinKeys,
     dict_validator,
+    key,
+    maybe_key,
 )
-from koda_validate.processors import strip
+from koda_validate.float import FloatValidator
+from koda_validate.generic import Choices, Exactly, Lazy, Max, Min, MultipleOf
+from koda_validate.integer import IntValidator
+from koda_validate.list import ListValidator, MaxItems, MinItems, unique_items
+from koda_validate.none import Noneable, none_validator
+from koda_validate.one_of import OneOf2, OneOf3
 from koda_validate.string import (
     BLANK_STRING_MSG,
     Email,
+    MaxLength,
     NotBlank,
     RegexPredicate,
     StringValidator,
-    not_blank,
 )
+from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.typedefs import JSONValue, Predicate
-from koda_validate.validators.validators import (
-    BooleanValidator,
-    Choices,
-    DatetimeValidator,
-    DateValidator,
-    DecimalValidator,
-    Exactly,
-    FloatValidator,
-    IntValidator,
-    Lazy,
-    ListValidator,
-    Max,
-    MaxItems,
-    MaxKeys,
-    MaxLength,
-    Min,
-    MinItems,
-    MinKeys,
-    MinLength,
-    MultipleOf,
-    Noneable,
-    OneOf2,
-    OneOf3,
-    key,
-    maybe_key,
-    none_validator,
-    unique_items,
-)
-
-
-def test_float() -> None:
-    assert FloatValidator()("a string") == Err(["expected a float"])
-
-    assert FloatValidator()(5.5) == Ok(5.5)
-
-    assert FloatValidator()(4) == Err(["expected a float"])
-
-    assert FloatValidator(Max(500.0))(503.0) == Err(["maximum allowed value is 500.0"])
-
-    assert FloatValidator(Max(500.0))(3.5) == Ok(3.5)
-
-    assert FloatValidator(Min(5.0))(4.999) == Err(["minimum allowed value is 5.0"])
-
-    assert FloatValidator(Min(5.0))(5.0) == Ok(5.0)
-
-    class MustHaveAZeroSomewhere(Predicate[float, JSONValue]):
-        def is_valid(self, val: float) -> bool:
-            for char in str(val):
-                if char == "0":
-                    return True
-            else:
-                return False
-
-        def err_message(self, val: float) -> JSONValue:
-            return "There should be a zero in the number"
-
-    assert FloatValidator(Min(2.5), Max(4.0), MustHaveAZeroSomewhere())(5.5) == Err(
-        ["maximum allowed value is 4.0", "There should be a zero in the number"]
-    )
 
 
 def test_decimal() -> None:
@@ -144,14 +97,6 @@ def test_datetime_validator() -> None:
     )
 
 
-def test_null() -> None:
-    assert none_validator("a string") == Err(["expected null"])
-
-    assert none_validator(None) == Ok(None)
-
-    assert none_validator(False) == Err(["expected null"])
-
-
 def test_integer() -> None:
     assert IntValidator()("a string") == Err(["expected an integer"])
 
@@ -178,31 +123,7 @@ def test_integer() -> None:
     ) == Err(["maximum allowed value is 10", "must be divisible by 2"])
 
 
-def test_array_of() -> None:
-    assert ListValidator(FloatValidator())("a string") == Err(
-        {"__container__": ["expected a list"]}
-    )
-
-    assert ListValidator(FloatValidator())([5.5, "something else"]) == Err(
-        {"1": ["expected a float"]}
-    )
-
-    assert ListValidator(FloatValidator())([5.5, 10.1]) == Ok([5.5, 10.1])
-
-    assert ListValidator(FloatValidator())([]) == Ok([])
-
-    assert ListValidator(FloatValidator(Min(5.5)), MinItems(1), MaxItems(3))(
-        [10.1, 7.7, 2.2, 5]
-    ) == Err(
-        {
-            "2": ["minimum allowed value is 5.5"],
-            "3": ["expected a float"],
-            "__container__": ["maximum allowed length is 3"],
-        }
-    )
-
-
-def test_maybe_val() -> None:
+def test_noneable() -> None:
     assert Noneable(StringValidator())(None) == Ok(nothing)
     assert Noneable(StringValidator())(5) == Err(
         val={"variant 1": ["must be None"], "variant 2": ["expected a string"]}
@@ -257,46 +178,6 @@ def test_map_of() -> None:
         "we need to make sure that errors are not lost even if there are key naming "
         "collisions with the object field"
     )
-
-
-def test_string_validator() -> None:
-    assert StringValidator()(False) == Err(["expected a string"])
-
-    assert StringValidator()("abc") == Ok("abc")
-
-    assert StringValidator(MaxLength(3))("something") == Err(
-        ["maximum allowed length is 3"]
-    )
-
-    min_len_3_not_blank_validator = StringValidator(MinLength(3), NotBlank())
-
-    assert min_len_3_not_blank_validator("") == Err(
-        ["minimum allowed length is 3", "cannot be blank"]
-    )
-
-    assert min_len_3_not_blank_validator("   ") == Err(["cannot be blank"])
-
-    assert min_len_3_not_blank_validator("something") == Ok("something")
-
-    assert StringValidator(not_blank, preprocessors=[strip])(" strip me! ") == Ok(
-        "strip me!"
-    )
-
-
-def test_max_string_length() -> None:
-    assert MaxLength(0)("") == Ok("")
-
-    assert MaxLength(5)("abc") == Ok("abc")
-
-    assert MaxLength(5)("something") == Err("maximum allowed length is 5")
-
-
-def test_min_string_length() -> None:
-    assert MinLength(0)("") == Ok("")
-
-    assert MinLength(3)("abc") == Ok("abc")
-
-    assert MinLength(3)("zz") == Err("minimum allowed length is 3")
 
 
 def test_max_items() -> None:

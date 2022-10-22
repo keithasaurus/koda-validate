@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, List
+from typing import TYPE_CHECKING, Callable, Final, Iterable, List, Optional, cast
 
 from koda import Err, Ok, Result
 
 from koda_validate._cruft import _chain
 from koda_validate._generics import A, FailT
-from koda_validate.typedefs import Predicate
+from koda_validate.typedefs import JSONValue, Predicate
 
 
 def expected(val: str) -> str:
@@ -35,3 +35,29 @@ def accum_errors(
 
 
 chain = _chain
+
+
+def accum_errors_json(
+    val: A, validators: Iterable[Predicate[A, JSONValue]]
+) -> Result[A, JSONValue]:
+    """
+    Helper that exists only because mypy is not always great at narrowing types
+    """
+    return cast(Result[A, JSONValue], accum_errors(val, validators))
+
+
+def _variant_errors(*variants: JSONValue) -> JSONValue:
+    return {f"variant {i + 1}": v for i, v in enumerate(variants)}
+
+
+CONTAINER_KEY: Final[str] = "__container__"
+
+
+def _flat_map_same_type_if_not_none(
+    fn: Optional[Callable[[A], Result[A, FailT]]],
+    r: Result[A, FailT],
+) -> Result[A, FailT]:
+    if fn is None:
+        return r
+    else:
+        return r.flat_map(fn)

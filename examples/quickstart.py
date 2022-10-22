@@ -1,12 +1,7 @@
 from koda import Err, Ok
 
-from koda_validate.string import StringValidator
-from koda_validate.validators.validators import (
-    ListValidator,
-    MaxLength,
-    MinItems,
-    MinLength,
-)
+from koda_validate.list import ListValidator, MinItems
+from koda_validate.string import MaxLength, MinLength, StringValidator
 
 basic_string_validator = StringValidator()
 assert basic_string_validator("neat") == Ok("neat")
