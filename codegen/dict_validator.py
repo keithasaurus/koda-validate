@@ -52,7 +52,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], JSONValue]):
                 val_result = self.value_validator(val)
 
                 if isinstance(key_result, Ok) and isinstance(val_result, Ok):
-                    return_Dict[key_result.val] = val_result.val
+                    return_dict[key_result.val] = val_result.val
                 else:
                     if isinstance(key_result, Err):
                         errors[f"{key} (key)"] = key_result.val
