@@ -1,12 +1,9 @@
 from dataclasses import dataclass
 
-from koda import Err, Just, Maybe, Ok, Result, nothing
+from koda import Err, Ok, Result
 
-from koda_validate.dictionary import dict_validator, key, maybe_key
-from koda_validate.generic import Max
-from koda_validate.integer import IntValidator
+from koda_validate.dictionary import dict_validator, key
 from koda_validate.list import ListValidator, MinItems
-from koda_validate.none import Noneable
 from koda_validate.string import MaxLength, StringValidator, not_blank, strip
 from koda_validate.typedefs import JSONValue
 
@@ -49,8 +46,6 @@ assert employee_validator(
 class Company:
     name: str
     employees: list[Employee]
-    year_founded: Maybe[int]
-    stock_ticker: Maybe[str]
 
 
 company_validator = dict_validator(
@@ -63,12 +58,6 @@ company_validator = dict_validator(
             MinItems(1),  # a company has to have at least one person, right??
         ),
     ),
-    # maybe_key means the key can be missing
-    maybe_key("year_founded", IntValidator(Max(2022))),
-    key(
-        "stock_ticker",
-        Noneable(StringValidator(not_blank, MaxLength(4), preprocessors=[strip])),
-    ),
 )
 
 dunder_mifflin_data = {
@@ -77,7 +66,6 @@ dunder_mifflin_data = {
         {"title": "Regional Manager", "name": "Michael Scott"},
         {"title": " Assistant to the Regional Manager ", "name": "Dwigt Schrute"},
     ],
-    "stock_ticker": "DMI",
 }
 
 assert company_validator(dunder_mifflin_data) == Ok(
@@ -87,8 +75,6 @@ assert company_validator(dunder_mifflin_data) == Ok(
             Employee(title="Regional Manager", name="Michael Scott"),
             Employee(title="Assistant to the Regional Manager", name="Dwigt Schrute"),
         ],
-        year_founded=nothing,
-        stock_ticker=Just(val="DMI"),
     )
 )
 
