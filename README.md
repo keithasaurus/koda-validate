@@ -5,15 +5,15 @@
 ```python3
 from dataclasses import dataclass
 
-from koda import Ok, Err
+from koda import Err, Ok
 
 from koda_validate.validators.dicts import dict_validator
 from koda_validate.validators.validators import (
-    StringValidator,
-    MinLength,
-    key,
     IntValidator,
     Min,
+    MinLength,
+    StringValidator,
+    key,
 )
 
 
@@ -24,15 +24,13 @@ class Person:
 
 
 person_validator = dict_validator(
-    Person,  # <- if successful, we'll send the validated arguments here
-    key("name", StringValidator(MinLength(1))),  # <- keys we're validating for
-    key("age", IntValidator(Min(0))),
+    Person,  # <- destination of data if valid
+    key("name", StringValidator(MinLength(1))),  # <- first key
+    key("age", IntValidator(Min(0))),  # <- second key...
 )
 
-person_data = {"name": "John Doe", "age": 30}
-
-# for python 3.10+ only. Use `isinstance` with python < 3.10 
-match person_validator(person_data):
+# for python >= 3.10 only. Use `if isinstance(...)` with python < 3.10
+match person_validator({"name": "John Doe", "age": 30}):
     case Ok(Person(name, age)):
         print(f"{name} is {age} years old")
     case Err(errs):
