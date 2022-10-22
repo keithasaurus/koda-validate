@@ -29,7 +29,7 @@ from koda_validate.validators.utils import _flat_map_same_type_if_not_none
         )
         vh_next_step_params = ", ".join([f"r{i + 1}" for i in range(1, i + 1)])
         if i == 0:
-            ret += f"""
+            ret += """
 def _validate1_helper(
     state: Result[Callable[[T1], Ret], tuple[FailT, ...]], r: Result[T1, FailT]
 ) -> Result[Ret, tuple[FailT, ...]]:
@@ -84,7 +84,7 @@ def validate_and_map(
                 for j, type_var in enumerate(key_type_vars)
             ]
         )
-        vm_overload += f"""
+        vm_overload += """
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
 ) -> Result[Ret, tuple[FailT, ...]]:
@@ -123,7 +123,7 @@ def validate_and_map(
 {vm_field_lines},
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None
-) -> Result[Ret, tuple[FailT, ...]]: 
+) -> Result[Ret, tuple[FailT, ...]]:
     """
     for i in range(1, num_fields + 1):
         r_params = ", ".join([f"r{j}" for j in range(1, i + 1)])
@@ -139,12 +139,12 @@ def validate_and_map(
         elif i == num_fields:
             ret += f"""
         else:
-    {ret_stmt}    
+    {ret_stmt}
     """
         else:
             ret += f"""
         elif r{i + 1} is None:
-    {ret_stmt} 
+    {ret_stmt}
     """
 
     return ret

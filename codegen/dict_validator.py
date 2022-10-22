@@ -168,7 +168,7 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, J
         )
         self.validate_object = validate_object
 """
-        ret += f""" 
+        ret += """
     def __call__(self, data: Any) -> Result[Ret, JSONValue]:
         result = _dict_without_extra_keys(
     """
@@ -191,7 +191,7 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, J
                 for j in range(i + 1)
             ]
         )
-        ret += """ 
+        ret += """
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -231,7 +231,7 @@ def dict_validator(
 {dv_fields},
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None
-) -> Validator[Any, Ret, JSONValue]: 
+) -> Validator[Any, Ret, JSONValue]:
 """
     for i in range(1, num_keys + 1):
         dv_fields = ", ".join([f"field{j}" for j in range(1, i + 1)])
@@ -243,12 +243,12 @@ def dict_validator(
         elif i == num_keys:
             ret += f"""
     else:
-{ret_stmt}    
+{ret_stmt}
 """
         else:
             ret += f"""
     elif field{i+1} is None:
-{ret_stmt} 
+{ret_stmt}
 """
 
     return ret
