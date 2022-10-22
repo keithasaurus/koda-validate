@@ -18,7 +18,7 @@ from koda_validate.validators.validators import (
 # wrong type
 assert StringValidator()(None) == Err(["expected a string"])
 
-# all failing predicates are reported (not just the first)
+# all failing `Predicate`s are reported (not just the first)
 str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
 assert str_choice_validator("") == Err(
     ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
