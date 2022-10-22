@@ -54,7 +54,10 @@ addopts ="""
 """
 
 [tool.coverage.run]
-omit = ["koda_validate/validators/dicts.py", "koda_validate/validators/validate_and_map.py"]
+omit = [
+    "koda_validate/dict.py",
+    "koda_validate/validate_and_map.py"
+]
 
 [tool.isort]
 line_length = 90

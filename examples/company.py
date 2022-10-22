@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from koda import Err, Just, Maybe, Ok, Result, nothing
 
 from koda_validate.processors import strip
+from koda_validate.string import StringValidator, not_blank
 from koda_validate.typedefs import JSONValue
 from koda_validate.validators.dicts import dict_validator
 from koda_validate.validators.validators import (
@@ -12,10 +13,8 @@ from koda_validate.validators.validators import (
     MaxLength,
     MinItems,
     Noneable,
-    StringValidator,
     key,
     maybe_key,
-    not_blank,
 )
 
 

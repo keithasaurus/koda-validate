@@ -3,7 +3,7 @@ from enum import Enum
 
 from koda import Err, Ok
 
-from koda_validate.validators.validate_and_map import validate_and_map
+from koda_validate.validate_and_map import validate_and_map
 
 
 def test_map_1() -> None:

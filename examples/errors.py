@@ -3,16 +3,15 @@ from dataclasses import dataclass
 from koda import Err, Maybe
 
 from koda_validate.processors import strip
+from koda_validate.string import StringValidator, not_blank
 from koda_validate.validators.dicts import dict_validator
 from koda_validate.validators.validators import (
     Choices,
     IntValidator,
     Min,
     MinLength,
-    StringValidator,
     key,
     maybe_key,
-    not_blank,
 )
 
 # wrong type

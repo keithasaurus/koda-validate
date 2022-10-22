@@ -1,11 +1,11 @@
 from koda import Err, Ok
 
+from koda_validate.string import StringValidator
 from koda_validate.validators.validators import (
     ListValidator,
     MaxLength,
     MinItems,
     MinLength,
-    StringValidator,
 )
 
 basic_string_validator = StringValidator()

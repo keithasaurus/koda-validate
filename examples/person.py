@@ -2,14 +2,9 @@ from dataclasses import dataclass
 
 from koda import Err, Ok
 
+from koda_validate.string import StringValidator
 from koda_validate.validators.dicts import dict_validator
-from koda_validate.validators.validators import (
-    IntValidator,
-    Min,
-    MinLength,
-    StringValidator,
-    key,
-)
+from koda_validate.validators.validators import IntValidator, Min, MinLength, key
 
 
 @dataclass

@@ -18,8 +18,8 @@ from koda import Err, Maybe, Ok, Result, mapping_get
 
 from koda_validate.typedefs import JSONValue, Predicate, Validator, ValidatorFunc
 from koda_validate.utils import expected
+from koda_validate.validate_and_map import validate_and_map
 from koda_validate.validators.utils import _flat_map_same_type_if_not_none
-from koda_validate.validators.validate_and_map import validate_and_map
 
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")

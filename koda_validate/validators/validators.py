@@ -1,12 +1,9 @@
 import decimal
-import re
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal as Decimal
-from json import loads
 from typing import (
     Any,
-    AnyStr,
     Callable,
     Dict,
     Final,
@@ -14,7 +11,6 @@ from typing import (
     Iterable,
     List,
     Optional,
-    Pattern,
     Set,
     Tuple,
     Type,
@@ -29,7 +25,7 @@ from koda.maybe import Just, Maybe, Nothing, nothing
 from koda.result import Err, Ok, Result
 
 from koda_validate._generics import B, C, Ret
-from koda_validate.typedefs import JSONValue, Predicate, Processor, Validator
+from koda_validate.typedefs import JSONValue, Predicate, Validator
 from koda_validate.utils import accum_errors, expected
 
 
@@ -149,52 +145,6 @@ class BooleanValidator(Validator[Any, bool, JSONValue]):
             return accum_errors_json(val, self.predicates)
         else:
             return Err([expected("a boolean")])
-
-
-@dataclass(init=False, frozen=True)
-class StringValidator(Validator[Any, str, JSONValue]):
-    predicates: Tuple[Predicate[str, JSONValue], ...]
-    preprocessors: Optional[List[Processor[str]]]
-
-    def __init__(
-        self,
-        *predicates: Predicate[str, JSONValue],
-        preprocessors: Optional[List[Processor[str]]] = None,
-    ) -> None:
-        object.__setattr__(self, "predicates", predicates)
-        object.__setattr__(self, "preprocessors", preprocessors)
-
-    def __call__(self, val: Any) -> Result[str, JSONValue]:
-        if isinstance(val, str):
-            if self.preprocessors is not None:
-                for preprocess in self.preprocessors:
-                    val = preprocess(val)
-
-            return accum_errors_json(val, self.predicates)
-        else:
-            return Err([expected("a string")])
-
-
-@dataclass(frozen=True)
-class RegexPredicate(Predicate[str, JSONValue]):
-    pattern: Pattern[str]
-
-    def is_valid(self, val: str) -> bool:
-        return re.match(self.pattern, val) is not None
-
-    def err_message(self, val: str) -> str:
-        return rf"must match pattern {self.pattern.pattern}"
-
-
-@dataclass(frozen=True)
-class Email(Predicate[str, JSONValue]):
-    pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
-
-    def is_valid(self, val: str) -> bool:
-        return re.match(self.pattern, val) is not None
-
-    def err_message(self, val: str) -> str:
-        return "expected a valid email address"
 
 
 @dataclass(init=False, frozen=True)
@@ -460,19 +410,6 @@ class OneOf3(Validator[Any, Either3[A, B, C], JSONValue]):
                     )
 
 
-BLANK_STRING_MSG: Final[str] = "cannot be blank"
-
-
-class NotBlank(Predicate[str, JSONValue]):
-    def is_valid(self, val: str) -> bool:
-        return len(val.strip()) != 0
-
-    def err_message(self, val: str) -> JSONValue:
-        return BLANK_STRING_MSG
-
-
-not_blank = NotBlank()
-
 _KEY_MISSING: Final[str] = "key missing"
 
 
@@ -497,17 +434,6 @@ class MaybeField(Generic[A]):
         else:
             result = Ok(maybe_val)
         return result
-
-
-def deserialize_and_validate(
-    validator: Validator[Any, A, JSONValue], data: AnyStr
-) -> Result[A, JSONValue]:
-    try:
-        deserialized = loads(data)
-    except Exception:
-        return Err({"bad data": "invalid json"})
-    else:
-        return validator(deserialized)
 
 
 def _variant_errors(*variants: JSONValue) -> JSONValue:

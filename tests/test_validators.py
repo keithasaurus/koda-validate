@@ -9,9 +9,7 @@ from koda.either import First, Second, Third
 from koda.maybe import Just, Maybe, nothing
 from koda.result import Err, Ok, Result
 
-from koda_validate.processors import strip
-from koda_validate.typedefs import JSONValue, Predicate
-from koda_validate.validators.dicts import (
+from koda_validate.dict import (
     OBJECT_ERRORS_FIELD,
     Dict2KeysValidator,
     Dict4KeysValidator,
@@ -24,15 +22,23 @@ from koda_validate.validators.dicts import (
     MapValidator,
     dict_validator,
 )
-from koda_validate.validators.tuples import Tuple2Validator, Tuple3Validator
-from koda_validate.validators.validators import (
+from koda_validate.processors import strip
+from koda_validate.string import (
     BLANK_STRING_MSG,
+    Email,
+    NotBlank,
+    RegexPredicate,
+    StringValidator,
+    not_blank,
+)
+from koda_validate.tuple import Tuple2Validator, Tuple3Validator
+from koda_validate.typedefs import JSONValue, Predicate
+from koda_validate.validators.validators import (
     BooleanValidator,
     Choices,
     DatetimeValidator,
     DateValidator,
     DecimalValidator,
-    Email,
     Exactly,
     FloatValidator,
     IntValidator,
@@ -48,16 +54,11 @@ from koda_validate.validators.validators import (
     MinLength,
     MultipleOf,
     Noneable,
-    NotBlank,
     OneOf2,
     OneOf3,
-    RegexPredicate,
-    StringValidator,
-    deserialize_and_validate,
     key,
     maybe_key,
     none_validator,
-    not_blank,
     unique_items,
 )
 
@@ -857,29 +858,6 @@ def test_email() -> None:
     assert custom_regex_validator("a.b@somecompany.com") == Ok("a.b@somecompany.com")
     assert custom_regex_validator("a.b@example.com") == Err(
         "expected a valid email address"
-    )
-
-
-def deserialize_and_validate_tests() -> None:
-    @dataclass
-    class Person:
-        name: str
-        age: int
-
-    validator = Dict2KeysValidator(
-        Person,
-        key("name", StringValidator()),
-        key("int", IntValidator()),
-    )
-
-    assert deserialize_and_validate(validator, "") == Err(
-        {"__container__": ["expected a dictionary"]}
-    )
-
-    assert deserialize_and_validate(validator, "[") == Err({"bad data": "invalid json"})
-
-    assert deserialize_and_validate(validator, '{"name": "Bob", "age": 100}') == Ok(
-        Person("Bob", 100)
     )
 
 
