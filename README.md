@@ -9,34 +9,30 @@ from dataclasses import dataclass
 
 from koda import Err, Ok
 
-from koda_validate.validators.dicts import dict_validator
-from koda_validate.validators.validators import (
-  Min,
-  key,
-)
+from koda_validate.dictionary import dict_validator, key
+from koda_validate.generic import Min
 from koda_validate.integer import IntValidator
-from koda_validate.string import StringValidator, MinLength
+from koda_validate.string import MinLength, StringValidator
 
 
 @dataclass
 class Person:
-  name: str
-  age: int
+    name: str
+    age: int
 
 
 person_validator = dict_validator(
-  Person,  # <- destination of data if valid
-  key("name", StringValidator(MinLength(1))),  # <- first key
-  key("age", IntValidator(Min(0))),  # <- second key...
+    Person,  # <- destination of data if valid
+    key("name", StringValidator(MinLength(1))),  # <- first key
+    key("age", IntValidator(Min(0))),  # <- second key...
 )
 
 # for python >= 3.10 only. Use `if isinstance(...)` with python < 3.10
 match person_validator({"name": "John Doe", "age": 30}):
-  case Ok(Person(name, age)):
-    print(f"{name} is {age} years old")
-  case Err(errs):
-    print(errs)
-
+    case Ok(Person(name, age)):
+        print(f"{name} is {age} years old")
+    case Err(errs):
+        print(errs)
 ```
 
 OK, cool, we can validate two fields on a dict... let's build something more complex.
@@ -46,100 +42,97 @@ from dataclasses import dataclass
 
 from koda import Err, Just, Maybe, Ok, Result, nothing
 
-from koda_validate.typedefs import JSONValue
-from koda_validate.validators.dicts import dict_validator
-from koda_validate.validators.validators import (
-  Max,
-  Noneable,
-  key,
-  maybe_key,
-)
+from koda_validate.dictionary import dict_validator, key, maybe_key
+from koda_validate.generic import Max
 from koda_validate.integer import IntValidator
-from koda_validate.list import MinItems, ListValidator
-from koda_validate.string import StringValidator, not_blank, MaxLength, strip
+from koda_validate.list import ListValidator, MinItems
+from koda_validate.none import Noneable
+from koda_validate.string import MaxLength, StringValidator, not_blank, strip
+from koda_validate.typedefs import JSONValue
 
 
 @dataclass
 class Employee:
-  title: str
-  name: str
+    title: str
+    name: str
 
 
 def no_dwight_regional_manager(employee: Employee) -> Result[Employee, JSONValue]:
-  if (
-          "schrute" in employee.name.lower()
-          and employee.title.lower() == "assistant regional manager"
-  ):
-    return Err("Assistant TO THE Regional Manager!")
-  else:
-    return Ok(employee)
+    if (
+        "schrute" in employee.name.lower()
+        and employee.title.lower() == "assistant regional manager"
+    ):
+        return Err("Assistant TO THE Regional Manager!")
+    else:
+        return Ok(employee)
 
 
 employee_validator = dict_validator(
-  Employee,
-  key("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),
-  key("name", StringValidator(not_blank, preprocessors=[strip])),
-  # After we've validated individual fields, we may want to validate them as a whole
-  validate_object=no_dwight_regional_manager,
+    Employee,
+    key("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),
+    key("name", StringValidator(not_blank, preprocessors=[strip])),
+    # After we've validated individual fields, we may want to validate them as a whole
+    validate_object=no_dwight_regional_manager,
 )
+
 
 # the fields are valid but the object as a whole is not.
 assert employee_validator(
-  {
-    "title": "Assistant Regional Manager",
-    "name": "Dwight Schrute",
-  }
+    {
+        "title": "Assistant Regional Manager",
+        "name": "Dwight Schrute",
+    }
 ) == Err("Assistant TO THE Regional Manager!")
 
 
 @dataclass
 class Company:
-  name: str
-  employees: list[Employee]
-  year_founded: Maybe[int]
-  stock_ticker: Maybe[str]
+    name: str
+    employees: list[Employee]
+    year_founded: Maybe[int]
+    stock_ticker: Maybe[str]
 
 
 company_validator = dict_validator(
-  Company,
-  key("company_name", StringValidator(not_blank, preprocessors=[strip])),
-  key(
-    "employees",
-    ListValidator(
-      employee_validator,
-      MinItems(1),  # a company has to have at least one person, right??
+    Company,
+    key("company_name", StringValidator(not_blank, preprocessors=[strip])),
+    key(
+        "employees",
+        ListValidator(
+            employee_validator,
+            MinItems(1),  # a company has to have at least one person, right??
+        ),
     ),
-  ),
-  # maybe_key means the key can be missing
-  maybe_key("year_founded", IntValidator(Max(2022))),
-  key(
-    "stock_ticker",
-    Noneable(StringValidator(not_blank, MaxLength(4), preprocessors=[strip])),
-  ),
+    # maybe_key means the key can be missing
+    maybe_key("year_founded", IntValidator(Max(2022))),
+    key(
+        "stock_ticker",
+        Noneable(StringValidator(not_blank, MaxLength(4), preprocessors=[strip])),
+    ),
 )
 
 dunder_mifflin_data = {
-  "company_name": "Dunder Mifflin",
-  "employees": [
-    {"title": "Regional Manager", "name": "Michael Scott"},
-    {"title": " Assistant to the Regional Manager ", "name": "Dwigt Schrute"},
-  ],
-  "stock_ticker": "DMI",
+    "company_name": "Dunder Mifflin",
+    "employees": [
+        {"title": "Regional Manager", "name": "Michael Scott"},
+        {"title": " Assistant to the Regional Manager ", "name": "Dwigt Schrute"},
+    ],
+    "stock_ticker": "DMI",
 }
 
 assert company_validator(dunder_mifflin_data) == Ok(
-  Company(
-    name="Dunder Mifflin",
-    employees=[
-      Employee(title="Regional Manager", name="Michael Scott"),
-      Employee(title="Assistant to the Regional Manager", name="Dwigt Schrute"),
-    ],
-    year_founded=nothing,
-    stock_ticker=Just(val="DMI"),
-  )
+    Company(
+        name="Dunder Mifflin",
+        employees=[
+            Employee(title="Regional Manager", name="Michael Scott"),
+            Employee(title="Assistant to the Regional Manager", name="Dwigt Schrute"),
+        ],
+        year_founded=nothing,
+        stock_ticker=Just(val="DMI"),
+    )
 )
 
-# we can keep nesting validators to our heart's content
+# we could keep nesting, arbitrarily
 company_list_validator = ListValidator(company_validator)
 
 ```
@@ -156,16 +149,10 @@ from dataclasses import dataclass
 
 from koda import Err, Maybe
 
-from koda_validate.processors import strip
-from koda_validate.validators.dicts import dict_validator
-from koda_validate.validators.validators import (
-  Choices,
-  Min,
-  key,
-  maybe_key,
-)
+from koda_validate.dictionary import dict_validator, key, maybe_key
+from koda_validate.generic import Choices, Min
 from koda_validate.integer import IntValidator
-from koda_validate.string import StringValidator, not_blank, MinLength
+from koda_validate.string import MinLength, StringValidator, not_blank, strip
 
 # wrong type
 assert StringValidator()(None) == Err(["expected a string"])
@@ -173,20 +160,20 @@ assert StringValidator()(None) == Err(["expected a string"])
 # all failing `Predicate`s are reported (not just the first)
 str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
 assert str_choice_validator("") == Err(
-  ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
+    ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
 )
 
 
 @dataclass
 class City:
-  region: str
-  population: Maybe[int]
+    region: str
+    population: Maybe[int]
 
 
 city_validator = dict_validator(
-  City,
-  key("region", StringValidator(not_blank, preprocessors=[strip])),
-  maybe_key("population", IntValidator(Min(0))),
+    City,
+    key("region", StringValidator(not_blank, preprocessors=[strip])),
+    maybe_key("population", IntValidator(Min(0))),
 )
 
 # all errors are json serializable. we use the key "__container__" for object-level errors
@@ -197,10 +184,11 @@ assert city_validator({}) == Err({"region": ["key missing"]})
 
 # extra keys are also errors
 assert city_validator(
-  {"region": "California", "population": 510, "country": "USA"}
+    {"region": "California", "population": 510, "country": "USA"}
 ) == Err(
-  {"__container__": ["Received unknown keys. Only expected ['population', 'region']"]}
+    {"__container__": ["Received unknown keys. Only expected ['population', 'region']"]}
 )
+
 ```
 
 Note that while extra keys are invalid, there are several ways of dealing with empty keys in this
