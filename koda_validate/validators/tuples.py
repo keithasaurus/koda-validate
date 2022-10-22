@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Tuple
 
 from koda import Err, Result
 
@@ -9,12 +9,12 @@ from koda_validate.utils import expected
 from koda_validate.validators.validate_and_map import validate_and_map
 
 
-def _tuple_to_dict_errors(errs: tuple[JSONValue, ...]) -> dict[str, JSONValue]:
+def _tuple_to_dict_errors(errs: Tuple[JSONValue, ...]) -> dict[str, JSONValue]:
     return {str(i): err for i, err in enumerate(errs)}
 
 
 # todo: auto-generate
-class Tuple2Validator(Validator[Any, tuple[A, B], JSONValue]):
+class Tuple2Validator(Validator[Any, Tuple[A, B], JSONValue]):
     required_length: int = 2
 
     def __init__(
@@ -22,16 +22,16 @@ class Tuple2Validator(Validator[Any, tuple[A, B], JSONValue]):
         slot1_validator: Callable[[Any], Result[A, JSONValue]],
         slot2_validator: Callable[[Any], Result[B, JSONValue]],
         tuple_validator: Optional[
-            Callable[[tuple[A, B]], Result[tuple[A, B], JSONValue]]
+            Callable[[Tuple[A, B]], Result[Tuple[A, B], JSONValue]]
         ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator
         self.tuple_validator = tuple_validator
 
-    def __call__(self, data: Any) -> Result[tuple[A, B], JSONValue]:
+    def __call__(self, data: Any) -> Result[Tuple[A, B], JSONValue]:
         if isinstance(data, list) and len(data) == self.required_length:
-            result: Result[tuple[A, B], tuple[JSONValue, ...]] = validate_and_map(
+            result: Result[Tuple[A, B], Tuple[JSONValue, ...]] = validate_and_map(
                 _typed_tuple,
                 self.slot1_validator(data[0]),
                 self.slot2_validator(data[1]),
@@ -54,7 +54,7 @@ class Tuple2Validator(Validator[Any, tuple[A, B], JSONValue]):
             )
 
 
-class Tuple3Validator(Validator[Any, tuple[A, B, C], JSONValue]):
+class Tuple3Validator(Validator[Any, Tuple[A, B, C], JSONValue]):
     required_length: int = 3
 
     def __init__(
@@ -63,7 +63,7 @@ class Tuple3Validator(Validator[Any, tuple[A, B, C], JSONValue]):
         slot2_validator: Callable[[Any], Result[B, JSONValue]],
         slot3_validator: Callable[[Any], Result[C, JSONValue]],
         tuple_validator: Optional[
-            Callable[[tuple[A, B, C]], Result[tuple[A, B, C], JSONValue]]
+            Callable[[Tuple[A, B, C]], Result[Tuple[A, B, C], JSONValue]]
         ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
@@ -71,9 +71,9 @@ class Tuple3Validator(Validator[Any, tuple[A, B, C], JSONValue]):
         self.slot3_validator = slot3_validator
         self.tuple_validator = tuple_validator
 
-    def __call__(self, data: Any) -> Result[tuple[A, B, C], JSONValue]:
+    def __call__(self, data: Any) -> Result[Tuple[A, B, C], JSONValue]:
         if isinstance(data, list) and len(data) == self.required_length:
-            result: Result[tuple[A, B, C], tuple[JSONValue, ...]] = validate_and_map(
+            result: Result[Tuple[A, B, C], Tuple[JSONValue, ...]] = validate_and_map(
                 _typed_tuple,
                 self.slot1_validator(data[0]),
                 self.slot2_validator(data[1]),

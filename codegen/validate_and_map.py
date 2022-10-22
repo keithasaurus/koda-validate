@@ -1,14 +1,16 @@
+from typing import List
+
 from codegen.utils import add_type_vars, get_type_vars  # type: ignore
 
 
 def generate_code(num_fields: int) -> str:
-    into_signatures: list[str] = []
-    vm_validator_fields: list[str] = []
-    vm_overloads: list[str] = []
+    into_signatures: List[str] = []
+    vm_validator_fields: List[str] = []
+    vm_overloads: List[str] = []
     type_vars = get_type_vars(num_fields)
 
     ret = """from functools import partial
-from typing import TypeVar, Callable, Optional, overload, Union, cast
+from typing import Dict, List, Tuple, Set, TypeVar, Callable, Optional, overload, Union, cast
 
 from koda import Result, Err, Ok
 
@@ -31,8 +33,8 @@ from koda_validate.validators.utils import _flat_map_same_type_if_not_none
         if i == 0:
             ret += """
 def _validate1_helper(
-    state: Result[Callable[[T1], Ret], tuple[FailT, ...]], r: Result[T1, FailT]
-) -> Result[Ret, tuple[FailT, ...]]:
+    state: Result[Callable[[T1], Ret], Tuple[FailT, ...]], r: Result[T1, FailT]
+) -> Result[Ret, Tuple[FailT, ...]]:
     if isinstance(r, Err):
         if isinstance(state, Err):
             return Err(state.val + (r.val,))
@@ -48,12 +50,12 @@ def _validate1_helper(
             next_state_call_sig_params = ", ".join(key_type_vars[1:])
             ret += f"""
 def _validate{i + 1}_helper(
-    state: Result[{into_signatures[-1]}, tuple[FailT, ...]],
+    state: Result[{into_signatures[-1]}, Tuple[FailT, ...]],
 {vh_fields},
-) -> Result[Ret, tuple[FailT, ...]]:
+) -> Result[Ret, Tuple[FailT, ...]]:
     if isinstance(r1, Err):
         if isinstance(state, Err):
-            next_state: Result[Callable[[{next_state_call_sig_params}], Ret], tuple[FailT, ...]] = Err(
+            next_state: Result[Callable[[{next_state_call_sig_params}], Ret], Tuple[FailT, ...]] = Err(
                 state.val + (r1.val,)
             )
         else:
@@ -87,21 +89,21 @@ def validate_and_map(
         vm_overload += """
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
-) -> Result[Ret, tuple[FailT, ...]]:
+) -> Result[Ret, Tuple[FailT, ...]]:
     ...
 
 """
         vm_overloads.append(vm_overload)
 
     ret += """
-def _tupled(a: T1) -> tuple[T1, ...]:
+def _tupled(a: T1) -> Tuple[T1, ...]:
     return a,
 
 
 def tupled_err_func(validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]]) -> Callable[
-    [Ret], Result[Ret, tuple[FailT, ...]]]:
+    [Ret], Result[Ret, Tuple[FailT, ...]]]:
 
-    def inner(obj: Ret) -> Result[Ret, tuple[FailT, ...]]:
+    def inner(obj: Ret) -> Result[Ret, Tuple[FailT, ...]]:
         if validate_object is None:
             return Ok(obj)
         else:
@@ -123,7 +125,7 @@ def validate_and_map(
 {vm_field_lines},
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None
-) -> Result[Ret, tuple[FailT, ...]]:
+) -> Result[Ret, Tuple[FailT, ...]]:
     """
     for i in range(1, num_fields + 1):
         r_params = ", ".join([f"r{j}" for j in range(1, i + 1)])

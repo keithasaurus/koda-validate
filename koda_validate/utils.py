@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, List
 
 from koda import Err, Ok, Result
 
@@ -15,8 +15,8 @@ def expected(val: str) -> str:
 
 def accum_errors(
     val: A, validators: Iterable[Predicate[A, FailT]]
-) -> Result[A, list[FailT]]:
-    errors: list[FailT] = []
+) -> Result[A, List[FailT]]:
+    errors: List[FailT] = []
     result: Result[A, FailT] = Ok(val)
     for validator in validators:
         result = validator(val)

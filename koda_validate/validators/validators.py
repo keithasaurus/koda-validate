@@ -11,6 +11,7 @@ from typing import (
     Final,
     Generic,
     Iterable,
+    List,
     Optional,
     Pattern,
     Set,
@@ -70,30 +71,30 @@ class MinLength(Predicate[str, JSONValue]):
 
 
 @dataclass(frozen=True)
-class MinItems(Predicate[list[Any], JSONValue]):
+class MinItems(Predicate[List[Any], JSONValue]):
     length: int
 
     def __post_init__(self) -> None:
         assert self.length >= 0
 
-    def is_valid(self, val: list[Any]) -> bool:
+    def is_valid(self, val: List[Any]) -> bool:
         return len(val) >= self.length
 
-    def err_message(self, val: list[Any]) -> str:
+    def err_message(self, val: List[Any]) -> str:
         return f"minimum allowed length is {self.length}"
 
 
 @dataclass(frozen=True)
-class MaxItems(Predicate[list[Any], JSONValue]):
+class MaxItems(Predicate[List[Any], JSONValue]):
     length: int
 
     def __post_init__(self) -> None:
         assert self.length >= 0
 
-    def is_valid(self, val: list[Any]) -> bool:
+    def is_valid(self, val: List[Any]) -> bool:
         return len(val) <= self.length
 
-    def err_message(self, val: list[Any]) -> str:
+    def err_message(self, val: List[Any]) -> str:
         return f"maximum allowed length is {self.length}"
 
 
@@ -125,11 +126,11 @@ class MaxKeys(Predicate[dict[Any, Any], JSONValue]):
         return f"maximum allowed properties is {self.size}"
 
 
-class UniqueItems(Predicate[list[Any], JSONValue]):
-    def is_valid(self, val: list[Any]) -> bool:
+class UniqueItems(Predicate[List[Any], JSONValue]):
+    def is_valid(self, val: List[Any]) -> bool:
         hashable_items: Set[Tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables
-        unhashable_items: list[Tuple[Type[Any], Any]] = []
+        unhashable_items: List[Tuple[Type[Any], Any]] = []
         for item in val:
             # needed to tell difference between things like
             # ints and bools
@@ -147,7 +148,7 @@ class UniqueItems(Predicate[list[Any], JSONValue]):
         else:
             return True
 
-    def err_message(self, val: list[Any]) -> str:
+    def err_message(self, val: List[Any]) -> str:
         return "all items must be unique"
 
 
@@ -156,7 +157,7 @@ unique_items = UniqueItems()
 
 @dataclass(init=False, frozen=True)
 class BooleanValidator(Validator[Any, bool, JSONValue]):
-    predicates: tuple[Predicate[bool, JSONValue], ...]
+    predicates: Tuple[Predicate[bool, JSONValue], ...]
 
     def __init__(self, *predicates: Predicate[bool, JSONValue]) -> None:
         object.__setattr__(self, "predicates", predicates)
@@ -170,13 +171,13 @@ class BooleanValidator(Validator[Any, bool, JSONValue]):
 
 @dataclass(init=False, frozen=True)
 class StringValidator(Validator[Any, str, JSONValue]):
-    predicates: tuple[Predicate[str, JSONValue], ...]
-    preprocessors: Optional[list[Processor[str]]]
+    predicates: Tuple[Predicate[str, JSONValue], ...]
+    preprocessors: Optional[List[Processor[str]]]
 
     def __init__(
         self,
         *predicates: Predicate[str, JSONValue],
-        preprocessors: Optional[list[Processor[str]]] = None,
+        preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
         object.__setattr__(self, "predicates", predicates)
         object.__setattr__(self, "preprocessors", preprocessors)
@@ -216,7 +217,7 @@ class Email(Predicate[str, JSONValue]):
 
 @dataclass(init=False, frozen=True)
 class IntValidator(Validator[Any, int, JSONValue]):
-    predicates: tuple[Predicate[int, JSONValue]]
+    predicates: Tuple[Predicate[int, JSONValue]]
 
     def __init__(self, *predicates: Predicate[int, JSONValue]) -> None:
         object.__setattr__(self, "predicates", predicates)
@@ -231,7 +232,7 @@ class IntValidator(Validator[Any, int, JSONValue]):
 
 @dataclass(init=False, frozen=True)
 class FloatValidator(Validator[Any, float, JSONValue]):
-    predicates: tuple[Predicate[float, JSONValue], ...]
+    predicates: Tuple[Predicate[float, JSONValue], ...]
 
     def __init__(self, *predicates: Predicate[float, JSONValue]) -> None:
         object.__setattr__(self, "predicates", predicates)
@@ -245,7 +246,7 @@ class FloatValidator(Validator[Any, float, JSONValue]):
 
 @dataclass(init=False, frozen=True)
 class DecimalValidator(Validator[Any, Decimal, JSONValue]):
-    predicates: tuple[Predicate[Decimal, JSONValue], ...]
+    predicates: Tuple[Predicate[Decimal, JSONValue], ...]
 
     def __init__(self, *predicates: Predicate[Decimal, JSONValue]) -> None:
         object.__setattr__(self, "predicates", predicates)
@@ -273,7 +274,7 @@ class DateValidator(Validator[Any, date, JSONValue]):
     Expects dates to be yyyy-mm-dd
     """
 
-    predicates: tuple[Predicate[date, JSONValue], ...]
+    predicates: Tuple[Predicate[date, JSONValue], ...]
 
     def __init__(self, *predicates: Predicate[date, JSONValue]) -> None:
         object.__setattr__(self, "predicates", predicates)
@@ -300,24 +301,24 @@ class DateValidator(Validator[Any, date, JSONValue]):
 
 
 @dataclass(frozen=True, init=False)
-class ListValidator(Validator[Any, list[A], JSONValue]):
+class ListValidator(Validator[Any, List[A], JSONValue]):
     item_validator: Validator[Any, A, JSONValue]
-    list_validators: tuple[Predicate[list[A], JSONValue], ...]
+    list_validators: Tuple[Predicate[List[A], JSONValue], ...]
 
     def __init__(
         self,
         item_validator: Validator[Any, A, JSONValue],
-        *list_validators: Predicate[list[A], JSONValue],
+        *list_validators: Predicate[List[A], JSONValue],
     ) -> None:
         object.__setattr__(self, "item_validator", item_validator)
         object.__setattr__(self, "list_validators", list_validators)
 
-    def __call__(self, val: Any) -> Result[list[A], JSONValue]:
+    def __call__(self, val: Any) -> Result[List[A], JSONValue]:
         if isinstance(val, list):
-            return_list: list[A] = []
+            return_list: List[A] = []
             errors: dict[str, JSONValue] = {}
 
-            list_errors: list[JSONValue] = []
+            list_errors: List[JSONValue] = []
             for validator in self.list_validators:
                 result = validator(val)
 
@@ -376,9 +377,9 @@ class Choices(Predicate[EnumT, JSONValue]):
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
-    choices: set[EnumT]
+    choices: Set[EnumT]
 
-    def __init__(self, choices: set[EnumT]) -> None:
+    def __init__(self, choices: Set[EnumT]) -> None:
         object.__setattr__(self, "choices", choices)
 
     def is_valid(self, val: EnumT) -> bool:

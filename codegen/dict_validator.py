@@ -1,12 +1,14 @@
+from typing import List
+
 from codegen.utils import add_type_vars, get_type_vars  # type: ignore
 
 
 def generate_code(num_keys: int) -> str:
 
-    dict_validator_into_signatures: list[str] = []
-    dict_validator_fields: list[str] = []
-    dict_validator_overloads: list[str] = []
-    ret = """from typing import TypeVar, Generic, Any, Callable, Optional, cast, overload, Union, Final
+    dict_validator_into_signatures: List[str] = []
+    dict_validator_fields: List[str] = []
+    dict_validator_overloads: List[str] = []
+    ret = """from typing import Dict, List, Tuple, Set, TypeVar, Generic, Any, Callable, Optional, cast, overload, Union, Final
 
 from koda import Err, Maybe, Ok, Result, mapping_get
 
@@ -24,7 +26,7 @@ from koda_validate.validators.validate_and_map import validate_and_map
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 
-class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):
+class MapValidator(Validator[Any, Dict[T1, T2], JSONValue]):
     \"\""\
     Note that while a key should always be expected to be received as a string,
     it's possible that we may want to validate and cast it to a different
@@ -35,22 +37,22 @@ class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):
         self,
         key_validator: Validator[Any, T1, JSONValue],
         value_validator: Validator[Any, T2, JSONValue],
-        *dict_validators: Predicate[dict[T1, T2], JSONValue],
+        *dict_validators: Predicate[Dict[T1, T2], JSONValue],
     ) -> None:
         self.key_validator = key_validator
         self.value_validator = value_validator
         self.dict_validators = dict_validators
 
-    def __call__(self, data: Any) -> Result[dict[T1, T2], JSONValue]:
+    def __call__(self, data: Any) -> Result[Dict[T1, T2], JSONValue]:
         if isinstance(data, dict):
-            return_dict: dict[T1, T2] = {}
-            errors: dict[str, JSONValue] = {}
+            return_dict: Dict[T1, T2] = {}
+            errors: Dict[str, JSONValue] = {}
             for key, val in data.items():
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val)
 
                 if isinstance(key_result, Ok) and isinstance(val_result, Ok):
-                    return_dict[key_result.val] = val_result.val
+                    return_Dict[key_result.val] = val_result.val
                 else:
                     if isinstance(key_result, Err):
                         errors[f"{key} (key)"] = key_result.val
@@ -58,7 +60,7 @@ class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):
                     if isinstance(val_result, Err):
                         errors[key] = val_result.val
 
-            dict_validator_errors: list[JSONValue] = []
+            dict_validator_errors: List[JSONValue] = []
             for validator in self.dict_validators:
                 # Note that the expectation here is that validators will likely
                 # be doing json like number of keys; they aren't expected
@@ -84,8 +86,8 @@ class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):
             return Err({"__container__": [expected("a map")]})
 
 
-class IsDict(Validator[Any, dict[Any, Any], JSONValue]):
-    def __call__(self, val: Any) -> Result[dict[Any, Any], JSONValue]:
+class IsDict(Validator[Any, Dict[Any, Any], JSONValue]):
+    def __call__(self, val: Any) -> Result[Dict[Any, Any], JSONValue]:
         if isinstance(val, dict):
             return Ok(val)
         else:
@@ -93,9 +95,9 @@ class IsDict(Validator[Any, dict[Any, Any], JSONValue]):
 
 
 def _has_no_extra_keys(
-    keys: set[str],
-) -> ValidatorFunc[dict[T1, T2], dict[T1, T2], JSONValue]:
-    def inner(mapping: dict[T1, T2]) -> Result[dict[T1, T2], JSONValue]:
+    keys: Set[str],
+) -> ValidatorFunc[Dict[T1, T2], Dict[T1, T2], JSONValue]:
+    def inner(mapping: Dict[T1, T2]) -> Result[Dict[T1, T2], JSONValue]:
         if len(mapping.keys() - keys) > 0:
             return Err(
                 {
@@ -111,25 +113,25 @@ def _has_no_extra_keys(
 
 
 def _dict_without_extra_keys(
-    keys: set[str], data: Any
-) -> Result[dict[Any, Any], JSONValue]:
+    keys: Set[str], data: Any
+) -> Result[Dict[Any, Any], JSONValue]:
     return IsDict()(data).flat_map(_has_no_extra_keys(keys))
 
 
 
-def _tuples_to_json_dict(data: tuple[tuple[str, JSONValue], ...]) -> JSONValue:
+def _tuples_to_json_dict(data: Tuple[Tuple[str, JSONValue], ...]) -> JSONValue:
     return dict(data)
 
 
-KeyValidator = tuple[str, Callable[[Maybe[Any]], Result[T1, JSONValue]]]
+KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[T1, JSONValue]]]
 
 
 def _validate_with_key(
-        r: KeyValidator[T1], data: dict[Any, Any]
-) -> Result[T1, tuple[str, JSONValue]]:
+        r: KeyValidator[T1], data: Dict[Any, Any]
+) -> Result[T1, Tuple[str, JSONValue]]:
     key, fn = r
 
-    def add_key(val: JSONValue) -> tuple[str, JSONValue]:
+    def add_key(val: JSONValue) -> Tuple[str, JSONValue]:
         return key, val
 
     return fn(mapping_get(data, key)).map_err(add_key)
@@ -148,7 +150,7 @@ def _validate_with_key(
         ret += f"""
 
 class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, JSONValue]):
-    __match_args__: tuple[str, ...] = ('dv_fields',)
+    __match_args__: Tuple[str, ...] = ('dv_fields',)
 """
         ret += f"""    def __init__(self,
                  into: {dict_validator_into_signatures[-1]},"""

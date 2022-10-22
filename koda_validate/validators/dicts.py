@@ -1,4 +1,18 @@
-from typing import Any, Callable, Final, Generic, Optional, TypeVar, Union, cast, overload
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Final,
+    Generic,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 from koda import Err, Maybe, Ok, Result, mapping_get
 
@@ -34,7 +48,7 @@ FailT = TypeVar("FailT")
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 
-class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):
+class MapValidator(Validator[Any, Dict[T1, T2], JSONValue]):
     """Note that while a key should always be expected to be received as a string,
     it's possible that we may want to validate and cast it to a different
     type (i.e. a date)
@@ -44,16 +58,16 @@ class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):
         self,
         key_validator: Validator[Any, T1, JSONValue],
         value_validator: Validator[Any, T2, JSONValue],
-        *dict_validators: Predicate[dict[T1, T2], JSONValue],
+        *dict_validators: Predicate[Dict[T1, T2], JSONValue],
     ) -> None:
         self.key_validator = key_validator
         self.value_validator = value_validator
         self.dict_validators = dict_validators
 
-    def __call__(self, data: Any) -> Result[dict[T1, T2], JSONValue]:
+    def __call__(self, data: Any) -> Result[Dict[T1, T2], JSONValue]:
         if isinstance(data, dict):
-            return_dict: dict[T1, T2] = {}
-            errors: dict[str, JSONValue] = {}
+            return_dict: Dict[T1, T2] = {}
+            errors: Dict[str, JSONValue] = {}
             for key, val in data.items():
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val)
@@ -67,7 +81,7 @@ class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):
                     if isinstance(val_result, Err):
                         errors[key] = val_result.val
 
-            dict_validator_errors: list[JSONValue] = []
+            dict_validator_errors: List[JSONValue] = []
             for validator in self.dict_validators:
                 # Note that the expectation here is that validators will likely
                 # be doing json like number of keys; they aren't expected
@@ -93,8 +107,8 @@ class MapValidator(Validator[Any, dict[T1, T2], JSONValue]):
             return Err({"__container__": [expected("a map")]})
 
 
-class IsDict(Validator[Any, dict[Any, Any], JSONValue]):
-    def __call__(self, val: Any) -> Result[dict[Any, Any], JSONValue]:
+class IsDict(Validator[Any, Dict[Any, Any], JSONValue]):
+    def __call__(self, val: Any) -> Result[Dict[Any, Any], JSONValue]:
         if isinstance(val, dict):
             return Ok(val)
         else:
@@ -102,9 +116,9 @@ class IsDict(Validator[Any, dict[Any, Any], JSONValue]):
 
 
 def _has_no_extra_keys(
-    keys: set[str],
-) -> ValidatorFunc[dict[T1, T2], dict[T1, T2], JSONValue]:
-    def inner(mapping: dict[T1, T2]) -> Result[dict[T1, T2], JSONValue]:
+    keys: Set[str],
+) -> ValidatorFunc[Dict[T1, T2], Dict[T1, T2], JSONValue]:
+    def inner(mapping: Dict[T1, T2]) -> Result[Dict[T1, T2], JSONValue]:
         if len(mapping.keys() - keys) > 0:
             return Err(
                 {
@@ -120,31 +134,31 @@ def _has_no_extra_keys(
 
 
 def _dict_without_extra_keys(
-    keys: set[str], data: Any
-) -> Result[dict[Any, Any], JSONValue]:
+    keys: Set[str], data: Any
+) -> Result[Dict[Any, Any], JSONValue]:
     return IsDict()(data).flat_map(_has_no_extra_keys(keys))
 
 
-def _tuples_to_json_dict(data: tuple[tuple[str, JSONValue], ...]) -> JSONValue:
+def _tuples_to_json_dict(data: Tuple[Tuple[str, JSONValue], ...]) -> JSONValue:
     return dict(data)
 
 
-KeyValidator = tuple[str, Callable[[Maybe[Any]], Result[T1, JSONValue]]]
+KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[T1, JSONValue]]]
 
 
 def _validate_with_key(
-    r: KeyValidator[T1], data: dict[Any, Any]
-) -> Result[T1, tuple[str, JSONValue]]:
+    r: KeyValidator[T1], data: Dict[Any, Any]
+) -> Result[T1, Tuple[str, JSONValue]]:
     key, fn = r
 
-    def add_key(val: JSONValue) -> tuple[str, JSONValue]:
+    def add_key(val: JSONValue) -> Tuple[str, JSONValue]:
         return key, val
 
     return fn(mapping_get(data, key)).map_err(add_key)
 
 
 class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, JSONValue]):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -173,7 +187,7 @@ class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, JSONValue]):
 
 
 class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -209,7 +223,7 @@ class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
 
 
 class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue]):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -248,7 +262,7 @@ class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue
 
 
 class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONValue]):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -298,7 +312,7 @@ class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONV
 class Dict5KeysValidator(
     Generic[T1, T2, T3, T4, T5, Ret], Validator[Any, Ret, JSONValue]
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -352,7 +366,7 @@ class Dict5KeysValidator(
 class Dict6KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, Ret], Validator[Any, Ret, JSONValue]
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -410,7 +424,7 @@ class Dict6KeysValidator(
 class Dict7KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, Ret], Validator[Any, Ret, JSONValue]
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -472,7 +486,7 @@ class Dict7KeysValidator(
 class Dict8KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, Ret], Validator[Any, Ret, JSONValue]
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -538,7 +552,7 @@ class Dict8KeysValidator(
 class Dict9KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret], Validator[Any, Ret, JSONValue]
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -608,7 +622,7 @@ class Dict9KeysValidator(
 class Dict10KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret], Validator[Any, Ret, JSONValue]
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -683,7 +697,7 @@ class Dict11KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret],
     Validator[Any, Ret, JSONValue],
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -762,7 +776,7 @@ class Dict12KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret],
     Validator[Any, Ret, JSONValue],
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -845,7 +859,7 @@ class Dict13KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret],
     Validator[Any, Ret, JSONValue],
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -932,7 +946,7 @@ class Dict14KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret],
     Validator[Any, Ret, JSONValue],
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -1025,7 +1039,7 @@ class Dict15KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret],
     Validator[Any, Ret, JSONValue],
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -1122,7 +1136,7 @@ class Dict16KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret],
     Validator[Any, Ret, JSONValue],
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -1225,7 +1239,7 @@ class Dict17KeysValidator(
     ],
     Validator[Any, Ret, JSONValue],
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -1351,7 +1365,7 @@ class Dict18KeysValidator(
     ],
     Validator[Any, Ret, JSONValue],
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -1501,7 +1515,7 @@ class Dict19KeysValidator(
     ],
     Validator[Any, Ret, JSONValue],
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
@@ -1657,7 +1671,7 @@ class Dict20KeysValidator(
     ],
     Validator[Any, Ret, JSONValue],
 ):
-    __match_args__: tuple[str, ...] = ("dv_fields",)
+    __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
         self,
