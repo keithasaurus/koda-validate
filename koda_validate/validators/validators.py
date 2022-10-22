@@ -8,6 +8,7 @@ from typing import (
     Any,
     AnyStr,
     Callable,
+    Dict,
     Final,
     Generic,
     Iterable,
@@ -99,30 +100,30 @@ class MaxItems(Predicate[List[Any], JSONValue]):
 
 
 @dataclass(frozen=True)
-class MinKeys(Predicate[dict[Any, Any], JSONValue]):
+class MinKeys(Predicate[Dict[Any, Any], JSONValue]):
     size: int
 
     def __post_init__(self) -> None:
         assert self.size >= 0
 
-    def is_valid(self, val: dict[Any, Any]) -> bool:
+    def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) >= self.size
 
-    def err_message(self, val: dict[Any, Any]) -> str:
+    def err_message(self, val: Dict[Any, Any]) -> str:
         return f"minimum allowed properties is {self.size}"
 
 
 @dataclass(frozen=True)
-class MaxKeys(Predicate[dict[Any, Any], JSONValue]):
+class MaxKeys(Predicate[Dict[Any, Any], JSONValue]):
     size: int
 
     def __post_init__(self) -> None:
         assert self.size >= 0
 
-    def is_valid(self, val: dict[Any, Any]) -> bool:
+    def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) <= self.size
 
-    def err_message(self, val: dict[Any, Any]) -> str:
+    def err_message(self, val: Dict[Any, Any]) -> str:
         return f"maximum allowed properties is {self.size}"
 
 
@@ -316,7 +317,7 @@ class ListValidator(Validator[Any, List[A], JSONValue]):
     def __call__(self, val: Any) -> Result[List[A], JSONValue]:
         if isinstance(val, list):
             return_list: List[A] = []
-            errors: dict[str, JSONValue] = {}
+            errors: Dict[str, JSONValue] = {}
 
             list_errors: List[JSONValue] = []
             for validator in self.list_validators:
@@ -393,7 +394,7 @@ KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, JSONValue]]]
 
 
 def _validate_with_key(
-    r: KeyValidator[A], data: dict[Any, Any]
+    r: KeyValidator[A], data: Dict[Any, Any]
 ) -> Result[A, Tuple[str, JSONValue]]:
     key, fn = r
 

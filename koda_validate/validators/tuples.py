@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
 from koda import Err, Result
 
@@ -9,7 +9,7 @@ from koda_validate.utils import expected
 from koda_validate.validators.validate_and_map import validate_and_map
 
 
-def _tuple_to_dict_errors(errs: Tuple[JSONValue, ...]) -> dict[str, JSONValue]:
+def _tuple_to_dict_errors(errs: Tuple[JSONValue, ...]) -> Dict[str, JSONValue]:
     return {str(i): err for i, err in enumerate(errs)}
 
 
