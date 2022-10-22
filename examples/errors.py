@@ -28,7 +28,7 @@ assert str_choice_validator("") == Err(
 @dataclass
 class City:
     region: str
-    population: Maybe[int]
+    population: Maybe[str]
 
 
 city_validator = dict_validator(
