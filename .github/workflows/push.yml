@@ -27,4 +27,4 @@ jobs:
       - name: run tests
         run: poetry run pytest
       - name: linting
-        run: poetry run flake8 --exclude examples codegen
+        run: poetry run flake8 --exclude examples --exclude codegen
