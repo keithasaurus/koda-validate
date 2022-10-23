@@ -435,29 +435,16 @@ assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Ok(
 need to be concerned about individual keys or values:
 
 ```python
-from typing import Optional
-
 from koda import Ok
 
-from koda_validate.generic import Lazy
+from koda_validate.dictionary import MapValidator
 from koda_validate.integer import IntValidator
-from koda_validate.none import OptionalValidator
-from koda_validate.tuple import Tuple2Validator
+from koda_validate.string import StringValidator
 
-NonEmptyList = tuple[int, Optional["NonEmptyList"]]
+str_to_int_validator = MapValidator(StringValidator(), IntValidator())
 
-
-def recur_non_empty_list() -> Tuple2Validator[int, Optional[NonEmptyList]]:
-    return non_empty_list_validator
-
-
-non_empty_list_validator = Tuple2Validator(
-    IntValidator(),
-    OptionalValidator(Lazy(recur_non_empty_list)),
-)
-
-assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Ok(
-    (1, (1, (2, (3, (5, None)))))
+assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Ok(
+    {"a": 1, "b": 25, "xyz": 900}
 )
 
 ```
