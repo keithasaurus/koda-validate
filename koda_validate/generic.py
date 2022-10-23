@@ -70,7 +70,8 @@ class Min(Predicate[Num, JSONValue]):
             return val >= self.minimum
 
     def err_message(self, val: Num) -> str:
-        return f"minimum allowed value is {self.minimum}"
+        exclusive = " (exclusive)" if self.exclusive_minimum else ""
+        return f"minimum allowed value{exclusive} is {self.minimum}"
 
 
 @dataclass(frozen=True)
@@ -85,7 +86,8 @@ class Max(Predicate[Num, JSONValue]):
             return val <= self.maximum
 
     def err_message(self, val: Num) -> str:
-        return f"maximum allowed value is {self.maximum}"
+        exclusive = " (exclusive)" if self.exclusive_maximum else ""
+        return f"maximum allowed value{exclusive} is {self.maximum}"
 
 
 @dataclass(frozen=True)

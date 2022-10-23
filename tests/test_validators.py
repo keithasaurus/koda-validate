@@ -200,7 +200,7 @@ def test_min_items() -> None:
     assert MinItems(3)([1, 2]) == Err("minimum allowed length is 3")
 
 
-def test_max_properties() -> None:
+def test_max_keys() -> None:
     assert MaxKeys(0)({}) == Ok({})
 
     assert MaxKeys(5)({"a": 1, "b": 2, "c": 3}) == Ok({"a": 1, "b": 2, "c": 3})
@@ -208,7 +208,7 @@ def test_max_properties() -> None:
     assert MaxKeys(1)({"a": 1, "b": 2}) == Err("maximum allowed properties is 1")
 
 
-def test_min_properties() -> None:
+def test_min_keys() -> None:
     assert MinKeys(0)({}) == Ok({})
 
     assert MinKeys(3)({"a": 1, "b": 2, "c": 3}) == Ok({"a": 1, "b": 2, "c": 3})
@@ -800,3 +800,21 @@ def test_exactly() -> None:
     assert Exactly("ok")("not ok") == Err('expected "ok"')
     assert Exactly(Decimal("1.25"))(Decimal("1.25")) == Ok(Decimal("1.25"))
     assert Exactly(Decimal("1.1"))(Decimal("5")) == Err("expected 1.1")
+
+
+def test_min() -> None:
+    assert Min(5)(5) == Ok(5)
+    assert Min(5)(4) == Err("minimum allowed value is 5")
+    assert Min(5, exclusive_minimum=True)(6) == Ok(6)
+    assert Min(5, exclusive_minimum=True)(5) == Err(
+        "minimum allowed value (exclusive) is 5"
+    )
+
+
+def test_max() -> None:
+    assert Max(5)(5) == Ok(5)
+    assert Max(4, exclusive_maximum=True)(3) == Ok(3)
+    assert Max(5)(6) == Err("maximum allowed value is 5")
+    assert Max(5, exclusive_maximum=True)(5) == Err(
+        "maximum allowed value (exclusive) is 5"
+    )

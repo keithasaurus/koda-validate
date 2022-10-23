@@ -50,13 +50,14 @@ addopts ="""
   --cov-report=term:skip-covered
   --cov-report=html
   --cov-branch
-  --cov-fail-under=88
+  --cov-fail-under=93
 """
 
 [tool.coverage.run]
 omit = [
     "koda_validate/dictionary.py",
-    "koda_validate/validate_and_map.py"
+    "koda_validate/validate_and_map.py",
+    "tests/*"
 ]
 
 [tool.isort]
