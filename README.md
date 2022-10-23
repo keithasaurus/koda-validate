@@ -366,19 +366,18 @@ non-validation purposes.
 
 OneOfN validators are useful when you may have multiple valid shapes of data.
 ```python
-from koda import Ok, First, Second
+from koda import First, Ok, Second
 
-from koda_validate.list import ListValidator
-from koda_validate.one_of import OneOf2
-from koda_validate.string import StringValidator
+from koda_validate import ListValidator, OneOf2, StringValidator
 
 string_or_list_string_validator = OneOf2(
-    StringValidator(),
-    ListValidator(StringValidator())
+    StringValidator(), ListValidator(StringValidator())
 )
 
 assert string_or_list_string_validator("ok") == Ok(First("ok"))
-assert string_or_list_string_validator(["list", "of", "strings"]) == Ok(Second(["list", "of", "strings"]))
+assert string_or_list_string_validator(["list", "of", "strings"]) == Ok(
+    Second(["list", "of", "strings"])
+)
 ```
 
 
@@ -387,20 +386,15 @@ assert string_or_list_string_validator(["list", "of", "strings"]) == Ok(Second([
 TupleN validators work as you might expect:
 ```python
 from koda import Ok
+from koda_validate import IntValidator, StringValidator, Tuple2Validator
 
-from koda_validate.integer import IntValidator
-from koda_validate.string import StringValidator
-from koda_validate.tuple import Tuple2Validator
-
-string_int_validator = Tuple2Validator(
-    StringValidator(),
-    IntValidator()
-)
+string_int_validator = Tuple2Validator(StringValidator(), IntValidator())
 
 assert string_int_validator(("ok", 100)) == Ok(("ok", 100))
 
 # also ok with lists
 assert string_int_validator(["ok", 100]) == Ok(("ok", 100))
+
 ```
 
 
@@ -439,10 +433,7 @@ need to be concerned about individual keys or values:
 
 ```python
 from koda import Ok
-
-from koda_validate.dictionary import MapValidator
-from koda_validate.integer import IntValidator
-from koda_validate.string import StringValidator
+from koda_validate import IntValidator, MapValidator, StringValidator
 
 str_to_int_validator = MapValidator(StringValidator(), IntValidator())
 
@@ -458,9 +449,7 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Ok(
 
 ```python
 from koda import Ok
-
-from koda_validate.integer import IntValidator
-from koda_validate.none import OptionalValidator
+from koda_validate import IntValidator, OptionalValidator
 
 optional_int_validator = OptionalValidator(IntValidator())
 
@@ -474,8 +463,8 @@ assert optional_int_validator(None) == Ok(None)
 
 ```python
 from dataclasses import dataclass
-from koda import Maybe, nothing, Ok, Just
-from koda_validate import dict_validator, StringValidator, key, IntValidator, maybe_key
+from koda import Just, Maybe, Ok, nothing
+from koda_validate import IntValidator, StringValidator, dict_validator, key, maybe_key
 
 
 @dataclass
@@ -485,9 +474,7 @@ class Person:
 
 
 person_validator = dict_validator(
-    Person,
-    key("name", StringValidator()),
-    maybe_key("age", IntValidator())
+    Person, key("name", StringValidator()), maybe_key("age", IntValidator())
 )
 assert person_validator({"name": "Bob"}) == Ok(Person("Bob", nothing))
 assert person_validator({"name": "Bob", "age": 42}) == Ok(Person("Bob", Just(42)))
