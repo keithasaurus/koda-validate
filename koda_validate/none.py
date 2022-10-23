@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from koda import Err, Just, Maybe, Ok, Result, nothing
+from koda import Err, Ok, Result
 from koda._generics import A
 
 from koda_validate.typedefs import JSONValue, Validator

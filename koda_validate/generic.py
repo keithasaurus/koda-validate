@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Callable, Set, TypeVar
+from typing import Set, TypeVar
 
 from koda import Result, Thunk
 from koda._generics import A

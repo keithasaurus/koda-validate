@@ -13,7 +13,7 @@ Koda Validate aims to make writing validators easier. Specific areas of focus in
 ```python3
 from dataclasses import dataclass
 
-from koda import Err, Ok
+from koda import Ok
 
 from koda_validate.dictionary import dict_validator, key
 from koda_validate.generic import Min
@@ -28,17 +28,18 @@ class Person:
 
 
 person_validator = dict_validator(
-    Person,  # <- validated values are sent to a target callable _in order_ 
+    Person,  # <- destination of data if valid
     key("name", StringValidator(MinLength(1))),  # <- first key
     key("age", IntValidator(Min(0))),  # <- second key...
 )
 
-# for python >= 3.10 only. Use `if isinstance(...)` with python < 3.10
-match person_validator({"name": "John Doe", "age": 30}):
-    case Ok(Person(name, age)):
-        print(f"{name} is {age} years old")
-    case Err(errs):
-        print(errs)
+# note that `match` statements can be used in python >= 3.10
+result = person_validator({"name": "John Doe", "age": 30})
+if isinstance(result, Ok):
+    print(f"{result.val.name} is {result.val.age} years old")
+else:
+    print(result.val)
+
 ```
 
 OK, cool, we can validate two fields on a dictionary... let's build something more complex.
