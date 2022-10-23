@@ -351,7 +351,8 @@ core, they are also classes that can easily be inspected. (This ease of inspecti
 classes _at all_ in Koda Validate.) Interpreters are the recommended way to re-use validator metadata for 
 non-validation purposes.
 
-## Other Noteworthy Parts 
+## Other Noteworthy Validators 
+
 
 **OneOf2 / OneOf3**
 
@@ -371,6 +372,7 @@ string_or_list_string_validator = OneOf2(
 assert string_or_list_string_validator("ok") == Ok(First("ok"))
 assert string_or_list_string_validator(["list", "of", "strings"]) == Ok(Second(["list", "of", "strings"]))
 ```
+
 
 **Tuple2 / Tuple3**
 
@@ -392,6 +394,7 @@ assert string_int_validator(("ok", 100)) == Ok(("ok", 100))
 # also ok with lists
 assert string_int_validator(["ok", 100]) == Ok(("ok", 100))
 ```
+
 
 **Lazy**
 `Lazy`'s main purpose is to allow for the use of recursion in validation. An example use case of this might be replies
@@ -422,6 +425,7 @@ assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Ok(
 )
 
 ```
+
 
 **MapValidator**
 
