@@ -219,9 +219,9 @@ assert neighborhood_validator(
 
 ## Validators, Predicates, and Extension
 There are two kinds of `Callable`s used for validation in Koda Validate: `Validator`s and `Predicate`s. `Validator`s 
-can take an input of one type and produce a valid result of another type; whether the value and/or type is altered is
-entirely dependent on the given `Validator`s requirements. `Validator`s commonly accept type `Any` and validate that 
-it conforms to some type or data shape. As an example, we'll write a simple `Validator` for `float`s here:
+can take an input of one type and produce a valid result of another type (whether the value and/or type is altered or 
+not is entirely dependent on the given `Validator`s requirements). `Validator`s commonly accept type `Any` and validate 
+that it conforms to some type or data shape. As an example, we'll write a simple `Validator` for `float`s here:
 
 ```python
 from typing import Any
