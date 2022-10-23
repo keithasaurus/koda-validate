@@ -50,7 +50,9 @@ class Predicate(Generic[A, FailT]):
 
 
 # When mypy enables recursive types by default
-# JSONValue = Union[None, int, str, bool, float, List["JSONValue"], Dict[str, "JSONValue"]]
+# JSONValue = Union[
+#    None, int, str, bool, float, List["JSONValue"], Dict[str, "JSONValue"]
+# ]
 JSONValue = Union[None, int, str, bool, float, List[Any], Dict[str, Any]]
 
 
