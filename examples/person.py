@@ -13,8 +13,8 @@ class Person:
 
 person_validator = dict_validator(
     Person,  # <- destination of data if valid
-    key("name", StringValidator(MinLength(1))),  # <- first key
-    key("age", IntValidator(Min(0))),  # <- second key...
+    key("name", StringValidator()),  # <- first key
+    key("age", IntValidator()),  # <- second key...
 )
 
 # note that `match` statements can be used in python >= 3.10

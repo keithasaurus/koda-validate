@@ -19,17 +19,12 @@ def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]
             raise TypeError(f"unhandled validator type. got {type(validator)}")
 
 
-assert describe_validator(StringValidator()) == "validates a string"
-assert (
-    describe_validator(StringValidator(MinLength(5)))
-    == "validates a string\n- minimum length 5"
-)
-assert (
-    describe_validator(StringValidator(MinLength(3), MaxLength(8)))
-    == "validates a string\n- minimum length 3\n- maximum length 8"
-)
-
-
-class Person:
-    name: str
-    age: int
+print(describe_validator(StringValidator()))
+# > validates a string
+print(describe_validator(StringValidator(MinLength(5))))
+# > validates a string
+# > - minimum length 5
+print(describe_validator(StringValidator(MinLength(3), MaxLength(8))))
+# > validates a string
+# > - minimum length 3
+# > - maximum length 8
