@@ -153,7 +153,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], JSONValue]):
             else:
                 return Ok(return_dict)
         else:
-            return Err({"__container__": [expected("a map")]})
+            return Err({OBJECT_ERRORS_FIELD: [expected("a map")]})
 
 
 class IsDict(Validator[Any, Dict[Any, Any], JSONValue]):

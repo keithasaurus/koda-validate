@@ -5,7 +5,7 @@ from koda import Err, Ok, Result
 from koda._generics import A
 
 from koda_validate.typedefs import JSONValue, Predicate, Validator
-from koda_validate.utils import expected
+from koda_validate.utils import OBJECT_ERRORS_FIELD, expected
 
 
 @dataclass(frozen=True)
@@ -82,7 +82,7 @@ class ListValidator(Validator[Any, List[A], JSONValue]):
                     list_errors.append(result.val)
 
             if len(list_errors) > 0:
-                errors["__container__"] = list_errors
+                errors[OBJECT_ERRORS_FIELD] = list_errors
 
             for i, item in enumerate(val):
                 item_result = self.item_validator(item)
@@ -96,7 +96,7 @@ class ListValidator(Validator[Any, List[A], JSONValue]):
             else:
                 return Ok(return_list)
         else:
-            return Err({"__container__": [expected("a list")]})
+            return Err({OBJECT_ERRORS_FIELD: [expected("a list")]})
 
 
 unique_items = UniqueItems()

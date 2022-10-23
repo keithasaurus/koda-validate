@@ -50,9 +50,6 @@ def _variant_errors(*variants: JSONValue) -> JSONValue:
     return {f"variant {i + 1}": v for i, v in enumerate(variants)}
 
 
-CONTAINER_KEY: Final[str] = "__container__"
-
-
 def _flat_map_same_type_if_not_none(
     fn: Optional[Callable[[A], Result[A, FailT]]],
     r: Result[A, FailT],

@@ -12,7 +12,6 @@ from koda.result import Err, Ok, Result
 from koda_validate.boolean import BooleanValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
-    OBJECT_ERRORS_FIELD,
     Dict2KeysValidator,
     Dict4KeysValidator,
     Dict5KeysValidator,
@@ -45,6 +44,7 @@ from koda_validate.string import (
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.typedefs import JSONValue, Predicate
+from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
 def test_decimal() -> None:

@@ -5,7 +5,7 @@ from koda import Err, Result
 from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
 from koda_validate.typedefs import JSONValue, Validator
-from koda_validate.utils import expected
+from koda_validate.utils import OBJECT_ERRORS_FIELD, expected
 from koda_validate.validate_and_map import validate_and_map
 
 
@@ -47,7 +47,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B], JSONValue]):
         else:
             return Err(
                 {
-                    "__container__": [
+                    OBJECT_ERRORS_FIELD: [
                         expected(f"list or tuple of length {self.required_length}")
                     ]
                 }
@@ -90,7 +90,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C], JSONValue]):
         else:
             return Err(
                 {
-                    "__container__": [
+                    OBJECT_ERRORS_FIELD: [
                         expected(f"list or tuple of length {self.required_length}")
                     ]
                 }
