@@ -483,6 +483,7 @@ assert optional_int_validator(None) == Ok(None)
 ## Limitations
 
 **`dict_validator` has a max keys limit**
+
 By default `dict_validator` can have a maximum of 20 keys. You can change this by generating code
 and storing it in your project:
 ```bash
@@ -494,6 +495,7 @@ it's not common to have that many keys in a dict.
 
 
 **`dict_validator` types may be hard to read / slow for your editor or type-checker**
+
 `dict_validator` is a convenience function that delegates to different `Validator`s depending 
 on the number of keys -- for example, `Dict2KeysValidator`, `Dict3KeysValidator`, etc. These
 numbered validators are limited to a specific number of keys and can be used to mitigate
@@ -501,4 +503,5 @@ such issues.
 
 
 **`dict_validator`'s keys only allow for strings**
+
 This should be resolved in a later release.
