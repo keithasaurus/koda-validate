@@ -19,7 +19,11 @@ from koda import Err, Just, Maybe, Nothing, Ok, Result, mapping_get
 
 from koda_validate._generics import A
 from koda_validate.typedefs import JSONValue, Predicate, Validator, ValidatorFunc
-from koda_validate.utils import _flat_map_same_type_if_not_none, expected
+from koda_validate.utils import (
+    OBJECT_ERRORS_FIELD,
+    _flat_map_same_type_if_not_none,
+    expected,
+)
 from koda_validate.validate_and_map import validate_and_map
 
 T1 = TypeVar("T1")
@@ -45,9 +49,9 @@ T20 = TypeVar("T20")
 Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
-OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, JSONValue]]]
+
 
 _KEY_MISSING: Final[str] = "key missing"
 
@@ -2436,6 +2440,7 @@ def dict_validator(
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
 ) -> Validator[Any, Ret, JSONValue]:
+
     if field2 is None:
         return Dict1KeysValidator(
             cast(Callable[[T1], Ret], into), field1, validate_object=validate_object

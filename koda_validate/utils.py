@@ -61,3 +61,6 @@ def _flat_map_same_type_if_not_none(
         return r
     else:
         return r.flat_map(fn)
+
+
+OBJECT_ERRORS_FIELD = "__container__"

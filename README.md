@@ -2,10 +2,10 @@
 
 Typesafe, combinable validation. Python 3.8+
 
-Koda Validate aims to make writing validators easier. Specific areas of focus include:  
-- requiring little time debugging or reading documentation 
-- facilitating the building of complex validators
-- reusing validator metadata (i.e. rendering API schemas)
+Koda Validate aims to make writing validators easier. Specific areas of focus include:   
+- combining simple validators into more complex validators 
+- requiring little time debugging or reading documentation
+- reusing validator metadata for different needs (i.e. rendering API schemas)
 
 
 ## The Basics
@@ -403,7 +403,7 @@ in a comment thread. This can be done with mutually recursive functions, as seen
 ```python
 from typing import Optional
 
-from koda import Maybe, Ok
+from koda import Ok
 
 from koda_validate.generic import Lazy
 from koda_validate.integer import IntValidator
