@@ -452,11 +452,20 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Ok({'a': 1, 'b': 2
 `OptionalValidator` is very simple. It validates a value is either `None` or passes another validator's rules.
 
 ```python
+from koda import Ok
+
+from koda_validate.integer import IntValidator
+from koda_validate.none import OptionalValidator
+
+optional_int_validator = OptionalValidator(IntValidator())
+
+assert optional_int_validator(5) == Ok(5)
+assert optional_int_validator(None) == Ok(None)
 
 ```
 
 
-## Caveats 
+## Limitations
 
 ### `dict_validator` has a max keys limit
 By default `dict_validator` can have a maximum of 20 keys. You can change this by generating code
