@@ -1,8 +1,6 @@
 from koda import First, Ok, Second
 
-from koda_validate.list import ListValidator
-from koda_validate.one_of import OneOf2
-from koda_validate.string import StringValidator
+from koda_validate import ListValidator, OneOf2, StringValidator
 
 string_or_list_string_validator = OneOf2(
     StringValidator(), ListValidator(StringValidator())

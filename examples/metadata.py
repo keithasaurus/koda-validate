@@ -1,7 +1,6 @@
 from typing import Any
 
-from koda_validate.string import MaxLength, MinLength, StringValidator
-from koda_validate.typedefs import Predicate, Validator
+from koda_validate import MaxLength, MinLength, Predicate, StringValidator, Validator
 
 
 def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]) -> str:

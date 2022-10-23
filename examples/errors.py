@@ -2,9 +2,7 @@ from dataclasses import dataclass
 
 from koda import Err, Maybe
 
-from koda_validate.dictionary import dict_validator, key, maybe_key
-from koda_validate.generic import Choices
-from koda_validate.string import MinLength, StringValidator, not_blank
+from koda_validate import *
 
 # wrong type
 assert StringValidator()(None) == Err(["expected a string"])

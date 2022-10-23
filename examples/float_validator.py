@@ -2,7 +2,7 @@ from typing import Any
 
 from koda import Err, Result
 
-from koda_validate.typedefs import JSONValue, Predicate, Validator
+from koda_validate import JSONValue, Predicate, Validator
 from koda_validate.utils import accum_errors_json
 
 

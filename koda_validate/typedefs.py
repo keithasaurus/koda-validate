@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Callable, Dict, Generic, List, Union, final
+from typing import Any, Callable, Dict, Generic, List, Union, final
 
 from koda import Err, Ok, Result
 
@@ -49,7 +49,9 @@ class Predicate(Generic[A, FailT]):
             return Err(self.err_message(val))
 
 
-JSONValue = Union[None, int, str, bool, float, List["JSONValue"], Dict[str, "JSONValue"]]
+# When mypy enables recursive types by default
+# JSONValue = Union[None, int, str, bool, float, List["JSONValue"], Dict[str, "JSONValue"]]
+JSONValue = Union[None, int, str, bool, float, List[Any], Dict[str, Any]]
 
 
 class Processor(Generic[A]):

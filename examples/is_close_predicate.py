@@ -3,8 +3,7 @@ from dataclasses import dataclass
 
 from koda import Err, Ok
 
-from koda_validate.float import FloatValidator
-from koda_validate.typedefs import JSONValue, Predicate
+from koda_validate import FloatValidator, JSONValue, Predicate
 
 
 @dataclass

@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Final, Iterable, List, Optional, cast
+from typing import TYPE_CHECKING, Callable, Iterable, List, Optional, cast
 
 from koda import Err, Ok, Result
 
-from koda_validate._cruft import _chain
 from koda_validate._generics import A, FailT
 from koda_validate.typedefs import JSONValue, Predicate
 
@@ -32,9 +31,6 @@ def accum_errors(
         if TYPE_CHECKING:
             assert isinstance(result, Ok)
         return Ok(result.val)
-
-
-chain = _chain
 
 
 def accum_errors_json(

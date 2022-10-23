@@ -2,10 +2,7 @@ from typing import Optional
 
 from koda import Ok
 
-from koda_validate.generic import Lazy
-from koda_validate.integer import IntValidator
-from koda_validate.none import OptionalValidator
-from koda_validate.tuple import Tuple2Validator
+from koda_validate import IntValidator, Lazy, OptionalValidator, Tuple2Validator
 
 NonEmptyList = tuple[int, Optional["NonEmptyList"]]
 

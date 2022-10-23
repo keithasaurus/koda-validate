@@ -44,7 +44,7 @@ class RegexPredicate(Predicate[str, JSONValue]):
 
 
 @dataclass(frozen=True)
-class Email(Predicate[str, JSONValue]):
+class EmailPredicate(Predicate[str, JSONValue]):
     pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
 
     def is_valid(self, val: str) -> bool:

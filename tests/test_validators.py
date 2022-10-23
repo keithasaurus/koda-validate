@@ -35,7 +35,7 @@ from koda_validate.none import OptionalValidator, none_validator
 from koda_validate.one_of import OneOf2, OneOf3
 from koda_validate.string import (
     BLANK_STRING_MSG,
-    Email,
+    EmailPredicate,
     MaxLength,
     NotBlank,
     RegexPredicate,
@@ -739,10 +739,10 @@ def test_one_of3() -> None:
 
 
 def test_email() -> None:
-    assert Email()("notanemail") == Err("expected a valid email address")
-    assert Email()("a@b.com") == Ok("a@b.com")
+    assert EmailPredicate()("notanemail") == Err("expected a valid email address")
+    assert EmailPredicate()("a@b.com") == Ok("a@b.com")
 
-    custom_regex_validator = Email(re.compile(r"[a-z.]+@somecompany\.com"))
+    custom_regex_validator = EmailPredicate(re.compile(r"[a-z.]+@somecompany\.com"))
     assert custom_regex_validator("a.b@somecompany.com") == Ok("a.b@somecompany.com")
     assert custom_regex_validator("a.b@example.com") == Err(
         "expected a valid email address"

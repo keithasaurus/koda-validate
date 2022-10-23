@@ -1,8 +1,6 @@
 from koda import Ok
 
-from koda_validate.dictionary import MapValidator
-from koda_validate.integer import IntValidator
-from koda_validate.string import StringValidator
+from koda_validate import IntValidator, MapValidator, StringValidator
 
 str_to_int_validator = MapValidator(StringValidator(), IntValidator())
 
