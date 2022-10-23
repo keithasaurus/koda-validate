@@ -95,7 +95,7 @@ A few things to note:
 - we can pre-process strings for formatting
 - we have two stages of validation on dictionaries: first the keys, then the entire object
 
-OK, now we'll create a validator for company data to see how easy it is to combine and reuse our validators: 
+OK, now we'll create a validator for company data to see how easy it is to combine validators: 
 
 ```python
 @dataclass
@@ -139,7 +139,7 @@ company_list_validator = ListValidator(company_validator)
 
 ```
 It's worth stopping and mentioning a few points about the above:
-- this is all typesafe in mypy without any plugins
+- this is all typesafe in mypy (without any plugins)
 - we can validate lists, dicts, strings, etc., either on their own or nested
 - it is relatively simple to write
 
@@ -217,19 +217,11 @@ assert neighborhood_validator(
 
 ```
 
-Note that while extra keys are invalid, there are several ways of dealing with empty keys in this
-library
-- maybe_key: the key does not need to be present
-- MapValidator: a mapping of one type to another, where the individual keys and values don't need to be specified
-- OptionalValidator: the value can be `None` or valid according to some validator 
-- OneOf2: one of two different validators can be valid 
-- OneOf3: one of three different validators can be valid
-
 ## Validators, Predicates, and Extension
 There are two kinds of `Callable`s used for validation in Koda Validate: `Validator`s and `Predicate`s. `Validator`s 
-can take an input of one type and produce a valid result of another type; or they can adjust the value (They can also
-leave the same type and/or value intact). Commonly validators are used for taking data of type `Any` and validating 
-that it conforms to some type or data shape. As an example, we'll write a simple `Validator` for `float`s here:
+can take an input of one type and produce a valid result of another type; whether the value and/or type is altered is
+entirely dependent on the given `Validator`s requirements. `Validator`s commonly accept type `Any` and validate that 
+it conforms to some type or data shape. As an example, we'll write a simple `Validator` for `float`s here:
 
 ```python
 from typing import Any
@@ -247,9 +239,9 @@ class SimpleFloatValidator(Validator[Any, float, JSONValue]):
 
 What is this doing? 
 - extending `Validator`, using the following types:
-  - `Any`: type of input allowed
-  - `float`: the type of the validated data
-  - `JSONValue`: the type of the error in case of invalid data
+  - `Any`: any type of input can be passed in allowed
+  - `float`: if it's valid a float will be returned 
+  - `JSONValue`: if it's invalid JSONValue will be returned 
 - wrapping the submitted `val` in an `Ok` and returning it if `val` is a `float` 
 - wrapping an error message in `Err` if `val` is not a float 
 
