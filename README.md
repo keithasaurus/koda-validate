@@ -106,13 +106,13 @@ assert employee_validator(
 ) == Err("Assistant TO THE Regional Manager!")
 
 ```
-Things to note about `employee validator`:
+Things to note about `employee_validator`:
 - we can pre-process strings for formatting
 - we can add in additional checks to validators (e.g. `not_blank`, `MaxLength`, etc.)
 - we have two stages of validation on dictionaries: first the keys, then the entire object
-- apparently we have a problem with someone named Dwight Schrute giving himself the wrong title.
+- apparently we have a problem with someone named Dwight Schrute giving himself the wrong title
 
-Let's reuse the employee validator, so we can see how easy validators are to combine. 
+Let's reuse `employee_validator`, so we can see how easy validators are to combine. 
 
 ```python
 
@@ -236,9 +236,7 @@ write a simple `Validator` for `float`s here:
 
 ```python
 from typing import Any
-
 from koda import Err, Ok, Result
-
 from koda_validate.typedefs import JSONValue, Validator
 
 
@@ -279,8 +277,8 @@ class FloatValidator(Validator[Any, float, JSONValue]):
 
 ```
 
-`Predicate`s allow us to validate the _value_ of a known type. This is how you might write and use a `Predicate` 
-for approximate `float` equality:
+`Predicate`s are meant to validated _value_ of a known type -- as opposed to validating at the type-level. For example, 
+this is how you might write and use a `Predicate` for approximate `float` equality:
 
 ```python
 import math
@@ -310,16 +308,17 @@ assert close_to_validator(0.01) == Err(["expected a value within 0.02 of 0.05"])
 ```
 
 Notice that in `Predicate`s we define `is_valid` and `err_message` methods, while in `Validator`s we define the 
-entire `__call__` method. This is because the base `Predicate` class is coded in such a way that we limit how much it 
-can actually do -- we don't want it to be able to alter the value being validated. This turns out to be useful because 
-it allows us to proceed sequentially through an arbitrary amount of `Predicate`s of the same type, while being 
-confident that we can return all `Predicate` errors for a given `Validator`.  
+entire `__call__` method. This is because the base `Predicate` class is constructed in such a way that we limit how 
+much it can actually do -- we don't want it to be able to alter the value being validated. This turns out to be useful 
+because it allows us to proceed sequentially through an arbitrary amount of `Predicate`s of the same type in a given 
+validator. Only because of this property can we be confident in our ability to return all `Predicate` errors for a 
+given `Validator` (instead of exiting at the first failure).
 
 ## Metadata
 Previously we said an aim of Koda Validate is to allow reuse of validator metadata. Principally this 
 is useful in generating descriptions of the validator's constraints -- one example could be generating
-an OpenAPI (or other) schema. Here we'll use validator metadata to build a function which can return very simple 
-plaintext descriptions of validators:
+an OpenAPI (or other) schema. Here we'll do something simpler and use validator metadata to build a function which can 
+return plaintext descriptions of validators:
 
 ```python3
 from typing import Any
@@ -480,7 +479,6 @@ assert person_validator({"name": "Bob"}) == Ok(Person("Bob", nothing))
 assert person_validator({"name": "Bob", "age": 42}) == Ok(Person("Bob", Just(42)))
 
 ```
-
 
 ## Limitations
 
