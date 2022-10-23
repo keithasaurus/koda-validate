@@ -9,20 +9,20 @@ from koda_validate.utils import _variant_errors, expected
 
 
 @dataclass(frozen=True)
-class Noneable(Validator[Any, Maybe[A], JSONValue]):
+class OptionalValidator(Validator[Any, Optional[A], JSONValue]):
     """
     We have a value for a key, but it can be null (None)
     """
 
     validator: Validator[Any, A, JSONValue]
 
-    def __call__(self, val: Optional[Any]) -> Result[Maybe[A], JSONValue]:
+    def __call__(self, val: Optional[Any]) -> Result[Optional[A], JSONValue]:
         if val is None:
-            return Ok(nothing)
+            return Ok(None)
         else:
             result: Result[A, JSONValue] = self.validator(val)
             if isinstance(result, Ok):
-                return result.map(Just)
+                return Ok(result.val)
             else:
                 return result.map_err(
                     lambda errs: _variant_errors(["must be None"], errs)

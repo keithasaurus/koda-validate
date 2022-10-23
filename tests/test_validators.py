@@ -32,7 +32,7 @@ from koda_validate.float import FloatValidator
 from koda_validate.generic import Choices, Exactly, Lazy, Max, Min, MultipleOf
 from koda_validate.integer import IntValidator
 from koda_validate.list import ListValidator, MaxItems, MinItems, unique_items
-from koda_validate.none import Noneable, none_validator
+from koda_validate.none import OptionalValidator, none_validator
 from koda_validate.one_of import OneOf2, OneOf3
 from koda_validate.string import (
     BLANK_STRING_MSG,
@@ -123,15 +123,15 @@ def test_integer() -> None:
     ) == Err(["maximum allowed value is 10", "must be divisible by 2"])
 
 
-def test_noneable() -> None:
-    assert Noneable(StringValidator())(None) == Ok(nothing)
-    assert Noneable(StringValidator())(5) == Err(
+def test_optional_validator() -> None:
+    assert OptionalValidator(StringValidator())(None) == Ok(None)
+    assert OptionalValidator(StringValidator())(5) == Err(
         val={"variant 1": ["must be None"], "variant 2": ["expected a string"]}
     )
-    assert Noneable(StringValidator())("okok") == Ok(Just("okok"))
+    assert OptionalValidator(StringValidator())("okok") == Ok("okok")
 
 
-def test_map_of() -> None:
+def test_map_validator() -> None:
     assert MapValidator(StringValidator(), StringValidator())(5) == Err(
         {"__container__": ["expected a map"]}
     )
@@ -157,8 +157,10 @@ def test_map_of() -> None:
     )
     assert complex_validator({"key1": 10, "key1a": 2},) == Err(
         {
-            "key1a": ["minimum allowed value is 5"],
-            "key1a (key)": ["maximum allowed length is 4"],
+            "key1a": {
+                "value_error": ["minimum allowed value is 5"],
+                "key_error": ["maximum allowed length is 4"],
+            },
             "__container__": ["max 1 key(s) allowed"],
         }
     )
@@ -171,7 +173,7 @@ def test_map_of() -> None:
         {
             OBJECT_ERRORS_FIELD: [
                 "max 1 key(s) allowed",
-                ["expected an integer"],
+                {"value_error": ["expected an integer"]},
             ]
         }
     ), (
@@ -224,6 +226,7 @@ def test_tuple2() -> None:
     )
 
     assert Tuple2Validator(StringValidator(), IntValidator())(["a", 1]) == Ok(("a", 1))
+    assert Tuple2Validator(StringValidator(), IntValidator())(("a", 1)) == Ok(("a", 1))
 
     assert Tuple2Validator(StringValidator(), IntValidator())([1, "a"]) == Err(
         {"0": ["expected a string"], "1": ["expected an integer"]}
@@ -260,6 +263,10 @@ def test_tuple3() -> None:
 
     assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
         ["a", 1, False]
+    ) == Ok(("a", 1, False))
+
+    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+        ("a", 1, False)
     ) == Ok(("a", 1, False))
 
     assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(

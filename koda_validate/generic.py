@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Callable, Set, TypeVar
 
-from koda import Result
+from koda import Result, Thunk
 from koda._generics import A
 
 from koda_validate._generics import Ret
@@ -14,12 +14,12 @@ EnumT = TypeVar("EnumT", str, int)
 
 @dataclass(frozen=True, init=False)
 class Lazy(Validator[A, Ret, JSONValue]):
-    validator: Callable[[], Validator[A, Ret, JSONValue]]
+    validator: Thunk[Validator[A, Ret, JSONValue]]
     recurrent: bool = True
 
     def __init__(
         self,
-        validator: Callable[[], Validator[A, Ret, JSONValue]],
+        validator: Thunk[Validator[A, Ret, JSONValue]],
         recurrent: bool = True,
     ) -> None:
         """

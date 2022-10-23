@@ -149,57 +149,78 @@ from dataclasses import dataclass
 
 from koda import Err, Maybe
 
-from koda_validate.processors import strip
-from koda_validate.validators.dicts import dict_validator
-from koda_validate.validators.validators import (
-  Choices,
-  Min,
-  key,
-  maybe_key,
-)
-from koda_validate.integer import IntValidator
-from koda_validate.string import StringValidator, not_blank, MinLength
+from koda_validate.dictionary import dict_validator, key, maybe_key
+from koda_validate.generic import Choices
+from koda_validate.string import MinLength, StringValidator, not_blank
 
 # wrong type
 assert StringValidator()(None) == Err(["expected a string"])
 
 # all failing `Predicate`s are reported (not just the first)
-str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
+str_choice_validator = StringValidator(
+    MinLength(2),
+    Choices({"abc", "yz"})
+)
 assert str_choice_validator("") == Err(
-  ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
+    ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
 )
 
 
 @dataclass
 class City:
-  region: str
-  population: Maybe[int]
+    name: str
+    region: Maybe[str]
 
 
 city_validator = dict_validator(
-  City,
-  key("region", StringValidator(not_blank, preprocessors=[strip])),
-  maybe_key("population", IntValidator(Min(0))),
+    City,
+    key("name", StringValidator(not_blank)),
+    maybe_key("region", StringValidator(not_blank)),
 )
 
 # all errors are json serializable. we use the key "__container__" for object-level errors
 assert city_validator(None) == Err({"__container__": ["expected a dictionary"]})
 
 # required key is missing
-assert city_validator({}) == Err({"region": ["key missing"]})
+assert city_validator({}) == Err({"name": ["key missing"]})
 
 # extra keys are also errors
 assert city_validator(
-  {"region": "California", "population": 510, "country": "USA"}
+    {"region": "California", "population": 510, "country": "USA"}
 ) == Err(
-  {"__container__": ["Received unknown keys. Only expected ['population', 'region']"]}
+    {"__container__": ["Received unknown keys. Only expected ['name', 'region']"]}
 )
+
+
+@dataclass
+class Neighborhood:
+    name: str
+    city: City
+
+
+neighborhood_validator = dict_validator(
+    Neighborhood,
+    key("name", StringValidator(not_blank)),
+    key("city", city_validator)
+)
+
+# errors are nested
+assert neighborhood_validator(
+    {"name": "Bushwick", "city": {}}
+) == Err({
+    'city':
+        {
+            'name': ['key missing']
+        }
+})
+
 ```
 
 Note that while extra keys are invalid, there are several ways of dealing with empty keys in this
 library
 - maybe_key: the key does not need to be present
-- Noneable: the value can be `None` or valid according to some validator 
+- MapValidator: a mapping of one type to another, where the individual keys and values don't need to be specified
+- OptionalValidator: the value can be `None` or valid according to some validator 
 - OneOf2: one of two different validators can be valid 
 - OneOf3: one of three different validators can be valid
 
@@ -337,10 +358,107 @@ core, they are also classes that can easily be inspected. (This ease of inspecti
 classes _at all_ in Koda Validate.) Interpreters are the recommended way to re-use validator metadata for 
 non-validation purposes.
 
+## Other Noteworthy Parts 
+
+**OneOf2 / OneOf3**
+
+OneOfN validators are useful when you may have multiple valid shapes of data.
+```python
+from koda import Ok, First, Second
+
+from koda_validate.list import ListValidator
+from koda_validate.one_of import OneOf2
+from koda_validate.string import StringValidator
+
+string_or_list_string_validator = OneOf2(
+    StringValidator(),
+    ListValidator(StringValidator())
+)
+
+assert string_or_list_string_validator("ok") == Ok(First("ok"))
+assert string_or_list_string_validator(["list", "of", "strings"]) == Ok(Second(["list", "of", "strings"]))
+```
+
+**Tuple2 / Tuple3**
+
+TupleN validators work as you might expect:
+```python
+from koda import Ok
+
+from koda_validate.integer import IntValidator
+from koda_validate.string import StringValidator
+from koda_validate.tuple import Tuple2Validator
+
+string_int_validator = Tuple2Validator(
+    StringValidator(),
+    IntValidator()
+)
+
+assert string_int_validator(("ok", 100)) == Ok(("ok", 100))
+
+# also ok with lists
+assert string_int_validator(["ok", 100]) == Ok(("ok", 100))
+```
+
+**Lazy**
+`Lazy`'s main purpose is to allow for the use of recursion in validation. An example use case of this might be replies
+in a comment thread. This can be done with mutually recursive functions, as seen below.
+
+```python
+from koda import Maybe, Ok, Just, nothing
+
+from koda_validate.generic import Lazy
+from koda_validate.integer import IntValidator
+from koda_validate.none import OptionalValidator
+from koda_validate.tuple import Tuple2Validator
+
+NonEmptyList = tuple[int, Maybe["NonEmptyList"]]
+
+
+def recur_non_empty_list() -> Tuple2Validator[int, Maybe[NonEmptyList]]:
+  return non_empty_list_validator
+
+
+non_empty_list_validator = Tuple2Validator(
+  IntValidator(),
+  OptionalValidator(Lazy(recur_non_empty_list)),
+)
+
+assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Ok(
+  (1, Just((1, Just((2, Just((3, Just((5, nothing)))))))))
+)
+
+```
+
+**MapValidator**
+
+`MapValidator` allows us to validate dictionaries that are mappings of one type to another type, where we don't
+need to be concerned about individual keys or values:
+
+```python
+from koda import Ok
+
+from koda_validate.dictionary import MapValidator
+from koda_validate.integer import IntValidator
+from koda_validate.string import StringValidator
+
+str_to_int_validator = MapValidator(StringValidator(), IntValidator())
+
+assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Ok({'a': 1, 'b': 25, 'xyz': 900})
+```
+
+**OptionalValidator**
+
+`OptionalValidator` is very simple. It validates a value is either `None` or passes another validator's rules.
+
+```python
+
+```
+
 
 ## Caveats 
 
-### `dict_validator` max keys limit
+### `dict_validator` has a max keys limit
 By default `dict_validator` can have a maximum of 20 keys. You can change this by generating code
 and storing it in your project:
 ```bash

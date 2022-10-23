@@ -45,11 +45,9 @@ T20 = TypeVar("T20")
 Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
-
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, JSONValue]]]
-
 
 _KEY_MISSING: Final[str] = "key missing"
 
@@ -89,21 +87,21 @@ def maybe_key(
     return prop_, MaybeField(validator)
 
 
+@dataclass(frozen=True, init=False)
 class MapValidator(Validator[Any, Dict[T1, T2], JSONValue]):
-    """Note that while a key should always be expected to be received as a string,
-    it's possible that we may want to validate and cast it to a different
-    type (i.e. a date)
-    """
+    key_validator: Validator[Any, T1, JSONValue]
+    value_validator: Validator[Any, T2, JSONValue]
+    predicates: Tuple[Predicate[Dict[T1, T2], JSONValue], ...]
 
     def __init__(
         self,
         key_validator: Validator[Any, T1, JSONValue],
         value_validator: Validator[Any, T2, JSONValue],
-        *dict_validators: Predicate[Dict[T1, T2], JSONValue],
+        *predicates: Predicate[Dict[T1, T2], JSONValue],
     ) -> None:
-        self.key_validator = key_validator
-        self.value_validator = value_validator
-        self.dict_validators = dict_validators
+        object.__setattr__(self, "key_validator", key_validator)
+        object.__setattr__(self, "value_validator", value_validator)
+        object.__setattr__(self, "predicates", predicates)
 
     def __call__(self, data: Any) -> Result[Dict[T1, T2], JSONValue]:
         if isinstance(data, dict):
@@ -116,20 +114,26 @@ class MapValidator(Validator[Any, Dict[T1, T2], JSONValue]):
                 if isinstance(key_result, Ok) and isinstance(val_result, Ok):
                     return_dict[key_result.val] = val_result.val
                 else:
+                    err_key = str(key)
                     if isinstance(key_result, Err):
-                        errors[f"{key} (key)"] = key_result.val
+                        errors[err_key] = {"key_error": key_result.val}
 
                     if isinstance(val_result, Err):
-                        errors[key] = val_result.val
+                        err_dict = {"value_error": val_result.val}
+                        errs: Maybe[JSONValue] = mapping_get(errors, err_key)
+                        if isinstance(errs, Just) and isinstance(errs.val, dict):
+                            errs.val.update(err_dict)
+                        else:
+                            errors[err_key] = err_dict
 
             dict_validator_errors: List[JSONValue] = []
-            for validator in self.dict_validators:
+            for predicate in self.predicates:
                 # Note that the expectation here is that validators will likely
                 # be doing json like number of keys; they aren't expected
                 # to be drilling down into specific keys and values. That may be
                 # an incorrect assumption; if so, some minor refactoring is probably
                 # necessary.
-                result = validator(data)
+                result = predicate(data)
                 if isinstance(result, Err):
                     dict_validator_errors.append(result.val)
 
@@ -2432,7 +2436,6 @@ def dict_validator(
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
 ) -> Validator[Any, Ret, JSONValue]:
-
     if field2 is None:
         return Dict1KeysValidator(
             cast(Callable[[T1], Ret], into), field1, validate_object=validate_object

@@ -30,7 +30,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B], JSONValue]):
         self.tuple_validator = tuple_validator
 
     def __call__(self, data: Any) -> Result[Tuple[A, B], JSONValue]:
-        if isinstance(data, list) and len(data) == self.required_length:
+        if isinstance(data, (list, tuple)) and len(data) == self.required_length:
             result: Result[Tuple[A, B], Tuple[JSONValue, ...]] = validate_and_map(
                 _typed_tuple,
                 self.slot1_validator(data[0]),
@@ -72,7 +72,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C], JSONValue]):
         self.tuple_validator = tuple_validator
 
     def __call__(self, data: Any) -> Result[Tuple[A, B, C], JSONValue]:
-        if isinstance(data, list) and len(data) == self.required_length:
+        if isinstance(data, (list, tuple)) and len(data) == self.required_length:
             result: Result[Tuple[A, B, C], Tuple[JSONValue, ...]] = validate_and_map(
                 _typed_tuple,
                 self.slot1_validator(data[0]),
