@@ -8,7 +8,7 @@ from koda_validate import IntValidator, StringValidator, dict_validator, key, ma
 @dataclass
 class Person:
     name: str
-    age: Maybe[str]
+    age: Maybe[int]
 
 
 person_validator = dict_validator(
