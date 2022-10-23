@@ -1,6 +1,6 @@
 from typing import Optional
 
-from koda import Maybe, Ok
+from koda import Ok
 
 from koda_validate.generic import Lazy
 from koda_validate.integer import IntValidator
