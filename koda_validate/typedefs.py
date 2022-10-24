@@ -52,8 +52,18 @@ class Predicate(Generic[A, FailT]):
 #    None, int, str, bool, float,
 #    List["Serializable"], Tuple["Serializable", ...], Dict[str, "Serializable"]
 # ]
-Serializable = Union[
+Serializable1 = Union[
     None, int, str, bool, float, List[Any], Tuple[Any, ...], Dict[str, Any]
+]
+Serializable = Union[
+    None,
+    int,
+    str,
+    bool,
+    float,
+    List[Serializable1],
+    Tuple[Serializable1, ...],
+    Dict[str, Serializable1],
 ]
 
 
