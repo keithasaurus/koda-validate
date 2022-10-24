@@ -413,7 +413,7 @@ assert string_or_list_string_validator(["list", "of", "strings"]) == Ok(
 ```
 
 
-### Tuple2 / Tuple3
+#### Tuple2 / Tuple3
 
 TupleN validators work as you might expect:
 ```python
