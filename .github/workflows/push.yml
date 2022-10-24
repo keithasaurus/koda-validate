@@ -6,8 +6,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10']
-        poetry-version: [1.1.13]
+        python-version: ['3.10', '3.9', '3.8']
+        poetry-version: [1.2.2]
         os: [ubuntu-20.04, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -22,8 +22,9 @@ jobs:
       - name: poetry install
         run: poetry install
       - name: mypy
-        run: poetry run mypy .
+        # exclude examples in CI because some 3.10 features are used
+        run: poetry run mypy . --exclude examples
       - name: run tests
         run: poetry run pytest
       - name: linting
-        run: poetry run flake8
+        run: poetry run flake8 --exclude examples,codegen --ignore E741,W503,F405,F403,F401

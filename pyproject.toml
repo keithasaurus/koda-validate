@@ -1,22 +1,22 @@
 [tool.poetry]
 name = "koda-validate"
-version = "1.0-dev4"
+version = "1.0-rc1"
 description = ""
 authors = ["Keith Philpott"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-koda = "1.0.0"
+python = "^3.8"
+koda = "1.1.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "7.1.2"
-pyright = "1.1.256"
-pytest-cov = "3.0.0"
+pytest = "7.1.3"
+pyright = "1.1.276"
+pytest-cov = "4.0.0"
 isort = "5.10.1"
-black = "22.6.0"
-flake8 = "4.0.1"
-pre-commit = "2.19.0"
-mypy = "0.961"
+black = "22.10.0"
+flake8 = "5.0.4"
+pre-commit = "2.20.0"
+mypy = "0.982"
 
 
 [tool.mypy]
@@ -28,6 +28,7 @@ disallow_subclassing_any = true
 disallow_untyped_calls = true
 disallow_untyped_decorators = true
 disallow_untyped_defs = true
+enable_recursive_aliases = true
 ignore_errors = false
 ignore_missing_imports = false
 local_partial_types = true
@@ -49,9 +50,15 @@ addopts ="""
   --cov-report=term:skip-covered
   --cov-report=html
   --cov-branch
-  --cov-fail-under=90
+  --cov-fail-under=93
 """
 
+[tool.coverage.run]
+omit = [
+    "koda_validate/dictionary.py",
+    "koda_validate/validate_and_map.py",
+    "tests/*"
+]
 
 [tool.isort]
 line_length = 90
@@ -59,6 +66,7 @@ profile = "black"
 
 [tool.black]
 line_length = 90
+target_version = ['py310']
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
