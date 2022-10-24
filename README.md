@@ -24,7 +24,7 @@ person_validator = dict_validator(
     key("age", IntValidator())
 )
 
-# note that `match` statements can be used in python >= 3.10
+# `match` statements also work (python >= 3.10)
 result = person_validator({"name": "John Doe", "age": 30})
 if isinstance(result, Ok):
     print(f"{result.val.name} is {result.val.age} years old")
