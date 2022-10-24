@@ -432,7 +432,8 @@ assert string_int_validator(["ok", 100]) == Ok(("ok", 100))
 
 #### Lazy
 `Lazy`'s main purpose is to allow for the use of recursion in validation. An example use case of this might be replies
-in a comment thread. This can be done with mutually recursive functions, as seen below.
+in a comment thread. This can be done with mutually recursive functions. For simplicity, here's an example of parsing a 
+kind of non-empty list.
 
 ```python
 from typing import Optional
@@ -559,3 +560,7 @@ This should be resolved in a later release.
 
 #### Something's Missing Or Wrong 
 Open an issue on GitHub please!
+
+
+#### Your Imagination
+:rainbow
