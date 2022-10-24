@@ -7,7 +7,7 @@ __all__ = (
     "key",
     "maybe_key",
     "MapValidator",
-    "IsDict",
+    "IsDictValidator",
     "MinKeys",
     "MaxKeys",
     "dict_validator",
@@ -64,7 +64,7 @@ __all__ = (
 from koda_validate.boolean import BooleanValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
-    IsDict,
+    IsDictValidator,
     MapValidator,
     MaxKeys,
     MinKeys,
