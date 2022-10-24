@@ -1,3 +1,6 @@
+"""
+Deprecated. tests should be moved out of this module into more specific modules
+"""
 import re
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -12,16 +15,14 @@ from koda_validate.boolean import BooleanValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import Dict2KeysValidator, key, maybe_key
 from koda_validate.float import FloatValidator
-from koda_validate.generic import Choices, Lazy, Max, Min, MultipleOf
+from koda_validate.generic import Lazy, Max, Min
 from koda_validate.integer import IntValidator
-from koda_validate.list import MaxItems, MinItems, unique_items
 from koda_validate.none import OptionalValidator
 from koda_validate.one_of import OneOf2, OneOf3
 from koda_validate.string import (
     BLANK_STRING_MSG,
     EmailPredicate,
     NotBlank,
-    RegexPredicate,
     StringValidator,
 )
 from koda_validate.time import DatetimeValidator, DateValidator
@@ -111,24 +112,6 @@ def test_optional_validator() -> None:
         val={"variant 1": ["must be None"], "variant 2": ["expected a string"]}
     )
     assert OptionalValidator(StringValidator())("okok") == Ok("okok")
-
-
-def test_max_items() -> None:
-    assert MaxItems(0)([]) == Ok([])
-
-    assert MaxItems(5)([1, 2, 3]) == Ok([1, 2, 3])
-
-    assert MaxItems(5)(["a", "b", "c", "d", "e", "fghij"]) == Err(
-        "maximum allowed length is 5"
-    )
-
-
-def test_min_items() -> None:
-    assert MinItems(0)([]) == Ok([])
-
-    assert MinItems(3)([1, 2, 3]) == Ok([1, 2, 3])
-
-    assert MinItems(3)([1, 2]) == Err("minimum allowed length is 3")
 
 
 def test_tuple2() -> None:
@@ -226,13 +209,6 @@ _JONES_ERROR_MSG: Serializable = {
 }
 
 
-def test_choices() -> None:
-    validator = Choices({"a", "bc", "def"})
-
-    assert validator("bc") == Ok("bc")
-    assert validator("not present") == Err("expected one of ['a', 'bc', 'def']")
-
-
 def test_not_blank() -> None:
     assert NotBlank()("a") == Ok("a")
     assert NotBlank()("") == Err(BLANK_STRING_MSG)
@@ -298,42 +274,4 @@ def test_lazy() -> None:
 
     assert nel_validator({"val": 5, "next": {"val": 6, "next": {"val": 7}}}) == Ok(
         TestNonEmptyList(5, Just(TestNonEmptyList(6, Just(TestNonEmptyList(7, nothing)))))
-    )
-
-
-def test_unique_items() -> None:
-    unique_fail = Err("all items must be unique")
-    assert unique_items([1, 2, 3]) == Ok([1, 2, 3])
-    assert unique_items([1, 1]) == unique_fail
-    assert unique_items([1, [], []]) == unique_fail
-    assert unique_items([[], [1], [2]]) == Ok([[], [1], [2]])
-    assert unique_items([{"something": {"a": 1}}, {"something": {"a": 1}}]) == unique_fail
-
-
-def test_regex_validator() -> None:
-    assert RegexPredicate(re.compile(r".+"))("something") == Ok("something")
-    assert RegexPredicate(re.compile(r".+"))("") == Err("must match pattern .+")
-
-
-def test_multiple_of() -> None:
-    assert MultipleOf(5)(10) == Ok(10)
-    assert MultipleOf(5)(11) == Err("expected multiple of 5")
-    assert MultipleOf(2.2)(4.40) == Ok(4.40)
-
-
-def test_min() -> None:
-    assert Min(5)(5) == Ok(5)
-    assert Min(5)(4) == Err("minimum allowed value is 5")
-    assert Min(5, exclusive_minimum=True)(6) == Ok(6)
-    assert Min(5, exclusive_minimum=True)(5) == Err(
-        "minimum allowed value (exclusive) is 5"
-    )
-
-
-def test_max() -> None:
-    assert Max(5)(5) == Ok(5)
-    assert Max(4, exclusive_maximum=True)(3) == Ok(3)
-    assert Max(5)(6) == Err("maximum allowed value is 5")
-    assert Max(5, exclusive_maximum=True)(5) == Err(
-        "maximum allowed value (exclusive) is 5"
     )

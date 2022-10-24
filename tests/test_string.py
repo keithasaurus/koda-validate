@@ -1,5 +1,8 @@
+import re
+
 from koda import Err, Ok
 
+from koda_validate import RegexPredicate
 from koda_validate.string import (
     MaxLength,
     MinLength,
@@ -63,3 +66,8 @@ def test_min_string_length() -> None:
     assert MinLength(3)("abc") == Ok("abc")
 
     assert MinLength(3)("zz") == Err("minimum allowed length is 3")
+
+
+def test_regex_validator() -> None:
+    assert RegexPredicate(re.compile(r".+"))("something") == Ok("something")
+    assert RegexPredicate(re.compile(r".+"))("") == Err("must match pattern .+")

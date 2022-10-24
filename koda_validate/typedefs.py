@@ -49,7 +49,8 @@ class Predicate(Generic[A, FailT]):
 
 # When mypy enables recursive types by default
 # Serializable = Union[
-#    None, int, str, bool, float, List["Serializable"], Tuple["Serializable", ...], Dict[str, "Serializable"]
+#    None, int, str, bool, float,
+#    List["Serializable"], Tuple["Serializable", ...], Dict[str, "Serializable"]
 # ]
 Serializable = Union[
     None, int, str, bool, float, List[Any], Tuple[Any, ...], Dict[str, Any]
