@@ -2,13 +2,14 @@ from decimal import Decimal
 
 from koda import Err, Ok
 
-from koda_validate import Choices, ExactValidator, Max, Min, MultipleOf
+from koda_validate import Choices, ExactValidator, Max, Min, MultipleOf, strip
 
 
 def test_exactly() -> None:
     assert ExactValidator(5)(5) == Ok(5)
     assert ExactValidator(5)(4) == Err(["expected exactly 5 (int)"])
     assert ExactValidator("ok")("ok") == Ok("ok")
+    assert ExactValidator("ok", preprocessors=[strip])(" ok ") == Ok("ok")
     assert ExactValidator("ok")("not ok") == Err(['expected exactly "ok" (str)'])
     assert ExactValidator(Decimal("1.25"))(Decimal("1.25")) == Ok(Decimal("1.25"))
     assert ExactValidator(Decimal("1.1"))(Decimal("5")) == Err(

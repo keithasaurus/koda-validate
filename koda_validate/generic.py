@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Set, TypeVar
+from typing import Any, List, Optional, Set, TypeVar
 from uuid import UUID
 
 from koda import Err, Ok, Result, Thunk
 from koda._generics import A
 
 from koda_validate._generics import Ret
-from koda_validate.typedefs import Predicate, Serializable, Validator
+from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
 from koda_validate.utils import expected
 
 EnumT = TypeVar("EnumT", str, int)
@@ -106,8 +106,8 @@ class MultipleOf(Predicate[Num, Serializable]):
 # todo: expand types?
 # note that we are allowing `float` because python allows float equivalence checks
 # doesn't mean it's recommended to use it!
-ExactMatch = TypeVar(
-    "ExactMatch",
+ExactMatchT = TypeVar(
+    "ExactMatchT",
     bool,
     int,
     Decimal,
@@ -119,17 +119,24 @@ ExactMatch = TypeVar(
 )
 
 
-@dataclass
-class ExactValidator(Validator[Any, ExactMatch, Serializable]):
-    match: ExactMatch
+@dataclass(frozen=True)
+class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
+    match: ExactMatchT
+    preprocessors: Optional[List[Processor[ExactMatchT]]] = None
 
-    def __call__(self, val: Any) -> Result[ExactMatch, Serializable]:
-        if (match_type := type(self.match)) == type(val) and val == self.match:
-            return Ok(val)
+    def __call__(self, val: Any) -> Result[ExactMatchT, Serializable]:
+        if (match_type := type(self.match)) == type(val):
+            if self.preprocessors is not None:
+                for preprocess in self.preprocessors:
+                    val = preprocess(val)
+
+            if self.match == val:
+                return Ok(val)
+
+        # ok, we've failed
+        if isinstance(self.match, str):
+            value_str = f'"{self.match}"'
         else:
-            if isinstance(self.match, str):
-                value_str = f'"{self.match}"'
-            else:
-                value_str = str(self.match)
+            value_str = str(self.match)
 
-            return Err([expected(f"exactly {value_str} ({match_type.__name__})")])
+        return Err([expected(f"exactly {value_str} ({match_type.__name__})")])
