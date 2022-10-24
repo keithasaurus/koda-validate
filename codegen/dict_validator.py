@@ -15,7 +15,7 @@ from koda import Err, Maybe, Ok, Result, mapping_get, Nothing, Just
 
 from koda_validate._generics import A
 from koda_validate.utils import expected, _flat_map_same_type_if_not_none, OBJECT_ERRORS_FIELD
-from koda_validate.typedefs import Validator, ValidatorFunc, Serializable, Predicate
+from koda_validate.typedefs import Validator, Serializable, Predicate
 from koda_validate.validate_and_map import validate_and_map
 
 """
@@ -143,7 +143,7 @@ is_dict_validator = IsDictValidator()
 
 def _has_no_extra_keys(
     keys: Set[str],
-) -> ValidatorFunc[Dict[T1, T2], Dict[T1, T2], Serializable]:
+) -> Callable[[Dict[T1, T2]], Result[Dict[T1, T2], Serializable]]:
     def inner(mapping: Dict[T1, T2]) -> Result[Dict[T1, T2], Serializable]:
         if len(mapping.keys() - keys) > 0:
             return Err(

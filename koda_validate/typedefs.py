@@ -1,18 +1,16 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Callable, Dict, Generic, List, Union, final
+from typing import Any, Dict, Generic, List, Union, final
 
 from koda import Err, Ok, Result
 
 from koda_validate._generics import A, B, FailT
 
-ValidatorFunc = Callable[[A], Result[B, FailT]]
-
 
 class Validator(Generic[A, B, FailT]):
     """
-    A Callable exactly as the `Validator` type alias requires, but allows us to
+    Essentially a `Callable[[A], Result[B, FailT]]`, but allows us to
     retain metadata from the validator (instead of hiding inside a closure). For
     instance, we can later access `5` from something like `MaxLength(5)`.
 
