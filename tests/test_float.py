@@ -28,7 +28,7 @@ def test_float() -> None:
             else:
                 return False
 
-        def err_message(self, val: float) -> Serializable:
+        def err_output(self, val: float) -> Serializable:
             return "There should be a zero in the number"
 
     assert FloatValidator(Min(2.5), Max(4.0), MustHaveAZeroSomewhere())(5.5) == Err(

@@ -38,7 +38,7 @@ class Predicate(Generic[A, FailT]):
         raise NotImplementedError
 
     @abstractmethod
-    def err_message(self, val: A) -> FailT:
+    def err_output(self, val: A) -> FailT:
         raise NotImplementedError
 
     @final
@@ -46,7 +46,7 @@ class Predicate(Generic[A, FailT]):
         if self.is_valid(val) is True:
             return Ok(val)
         else:
-            return Err(self.err_message(val))
+            return Err(self.err_output(val))
 
 
 # When mypy enables recursive types by default

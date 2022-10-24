@@ -14,7 +14,7 @@ class IsClose(Predicate[float, Serializable]):
     def is_valid(self, val: float) -> bool:
         return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
 
-    def err_message(self, val: float) -> Serializable:
+    def err_output(self, val: float) -> Serializable:
         return f"expected a value within {self.tolerance} of {self.compare_to}"
 
 

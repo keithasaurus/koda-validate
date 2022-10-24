@@ -15,7 +15,7 @@ class MinItems(Predicate[List[Any], Serializable]):
     def is_valid(self, val: List[Any]) -> bool:
         return len(val) >= self.length
 
-    def err_message(self, val: List[Any]) -> str:
+    def err_output(self, val: List[Any]) -> str:
         return f"minimum allowed length is {self.length}"
 
 
@@ -26,7 +26,7 @@ class MaxItems(Predicate[List[Any], Serializable]):
     def is_valid(self, val: List[Any]) -> bool:
         return len(val) <= self.length
 
-    def err_message(self, val: List[Any]) -> str:
+    def err_output(self, val: List[Any]) -> str:
         return f"maximum allowed length is {self.length}"
 
 
@@ -52,7 +52,7 @@ class UniqueItems(Predicate[List[Any], Serializable]):
         else:
             return True
 
-    def err_message(self, val: List[Any]) -> str:
+    def err_output(self, val: List[Any]) -> str:
         return "all items must be unique"
 
 

@@ -59,7 +59,7 @@ def test_boolean() -> None:
         def is_valid(self, val: bool) -> bool:
             return val is True
 
-        def err_message(self, val: bool) -> Serializable:
+        def err_output(self, val: bool) -> Serializable:
             return "must be true"
 
     assert BooleanValidator(RequireTrue())(False) == Err(["must be true"])
@@ -98,7 +98,7 @@ def test_integer() -> None:
         def is_valid(self, val: int) -> bool:
             return val % 2 == 0
 
-        def err_message(self, val: int) -> Serializable:
+        def err_output(self, val: int) -> Serializable:
             return "must be divisible by 2"
 
     assert IntValidator(Min(2), Max(10), DivisibleBy2(),)(

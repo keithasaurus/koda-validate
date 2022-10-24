@@ -103,8 +103,9 @@ assert person_validator_2({"name": "John Doe", "age": 30}) == Ok((30, "John Doe"
 As you see, we have some flexibility in defining what we want to get back from a validated `dict_validator`. 
 
 Another thing to note is that, so far, the results are all wrapped in an `Ok` class. The other possibility -- when 
-validation fails -- is that an error message is returned, wrapped in the `Err` class. We do not raise exceptions to
-express validation failure in Koda Validate. Instead, validation is treated as part of normal control flow.
+validation fails -- is that an `Err` instance is returned, with whatever message or object a given validator returns. 
+We do not raise exceptions to express validation failure in Koda Validate. Instead, validation is treated as part of 
+normal control flow.
 
 Let's use some more features.
 
@@ -304,7 +305,7 @@ class IsClose(Predicate[float, Serializable]):
     def is_valid(self, val: float) -> bool:
         return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
 
-    def err_message(self, val: float) -> Serializable:
+    def err_output(self, val: float) -> Serializable:
         return f"expected a value within {self.tolerance} of {self.compare_to}"
 
 
@@ -316,7 +317,7 @@ assert close_to_validator(0.01) == Err(["expected a value within 0.02 of 0.05"])
 
 ```
 
-Notice that in `Predicate`s we define `is_valid` and `err_message` methods, while in `Validator`s we define the 
+Notice that in `Predicate`s we define `is_valid` and `err_output` methods, while in `Validator`s we define the 
 entire `__call__` method. This is because the base `Predicate` class is constructed in such a way that we limit how 
 much it can actually do -- we don't want it to be able to alter the value being validated. This turns out to be useful 
 because it allows us to proceed sequentially through an arbitrary amount of `Predicate`s of the same type in a given 
