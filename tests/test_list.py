@@ -1,9 +1,8 @@
 from koda import Err, Ok
 
-from koda_validate import MaxItems, MinItems, unique_items
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Min
-from koda_validate.list import ListValidator, MaxItems, MinItems
+from koda_validate.list import ListValidator, MaxItems, MinItems, unique_items
 
 
 def test_list_validator() -> None:

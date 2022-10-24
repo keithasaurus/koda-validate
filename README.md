@@ -544,7 +544,7 @@ This limitation exists because computation starts to get expensive for type chec
 it's not common to have that many keys in a dict.
 
 
-#### `dict_validator` types may be hard to read / slow for your editor or type-checker**
+#### `dict_validator` types may be hard to read / slow for your editor or type-checker
 
 `dict_validator` is a convenience function that delegates to different `Validator`s depending 
 on the number of keys -- for example, `Dict2KeysValidator`, `Dict3KeysValidator`, etc. These
