@@ -559,8 +559,8 @@ This should be resolved in a later release.
 
 
 #### Your Imagination
-:rainbow:
+:sparkles:
 
 
 ### Something's Missing Or Wrong 
-Open an issue on GitHub please!
+Open an [issue on GitHub](https://github.com/keithasaurus/koda-validate/issues) please!
