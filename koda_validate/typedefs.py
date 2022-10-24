@@ -50,10 +50,10 @@ class Predicate(Generic[A, FailT]):
 
 
 # When mypy enables recursive types by default
-# JSONValue = Union[
-#    None, int, str, bool, float, List["JSONValue"], Dict[str, "JSONValue"]
+# Serializable = Union[
+#    None, int, str, bool, float, List["Serializable"], Dict[str, "Serializable"]
 # ]
-JSONValue = Union[None, int, str, bool, float, List[Any], Dict[str, Any]]
+Serializable = Union[None, int, str, bool, float, List[Any], Dict[str, Any]]
 
 
 class Processor(Generic[A]):

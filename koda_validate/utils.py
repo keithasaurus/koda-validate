@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Callable, Iterable, List, Optional, cast
 from koda import Err, Ok, Result
 
 from koda_validate._generics import A, FailT
-from koda_validate.typedefs import JSONValue, Predicate
+from koda_validate.typedefs import Predicate, Serializable
 
 
 def expected(val: str) -> str:
@@ -33,16 +33,16 @@ def accum_errors(
         return Ok(result.val)
 
 
-def accum_errors_json(
-    val: A, validators: Iterable[Predicate[A, JSONValue]]
-) -> Result[A, JSONValue]:
+def accum_errors_serializable(
+    val: A, validators: Iterable[Predicate[A, Serializable]]
+) -> Result[A, Serializable]:
     """
     Helper that exists only because mypy is not always great at narrowing types
     """
-    return cast(Result[A, JSONValue], accum_errors(val, validators))
+    return cast(Result[A, Serializable], accum_errors(val, validators))
 
 
-def _variant_errors(*variants: JSONValue) -> JSONValue:
+def _variant_errors(*variants: Serializable) -> Serializable:
     return {f"variant {i + 1}": v for i, v in enumerate(variants)}
 
 

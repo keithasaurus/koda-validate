@@ -2,11 +2,11 @@ from typing import Any
 
 from koda import Err, Ok, Result
 
-from koda_validate.typedefs import JSONValue, Validator
+from koda_validate.typedefs import Serializable, Validator
 
 
-class SimpleFloatValidator(Validator[Any, float, JSONValue]):
-    def __call__(self, val: Any) -> Result[float, JSONValue]:
+class SimpleFloatValidator(Validator[Any, float, Serializable]):
+    def __call__(self, val: Any) -> Result[float, Serializable]:
         if isinstance(val, float):
             return Ok(val)
         else:

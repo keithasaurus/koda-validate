@@ -43,7 +43,7 @@ from koda_validate.string import (
 )
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
-from koda_validate.typedefs import JSONValue, Predicate
+from koda_validate.typedefs import Predicate, Serializable
 from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
@@ -72,11 +72,11 @@ def test_boolean() -> None:
 
     assert BooleanValidator()(False) == Ok(False)
 
-    class RequireTrue(Predicate[bool, JSONValue]):
+    class RequireTrue(Predicate[bool, Serializable]):
         def is_valid(self, val: bool) -> bool:
             return val is True
 
-        def err_message(self, val: bool) -> JSONValue:
+        def err_message(self, val: bool) -> Serializable:
             return "must be true"
 
     assert BooleanValidator(RequireTrue())(False) == Err(["must be true"])
@@ -111,11 +111,11 @@ def test_integer() -> None:
 
     assert IntValidator()(5.0) == Err(["expected an integer"])
 
-    class DivisibleBy2(Predicate[int, JSONValue]):
+    class DivisibleBy2(Predicate[int, Serializable]):
         def is_valid(self, val: int) -> bool:
             return val % 2 == 0
 
-        def err_message(self, val: int) -> JSONValue:
+        def err_message(self, val: int) -> Serializable:
             return "must be divisible by 2"
 
     assert IntValidator(Min(2), Max(10), DivisibleBy2(),)(
@@ -143,13 +143,13 @@ def test_map_validator() -> None:
     )
 
     @dataclass(frozen=True)
-    class MaxKeys(Predicate[Dict[Any, Any], JSONValue]):
+    class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         max: int
 
         def is_valid(self, val: Dict[Any, Any]) -> bool:
             return len(val) <= self.max
 
-        def err_message(self, val: Dict[Any, Any]) -> JSONValue:
+        def err_message(self, val: Dict[Any, Any]) -> Serializable:
             return f"max {self.max} key(s) allowed"
 
     complex_validator = MapValidator(
@@ -234,7 +234,7 @@ def test_tuple2() -> None:
 
     def must_be_a_if_integer_is_1(
         ab: Tuple[str, int]
-    ) -> Result[Tuple[str, int], JSONValue]:
+    ) -> Result[Tuple[str, int], Serializable]:
         if ab[1] == 1:
             if ab[0] == "a":
                 return Ok(ab)
@@ -281,7 +281,7 @@ def test_tuple3() -> None:
 
     def must_be_a_if_1_and_true(
         abc: Tuple[str, int, bool]
-    ) -> Result[Tuple[str, int, bool], JSONValue]:
+    ) -> Result[Tuple[str, int, bool], Serializable]:
         if abc[1] == 1 and abc[2] is True:
             if abc[0] == "a":
                 return Ok(abc)
@@ -373,14 +373,14 @@ class PersonLike(Protocol):
     eye_color: str
 
 
-_JONES_ERROR_MSG: JSONValue = {
+_JONES_ERROR_MSG: Serializable = {
     "__container__": ["can't have last_name of jones and eye color of brown"]
 }
 
 
 def _nobody_named_jones_has_brown_eyes(
     person: PersonLike,
-) -> Result[PersonLike, JSONValue]:
+) -> Result[PersonLike, Serializable]:
     if person.last_name.lower() == "jones" and person.eye_color == "brown":
         return Err(_JONES_ERROR_MSG)
     else:

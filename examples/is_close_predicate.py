@@ -3,18 +3,18 @@ from dataclasses import dataclass
 
 from koda import Err, Ok
 
-from koda_validate import FloatValidator, JSONValue, Predicate
+from koda_validate import FloatValidator, Predicate, Serializable
 
 
 @dataclass
-class IsClose(Predicate[float, JSONValue]):
+class IsClose(Predicate[float, Serializable]):
     compare_to: float
     tolerance: float
 
     def is_valid(self, val: float) -> bool:
         return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
 
-    def err_message(self, val: float) -> JSONValue:
+    def err_message(self, val: float) -> Serializable:
         return f"expected a value within {self.tolerance} of {self.compare_to}"
 
 

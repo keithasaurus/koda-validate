@@ -2,11 +2,7 @@
 
 Typesafe, combinable validation. Python 3.8+
 
-Koda Validate aims to make writing validators easier. Specific areas of focus include:   
-- combining simple validators into more complex validators 
-- requiring little time debugging or reading documentation
-- reusing validator metadata for different needs (i.e. rendering API schemas)
-
+Koda Validate aims to make writing validators easier. 
 
 ## The Basics
 
@@ -34,12 +30,50 @@ if isinstance(result, Ok):
     print(f"{result.val.name} is {result.val.age} years old")
 else:
     print(result.val)
-
 ```
 
-Let's look at the `dict_validator` a bit closer. It's first argument is `Person`. The first argument can be any 
-`Callable` that accepts the values from each key below it -- in the same order they are defined (the names of the keys 
-and the `Callable` arguments do not need to match). That means this would also be valid:
+We could also nest `person_validator`, for instance, in a `ListValidator`
+```python
+people_validator = ListValidator(person_validator)
+```
+And nest that in a different validator (and so forth).
+```python
+
+@dataclass
+class Group:
+    name: str
+    people: list[Person]
+
+
+group_validator = dict_validator(
+    Group,
+    key("name", StringValidator()),
+    key("people", people_validator),
+)
+
+data = {
+    "name": "Arrested Development Characters",
+    "people": [
+        {"name": "George Bluth", "age": 70},
+        {"name": "Michael Bluth", "age": 35}
+    ]
+}
+
+assert group_validator(data) == Ok(
+    Group(
+        name='Arrested Development Characters',
+        people=[
+            Person(name='George Bluth', age=70),
+            Person(name='Michael Bluth', age=35)
+        ]
+    )
+)
+```
+
+Let's look at the `dict_validator` a bit closer. Its first argument can be any `Callable` that accepts the values from 
+each key below it -- in the same order they are defined (the names of the keys and the `Callable` arguments do not need 
+to match). For `person_validator`, we used a `Person` `dataclass`; for `Group`, we used a `Group` dataclass; but that 
+does not need to be the case. Because we can use any `Callable` with matching types, this would also be valid:
 ```python
 from koda import Ok
 from koda_validate import *
@@ -48,21 +82,20 @@ from koda_validate import *
 def reverse_person_args_tuple(a: str, b: int) -> tuple[int, str]:
     return b, a
 
-
-person_validator = dict_validator(
+person_validator_2 = dict_validator(
     reverse_person_args_tuple,
     key("name", StringValidator()),
     key("age", IntValidator()),
 )
 
-assert person_validator({"name": "John Doe", "age": 30}) == Ok((30, "John Doe"))
+assert person_validator_2({"name": "John Doe", "age": 30}) == Ok((30, "John Doe"))
 
 ```
-So, we have some flexibility in defining what we want to get back from a `dict_validator`. 
+As you see, we have some flexibility in defining what we want to get back from a `dict_validator`. 
 
-Another thing to note is that, so far, the results are all wrapped in an `Ok` class. By contrast, when validation fails
-we return an `Err` class. We do not `raise` `Exceptions` in Koda Validate. Validation is treated as part of the normal
-control flow.
+Another thing to note is that, so far, the results are all wrapped in an `Ok` class. The other possibility -- when 
+validation fails -- is that an error message is returned, wrapped in the `Err` class. We do not raise exceptions to
+express validation failure in Koda Validate. Instead, validation is treated as part of normal control flow.
 
 Let's use some more features.
 
@@ -78,7 +111,7 @@ class Employee:
     name: str
 
 
-def no_dwight_regional_manager(employee: Employee) -> Result[Employee, JSONValue]:
+def no_dwight_regional_manager(employee: Employee) -> Result[Employee, Serializable]:
     if (
         "schrute" in employee.name.lower()
         and employee.title.lower() == "assistant regional manager"
@@ -97,7 +130,7 @@ employee_validator = dict_validator(
 )
 
 
-# the fields are valid but the object as a whole is not.
+# The fields are valid but the object as a whole is not.
 assert employee_validator(
     {
         "title": "Assistant Regional Manager",
@@ -107,71 +140,29 @@ assert employee_validator(
 
 ```
 Things to note about `employee_validator`:
-- we can pre-process strings for formatting
-- we can add in additional checks to validators (e.g. `not_blank`, `MaxLength`, etc.)
-- we have two stages of validation on dictionaries: first the keys, then the entire object
+- we can add additional checks -- `Predicate`s -- to validators (e.g. `not_blank`, `MaxLength`, etc.)
+- we can pre-process strings for formatting (after the type is determined, but before `Predicate` validators are run)
+- we have two stages of validation on dictionaries: first the keys, then the entire object, via `validate_object`
 - apparently we have a problem with someone named Dwight Schrute giving himself the wrong title
 
-Let's reuse `employee_validator`, so we can see how easy validators are to combine. 
 
-```python
-
-@dataclass
-class Company:
-    name: str
-    employees: list[Employee]
-
-
-company_validator = dict_validator(
-    Company,
-    key("company_name", StringValidator(not_blank, preprocessors=[strip])),
-    key(
-        "employees",
-        ListValidator(
-            employee_validator,
-            MinItems(1),  # a company has to have at least one person, right??
-        ),
-    ),
-)
-
-dunder_mifflin_data = {
-    "company_name": "Dunder Mifflin",
-    "employees": [
-        {"title": "Regional Manager", "name": "Michael Scott"},
-        {"title": " Assistant to the Regional Manager ", "name": "Dwigt Schrute"},
-    ],
-}
-
-assert company_validator(dunder_mifflin_data) == Ok(
-    Company(
-        name="Dunder Mifflin",
-        employees=[
-            Employee(title="Regional Manager", name="Michael Scott"),
-            Employee(title="Assistant to the Regional Manager", name="Dwigt Schrute"),
-        ],
-    )
-)
-
-# we could keep nesting, arbitrarily
-company_list_validator = ListValidator(company_validator)
-
-```
-It's worth stopping and mentioning a few points about the above:
-- this is all typesafe in mypy -- with strict settings, and without any plugins
-- we can validate lists, dicts, strings, etc., either on their own or nested
-- it is relatively simple to write
+Note that everything we've seen is typesafe according to mypy -- with strict settings, and without any plugins.
 
 ## Validation Errors
+
+As mentioned above, errors are returned as data as part of normal control flow. All built-in validators in Koda Validate
+are JSON/YAML serializable. (However, should you build your own custom validators, that constraint is not enforced.)
+Here are a few examples of the kinds of errors you can expect to see.
 
 ```python
 from dataclasses import dataclass
 from koda import Err, Maybe
 from koda_validate import *
 
-# wrong type
+# Wrong type
 assert StringValidator()(None) == Err(["expected a string"])
 
-# all failing `Predicate`s are reported (not just the first)
+# All failing `Predicate`s are reported (not just the first)
 str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
 assert str_choice_validator("") == Err(
     ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
@@ -190,13 +181,14 @@ city_validator = dict_validator(
     maybe_key("region", StringValidator(not_blank)),
 )
 
-# all errors are json serializable. we use the key "__container__" for object-level errors
+# All errors in Koda Validate are json/yaml serializable. 
+# We use the key "__container__" for object-level errors
 assert city_validator(None) == Err({"__container__": ["expected a dictionary"]})
 
-# required key is missing
+# Missing Keys are noted 
 assert city_validator({}) == Err({"name": ["key missing"]})
 
-# extra keys are also errors
+# Extra keys are also errors
 assert city_validator(
     {"region": "California", "population": 510, "country": "USA"}
 ) == Err({"__container__": ["Received unknown keys. Only expected ['name', 'region']"]})
@@ -212,13 +204,13 @@ neighborhood_validator = dict_validator(
     Neighborhood, key("name", StringValidator(not_blank)), key("city", city_validator)
 )
 
-# errors are nested
+# Errors are nested in predictable manner
 assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Err(
     {"city": {"name": ["key missing"]}}
 )
 
 ```
-If you have any concerns about being able to handle different types of key or object requirements, please see some of 
+If you have any concerns about being able to handle specific types of key or object requirements, please see some of 
 the other validators and helpers below:
 - [OneOf2 / OneOf3](#oneof2--oneof3)
 - [MapValidator](#mapvalidator)
@@ -228,20 +220,24 @@ the other validators and helpers below:
 
 
 ## Validators, Predicates, and Extension
+Koda Validate's intention is to cover the bulk of common use cases with its built-in tools. However, it is also meant 
+to provide a straightforward way to build for custom validation use-cases. Here we'll provide a quick overview of how 
+custom validation logic can be implemented.
+
 There are two kinds of `Callable`s used for validation in Koda Validate: `Validator`s and `Predicate`s. `Validator`s 
-can take an input of one type and produce a valid result of another type. While a `Validator` has the capability to 
-alter a value and/or type, whether it does is entirely dependent on the given `Validator`s requirements. Most commonly 
+can take an input of one type and produce a valid result of another type. (While a `Validator` has the capability to 
+alter a value and/or type, whether it does is entirely dependent on the given `Validator`s requirements.) Most commonly 
 `Validator`s accept type `Any` and validate that it conforms to some type or data shape. As an example, we'll 
 write a simple `Validator` for `float`s here:
 
 ```python
 from typing import Any
 from koda import Err, Ok, Result
-from koda_validate.typedefs import JSONValue, Validator
+from koda_validate.typedefs import Serializable, Validator
 
 
-class SimpleFloatValidator(Validator[Any, float, JSONValue]):
-    def __call__(self, val: Any) -> Result[float, JSONValue]:
+class SimpleFloatValidator(Validator[Any, float, Serializable]):
+    def __call__(self, val: Any) -> Result[float, Serializable]:
         if isinstance(val, float):
             return Ok(val)
         else:
@@ -258,44 +254,48 @@ What is this doing?
 - extending `Validator`, using the following types:
   - `Any`: any type of input can be passed in
   - `float`: if the data is valid, a value of type `Ok[float]` will be returned 
-  - `JSONValue`: if it's invalid, a value of type `Err[JSONValue]` will be returned 
+  - `Serializable`: if it's invalid, a value of type `Err[Serializable]` will be returned
+- the `__call__` method performs any kind of validation needed, so long as the input and output type signatures -- as determined by the `Validator` type parameters - are abided
+
+We accept `Any` because the type of input may be unknown before submitting to the `Validator`. After our 
+validation in `SimpleFloatValidator` succeeds, we know the type must be `float`.   
 
 This is all well and good, but we'll probably want to be able to validate against values of the floats, such as min, 
 max, or rough equality checks. For this we use `Predicate`s. This is what the `FloatValidator` in Koda Validate looks 
 like:
 
 ```python
-class FloatValidator(Validator[Any, float, JSONValue]):
-    def __init__(self, *predicates: Predicate[float, JSONValue]) -> None:
+class FloatValidator(Validator[Any, float, Serializable]):
+    def __init__(self, *predicates: Predicate[float, Serializable]) -> None:
         self.predicates = predicates
 
-    def __call__(self, val: Any) -> Result[float, JSONValue]:
+    def __call__(self, val: Any) -> Result[float, Serializable]:
         if isinstance(val, float):
-            return accum_errors_json(val, self.predicates)
+            return accum_errors_serializable(val, self.predicates)
         else:
             return Err(["expected a float"])
 
 ```
 
-`Predicate`s are meant to validated _value_ of a known type -- as opposed to validating at the type-level. For example, 
-this is how you might write and use a `Predicate` for approximate `float` equality:
+`Predicate`s are meant to validate the _value_ of a known type -- as opposed to validating at the type-level. For 
+example, this is how you might write and use a `Predicate` for approximate `float` equality:
 
 ```python
 import math
 from dataclasses import dataclass
 from koda import Err, Ok
-from koda_validate import FloatValidator, JSONValue, Predicate
+from koda_validate import FloatValidator, Serializable, Predicate
 
 
 @dataclass
-class IsClose(Predicate[float, JSONValue]):
+class IsClose(Predicate[float, Serializable]):
     compare_to: float
     tolerance: float
 
     def is_valid(self, val: float) -> bool:
         return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
 
-    def err_message(self, val: float) -> JSONValue:
+    def err_message(self, val: float) -> Serializable:
         return f"expected a value within {self.tolerance} of {self.compare_to}"
 
 
@@ -311,8 +311,8 @@ Notice that in `Predicate`s we define `is_valid` and `err_message` methods, whil
 entire `__call__` method. This is because the base `Predicate` class is constructed in such a way that we limit how 
 much it can actually do -- we don't want it to be able to alter the value being validated. This turns out to be useful 
 because it allows us to proceed sequentially through an arbitrary amount of `Predicate`s of the same type in a given 
-validator. Only because of this property can we be confident in our ability to return all `Predicate` errors for a 
-given `Validator` (instead of exiting at the first failure).
+`Validator`. Only because of this property can we be confident in our ability to return all `Predicate` errors for a 
+given `Validator` -- instead of having to exit at the first failure.
 
 ## Metadata
 Previously we said an aim of Koda Validate is to allow reuse of validator metadata. Principally this 
@@ -358,7 +358,7 @@ core, they are also classes that can easily be inspected. (This ease of inspecti
 classes in Koda Validate.) Interpreters are the recommended way to re-use validator metadata for 
 non-validation purposes.
 
-## Other Noteworthy Validators
+## Other Noteworthy Validators and Utilities 
 
 
 #### OneOf2 / OneOf3
@@ -482,7 +482,7 @@ assert person_validator({"name": "Bob", "age": 42}) == Ok(Person("Bob", Just(42)
 
 ## Limitations
 
-**`dict_validator` has a max keys limit**
+#### `dict_validator` has a max keys limit
 
 By default `dict_validator` can have a maximum of 20 keys. You can change this by generating code
 and storing it in your project:
@@ -494,7 +494,7 @@ This limitation exists because computation starts to get expensive for type chec
 it's not common to have that many keys in a dict.
 
 
-**`dict_validator` types may be hard to read / slow for your editor or type-checker**
+#### `dict_validator` types may be hard to read / slow for your editor or type-checker**
 
 `dict_validator` is a convenience function that delegates to different `Validator`s depending 
 on the number of keys -- for example, `Dict2KeysValidator`, `Dict3KeysValidator`, etc. These
@@ -502,6 +502,10 @@ numbered validators are limited to a specific number of keys and can be used to 
 such issues.
 
 
-**`dict_validator`'s keys only allow for strings**
+#### `dict_validator`'s keys only allow for strings**
 
 This should be resolved in a later release.
+
+
+#### Something's Missing Or Wrong 
+Open an issue on GitHub please!

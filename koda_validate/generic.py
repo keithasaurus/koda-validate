@@ -6,20 +6,20 @@ from koda import Result, Thunk
 from koda._generics import A
 
 from koda_validate._generics import Ret
-from koda_validate.typedefs import JSONValue, Predicate, Validator
+from koda_validate.typedefs import Predicate, Serializable, Validator
 from koda_validate.utils import expected
 
 EnumT = TypeVar("EnumT", str, int)
 
 
 @dataclass(frozen=True, init=False)
-class Lazy(Validator[A, Ret, JSONValue]):
-    validator: Thunk[Validator[A, Ret, JSONValue]]
+class Lazy(Validator[A, Ret, Serializable]):
+    validator: Thunk[Validator[A, Ret, Serializable]]
     recurrent: bool = True
 
     def __init__(
         self,
-        validator: Thunk[Validator[A, Ret, JSONValue]],
+        validator: Thunk[Validator[A, Ret, Serializable]],
         recurrent: bool = True,
     ) -> None:
         """
@@ -32,12 +32,12 @@ class Lazy(Validator[A, Ret, JSONValue]):
         object.__setattr__(self, "validator", validator)
         object.__setattr__(self, "recurrent", recurrent)
 
-    def __call__(self, data: A) -> Result[Ret, JSONValue]:
+    def __call__(self, data: A) -> Result[Ret, Serializable]:
         return self.validator()(data)
 
 
 @dataclass(frozen=True, init=False)
-class Choices(Predicate[EnumT, JSONValue]):
+class Choices(Predicate[EnumT, Serializable]):
     """
     This only exists separately from a more generic form because
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
@@ -51,7 +51,7 @@ class Choices(Predicate[EnumT, JSONValue]):
     def is_valid(self, val: EnumT) -> bool:
         return val in self.choices
 
-    def err_message(self, val: EnumT) -> JSONValue:
+    def err_message(self, val: EnumT) -> Serializable:
         return f"expected one of {sorted(self.choices)}"
 
 
@@ -59,7 +59,7 @@ Num = TypeVar("Num", int, float, Decimal)
 
 
 @dataclass(frozen=True)
-class Min(Predicate[Num, JSONValue]):
+class Min(Predicate[Num, Serializable]):
     minimum: Num
     exclusive_minimum: bool = False
 
@@ -75,7 +75,7 @@ class Min(Predicate[Num, JSONValue]):
 
 
 @dataclass(frozen=True)
-class Max(Predicate[Num, JSONValue]):
+class Max(Predicate[Num, Serializable]):
     maximum: Num
     exclusive_maximum: bool = False
 
@@ -91,7 +91,7 @@ class Max(Predicate[Num, JSONValue]):
 
 
 @dataclass(frozen=True)
-class MultipleOf(Predicate[Num, JSONValue]):
+class MultipleOf(Predicate[Num, Serializable]):
     factor: Num
 
     def is_valid(self, val: Num) -> bool:
@@ -106,13 +106,13 @@ ExactT = TypeVar("ExactT", str, int, Decimal)
 
 
 @dataclass
-class Exactly(Predicate[ExactT, JSONValue]):
+class Exactly(Predicate[ExactT, Serializable]):
     match: ExactT
 
     def is_valid(self, val: ExactT) -> bool:
         return val == self.match
 
-    def err_message(self, val: ExactT) -> JSONValue:
+    def err_message(self, val: ExactT) -> Serializable:
         return expected(
             f'"{self.match}"' if isinstance(self.match, str) else str(self.match)
         )

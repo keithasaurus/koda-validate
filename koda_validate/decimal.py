@@ -5,18 +5,18 @@ from typing import Any, Tuple
 
 from koda import Err, Ok, Result
 
-from koda_validate.typedefs import JSONValue, Predicate, Validator
+from koda_validate.typedefs import Predicate, Serializable, Validator
 from koda_validate.utils import expected
 
 
 @dataclass(init=False, frozen=True)
-class DecimalValidator(Validator[Any, Decimal, JSONValue]):
-    predicates: Tuple[Predicate[Decimal, JSONValue], ...]
+class DecimalValidator(Validator[Any, Decimal, Serializable]):
+    predicates: Tuple[Predicate[Decimal, Serializable], ...]
 
-    def __init__(self, *predicates: Predicate[Decimal, JSONValue]) -> None:
+    def __init__(self, *predicates: Predicate[Decimal, Serializable]) -> None:
         object.__setattr__(self, "predicates", predicates)
 
-    def __call__(self, val: Any) -> Result[Decimal, JSONValue]:
+    def __call__(self, val: Any) -> Result[Decimal, Serializable]:
         expected_msg = expected("a decimal-compatible string or integer")
         if isinstance(val, Decimal):
             return Ok(val)

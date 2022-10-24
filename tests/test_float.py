@@ -2,7 +2,7 @@ from koda import Err, Ok
 
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Max, Min
-from koda_validate.typedefs import JSONValue, Predicate
+from koda_validate.typedefs import Predicate, Serializable
 
 
 def test_float() -> None:
@@ -20,7 +20,7 @@ def test_float() -> None:
 
     assert FloatValidator(Min(5.0))(5.0) == Ok(5.0)
 
-    class MustHaveAZeroSomewhere(Predicate[float, JSONValue]):
+    class MustHaveAZeroSomewhere(Predicate[float, Serializable]):
         def is_valid(self, val: float) -> bool:
             for char in str(val):
                 if char == "0":
@@ -28,7 +28,7 @@ def test_float() -> None:
             else:
                 return False
 
-        def err_message(self, val: float) -> JSONValue:
+        def err_message(self, val: float) -> Serializable:
             return "There should be a zero in the number"
 
     assert FloatValidator(Min(2.5), Max(4.0), MustHaveAZeroSomewhere())(5.5) == Err(

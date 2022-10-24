@@ -55,7 +55,7 @@ __all__ = (
     # typedefs.py
     "Validator",
     "Predicate",
-    "JSONValue",
+    "Serializable",
     "Processor",
     # validate_and_map.py
     "validate_and_map",
@@ -100,9 +100,9 @@ from koda_validate.string import (
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.typedefs import (
-    JSONValue,
     Predicate,
     Processor,
+    Serializable,
     Validator,
     ValidatorFunc,
 )

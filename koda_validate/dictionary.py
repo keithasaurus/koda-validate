@@ -18,7 +18,7 @@ from typing import (
 from koda import Err, Just, Maybe, Nothing, Ok, Result, mapping_get
 
 from koda_validate._generics import A
-from koda_validate.typedefs import JSONValue, Predicate, Validator, ValidatorFunc
+from koda_validate.typedefs import Predicate, Serializable, Validator, ValidatorFunc
 from koda_validate.utils import (
     OBJECT_ERRORS_FIELD,
     _flat_map_same_type_if_not_none,
@@ -50,7 +50,7 @@ Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
 
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, JSONValue]]]
+KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
 
 
 _KEY_MISSING: Final[str] = "key missing"
@@ -58,9 +58,9 @@ _KEY_MISSING: Final[str] = "key missing"
 
 @dataclass(frozen=True)
 class RequiredField(Generic[A]):
-    validator: Validator[Any, A, JSONValue]
+    validator: Validator[Any, A, Serializable]
 
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, JSONValue]:
+    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Serializable]:
         if isinstance(maybe_val, Nothing):
             return Err([_KEY_MISSING])
         else:
@@ -69,48 +69,50 @@ class RequiredField(Generic[A]):
 
 @dataclass(frozen=True)
 class MaybeField(Generic[A]):
-    validator: Validator[Any, A, JSONValue]
+    validator: Validator[Any, A, Serializable]
 
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], JSONValue]:
+    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
         if isinstance(maybe_val, Just):
-            result: Result[Maybe[A], JSONValue] = self.validator(maybe_val.val).map(Just)
+            result: Result[Maybe[A], Serializable] = self.validator(maybe_val.val).map(
+                Just
+            )
         else:
             result = Ok(maybe_val)
         return result
 
 
 def key(
-    prop_: str, validator: Validator[Any, A, JSONValue]
-) -> Tuple[str, Callable[[Any], Result[A, JSONValue]]]:
+    prop_: str, validator: Validator[Any, A, Serializable]
+) -> Tuple[str, Callable[[Any], Result[A, Serializable]]]:
     return prop_, RequiredField(validator)
 
 
 def maybe_key(
-    prop_: str, validator: Validator[Any, A, JSONValue]
-) -> Tuple[str, Callable[[Any], Result[Maybe[A], JSONValue]]]:
+    prop_: str, validator: Validator[Any, A, Serializable]
+) -> Tuple[str, Callable[[Any], Result[Maybe[A], Serializable]]]:
     return prop_, MaybeField(validator)
 
 
 @dataclass(frozen=True, init=False)
-class MapValidator(Validator[Any, Dict[T1, T2], JSONValue]):
-    key_validator: Validator[Any, T1, JSONValue]
-    value_validator: Validator[Any, T2, JSONValue]
-    predicates: Tuple[Predicate[Dict[T1, T2], JSONValue], ...]
+class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
+    key_validator: Validator[Any, T1, Serializable]
+    value_validator: Validator[Any, T2, Serializable]
+    predicates: Tuple[Predicate[Dict[T1, T2], Serializable], ...]
 
     def __init__(
         self,
-        key_validator: Validator[Any, T1, JSONValue],
-        value_validator: Validator[Any, T2, JSONValue],
-        *predicates: Predicate[Dict[T1, T2], JSONValue],
+        key_validator: Validator[Any, T1, Serializable],
+        value_validator: Validator[Any, T2, Serializable],
+        *predicates: Predicate[Dict[T1, T2], Serializable],
     ) -> None:
         object.__setattr__(self, "key_validator", key_validator)
         object.__setattr__(self, "value_validator", value_validator)
         object.__setattr__(self, "predicates", predicates)
 
-    def __call__(self, data: Any) -> Result[Dict[T1, T2], JSONValue]:
+    def __call__(self, data: Any) -> Result[Dict[T1, T2], Serializable]:
         if isinstance(data, dict):
             return_dict: Dict[T1, T2] = {}
-            errors: Dict[str, JSONValue] = {}
+            errors: Dict[str, Serializable] = {}
             for key, val in data.items():
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val)
@@ -124,13 +126,13 @@ class MapValidator(Validator[Any, Dict[T1, T2], JSONValue]):
 
                     if isinstance(val_result, Err):
                         err_dict = {"value_error": val_result.val}
-                        errs: Maybe[JSONValue] = mapping_get(errors, err_key)
+                        errs: Maybe[Serializable] = mapping_get(errors, err_key)
                         if isinstance(errs, Just) and isinstance(errs.val, dict):
                             errs.val.update(err_dict)
                         else:
                             errors[err_key] = err_dict
 
-            dict_validator_errors: List[JSONValue] = []
+            dict_validator_errors: List[Serializable] = []
             for predicate in self.predicates:
                 # Note that the expectation here is that validators will likely
                 # be doing json like number of keys; they aren't expected
@@ -156,8 +158,8 @@ class MapValidator(Validator[Any, Dict[T1, T2], JSONValue]):
             return Err({OBJECT_ERRORS_FIELD: [expected("a map")]})
 
 
-class IsDict(Validator[Any, Dict[Any, Any], JSONValue]):
-    def __call__(self, val: Any) -> Result[Dict[Any, Any], JSONValue]:
+class IsDict(Validator[Any, Dict[Any, Any], Serializable]):
+    def __call__(self, val: Any) -> Result[Dict[Any, Any], Serializable]:
         if isinstance(val, dict):
             return Ok(val)
         else:
@@ -166,8 +168,8 @@ class IsDict(Validator[Any, Dict[Any, Any], JSONValue]):
 
 def _has_no_extra_keys(
     keys: Set[str],
-) -> ValidatorFunc[Dict[T1, T2], Dict[T1, T2], JSONValue]:
-    def inner(mapping: Dict[T1, T2]) -> Result[Dict[T1, T2], JSONValue]:
+) -> ValidatorFunc[Dict[T1, T2], Dict[T1, T2], Serializable]:
+    def inner(mapping: Dict[T1, T2]) -> Result[Dict[T1, T2], Serializable]:
         if len(mapping.keys() - keys) > 0:
             return Err(
                 {
@@ -184,12 +186,12 @@ def _has_no_extra_keys(
 
 def _dict_without_extra_keys(
     keys: Set[str], data: Any
-) -> Result[Dict[Any, Any], JSONValue]:
+) -> Result[Dict[Any, Any], Serializable]:
     return IsDict()(data).flat_map(_has_no_extra_keys(keys))
 
 
 @dataclass(frozen=True)
-class MinKeys(Predicate[Dict[Any, Any], JSONValue]):
+class MinKeys(Predicate[Dict[Any, Any], Serializable]):
     size: int
 
     def is_valid(self, val: Dict[Any, Any]) -> bool:
@@ -200,7 +202,7 @@ class MinKeys(Predicate[Dict[Any, Any], JSONValue]):
 
 
 @dataclass(frozen=True)
-class MaxKeys(Predicate[Dict[Any, Any], JSONValue]):
+class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
     size: int
 
     def is_valid(self, val: Dict[Any, Any]) -> bool:
@@ -210,22 +212,22 @@ class MaxKeys(Predicate[Dict[Any, Any], JSONValue]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _tuples_to_json_dict(data: Tuple[Tuple[str, JSONValue], ...]) -> JSONValue:
+def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializable:
     return dict(data)
 
 
 def _validate_with_key(
     r: KeyValidator[T1], data: Dict[Any, Any]
-) -> Result[T1, Tuple[str, JSONValue]]:
+) -> Result[T1, Tuple[str, Serializable]]:
     key, fn = r
 
-    def add_key(val: JSONValue) -> Tuple[str, JSONValue]:
+    def add_key(val: Serializable) -> Tuple[str, Serializable]:
         return key, val
 
     return fn(mapping_get(data, key)).map_err(add_key)
 
 
-class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, JSONValue]):
+class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, Serializable]):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
@@ -233,13 +235,13 @@ class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, JSONValue]):
         into: Callable[[T1], Ret],
         field1: KeyValidator[T1],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (field1,)
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys({self.dv_fields[0][0]}, data)
 
         if isinstance(result, Err):
@@ -254,7 +256,7 @@ class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, JSONValue]):
             )
 
 
-class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
+class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, Serializable]):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
@@ -263,7 +265,7 @@ class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
         field1: KeyValidator[T1],
         field2: KeyValidator[T2],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -272,7 +274,7 @@ class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {self.dv_fields[0][0], self.dv_fields[1][0]}, data
         )
@@ -290,7 +292,7 @@ class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, JSONValue]):
             )
 
 
-class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue]):
+class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, Serializable]):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
@@ -300,7 +302,7 @@ class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue
         field2: KeyValidator[T2],
         field3: KeyValidator[T3],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -310,7 +312,7 @@ class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {self.dv_fields[0][0], self.dv_fields[1][0], self.dv_fields[2][0]}, data
         )
@@ -329,7 +331,7 @@ class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, JSONValue
             )
 
 
-class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONValue]):
+class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, Serializable]):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
     def __init__(
@@ -340,7 +342,7 @@ class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONV
         field3: KeyValidator[T3],
         field4: KeyValidator[T4],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -351,7 +353,7 @@ class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONV
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -378,7 +380,7 @@ class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, JSONV
 
 
 class Dict5KeysValidator(
-    Generic[T1, T2, T3, T4, T5, Ret], Validator[Any, Ret, JSONValue]
+    Generic[T1, T2, T3, T4, T5, Ret], Validator[Any, Ret, Serializable]
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -391,7 +393,7 @@ class Dict5KeysValidator(
         field4: KeyValidator[T4],
         field5: KeyValidator[T5],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -403,7 +405,7 @@ class Dict5KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -432,7 +434,7 @@ class Dict5KeysValidator(
 
 
 class Dict6KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, Ret], Validator[Any, Ret, JSONValue]
+    Generic[T1, T2, T3, T4, T5, T6, Ret], Validator[Any, Ret, Serializable]
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -446,7 +448,7 @@ class Dict6KeysValidator(
         field5: KeyValidator[T5],
         field6: KeyValidator[T6],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -459,7 +461,7 @@ class Dict6KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -490,7 +492,7 @@ class Dict6KeysValidator(
 
 
 class Dict7KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, Ret], Validator[Any, Ret, JSONValue]
+    Generic[T1, T2, T3, T4, T5, T6, T7, Ret], Validator[Any, Ret, Serializable]
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -505,7 +507,7 @@ class Dict7KeysValidator(
         field6: KeyValidator[T6],
         field7: KeyValidator[T7],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -519,7 +521,7 @@ class Dict7KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -552,7 +554,7 @@ class Dict7KeysValidator(
 
 
 class Dict8KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, Ret], Validator[Any, Ret, JSONValue]
+    Generic[T1, T2, T3, T4, T5, T6, T7, T8, Ret], Validator[Any, Ret, Serializable]
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -568,7 +570,7 @@ class Dict8KeysValidator(
         field7: KeyValidator[T7],
         field8: KeyValidator[T8],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -583,7 +585,7 @@ class Dict8KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -618,7 +620,7 @@ class Dict8KeysValidator(
 
 
 class Dict9KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret], Validator[Any, Ret, JSONValue]
+    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret], Validator[Any, Ret, Serializable]
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -635,7 +637,7 @@ class Dict9KeysValidator(
         field8: KeyValidator[T8],
         field9: KeyValidator[T9],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -651,7 +653,7 @@ class Dict9KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -688,7 +690,8 @@ class Dict9KeysValidator(
 
 
 class Dict10KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret], Validator[Any, Ret, JSONValue]
+    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -706,7 +709,7 @@ class Dict10KeysValidator(
         field9: KeyValidator[T9],
         field10: KeyValidator[T10],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -723,7 +726,7 @@ class Dict10KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -763,7 +766,7 @@ class Dict10KeysValidator(
 
 class Dict11KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret],
-    Validator[Any, Ret, JSONValue],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -782,7 +785,7 @@ class Dict11KeysValidator(
         field10: KeyValidator[T10],
         field11: KeyValidator[T11],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -800,7 +803,7 @@ class Dict11KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -842,7 +845,7 @@ class Dict11KeysValidator(
 
 class Dict12KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret],
-    Validator[Any, Ret, JSONValue],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -862,7 +865,7 @@ class Dict12KeysValidator(
         field11: KeyValidator[T11],
         field12: KeyValidator[T12],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -881,7 +884,7 @@ class Dict12KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -925,7 +928,7 @@ class Dict12KeysValidator(
 
 class Dict13KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret],
-    Validator[Any, Ret, JSONValue],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -946,7 +949,7 @@ class Dict13KeysValidator(
         field12: KeyValidator[T12],
         field13: KeyValidator[T13],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -966,7 +969,7 @@ class Dict13KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -1012,7 +1015,7 @@ class Dict13KeysValidator(
 
 class Dict14KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret],
-    Validator[Any, Ret, JSONValue],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -1036,7 +1039,7 @@ class Dict14KeysValidator(
         field13: KeyValidator[T13],
         field14: KeyValidator[T14],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -1057,7 +1060,7 @@ class Dict14KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -1105,7 +1108,7 @@ class Dict14KeysValidator(
 
 class Dict15KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret],
-    Validator[Any, Ret, JSONValue],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -1130,7 +1133,7 @@ class Dict15KeysValidator(
         field14: KeyValidator[T14],
         field15: KeyValidator[T15],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -1152,7 +1155,7 @@ class Dict15KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -1202,7 +1205,7 @@ class Dict15KeysValidator(
 
 class Dict16KeysValidator(
     Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret],
-    Validator[Any, Ret, JSONValue],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -1228,7 +1231,7 @@ class Dict16KeysValidator(
         field15: KeyValidator[T15],
         field16: KeyValidator[T16],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -1251,7 +1254,7 @@ class Dict16KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -1305,7 +1308,7 @@ class Dict17KeysValidator(
     Generic[
         T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret
     ],
-    Validator[Any, Ret, JSONValue],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -1333,7 +1336,7 @@ class Dict17KeysValidator(
         field16: KeyValidator[T16],
         field17: KeyValidator[T17],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -1357,7 +1360,7 @@ class Dict17KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -1431,7 +1434,7 @@ class Dict18KeysValidator(
         T18,
         Ret,
     ],
-    Validator[Any, Ret, JSONValue],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -1479,7 +1482,7 @@ class Dict18KeysValidator(
         field17: KeyValidator[T17],
         field18: KeyValidator[T18],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -1504,7 +1507,7 @@ class Dict18KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -1581,7 +1584,7 @@ class Dict19KeysValidator(
         T19,
         Ret,
     ],
-    Validator[Any, Ret, JSONValue],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -1631,7 +1634,7 @@ class Dict19KeysValidator(
         field18: KeyValidator[T18],
         field19: KeyValidator[T19],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -1657,7 +1660,7 @@ class Dict19KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -1737,7 +1740,7 @@ class Dict20KeysValidator(
         T20,
         Ret,
     ],
-    Validator[Any, Ret, JSONValue],
+    Validator[Any, Ret, Serializable],
 ):
     __match_args__: Tuple[str, ...] = ("dv_fields",)
 
@@ -1789,7 +1792,7 @@ class Dict20KeysValidator(
         field19: KeyValidator[T19],
         field20: KeyValidator[T20],
         *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
         self.dv_fields = (
@@ -1816,7 +1819,7 @@ class Dict20KeysValidator(
         )
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, JSONValue]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
         result = _dict_without_extra_keys(
             {
                 self.dv_fields[0][0],
@@ -1879,8 +1882,8 @@ def dict_validator(
     into: Callable[[T1], Ret],
     field1: KeyValidator[T1],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -1890,8 +1893,8 @@ def dict_validator(
     field1: KeyValidator[T1],
     field2: KeyValidator[T2],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -1902,8 +1905,8 @@ def dict_validator(
     field2: KeyValidator[T2],
     field3: KeyValidator[T3],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -1915,8 +1918,8 @@ def dict_validator(
     field3: KeyValidator[T3],
     field4: KeyValidator[T4],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -1929,8 +1932,8 @@ def dict_validator(
     field4: KeyValidator[T4],
     field5: KeyValidator[T5],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -1944,8 +1947,8 @@ def dict_validator(
     field5: KeyValidator[T5],
     field6: KeyValidator[T6],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -1960,8 +1963,8 @@ def dict_validator(
     field6: KeyValidator[T6],
     field7: KeyValidator[T7],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -1977,8 +1980,8 @@ def dict_validator(
     field7: KeyValidator[T7],
     field8: KeyValidator[T8],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -1995,8 +1998,8 @@ def dict_validator(
     field8: KeyValidator[T8],
     field9: KeyValidator[T9],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2014,8 +2017,8 @@ def dict_validator(
     field9: KeyValidator[T9],
     field10: KeyValidator[T10],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2034,8 +2037,8 @@ def dict_validator(
     field10: KeyValidator[T10],
     field11: KeyValidator[T11],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2055,8 +2058,8 @@ def dict_validator(
     field11: KeyValidator[T11],
     field12: KeyValidator[T12],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2077,8 +2080,8 @@ def dict_validator(
     field12: KeyValidator[T12],
     field13: KeyValidator[T13],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2100,8 +2103,8 @@ def dict_validator(
     field13: KeyValidator[T13],
     field14: KeyValidator[T14],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2126,8 +2129,8 @@ def dict_validator(
     field14: KeyValidator[T14],
     field15: KeyValidator[T15],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2153,8 +2156,8 @@ def dict_validator(
     field15: KeyValidator[T15],
     field16: KeyValidator[T16],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2181,8 +2184,8 @@ def dict_validator(
     field16: KeyValidator[T16],
     field17: KeyValidator[T17],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2211,8 +2214,8 @@ def dict_validator(
     field17: KeyValidator[T17],
     field18: KeyValidator[T18],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2262,8 +2265,8 @@ def dict_validator(
     field18: KeyValidator[T18],
     field19: KeyValidator[T19],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2315,8 +2318,8 @@ def dict_validator(
     field19: KeyValidator[T19],
     field20: KeyValidator[T20],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
     ...
 
 
@@ -2438,8 +2441,8 @@ def dict_validator(
     field19: Optional[KeyValidator[T19]] = None,
     field20: Optional[KeyValidator[T20]] = None,
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, JSONValue]]] = None,
-) -> Validator[Any, Ret, JSONValue]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Validator[Any, Ret, Serializable]:
 
     if field2 is None:
         return Dict1KeysValidator(

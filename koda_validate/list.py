@@ -4,12 +4,12 @@ from typing import Any, Dict, List, Set, Tuple, Type
 from koda import Err, Ok, Result
 from koda._generics import A
 
-from koda_validate.typedefs import JSONValue, Predicate, Validator
+from koda_validate.typedefs import Predicate, Serializable, Validator
 from koda_validate.utils import OBJECT_ERRORS_FIELD, expected
 
 
 @dataclass(frozen=True)
-class MinItems(Predicate[List[Any], JSONValue]):
+class MinItems(Predicate[List[Any], Serializable]):
     length: int
 
     def is_valid(self, val: List[Any]) -> bool:
@@ -20,7 +20,7 @@ class MinItems(Predicate[List[Any], JSONValue]):
 
 
 @dataclass(frozen=True)
-class MaxItems(Predicate[List[Any], JSONValue]):
+class MaxItems(Predicate[List[Any], Serializable]):
     length: int
 
     def is_valid(self, val: List[Any]) -> bool:
@@ -30,7 +30,7 @@ class MaxItems(Predicate[List[Any], JSONValue]):
         return f"maximum allowed length is {self.length}"
 
 
-class UniqueItems(Predicate[List[Any], JSONValue]):
+class UniqueItems(Predicate[List[Any], Serializable]):
     def is_valid(self, val: List[Any]) -> bool:
         hashable_items: Set[Tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables
@@ -57,24 +57,24 @@ class UniqueItems(Predicate[List[Any], JSONValue]):
 
 
 @dataclass(frozen=True, init=False)
-class ListValidator(Validator[Any, List[A], JSONValue]):
-    item_validator: Validator[Any, A, JSONValue]
-    list_validators: Tuple[Predicate[List[A], JSONValue], ...]
+class ListValidator(Validator[Any, List[A], Serializable]):
+    item_validator: Validator[Any, A, Serializable]
+    list_validators: Tuple[Predicate[List[A], Serializable], ...]
 
     def __init__(
         self,
-        item_validator: Validator[Any, A, JSONValue],
-        *list_validators: Predicate[List[A], JSONValue],
+        item_validator: Validator[Any, A, Serializable],
+        *list_validators: Predicate[List[A], Serializable],
     ) -> None:
         object.__setattr__(self, "item_validator", item_validator)
         object.__setattr__(self, "list_validators", list_validators)
 
-    def __call__(self, val: Any) -> Result[List[A], JSONValue]:
+    def __call__(self, val: Any) -> Result[List[A], Serializable]:
         if isinstance(val, list):
             return_list: List[A] = []
-            errors: Dict[str, JSONValue] = {}
+            errors: Dict[str, Serializable] = {}
 
-            list_errors: List[JSONValue] = []
+            list_errors: List[Serializable] = []
             for validator in self.list_validators:
                 result = validator(val)
 
