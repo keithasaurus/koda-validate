@@ -19,3 +19,4 @@ def test_exactly() -> None:
     assert ExactValidator(True)(True) == Ok(True)
     assert ExactValidator(False)(False) == Ok(False)
     assert ExactValidator(True)(False) == Err(["expected exactly True (bool)"])
+    assert ExactValidator(4)(4.0) == Err(["expected exactly 4 (int)"])
