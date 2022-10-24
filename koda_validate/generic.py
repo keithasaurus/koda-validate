@@ -51,7 +51,7 @@ class Choices(Predicate[EnumT, Serializable]):
     def is_valid(self, val: EnumT) -> bool:
         return val in self.choices
 
-    def err_output(self, val: EnumT) -> Serializable:
+    def err(self, val: EnumT) -> Serializable:
         return f"expected one of {sorted(self.choices)}"
 
 
@@ -69,7 +69,7 @@ class Min(Predicate[Num, Serializable]):
         else:
             return val >= self.minimum
 
-    def err_output(self, val: Num) -> str:
+    def err(self, val: Num) -> str:
         exclusive = " (exclusive)" if self.exclusive_minimum else ""
         return f"minimum allowed value{exclusive} is {self.minimum}"
 
@@ -85,7 +85,7 @@ class Max(Predicate[Num, Serializable]):
         else:
             return val <= self.maximum
 
-    def err_output(self, val: Num) -> str:
+    def err(self, val: Num) -> str:
         exclusive = " (exclusive)" if self.exclusive_maximum else ""
         return f"maximum allowed value{exclusive} is {self.maximum}"
 
@@ -97,7 +97,7 @@ class MultipleOf(Predicate[Num, Serializable]):
     def is_valid(self, val: Num) -> bool:
         return val % self.factor == 0
 
-    def err_output(self, val: Num) -> str:
+    def err(self, val: Num) -> str:
         return f"expected multiple of {self.factor}"
 
 
@@ -112,7 +112,7 @@ class Exactly(Predicate[ExactT, Serializable]):
     def is_valid(self, val: ExactT) -> bool:
         return val == self.match
 
-    def err_output(self, val: ExactT) -> Serializable:
+    def err(self, val: ExactT) -> Serializable:
         return expected(
             f'"{self.match}"' if isinstance(self.match, str) else str(self.match)
         )

@@ -61,7 +61,7 @@ def test_map_validator() -> None:
         def is_valid(self, val: Dict[Any, Any]) -> bool:
             return len(val) <= self.max
 
-        def err_output(self, val: Dict[Any, Any]) -> Serializable:
+        def err(self, val: Dict[Any, Any]) -> Serializable:
             return f"max {self.max} key(s) allowed"
 
     complex_validator = MapValidator(

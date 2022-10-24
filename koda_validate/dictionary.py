@@ -200,7 +200,7 @@ class MinKeys(Predicate[Dict[Any, Any], Serializable]):
     def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) >= self.size
 
-    def err_output(self, val: Dict[Any, Any]) -> str:
+    def err(self, val: Dict[Any, Any]) -> str:
         return f"minimum allowed properties is {self.size}"
 
 
@@ -211,7 +211,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
     def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) <= self.size
 
-    def err_output(self, val: Dict[Any, Any]) -> str:
+    def err(self, val: Dict[Any, Any]) -> str:
         return f"maximum allowed properties is {self.size}"
 
 

@@ -39,7 +39,7 @@ class RegexPredicate(Predicate[str, Serializable]):
     def is_valid(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
 
-    def err_output(self, val: str) -> str:
+    def err(self, val: str) -> str:
         return rf"must match pattern {self.pattern.pattern}"
 
 
@@ -50,7 +50,7 @@ class EmailPredicate(Predicate[str, Serializable]):
     def is_valid(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
 
-    def err_output(self, val: str) -> str:
+    def err(self, val: str) -> str:
         return "expected a valid email address"
 
 
@@ -61,7 +61,7 @@ class NotBlank(Predicate[str, Serializable]):
     def is_valid(self, val: str) -> bool:
         return len(val.strip()) != 0
 
-    def err_output(self, val: str) -> Serializable:
+    def err(self, val: str) -> Serializable:
         return BLANK_STRING_MSG
 
 
@@ -75,7 +75,7 @@ class MaxLength(Predicate[str, Serializable]):
     def is_valid(self, val: str) -> bool:
         return len(val) <= self.length
 
-    def err_output(self, val: str) -> Serializable:
+    def err(self, val: str) -> Serializable:
         return f"maximum allowed length is {self.length}"
 
 
@@ -86,7 +86,7 @@ class MinLength(Predicate[str, Serializable]):
     def is_valid(self, val: str) -> bool:
         return len(val) >= self.length
 
-    def err_output(self, val: str) -> str:
+    def err(self, val: str) -> str:
         return f"minimum allowed length is {self.length}"
 
 

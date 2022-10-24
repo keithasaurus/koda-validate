@@ -305,7 +305,7 @@ class IsClose(Predicate[float, Serializable]):
     def is_valid(self, val: float) -> bool:
         return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
 
-    def err_output(self, val: float) -> Serializable:
+    def err(self, val: float) -> Serializable:
         return f"expected a value within {self.tolerance} of {self.compare_to}"
 
 
@@ -317,7 +317,7 @@ assert close_to_validator(0.01) == Err(["expected a value within 0.02 of 0.05"])
 
 ```
 
-Notice that in `Predicate`s we define `is_valid` and `err_output` methods, while in `Validator`s we define the 
+Notice that in `Predicate`s we define `is_valid` and `err` methods, while in `Validator`s we define the 
 entire `__call__` method. This is because the base `Predicate` class is constructed in such a way that we limit how 
 much it can actually do -- we don't want it to be able to alter the value being validated. This turns out to be useful 
 because it allows us to proceed sequentially through an arbitrary amount of `Predicate`s of the same type in a given 
