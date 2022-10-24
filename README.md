@@ -158,6 +158,27 @@ Things to note about `employee_validator`:
 
 Note that everything we've seen is typesafe according to mypy -- with strict settings, and without any plugins.
 
+### The (More) Basics
+
+We're are spending a lot of time discussing validating collections, but Koda Validator works just as seamlessly on 
+simple values.
+
+```python
+from koda import Err, Ok
+from koda_validate import ExactValidator, MinLength, StringValidator
+
+min_length_3_validator = StringValidator(MinLength(4))
+assert min_length_3_validator("good") == Ok("good")
+assert min_length_3_validator("bad") == Err(["minimum allowed length is 4"])
+
+exactly_5_validator = ExactValidator(5)
+
+assert exactly_5_validator(5) == Ok(5)
+assert exactly_5_validator("hmm") == Err(["expected exactly 5 (int)"])
+
+```
+Koda Validate is intended to be extendable enough to validate any type of value.
+
 ## Validation Errors
 
 As mentioned above, errors are returned as data as part of normal control flow. All errors from built-in validators in 

@@ -1,8 +1,10 @@
 from dataclasses import dataclass
+from datetime import date, datetime
 from decimal import Decimal
-from typing import Set, TypeVar
+from typing import Any, Set, TypeVar
+from uuid import UUID
 
-from koda import Result, Thunk
+from koda import Err, Ok, Result, Thunk
 from koda._generics import A
 
 from koda_validate._generics import Ret
@@ -101,18 +103,33 @@ class MultipleOf(Predicate[Num, Serializable]):
         return f"expected multiple of {self.factor}"
 
 
-# todo: consider expanding
-ExactT = TypeVar("ExactT", str, int, Decimal)
+# todo: expand types?
+# note that we are allowing `float` because python allows float equivalence checks
+# doesn't mean it's recommended to use it!
+ExactMatch = TypeVar(
+    "ExactMatch",
+    bool,
+    int,
+    Decimal,
+    str,
+    float,
+    date,
+    datetime,
+    UUID,
+)
 
 
 @dataclass
-class Exactly(Predicate[ExactT, Serializable]):
-    match: ExactT
+class ExactValidator(Validator[Any, ExactMatch, Serializable]):
+    match: ExactMatch
 
-    def is_valid(self, val: ExactT) -> bool:
-        return val == self.match
+    def __call__(self, val: Any) -> Result[ExactMatch, Serializable]:
+        if (match_type := type(self.match)) == type(val) and val == self.match:
+            return Ok(val)
+        else:
+            if isinstance(self.match, str):
+                value_str = f'"{self.match}"'
+            else:
+                value_str = str(self.match)
 
-    def err(self, val: ExactT) -> Serializable:
-        return expected(
-            f'"{self.match}"' if isinstance(self.match, str) else str(self.match)
-        )
+            return Err([expected(f"exactly {value_str} ({match_type.__name__})")])

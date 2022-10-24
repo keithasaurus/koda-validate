@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, Generic, List, Union, final
+from typing import Any, Dict, Generic, List, Tuple, Union, final
 
 from koda import Err, Ok, Result
 
@@ -49,9 +49,11 @@ class Predicate(Generic[A, FailT]):
 
 # When mypy enables recursive types by default
 # Serializable = Union[
-#    None, int, str, bool, float, List["Serializable"], Dict[str, "Serializable"]
+#    None, int, str, bool, float, List["Serializable"], Tuple["Serializable", ...], Dict[str, "Serializable"]
 # ]
-Serializable = Union[None, int, str, bool, float, List[Any], Dict[str, Any]]
+Serializable = Union[
+    None, int, str, bool, float, List[Any], Tuple[Any, ...], Dict[str, Any]
+]
 
 
 class Processor(Generic[A]):
