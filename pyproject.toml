@@ -1,8 +1,12 @@
 [tool.poetry]
 name = "koda-validate"
-version = "1.0-rc1"
-description = ""
+version = "1.0-rc2"
+readme = "README.md"
+description = "Typesafe, combinable validation"
 authors = ["Keith Philpott"]
+license = "MIT"
+homepage = "https://github.com/keithasaurus/koda-validate"
+keywords = ["validation", "functional programming", "type hints"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
