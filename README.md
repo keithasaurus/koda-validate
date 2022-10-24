@@ -558,9 +558,9 @@ such issues.
 This should be resolved in a later release.
 
 
-#### Something's Missing Or Wrong 
-Open an issue on GitHub please!
-
-
 #### Your Imagination
-:rainbow
+:rainbow:
+
+
+### Something's Missing Or Wrong 
+Open an issue on GitHub please!
