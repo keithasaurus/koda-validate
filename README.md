@@ -2,7 +2,17 @@
 
 Typesafe, combinable validation. Python 3.8+
 
-Koda Validate aims to make writing validators easier. 
+Koda Validate aims to make writing validators easier.
+
+### Install
+pip
+```bash
+pip install koda_validate
+```
+Poetry
+```bash
+poetry add koda_validate
+```
 
 ## The Basics
 
