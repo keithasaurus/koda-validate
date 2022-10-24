@@ -90,7 +90,7 @@ person_validator_2 = dict_validator(
 assert person_validator_2({"name": "John Doe", "age": 30}) == Ok((30, "John Doe"))
 
 ```
-As you see, we have some flexibility in defining what we want to get back from a `dict_validator`. 
+As you see, we have some flexibility in defining what we want to get back from a validated `dict_validator`. 
 
 Another thing to note is that, so far, the results are all wrapped in an `Ok` class. The other possibility -- when 
 validation fails -- is that an error message is returned, wrapped in the `Err` class. We do not raise exceptions to
@@ -149,9 +149,9 @@ Note that everything we've seen is typesafe according to mypy -- with strict set
 
 ## Validation Errors
 
-As mentioned above, errors are returned as data as part of normal control flow. All built-in validators in Koda Validate
-are JSON/YAML serializable. (However, should you build your own custom validators, that constraint is not enforced.)
-Here are a few examples of the kinds of errors you can expect to see.
+As mentioned above, errors are returned as data as part of normal control flow. All errors from built-in validators in 
+Koda Validate are JSON/YAML serializable. (However, should you build your own custom validators, that constraint is 
+not enforced.) Here are a few examples of the kinds of errors you can expect to see.
 
 ```python
 from dataclasses import dataclass
