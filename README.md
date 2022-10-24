@@ -41,11 +41,11 @@ else:
     print(result.val)
 ```
 
-We could also nest `person_validator`, for instance, in a `ListValidator`
+We could also nest `person_validator`, for instance, in a `ListValidator`:
 ```python
 people_validator = ListValidator(person_validator)
 ```
-And nest that in a different validator (and so forth).
+...And nest that in a different validator (and so forth...):
 ```python
 
 @dataclass
