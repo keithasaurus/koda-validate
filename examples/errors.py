@@ -26,7 +26,6 @@ city_validator = dict_validator(
     maybe_key("region", StringValidator(not_blank)),
 )
 
-# All errors in Koda Validate are json/yaml serializable.
 # We use the key "__container__" for object-level errors
 assert city_validator(None) == Err({"__container__": ["expected a dictionary"]})
 
