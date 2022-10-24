@@ -161,8 +161,8 @@ Note that everything we've seen is typesafe according to mypy -- with strict set
 ## Validation Errors
 
 As mentioned above, errors are returned as data as part of normal control flow. All errors from built-in validators in 
-Koda Validate are JSON/YAML serializable. (However, should you build your own custom validators, that constraint is 
-not enforced.) Here are a few examples of the kinds of errors you can expect to see.
+Koda Validate are JSON/YAML serializable. (However, should you build your own custom validators, there is no contract 
+enfocing that constraint.) Here are a few examples of the kinds of errors you can expect to see.
 
 ```python
 from dataclasses import dataclass
@@ -195,7 +195,7 @@ city_validator = dict_validator(
 # We use the key "__container__" for object-level errors
 assert city_validator(None) == Err({"__container__": ["expected a dictionary"]})
 
-# Missing Keys are noted 
+# Missing keys are errors 
 assert city_validator({}) == Err({"name": ["key missing"]})
 
 # Extra keys are also errors
@@ -226,6 +226,7 @@ the other validators and helpers below:
 - [MapValidator](#mapvalidator)
 - [OptionalValidator](#optionalvalidator)
 - [maybe_key](#maybe_key)
+- [is_dict_validator](#is_dict_validator)
 - [Lazy](#lazy)
 
 
@@ -336,6 +337,7 @@ from koda_validate import MaxLength, MinLength, Predicate, StringValidator, Vali
 
 
 def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]) -> str:
+    # use `isinstance(...)` in python <= 3.10
     match validator:
         case StringValidator(predicates):
             predicate_descriptions = [
@@ -487,6 +489,23 @@ person_validator = dict_validator(
 )
 assert person_validator({"name": "Bob"}) == Ok(Person("Bob", nothing))
 assert person_validator({"name": "Bob", "age": 42}) == Ok(Person("Bob", Just(42)))
+
+```
+
+#### is_dict_validator
+
+A very simple validator that only validates that and object is a dict. It doesn't do any validation against keys or
+values.
+
+```python
+from koda import Ok, Err
+from koda_validate.dictionary import is_dict_validator
+
+assert is_dict_validator({}) == Ok({})
+assert is_dict_validator(None) == Err({"__container__": ["expected a dictionary"]})
+assert is_dict_validator({"a": 1, "b": 2, 5: "xyz"}) == Ok(
+    {"a": 1, "b": 2, 5: "xyz"}
+)
 
 ```
 
