@@ -552,7 +552,7 @@ numbered validators are limited to a specific number of keys and can be used to 
 such issues.
 
 
-#### `dict_validator`'s keys only allow for strings**
+#### `dict_validator`'s keys only allow for strings
 
 This should be resolved in a later release.
 
