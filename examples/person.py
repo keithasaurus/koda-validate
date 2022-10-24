@@ -12,7 +12,7 @@ class Person:
 
 
 person_validator = dict_validator(
-    Person,  # <- destination of data if valid
+    Person,
     key("name", StringValidator()),
     key("age", IntValidator()),
 )
