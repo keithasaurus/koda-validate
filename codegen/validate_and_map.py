@@ -13,8 +13,6 @@ def generate_code(num_fields: int) -> str:
 from typing import Tuple, TypeVar, Callable, Optional, overload, Union, cast
 
 from koda import Result, Err, Ok
-
-from koda_validate.utils import _flat_map_same_type_if_not_none
 """
     ret += add_type_vars(type_vars)
 
@@ -130,10 +128,16 @@ def validate_and_map(
     for i in range(1, num_fields + 1):
         r_params = ", ".join([f"r{j}" for j in range(1, i + 1)])
         ret_stmt = f"""
-            return _flat_map_same_type_if_not_none(
-                tupled_err_func(validate_object),
-                _validate{i}_helper(Ok(cast({into_signatures[i - 1]}, into)), {r_params})
-            )"""
+            obj_result = _validate{i}_helper(Ok(cast({into_signatures[i - 1]}, into)), {r_params})
+            if validate_object is None:
+                # optimizing away a function call
+                return obj_result
+            else:
+                if isinstance(obj_result, Ok):
+                    return validate_object(obj_result.val).map_err(_tupled)
+                else:
+                    return obj_result 
+            """
         if i == 1:
             ret += f"""
         if r{i + 1} is None:

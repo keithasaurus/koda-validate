@@ -223,6 +223,7 @@ def _validate_with_key(
 ) -> Result[T1, Tuple[str, Serializable]]:
     key, fn = r
 
+    # optimized for no flat_map
     if isinstance((result := fn(mapping_get(data, key))), Err):
         return Err((key, result.val))
     else:

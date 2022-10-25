@@ -3,8 +3,6 @@ from typing import Callable, Optional, Tuple, TypeVar, Union, cast, overload
 
 from koda import Err, Ok, Result
 
-from koda_validate.utils import _flat_map_same_type_if_not_none
-
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 T3 = TypeVar("T3")
@@ -1475,554 +1473,649 @@ def validate_and_map(
 
     if r2 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate1_helper(Ok(cast(Callable[[T1], Ret], into)), r1),
-        )
+        obj_result = _validate1_helper(Ok(cast(Callable[[T1], Ret], into)), r1)
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
+
     elif r3 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate2_helper(Ok(cast(Callable[[T1, T2], Ret], into)), r1, r2),
-        )
+        obj_result = _validate2_helper(Ok(cast(Callable[[T1, T2], Ret], into)), r1, r2)
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r4 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate3_helper(Ok(cast(Callable[[T1, T2, T3], Ret], into)), r1, r2, r3),
+        obj_result = _validate3_helper(
+            Ok(cast(Callable[[T1, T2, T3], Ret], into)), r1, r2, r3
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r5 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate4_helper(
-                Ok(cast(Callable[[T1, T2, T3, T4], Ret], into)), r1, r2, r3, r4
-            ),
+        obj_result = _validate4_helper(
+            Ok(cast(Callable[[T1, T2, T3, T4], Ret], into)), r1, r2, r3, r4
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r6 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate5_helper(
-                Ok(cast(Callable[[T1, T2, T3, T4, T5], Ret], into)), r1, r2, r3, r4, r5
-            ),
+        obj_result = _validate5_helper(
+            Ok(cast(Callable[[T1, T2, T3, T4, T5], Ret], into)), r1, r2, r3, r4, r5
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r7 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate6_helper(
-                Ok(cast(Callable[[T1, T2, T3, T4, T5, T6], Ret], into)),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-            ),
+        obj_result = _validate6_helper(
+            Ok(cast(Callable[[T1, T2, T3, T4, T5, T6], Ret], into)),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r8 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate7_helper(
-                Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7], Ret], into)),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-            ),
+        obj_result = _validate7_helper(
+            Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7], Ret], into)),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r9 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate8_helper(
-                Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret], into)),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-            ),
+        obj_result = _validate8_helper(
+            Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret], into)),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r10 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate9_helper(
-                Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret], into)),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-            ),
+        obj_result = _validate9_helper(
+            Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret], into)),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r11 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate10_helper(
-                Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret], into)),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-            ),
+        obj_result = _validate10_helper(
+            Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret], into)),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r12 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate11_helper(
-                Ok(
-                    cast(
-                        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
-                        into,
-                    )
-                ),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-                r11,
-            ),
+        obj_result = _validate11_helper(
+            Ok(cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret], into)),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
+            r11,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r13 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate12_helper(
-                Ok(
-                    cast(
-                        Callable[
-                            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret
-                        ],
-                        into,
-                    )
-                ),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-                r11,
-                r12,
+        obj_result = _validate12_helper(
+            Ok(
+                cast(
+                    Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+                    into,
+                )
             ),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
+            r11,
+            r12,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r14 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate13_helper(
-                Ok(
-                    cast(
-                        Callable[
-                            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret
-                        ],
-                        into,
-                    )
-                ),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-                r11,
-                r12,
-                r13,
+        obj_result = _validate13_helper(
+            Ok(
+                cast(
+                    Callable[
+                        [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret
+                    ],
+                    into,
+                )
             ),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
+            r11,
+            r12,
+            r13,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r15 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate14_helper(
-                Ok(
-                    cast(
-                        Callable[
-                            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14],
-                            Ret,
-                        ],
-                        into,
-                    )
-                ),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-                r11,
-                r12,
-                r13,
-                r14,
+        obj_result = _validate14_helper(
+            Ok(
+                cast(
+                    Callable[
+                        [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret
+                    ],
+                    into,
+                )
             ),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
+            r11,
+            r12,
+            r13,
+            r14,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r16 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate15_helper(
-                Ok(
-                    cast(
-                        Callable[
-                            [
-                                T1,
-                                T2,
-                                T3,
-                                T4,
-                                T5,
-                                T6,
-                                T7,
-                                T8,
-                                T9,
-                                T10,
-                                T11,
-                                T12,
-                                T13,
-                                T14,
-                                T15,
-                            ],
-                            Ret,
+        obj_result = _validate15_helper(
+            Ok(
+                cast(
+                    Callable[
+                        [
+                            T1,
+                            T2,
+                            T3,
+                            T4,
+                            T5,
+                            T6,
+                            T7,
+                            T8,
+                            T9,
+                            T10,
+                            T11,
+                            T12,
+                            T13,
+                            T14,
+                            T15,
                         ],
-                        into,
-                    )
-                ),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-                r11,
-                r12,
-                r13,
-                r14,
-                r15,
+                        Ret,
+                    ],
+                    into,
+                )
             ),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
+            r11,
+            r12,
+            r13,
+            r14,
+            r15,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r17 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate16_helper(
-                Ok(
-                    cast(
-                        Callable[
-                            [
-                                T1,
-                                T2,
-                                T3,
-                                T4,
-                                T5,
-                                T6,
-                                T7,
-                                T8,
-                                T9,
-                                T10,
-                                T11,
-                                T12,
-                                T13,
-                                T14,
-                                T15,
-                                T16,
-                            ],
-                            Ret,
+        obj_result = _validate16_helper(
+            Ok(
+                cast(
+                    Callable[
+                        [
+                            T1,
+                            T2,
+                            T3,
+                            T4,
+                            T5,
+                            T6,
+                            T7,
+                            T8,
+                            T9,
+                            T10,
+                            T11,
+                            T12,
+                            T13,
+                            T14,
+                            T15,
+                            T16,
                         ],
-                        into,
-                    )
-                ),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-                r11,
-                r12,
-                r13,
-                r14,
-                r15,
-                r16,
+                        Ret,
+                    ],
+                    into,
+                )
             ),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
+            r11,
+            r12,
+            r13,
+            r14,
+            r15,
+            r16,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r18 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate17_helper(
-                Ok(
-                    cast(
-                        Callable[
-                            [
-                                T1,
-                                T2,
-                                T3,
-                                T4,
-                                T5,
-                                T6,
-                                T7,
-                                T8,
-                                T9,
-                                T10,
-                                T11,
-                                T12,
-                                T13,
-                                T14,
-                                T15,
-                                T16,
-                                T17,
-                            ],
-                            Ret,
+        obj_result = _validate17_helper(
+            Ok(
+                cast(
+                    Callable[
+                        [
+                            T1,
+                            T2,
+                            T3,
+                            T4,
+                            T5,
+                            T6,
+                            T7,
+                            T8,
+                            T9,
+                            T10,
+                            T11,
+                            T12,
+                            T13,
+                            T14,
+                            T15,
+                            T16,
+                            T17,
                         ],
-                        into,
-                    )
-                ),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-                r11,
-                r12,
-                r13,
-                r14,
-                r15,
-                r16,
-                r17,
+                        Ret,
+                    ],
+                    into,
+                )
             ),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
+            r11,
+            r12,
+            r13,
+            r14,
+            r15,
+            r16,
+            r17,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r19 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate18_helper(
-                Ok(
-                    cast(
-                        Callable[
-                            [
-                                T1,
-                                T2,
-                                T3,
-                                T4,
-                                T5,
-                                T6,
-                                T7,
-                                T8,
-                                T9,
-                                T10,
-                                T11,
-                                T12,
-                                T13,
-                                T14,
-                                T15,
-                                T16,
-                                T17,
-                                T18,
-                            ],
-                            Ret,
+        obj_result = _validate18_helper(
+            Ok(
+                cast(
+                    Callable[
+                        [
+                            T1,
+                            T2,
+                            T3,
+                            T4,
+                            T5,
+                            T6,
+                            T7,
+                            T8,
+                            T9,
+                            T10,
+                            T11,
+                            T12,
+                            T13,
+                            T14,
+                            T15,
+                            T16,
+                            T17,
+                            T18,
                         ],
-                        into,
-                    )
-                ),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-                r11,
-                r12,
-                r13,
-                r14,
-                r15,
-                r16,
-                r17,
-                r18,
+                        Ret,
+                    ],
+                    into,
+                )
             ),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
+            r11,
+            r12,
+            r13,
+            r14,
+            r15,
+            r16,
+            r17,
+            r18,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     elif r20 is None:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate19_helper(
-                Ok(
-                    cast(
-                        Callable[
-                            [
-                                T1,
-                                T2,
-                                T3,
-                                T4,
-                                T5,
-                                T6,
-                                T7,
-                                T8,
-                                T9,
-                                T10,
-                                T11,
-                                T12,
-                                T13,
-                                T14,
-                                T15,
-                                T16,
-                                T17,
-                                T18,
-                                T19,
-                            ],
-                            Ret,
+        obj_result = _validate19_helper(
+            Ok(
+                cast(
+                    Callable[
+                        [
+                            T1,
+                            T2,
+                            T3,
+                            T4,
+                            T5,
+                            T6,
+                            T7,
+                            T8,
+                            T9,
+                            T10,
+                            T11,
+                            T12,
+                            T13,
+                            T14,
+                            T15,
+                            T16,
+                            T17,
+                            T18,
+                            T19,
                         ],
-                        into,
-                    )
-                ),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-                r11,
-                r12,
-                r13,
-                r14,
-                r15,
-                r16,
-                r17,
-                r18,
-                r19,
+                        Ret,
+                    ],
+                    into,
+                )
             ),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
+            r11,
+            r12,
+            r13,
+            r14,
+            r15,
+            r16,
+            r17,
+            r18,
+            r19,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
 
     else:
 
-        return _flat_map_same_type_if_not_none(
-            tupled_err_func(validate_object),
-            _validate20_helper(
-                Ok(
-                    cast(
-                        Callable[
-                            [
-                                T1,
-                                T2,
-                                T3,
-                                T4,
-                                T5,
-                                T6,
-                                T7,
-                                T8,
-                                T9,
-                                T10,
-                                T11,
-                                T12,
-                                T13,
-                                T14,
-                                T15,
-                                T16,
-                                T17,
-                                T18,
-                                T19,
-                                T20,
-                            ],
-                            Ret,
+        obj_result = _validate20_helper(
+            Ok(
+                cast(
+                    Callable[
+                        [
+                            T1,
+                            T2,
+                            T3,
+                            T4,
+                            T5,
+                            T6,
+                            T7,
+                            T8,
+                            T9,
+                            T10,
+                            T11,
+                            T12,
+                            T13,
+                            T14,
+                            T15,
+                            T16,
+                            T17,
+                            T18,
+                            T19,
+                            T20,
                         ],
-                        into,
-                    )
-                ),
-                r1,
-                r2,
-                r3,
-                r4,
-                r5,
-                r6,
-                r7,
-                r8,
-                r9,
-                r10,
-                r11,
-                r12,
-                r13,
-                r14,
-                r15,
-                r16,
-                r17,
-                r18,
-                r19,
-                r20,
+                        Ret,
+                    ],
+                    into,
+                )
             ),
+            r1,
+            r2,
+            r3,
+            r4,
+            r5,
+            r6,
+            r7,
+            r8,
+            r9,
+            r10,
+            r11,
+            r12,
+            r13,
+            r14,
+            r15,
+            r16,
+            r17,
+            r18,
+            r19,
+            r20,
         )
+        if validate_object is None:
+            # optimizing away a function call
+            return obj_result
+        else:
+            if isinstance(obj_result, Ok):
+                return validate_object(obj_result.val).map_err(_tupled)
+            else:
+                return obj_result
