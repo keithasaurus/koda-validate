@@ -158,22 +158,27 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
             return Err({OBJECT_ERRORS_FIELD: [expected("a map")]})
 
 
+_is_dict_validation_err: Final[Err[Serializable]] = Err(
+    {OBJECT_ERRORS_FIELD: [expected("a dictionary")]}
+)
+
+
 class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
     def __call__(self, val: Any) -> Result[Dict[Any, Any], Serializable]:
         if isinstance(val, dict):
             return Ok(val)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("a dictionary")]})
+            return _is_dict_validation_err
 
 
 is_dict_validator = IsDictValidator()
 
 
-def _has_no_extra_keys(
-    keys: Set[str],
-) -> Callable[[Dict[T1, T2]], Result[Dict[T1, T2], Serializable]]:
-    def inner(mapping: Dict[T1, T2]) -> Result[Dict[T1, T2], Serializable]:
-        if len(mapping.keys() - keys) > 0:
+def _dict_without_extra_keys(
+    keys: Set[str], data: Any
+) -> Result[Dict[Any, Any], Serializable]:
+    if isinstance(data, dict):
+        if len(data.keys() - keys) > 0:
             return Err(
                 {
                     OBJECT_ERRORS_FIELD: [
@@ -182,15 +187,9 @@ def _has_no_extra_keys(
                 }
             )
         else:
-            return Ok(mapping)
-
-    return inner
-
-
-def _dict_without_extra_keys(
-    keys: Set[str], data: Any
-) -> Result[Dict[Any, Any], Serializable]:
-    return is_dict_validator(data).flat_map(_has_no_extra_keys(keys))
+            return Ok(data)
+    else:
+        return _is_dict_validation_err
 
 
 @dataclass(frozen=True)

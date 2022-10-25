@@ -1,8 +1,8 @@
 from koda import Err
 
-from bench.utils import catchtime
+from bench.bench_utils import catchtime
 from koda_validate import StringValidator
-from koda_validate.dictionary import Dict1KeysValidator, RequiredField, key
+from koda_validate.dictionary import Dict1KeysValidator, key
 
 
 class SimpleStr:

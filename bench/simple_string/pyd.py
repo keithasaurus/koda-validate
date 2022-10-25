@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from bench.utils import catchtime
+from bench.bench_utils import catchtime
 
 
 class BasicString(BaseModel):
