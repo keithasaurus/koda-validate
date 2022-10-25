@@ -49,9 +49,7 @@ T20 = TypeVar("T20")
 Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
-
 KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
-
 
 _KEY_MISSING: Final[str] = "key missing"
 
@@ -169,6 +167,21 @@ class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
 is_dict_validator = IsDictValidator()
 
 
+def _has_no_extra_keys_1(
+    keys: Set[str], mapping: Dict[T1, T2]
+) -> Result[Dict[T1, T2], Serializable]:
+    if len(mapping.keys() - keys) > 0:
+        return Err(
+            {
+                OBJECT_ERRORS_FIELD: [
+                    f"Received unknown keys. Only expected {sorted(keys)}"
+                ]
+            }
+        )
+    else:
+        return Ok(mapping)
+
+
 def _has_no_extra_keys(
     keys: Set[str],
 ) -> Callable[[Dict[T1, T2]], Result[Dict[T1, T2], Serializable]]:
@@ -187,10 +200,21 @@ def _has_no_extra_keys(
     return inner
 
 
-def _dict_without_extra_keys(
-    keys: Set[str], data: Any
-) -> Result[Dict[Any, Any], Serializable]:
-    return is_dict_validator(data).flat_map(_has_no_extra_keys(keys))
+def _dict_without_extra_keys(keys: Set[str], data: Any) -> Optional[Err[Serializable]]:
+    if isinstance(data, dict):
+        if len(data.keys() - keys) > 0:
+            return Err(
+                {
+                    OBJECT_ERRORS_FIELD: [
+                        f"Received unknown keys. Only expected {sorted(keys)}"
+                    ]
+                }
+            )
+        else:
+            return None
+    else:
+        return Err("not a dict")
+    # return is_dict_validator(data).flat_map(_has_no_extra_keys(keys))
 
 
 @dataclass(frozen=True)
@@ -245,14 +269,12 @@ class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, Serializable]):
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys({self.dv_fields[0][0]}, data)
-
-        if isinstance(result, Err):
-            return result
+        if (result := _dict_without_extra_keys({self.dv_fields[0][0]}, data)) is not None:
+            return Err(result)
         else:
             result_1 = validate_and_map(
                 self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
+                _validate_with_key(self.dv_fields[0], data),
             )
             return _flat_map_same_type_if_not_none(
                 self.validate_object, result_1.map_err(_tuples_to_json_dict)
@@ -2446,7 +2468,6 @@ def dict_validator(
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
 ) -> Validator[Any, Ret, Serializable]:
-
     if field2 is None:
         return Dict1KeysValidator(
             cast(Callable[[T1], Ret], into), field1, validate_object=validate_object
