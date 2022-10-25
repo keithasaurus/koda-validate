@@ -191,14 +191,15 @@ def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializ
 
 
 def _validate_with_key(
-        r: KeyValidator[T1], data: Dict[Any, Any]
+    r: KeyValidator[T1], data: Dict[Any, Any]
 ) -> Result[T1, Tuple[str, Serializable]]:
     key, fn = r
 
-    def add_key(val: Serializable) -> Tuple[str, Serializable]:
-        return key, val
+    if isinstance((result := fn(mapping_get(data, key))), Err):
+        return Err((key, result.val))
+    else:
+        return result
 
-    return fn(mapping_get(data, key)).map_err(add_key)
 """
     for i in range(num_keys):
         key_type_vars = type_vars[: i + 1]

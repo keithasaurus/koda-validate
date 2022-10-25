@@ -223,10 +223,10 @@ def _validate_with_key(
 ) -> Result[T1, Tuple[str, Serializable]]:
     key, fn = r
 
-    def add_key(val: Serializable) -> Tuple[str, Serializable]:
-        return key, val
-
-    return fn(mapping_get(data, key)).map_err(add_key)
+    if isinstance((result := fn(mapping_get(data, key))), Err):
+        return Err((key, result.val))
+    else:
+        return result
 
 
 class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, Serializable]):
