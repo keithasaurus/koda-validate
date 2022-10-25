@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from pydantic import BaseModel
+from koda import Err, Ok
+from pydantic import BaseModel, ValidationError, constr
 
 from koda_validate import StringValidator
 from koda_validate.dictionary import dict_validator, key
@@ -16,13 +17,20 @@ string_validator = dict_validator(SimpleStr, key("val_1", StringValidator()))
 
 def run_kv(iterations: int) -> None:
     for i in range(iterations):
-        string_validator({"val_1": i})
+        match string_validator({"val_1": i}):
+            case Ok(val):
+                x = val
+            case Err(val):
+                x = val
 
 
 class BasicString(BaseModel):
-    val_1: str
+    val_1: constr(strict=True)
 
 
 def run_pyd(iterations: int) -> None:
     for i in range(iterations):
-        BasicString(val_1=i)
+        try:
+            BasicString(val_1=i)
+        except ValidationError as e:
+            x = e
