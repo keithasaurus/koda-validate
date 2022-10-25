@@ -2,7 +2,17 @@
 
 Typesafe, combinable validation. Python 3.8+
 
-Koda Validate aims to make writing validators easier. 
+Koda Validate aims to make writing validators easier.
+
+### Install
+pip
+```bash
+pip install koda_validate
+```
+Poetry
+```bash
+poetry add koda_validate
+```
 
 ## The Basics
 
@@ -19,12 +29,11 @@ class Person:
 
 
 person_validator = dict_validator(
-    Person,  # <- destination of data if valid
-    key("name", StringValidator()),  # <- first key
-    key("age", IntValidator()),  # <- second key...
+    Person, 
+    key("name", StringValidator()),
+    key("age", IntValidator())
 )
 
-# note that `match` statements can be used in python >= 3.10
 result = person_validator({"name": "John Doe", "age": 30})
 if isinstance(result, Ok):
     print(f"{result.val.name} is {result.val.age} years old")
@@ -32,11 +41,11 @@ else:
     print(result.val)
 ```
 
-We could also nest `person_validator`, for instance, in a `ListValidator`
+We could also nest `person_validator`, for instance, in a `ListValidator`:
 ```python
 people_validator = ListValidator(person_validator)
 ```
-And nest that in a different validator (and so forth).
+...And nest that in a different validator (and so forth...):
 ```python
 
 @dataclass
@@ -91,11 +100,12 @@ person_validator_2 = dict_validator(
 assert person_validator_2({"name": "John Doe", "age": 30}) == Ok((30, "John Doe"))
 
 ```
-As you see, we have some flexibility in defining what we want to get back from a `dict_validator`. 
+As you see, we have some flexibility in defining what we want to get back from a validated `dict_validator`. 
 
 Another thing to note is that, so far, the results are all wrapped in an `Ok` class. The other possibility -- when 
-validation fails -- is that an error message is returned, wrapped in the `Err` class. We do not raise exceptions to
-express validation failure in Koda Validate. Instead, validation is treated as part of normal control flow.
+validation fails -- is that an `Err` instance is returned, with whatever message or object a given validator returns. 
+We do not raise exceptions to express validation failure in Koda Validate. Instead, validation is treated as part of 
+normal control flow.
 
 Let's use some more features.
 
@@ -148,11 +158,33 @@ Things to note about `employee_validator`:
 
 Note that everything we've seen is typesafe according to mypy -- with strict settings, and without any plugins.
 
+### The (More) Basics
+
+We're are spending a lot of time discussing validating collections, but Koda Validator works just as well on simple 
+values.
+
+```python
+from koda import Err, Ok
+from koda_validate import ExactValidator, MinLength, StringValidator
+
+min_length_3_validator = StringValidator(MinLength(4))
+assert min_length_3_validator("good") == Ok("good")
+assert min_length_3_validator("bad") == Err(["minimum allowed length is 4"])
+
+exactly_5_validator = ExactValidator(5)
+
+assert exactly_5_validator(5) == Ok(5)
+assert exactly_5_validator("hmm") == Err(["expected exactly 5 (int)"])
+
+```
+Koda Validate is intended to be extendable enough to validate any type of data.
+
 ## Validation Errors
 
-As mentioned above, errors are returned as data as part of normal control flow. All built-in validators in Koda Validate
-are JSON/YAML serializable. (However, should you build your own custom validators, that constraint is not enforced.)
-Here are a few examples of the kinds of errors you can expect to see.
+As mentioned above, errors are returned as data as part of normal control flow. The contents of all returned `Err`s 
+from built-in validators in Koda Validate are JSON/YAML serializable. (However, should you build your own custom 
+validators, there is no contract enforcing that constraint.) Here are a few examples of the kinds of errors you can 
+expect to see out of the box.
 
 ```python
 from dataclasses import dataclass
@@ -181,11 +213,10 @@ city_validator = dict_validator(
     maybe_key("region", StringValidator(not_blank)),
 )
 
-# All errors in Koda Validate are json/yaml serializable. 
 # We use the key "__container__" for object-level errors
 assert city_validator(None) == Err({"__container__": ["expected a dictionary"]})
 
-# Missing Keys are noted 
+# Missing keys are errors
 assert city_validator({}) == Err({"name": ["key missing"]})
 
 # Extra keys are also errors
@@ -216,6 +247,7 @@ the other validators and helpers below:
 - [MapValidator](#mapvalidator)
 - [OptionalValidator](#optionalvalidator)
 - [maybe_key](#maybe_key)
+- [is_dict_validator](#is_dict_validator)
 - [Lazy](#lazy)
 
 
@@ -295,7 +327,7 @@ class IsClose(Predicate[float, Serializable]):
     def is_valid(self, val: float) -> bool:
         return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
 
-    def err_message(self, val: float) -> Serializable:
+    def err(self, val: float) -> Serializable:
         return f"expected a value within {self.tolerance} of {self.compare_to}"
 
 
@@ -307,7 +339,7 @@ assert close_to_validator(0.01) == Err(["expected a value within 0.02 of 0.05"])
 
 ```
 
-Notice that in `Predicate`s we define `is_valid` and `err_message` methods, while in `Validator`s we define the 
+Notice that in `Predicate`s we define `is_valid` and `err` methods, while in `Validator`s we define the 
 entire `__call__` method. This is because the base `Predicate` class is constructed in such a way that we limit how 
 much it can actually do -- we don't want it to be able to alter the value being validated. This turns out to be useful 
 because it allows us to proceed sequentially through an arbitrary amount of `Predicate`s of the same type in a given 
@@ -326,6 +358,7 @@ from koda_validate import MaxLength, MinLength, Predicate, StringValidator, Vali
 
 
 def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]) -> str:
+    # use `isinstance(...)` in python <= 3.10
     match validator:
         case StringValidator(predicates):
             predicate_descriptions = [
@@ -380,9 +413,9 @@ assert string_or_list_string_validator(["list", "of", "strings"]) == Ok(
 ```
 
 
-### Tuple2 / Tuple3
+#### Tuple2Validator / Tuple3Validator
 
-TupleN validators work as you might expect:
+These `Validator`s work on `tuple`s as you might expect:
 ```python
 from koda import Ok
 from koda_validate import IntValidator, StringValidator, Tuple2Validator
@@ -399,7 +432,8 @@ assert string_int_validator(["ok", 100]) == Ok(("ok", 100))
 
 #### Lazy
 `Lazy`'s main purpose is to allow for the use of recursion in validation. An example use case of this might be replies
-in a comment thread. This can be done with mutually recursive functions, as seen below.
+in a comment thread. This can be done with mutually recursive functions. For simplicity, here's an example of parsing a 
+kind of non-empty list.
 
 ```python
 from typing import Optional
@@ -480,6 +514,23 @@ assert person_validator({"name": "Bob", "age": 42}) == Ok(Person("Bob", Just(42)
 
 ```
 
+#### is_dict_validator
+
+A very simple validator that only validates that and object is a dict. It doesn't do any validation against keys or
+values.
+
+```python
+from koda import Ok, Err
+from koda_validate.dictionary import is_dict_validator
+
+assert is_dict_validator({}) == Ok({})
+assert is_dict_validator(None) == Err({"__container__": ["expected a dictionary"]})
+assert is_dict_validator({"a": 1, "b": 2, 5: "xyz"}) == Ok(
+    {"a": 1, "b": 2, 5: "xyz"}
+)
+
+```
+
 ## Limitations
 
 #### `dict_validator` has a max keys limit
@@ -494,7 +545,7 @@ This limitation exists because computation starts to get expensive for type chec
 it's not common to have that many keys in a dict.
 
 
-#### `dict_validator` types may be hard to read / slow for your editor or type-checker**
+#### `dict_validator` types may be hard to read / slow for your editor or type-checker
 
 `dict_validator` is a convenience function that delegates to different `Validator`s depending 
 on the number of keys -- for example, `Dict2KeysValidator`, `Dict3KeysValidator`, etc. These
@@ -502,10 +553,14 @@ numbered validators are limited to a specific number of keys and can be used to 
 such issues.
 
 
-#### `dict_validator`'s keys only allow for strings**
+#### `dict_validator`'s keys only allow for strings
 
 This should be resolved in a later release.
 
 
-#### Something's Missing Or Wrong 
-Open an issue on GitHub please!
+#### Your Imagination
+:sparkles:
+
+
+### Something's Missing Or Wrong 
+Open an [issue on GitHub](https://github.com/keithasaurus/koda-validate/issues) please!

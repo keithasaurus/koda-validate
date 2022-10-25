@@ -7,7 +7,7 @@ __all__ = (
     "key",
     "maybe_key",
     "MapValidator",
-    "IsDict",
+    "IsDictValidator",
     "MinKeys",
     "MaxKeys",
     "dict_validator",
@@ -19,7 +19,7 @@ __all__ = (
     "Min",
     "Max",
     "MultipleOf",
-    "Exactly",
+    "ExactValidator",
     # integer.py
     "IntValidator",
     # list.py
@@ -64,7 +64,7 @@ __all__ = (
 from koda_validate.boolean import BooleanValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
-    IsDict,
+    IsDictValidator,
     MapValidator,
     MaxKeys,
     MinKeys,
@@ -73,7 +73,7 @@ from koda_validate.dictionary import (
     maybe_key,
 )
 from koda_validate.float import FloatValidator
-from koda_validate.generic import Choices, Exactly, Lazy, Max, Min, MultipleOf
+from koda_validate.generic import Choices, ExactValidator, Lazy, Max, Min, MultipleOf
 from koda_validate.integer import IntValidator
 from koda_validate.list import (
     ListValidator,
@@ -91,7 +91,6 @@ from koda_validate.string import (
     NotBlank,
     RegexPredicate,
     StringValidator,
-    Strip,
     lower_case,
     not_blank,
     strip,
@@ -99,11 +98,5 @@ from koda_validate.string import (
 )
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
-from koda_validate.typedefs import (
-    Predicate,
-    Processor,
-    Serializable,
-    Validator,
-    ValidatorFunc,
-)
+from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
 from koda_validate.validate_and_map import validate_and_map

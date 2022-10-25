@@ -1,6 +1,10 @@
+import re
+
 from koda import Err, Ok
 
+from koda_validate import EmailPredicate, RegexPredicate
 from koda_validate.string import (
+    BLANK_STRING_MSG,
     MaxLength,
     MinLength,
     NotBlank,
@@ -63,3 +67,27 @@ def test_min_string_length() -> None:
     assert MinLength(3)("abc") == Ok("abc")
 
     assert MinLength(3)("zz") == Err("minimum allowed length is 3")
+
+
+def test_regex_validator() -> None:
+    assert RegexPredicate(re.compile(r".+"))("something") == Ok("something")
+    assert RegexPredicate(re.compile(r".+"))("") == Err("must match pattern .+")
+
+
+def test_not_blank() -> None:
+    assert NotBlank()("a") == Ok("a")
+    assert NotBlank()("") == Err(BLANK_STRING_MSG)
+    assert NotBlank()(" ") == Err(BLANK_STRING_MSG)
+    assert NotBlank()("\t") == Err(BLANK_STRING_MSG)
+    assert NotBlank()("\n") == Err(BLANK_STRING_MSG)
+
+
+def test_email() -> None:
+    assert EmailPredicate()("notanemail") == Err("expected a valid email address")
+    assert EmailPredicate()("a@b.com") == Ok("a@b.com")
+
+    custom_regex_validator = EmailPredicate(re.compile(r"[a-z.]+@somecompany\.com"))
+    assert custom_regex_validator("a.b@somecompany.com") == Ok("a.b@somecompany.com")
+    assert custom_regex_validator("a.b@example.com") == Err(
+        "expected a valid email address"
+    )

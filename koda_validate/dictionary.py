@@ -18,7 +18,7 @@ from typing import (
 from koda import Err, Just, Maybe, Nothing, Ok, Result, mapping_get
 
 from koda_validate._generics import A
-from koda_validate.typedefs import Predicate, Serializable, Validator, ValidatorFunc
+from koda_validate.typedefs import Predicate, Serializable, Validator
 from koda_validate.utils import (
     OBJECT_ERRORS_FIELD,
     _flat_map_same_type_if_not_none,
@@ -158,7 +158,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
             return Err({OBJECT_ERRORS_FIELD: [expected("a map")]})
 
 
-class IsDict(Validator[Any, Dict[Any, Any], Serializable]):
+class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
     def __call__(self, val: Any) -> Result[Dict[Any, Any], Serializable]:
         if isinstance(val, dict):
             return Ok(val)
@@ -166,9 +166,12 @@ class IsDict(Validator[Any, Dict[Any, Any], Serializable]):
             return Err({OBJECT_ERRORS_FIELD: [expected("a dictionary")]})
 
 
+is_dict_validator = IsDictValidator()
+
+
 def _has_no_extra_keys(
     keys: Set[str],
-) -> ValidatorFunc[Dict[T1, T2], Dict[T1, T2], Serializable]:
+) -> Callable[[Dict[T1, T2]], Result[Dict[T1, T2], Serializable]]:
     def inner(mapping: Dict[T1, T2]) -> Result[Dict[T1, T2], Serializable]:
         if len(mapping.keys() - keys) > 0:
             return Err(
@@ -187,7 +190,7 @@ def _has_no_extra_keys(
 def _dict_without_extra_keys(
     keys: Set[str], data: Any
 ) -> Result[Dict[Any, Any], Serializable]:
-    return IsDict()(data).flat_map(_has_no_extra_keys(keys))
+    return is_dict_validator(data).flat_map(_has_no_extra_keys(keys))
 
 
 @dataclass(frozen=True)
@@ -197,7 +200,7 @@ class MinKeys(Predicate[Dict[Any, Any], Serializable]):
     def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) >= self.size
 
-    def err_message(self, val: Dict[Any, Any]) -> str:
+    def err(self, val: Dict[Any, Any]) -> str:
         return f"minimum allowed properties is {self.size}"
 
 
@@ -208,7 +211,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
     def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) <= self.size
 
-    def err_message(self, val: Dict[Any, Any]) -> str:
+    def err(self, val: Dict[Any, Any]) -> str:
         return f"maximum allowed properties is {self.size}"
 
 

@@ -1,18 +1,16 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Callable, Dict, Generic, List, Union, final
+from typing import Any, Dict, Generic, List, Tuple, Union, final
 
 from koda import Err, Ok, Result
 
 from koda_validate._generics import A, B, FailT
 
-ValidatorFunc = Callable[[A], Result[B, FailT]]
-
 
 class Validator(Generic[A, B, FailT]):
     """
-    A Callable exactly as the `Validator` type alias requires, but allows us to
+    Essentially a `Callable[[A], Result[B, FailT]]`, but allows us to
     retain metadata from the validator (instead of hiding inside a closure). For
     instance, we can later access `5` from something like `MaxLength(5)`.
 
@@ -38,7 +36,7 @@ class Predicate(Generic[A, FailT]):
         raise NotImplementedError
 
     @abstractmethod
-    def err_message(self, val: A) -> FailT:
+    def err(self, val: A) -> FailT:
         raise NotImplementedError
 
     @final
@@ -46,14 +44,27 @@ class Predicate(Generic[A, FailT]):
         if self.is_valid(val) is True:
             return Ok(val)
         else:
-            return Err(self.err_message(val))
+            return Err(self.err(val))
 
 
 # When mypy enables recursive types by default
 # Serializable = Union[
-#    None, int, str, bool, float, List["Serializable"], Dict[str, "Serializable"]
+#    None, int, str, bool, float,
+#    List["Serializable"], Tuple["Serializable", ...], Dict[str, "Serializable"]
 # ]
-Serializable = Union[None, int, str, bool, float, List[Any], Dict[str, Any]]
+Serializable1 = Union[
+    None, int, str, bool, float, List[Any], Tuple[Any, ...], Dict[str, Any]
+]
+Serializable = Union[
+    None,
+    int,
+    str,
+    bool,
+    float,
+    List[Serializable1],
+    Tuple[Serializable1, ...],
+    Dict[str, Serializable1],
+]
 
 
 class Processor(Generic[A]):
