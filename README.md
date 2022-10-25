@@ -160,8 +160,8 @@ Note that everything we've seen is typesafe according to mypy -- with strict set
 
 ### The (More) Basics
 
-We're are spending a lot of time discussing validating collections, but Koda Validator works just as seamlessly on 
-simple values.
+We're are spending a lot of time discussing validating collections, but Koda Validator works just as well on simple 
+values.
 
 ```python
 from koda import Err, Ok
@@ -177,13 +177,14 @@ assert exactly_5_validator(5) == Ok(5)
 assert exactly_5_validator("hmm") == Err(["expected exactly 5 (int)"])
 
 ```
-Koda Validate is intended to be extendable enough to validate any type of value.
+Koda Validate is intended to be extendable enough to validate any type of data.
 
 ## Validation Errors
 
-As mentioned above, errors are returned as data as part of normal control flow. All errors from built-in validators in 
-Koda Validate are JSON/YAML serializable. (However, should you build your own custom validators, there is no contract 
-enfocing that constraint.) Here are a few examples of the kinds of errors you can expect to see.
+As mentioned above, errors are returned as data as part of normal control flow. The contents of all returned `Err`s 
+from built-in validators in Koda Validate are JSON/YAML serializable. (However, should you build your own custom 
+validators, there is no contract enforcing that constraint.) Here are a few examples of the kinds of errors you can 
+expect to see out of the box.
 
 ```python
 from dataclasses import dataclass
