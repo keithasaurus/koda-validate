@@ -32,6 +32,12 @@ def run_bench(iterations: int, fn: Callable[[int], None]) -> None:
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument(
+        "tests",
+        type=str,
+        nargs="*",
+        help="which tests to run",
+    )
+    parser.add_argument(
         "--iterations",
         type=int,
         default=100_000,
@@ -42,9 +48,10 @@ if __name__ == "__main__":
     print(f"{args.iterations} ITERATIONS")
 
     for name, compare_bench in benches.items():
-        print(f"----- BEGIN {name} -----\n")
-        print("KODA_VALIDATE")
-        run_bench(args.iterations, compare_bench.kv_run)
-        print("PYDANTIC")
-        run_bench(args.iterations, compare_bench.pyd_run)
-        print(f"----- END {name} -----\n")
+        if args.tests == [] or name in args.tests:
+            print(f"----- BEGIN {name} -----\n")
+            print("KODA_VALIDATE")
+            run_bench(args.iterations, compare_bench.kv_run)
+            print("PYDANTIC")
+            run_bench(args.iterations, compare_bench.pyd_run)
+            print(f"----- END {name} -----\n")
