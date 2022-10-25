@@ -26,7 +26,7 @@ def run_bench(iterations: int, fn: Callable[[int], None]) -> None:
     start = perf_counter()
     fn(iterations)
     t_ = perf_counter() - start
-    print(f"Execution time: {t_:.4f} secs")
+    print(f"Execution time: {t_:.4f} secs\n")
 
 
 if __name__ == "__main__":
@@ -42,9 +42,9 @@ if __name__ == "__main__":
     print(f"{args.iterations} ITERATIONS")
 
     for name, compare_bench in benches.items():
-        print(f"----- BEGIN {name} -----")
+        print(f"----- BEGIN {name} -----\n")
         print("KODA_VALIDATE")
         run_bench(args.iterations, compare_bench.kv_run)
         print("PYDANTIC")
         run_bench(args.iterations, compare_bench.pyd_run)
-        print(f"----- END {name} -----")
+        print(f"----- END {name} -----\n")
