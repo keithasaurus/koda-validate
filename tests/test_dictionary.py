@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Protocol
 
 from koda import Err, Just, Maybe, Ok, Result, nothing
 
@@ -32,7 +32,16 @@ from koda_validate.dictionary import (
     is_dict_validator,
 )
 from koda_validate.utils import OBJECT_ERRORS_FIELD
-from tests.test_validators import _JONES_ERROR_MSG, PersonLike
+
+
+class PersonLike(Protocol):
+    last_name: str
+    eye_color: str
+
+
+_JONES_ERROR_MSG: Serializable = {
+    "__container__": ["can't have last_name of jones and eye color of brown"]
+}
 
 
 def test_is_dict() -> None:
