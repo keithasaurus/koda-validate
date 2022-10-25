@@ -53,7 +53,11 @@ def _flat_map_same_type_if_not_none(
     if fn is None:
         return r
     else:
-        return r.flat_map(fn)
+        # optimizing by not using flatmap
+        if isinstance(r, Err):
+            return r
+        else:
+            return fn(r.val)
 
 
 OBJECT_ERRORS_FIELD = "__container__"
