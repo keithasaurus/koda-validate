@@ -160,7 +160,7 @@ Note that everything we've seen is typesafe according to mypy -- with strict set
 
 ### The (More) Basics
 
-We're are spending a lot of time discussing validating collections, but Koda Validator works just as well on simple 
+We're are spending a lot of time discussing validating collections, but Koda Validate works just as well on simple 
 values.
 
 ```python
