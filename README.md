@@ -412,9 +412,9 @@ assert string_or_list_string_validator(["list", "of", "strings"]) == Ok(
 ```
 
 
-#### Tuple2 / Tuple3
+#### Tuple2Validator / Tuple3Validator
 
-TupleN validators work as you might expect:
+These `Validator`s work on `tuple`s as you might expect:
 ```python
 from koda import Ok
 from koda_validate import IntValidator, StringValidator, Tuple2Validator
