@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--iterations",
         type=int,
-        default=1_000_000,
+        default=100_000,
         help="How many iterations of each test we'll run",
     )
     args = parser.parse_args()
