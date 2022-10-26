@@ -8,7 +8,7 @@ from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
 from koda_validate.utils import accum_errors_serializable, expected
 
 
-@dataclass(init=False, frozen=True)
+@dataclass(init=False)
 class StringValidator(Validator[Any, str, Serializable]):
     predicates: Tuple[Predicate[str, Serializable], ...]
     preprocessors: Optional[List[Processor[str]]]
@@ -18,8 +18,8 @@ class StringValidator(Validator[Any, str, Serializable]):
         *predicates: Predicate[str, Serializable],
         preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
-        object.__setattr__(self, "predicates", predicates)
-        object.__setattr__(self, "preprocessors", preprocessors)
+        self.predicates = predicates
+        self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[str, Serializable]:
         if isinstance(val, str):

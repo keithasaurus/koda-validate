@@ -14,7 +14,7 @@ from koda_validate.utils import expected
 EnumT = TypeVar("EnumT", str, int)
 
 
-@dataclass(frozen=True, init=False)
+@dataclass(init=False)
 class Lazy(Validator[A, Ret, Serializable]):
     validator: Thunk[Validator[A, Ret, Serializable]]
     recurrent: bool = True
@@ -31,14 +31,14 @@ class Lazy(Validator[A, Ret, Serializable]):
                 is useful, so we can avoid infinite loops when traversing
                 over validators (i.e. for openapi generation)
         """
-        object.__setattr__(self, "validator", validator)
-        object.__setattr__(self, "recurrent", recurrent)
+        self.validator = validator
+        self.recurrent = recurrent
 
     def __call__(self, data: A) -> Result[Ret, Serializable]:
         return self.validator()(data)
 
 
-@dataclass(frozen=True, init=False)
+@dataclass(init=False)
 class Choices(Predicate[EnumT, Serializable]):
     """
     This only exists separately from a more generic form because
@@ -48,7 +48,7 @@ class Choices(Predicate[EnumT, Serializable]):
     choices: Set[EnumT]
 
     def __init__(self, choices: Set[EnumT]) -> None:
-        object.__setattr__(self, "choices", choices)
+        self.choices = choices
 
     def is_valid(self, val: EnumT) -> bool:
         return val in self.choices

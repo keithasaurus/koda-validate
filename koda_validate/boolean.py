@@ -7,12 +7,12 @@ from koda_validate.typedefs import Predicate, Serializable, Validator
 from koda_validate.utils import accum_errors_serializable, expected
 
 
-@dataclass(init=False, frozen=True)
+@dataclass(init=False)
 class BooleanValidator(Validator[Any, bool, Serializable]):
     predicates: Tuple[Predicate[bool, Serializable], ...]
 
     def __init__(self, *predicates: Predicate[bool, Serializable]) -> None:
-        object.__setattr__(self, "predicates", predicates)
+        self.predicates = predicates
 
     def __call__(self, val: Any) -> Result[bool, Serializable]:
         if isinstance(val, bool):

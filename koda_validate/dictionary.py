@@ -6,6 +6,7 @@ from typing import (
     Final,
     Generic,
     List,
+    Literal,
     Optional,
     Set,
     Tuple,
@@ -49,9 +50,7 @@ T20 = TypeVar("T20")
 Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
-
 KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
-
 
 _KEY_MISSING: Final[str] = "key missing"
 
@@ -93,7 +92,7 @@ def maybe_key(
     return prop_, MaybeField(validator)
 
 
-@dataclass(frozen=True, init=False)
+@dataclass(init=False)
 class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
     key_validator: Validator[Any, T1, Serializable]
     value_validator: Validator[Any, T2, Serializable]
@@ -105,9 +104,9 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
         value_validator: Validator[Any, T2, Serializable],
         *predicates: Predicate[Dict[T1, T2], Serializable],
     ) -> None:
-        object.__setattr__(self, "key_validator", key_validator)
-        object.__setattr__(self, "value_validator", value_validator)
-        object.__setattr__(self, "predicates", predicates)
+        self.key_validator = key_validator
+        self.value_validator = value_validator
+        self.predicates = predicates
 
     def __call__(self, data: Any) -> Result[Dict[T1, T2], Serializable]:
         if isinstance(data, dict):
@@ -218,16 +217,22 @@ def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializ
     return dict(data)
 
 
-def _validate_with_key(
-    r: KeyValidator[T1], data: Dict[Any, Any]
-) -> Result[T1, Tuple[str, Serializable]]:
+# this is an optimization
+ValidatedKey = Union[
+    Tuple[Literal[False], Tuple[str, Serializable]], Tuple[Literal[True], T1]
+]
+
+
+def _validate_with_key(r: KeyValidator[T1], data: Dict[Any, Any]) -> ValidatedKey[T1]:
     key, fn = r
 
-    # optimized for no flat_map
-    if isinstance((result := fn(mapping_get(data, key))), Err):
-        return Err((key, result.val))
+    result = fn(mapping_get(data, key))
+
+    # (slightly) optimized for no .map_err call
+    if isinstance(result, Err):
+        return False, (key, result.val)
     else:
-        return result
+        return True, result
 
 
 class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, Serializable]):
@@ -2446,7 +2451,6 @@ def dict_validator(
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
 ) -> Validator[Any, Ret, Serializable]:
-
     if field2 is None:
         return Dict1KeysValidator(
             cast(Callable[[T1], Ret], into), field1, validate_object=validate_object
