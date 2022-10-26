@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Iterable, List, Optional
+from typing import Iterable, List
 
 from koda import Err, Ok, Result
 
