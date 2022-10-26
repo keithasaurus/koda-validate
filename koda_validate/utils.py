@@ -28,15 +28,6 @@ def accum_errors(
         return Ok(val)
 
 
-def accum_errors_serializable(
-    val: A, validators: Iterable[Predicate[A, Serializable]]
-) -> Result[A, Serializable]:
-    """
-    Helper that exists only because mypy is not always great at narrowing types
-    """
-    return accum_errors(val, validators)
-
-
 def _variant_errors(*variants: Serializable) -> Serializable:
     return {f"variant {i + 1}": v for i, v in enumerate(variants)}
 
