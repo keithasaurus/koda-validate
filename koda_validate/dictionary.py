@@ -49,7 +49,9 @@ T20 = TypeVar("T20")
 Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
+
 KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
+
 
 _KEY_MISSING: Final[str] = "key missing"
 
@@ -219,18 +221,43 @@ def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializ
     return dict(data)
 
 
-def _validate_with_key(
-    r: KeyValidator[T1], data: Dict[Any, Any]
-) -> Result[T1, Tuple[str, Serializable]]:
-    key, fn = r
+def _validate_and_map(
+    into: Callable[..., Ret],
+    data: Any,
+    # this could be handled better with variadic generics
+    *fields: KeyValidator[Any],
+    validate_object: Optional[Callable[[Ret], Result[Ret, Any]]] = None,
+) -> Result[Ret, List[FailT]]:
+    if not isinstance(data, dict):
+        return Err({"err": ["not a dict"]})
 
-    result = fn(mapping_get(data, key))
+    args = []
+    errs: List[Tuple[str, FailT]] = []
+    for key, validator in fields:
+        if key not in data:
+            # if we get extra keys, we want to exit as quickly as possible
+            return Err({"bad": "keys"})
 
-    # (slightly) optimized for no .map_err call
-    if isinstance(result, Err):
-        return Err((key, result.val))
+        result = validator(mapping_get(data, key))
+
+        # (slightly) optimized for no .map_err call
+        if isinstance(result, Err):
+            errs.append((key, result.val))
+        else:
+            args.append(result.val)
+
+    if len(errs) > 0:
+        return Err(errs)
     else:
-        return result
+        obj = into(*args)
+        if validate_object is None:
+            return Ok(obj)
+        else:
+            result = validate_object(obj)
+            if isinstance(result, Ok):
+                return result
+            else:
+                return Err([result.val])
 
 
 class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, Serializable]):
@@ -248,18 +275,9 @@ class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, Serializable]):
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys({self.dv_fields[0][0]}, data)
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, Serializable]):
@@ -281,21 +299,9 @@ class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, Serializable]
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {self.dv_fields[0][0], self.dv_fields[1][0]}, data
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, Serializable]):
@@ -319,22 +325,9 @@ class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, Serializa
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {self.dv_fields[0][0], self.dv_fields[1][0], self.dv_fields[2][0]}, data
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, Serializable]):
@@ -360,29 +353,9 @@ class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, Seria
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict5KeysValidator(
@@ -412,31 +385,9 @@ class Dict5KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict6KeysValidator(
@@ -468,33 +419,9 @@ class Dict6KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict7KeysValidator(
@@ -528,35 +455,9 @@ class Dict7KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict8KeysValidator(
@@ -592,37 +493,9 @@ class Dict8KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict9KeysValidator(
@@ -660,39 +533,9 @@ class Dict9KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict10KeysValidator(
@@ -733,41 +576,9 @@ class Dict10KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict11KeysValidator(
@@ -810,43 +621,9 @@ class Dict11KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-                _validate_with_key(self.dv_fields[10], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict12KeysValidator(
@@ -891,45 +668,9 @@ class Dict12KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-                _validate_with_key(self.dv_fields[10], data),
-                _validate_with_key(self.dv_fields[11], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict13KeysValidator(
@@ -976,47 +717,9 @@ class Dict13KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-                _validate_with_key(self.dv_fields[10], data),
-                _validate_with_key(self.dv_fields[11], data),
-                _validate_with_key(self.dv_fields[12], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict14KeysValidator(
@@ -1067,49 +770,9 @@ class Dict14KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-                _validate_with_key(self.dv_fields[10], data),
-                _validate_with_key(self.dv_fields[11], data),
-                _validate_with_key(self.dv_fields[12], data),
-                _validate_with_key(self.dv_fields[13], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict15KeysValidator(
@@ -1162,51 +825,9 @@ class Dict15KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-                _validate_with_key(self.dv_fields[10], data),
-                _validate_with_key(self.dv_fields[11], data),
-                _validate_with_key(self.dv_fields[12], data),
-                _validate_with_key(self.dv_fields[13], data),
-                _validate_with_key(self.dv_fields[14], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict16KeysValidator(
@@ -1261,53 +882,9 @@ class Dict16KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-                self.dv_fields[15][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-                _validate_with_key(self.dv_fields[10], data),
-                _validate_with_key(self.dv_fields[11], data),
-                _validate_with_key(self.dv_fields[12], data),
-                _validate_with_key(self.dv_fields[13], data),
-                _validate_with_key(self.dv_fields[14], data),
-                _validate_with_key(self.dv_fields[15], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict17KeysValidator(
@@ -1367,55 +944,9 @@ class Dict17KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-                self.dv_fields[15][0],
-                self.dv_fields[16][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-                _validate_with_key(self.dv_fields[10], data),
-                _validate_with_key(self.dv_fields[11], data),
-                _validate_with_key(self.dv_fields[12], data),
-                _validate_with_key(self.dv_fields[13], data),
-                _validate_with_key(self.dv_fields[14], data),
-                _validate_with_key(self.dv_fields[15], data),
-                _validate_with_key(self.dv_fields[16], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict18KeysValidator(
@@ -1514,57 +1045,9 @@ class Dict18KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-                self.dv_fields[15][0],
-                self.dv_fields[16][0],
-                self.dv_fields[17][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-                _validate_with_key(self.dv_fields[10], data),
-                _validate_with_key(self.dv_fields[11], data),
-                _validate_with_key(self.dv_fields[12], data),
-                _validate_with_key(self.dv_fields[13], data),
-                _validate_with_key(self.dv_fields[14], data),
-                _validate_with_key(self.dv_fields[15], data),
-                _validate_with_key(self.dv_fields[16], data),
-                _validate_with_key(self.dv_fields[17], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict19KeysValidator(
@@ -1667,59 +1150,9 @@ class Dict19KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-                self.dv_fields[15][0],
-                self.dv_fields[16][0],
-                self.dv_fields[17][0],
-                self.dv_fields[18][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-                _validate_with_key(self.dv_fields[10], data),
-                _validate_with_key(self.dv_fields[11], data),
-                _validate_with_key(self.dv_fields[12], data),
-                _validate_with_key(self.dv_fields[13], data),
-                _validate_with_key(self.dv_fields[14], data),
-                _validate_with_key(self.dv_fields[15], data),
-                _validate_with_key(self.dv_fields[16], data),
-                _validate_with_key(self.dv_fields[17], data),
-                _validate_with_key(self.dv_fields[18], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 class Dict20KeysValidator(
@@ -1826,61 +1259,9 @@ class Dict20KeysValidator(
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-                self.dv_fields[15][0],
-                self.dv_fields[16][0],
-                self.dv_fields[17][0],
-                self.dv_fields[18][0],
-                self.dv_fields[19][0],
-            },
-            data,
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], data),
-                _validate_with_key(self.dv_fields[1], data),
-                _validate_with_key(self.dv_fields[2], data),
-                _validate_with_key(self.dv_fields[3], data),
-                _validate_with_key(self.dv_fields[4], data),
-                _validate_with_key(self.dv_fields[5], data),
-                _validate_with_key(self.dv_fields[6], data),
-                _validate_with_key(self.dv_fields[7], data),
-                _validate_with_key(self.dv_fields[8], data),
-                _validate_with_key(self.dv_fields[9], data),
-                _validate_with_key(self.dv_fields[10], data),
-                _validate_with_key(self.dv_fields[11], data),
-                _validate_with_key(self.dv_fields[12], data),
-                _validate_with_key(self.dv_fields[13], data),
-                _validate_with_key(self.dv_fields[14], data),
-                _validate_with_key(self.dv_fields[15], data),
-                _validate_with_key(self.dv_fields[16], data),
-                _validate_with_key(self.dv_fields[17], data),
-                _validate_with_key(self.dv_fields[18], data),
-                _validate_with_key(self.dv_fields[19], data),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+        return _validate_and_map(
+            self.into, data, *self.dv_fields, validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 
 
 @overload
@@ -2449,6 +1830,7 @@ def dict_validator(
     *,
     validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
 ) -> Validator[Any, Ret, Serializable]:
+
     if field2 is None:
         return Dict1KeysValidator(
             cast(Callable[[T1], Ret], into), field1, validate_object=validate_object

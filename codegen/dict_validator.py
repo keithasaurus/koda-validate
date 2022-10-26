@@ -196,18 +196,44 @@ def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializ
     return dict(data)
 
 
-def _validate_with_key(
-        r: KeyValidator[T1], data: Dict[Any, Any]
-) -> Result[T1, Tuple[str, Serializable]]:
-    key, fn = r
+def _validate_and_map(
+        into: Callable[..., Ret],
+        data: Any,
+        # this could be handled better with variadic generics
+        *fields: KeyValidator[Any],
+        validate_object: Optional[Callable[[Ret], Result[Ret, Any]]] = None,
+) -> Result[Ret, List[FailT]]:
+    if not isinstance(data, dict):
+        return Err({"err": ["not a dict"]})
 
-    result = fn(mapping_get(data, key))
+    args = []
+    errs: List[Tuple[str, FailT]] = []
+    for key, validator in fields:
+        if key not in data:
+            # if we get extra keys, we want to exit as quickly as possible
+            return Err({"bad": "keys"})
 
-    # (slightly) optimized for no .map_err call
-    if isinstance(result, Err):
-        return Err((key, result.val))
+        result = validator(mapping_get(data, key))
+
+        # (slightly) optimized for no .map_err call
+        if isinstance(result, Err):
+            errs.append((key, result.val))
+        else:
+            args.append(result.val)
+
+    if len(errs) > 0:
+        return Err(errs)
     else:
-        return result
+        obj = into(*args)
+        if validate_object is None:
+            return Ok(obj)
+        else:
+            result = validate_object(obj)
+            if isinstance(result, Ok):
+                return result
+            else:
+                return Err([result.val])
+
 
 """
     for i in range(num_keys):
@@ -246,34 +272,13 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, S
 """
         ret += """
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        optional_dict_err = _dict_without_extra_keys(
-    """
-        ret += "        {"
-        ret += ", ".join([f"self.dv_fields[{j}][0]" for j in range(i + 1)])
-        ret += "},"
-        ret += "\n            data"
-        ret += """
-        )
-
-        if isinstance(optional_dict_err, Err):
-            return Err(optional_dict_err)
-        else:
-            result_1 = validate_and_map(
-                self.into,
+        return _validate_and_map(
+            self.into,
+            data,
+            *self.dv_fields,
+            validate_object=self.validate_object
+        ).map_err(_tuples_to_json_dict)
 """
-        ret += "\n".join(
-            [
-                f"                _validate_with_key(self.dv_fields[{j}], data),"
-                for j in range(i + 1)
-            ]
-        )
-        ret += """
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-"""
-
         # overload for dict_validator
         dv_overload = f"""
 
