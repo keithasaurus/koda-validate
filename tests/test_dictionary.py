@@ -211,11 +211,11 @@ def test_obj_4() -> None:
         key("eye color", StringValidator()),
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
-
-    assert validator(
-        {"first_name": "bob", "last_name": "smith", "age": 50, "eye color": "brown"}
-    ) == Ok(Person("bob", "smith", 50, "brown"))
-
+    #
+    # assert validator(
+    #     {"first_name": "bob", "last_name": "smith", "age": 50, "eye color": "brown"}
+    # ) == Ok(Person("bob", "smith", 50, "brown"))
+    #
     assert validator(
         {"first_name": "bob", "last_name": "Jones", "age": 50, "eye color": "brown"}
     ) == Err(_JONES_ERROR_MSG)

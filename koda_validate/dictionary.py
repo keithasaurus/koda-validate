@@ -85,17 +85,13 @@ def _validate_and_map(
             args.append(result.val)
 
     if len(errs) > 0:
-        return Err(errs)
+        return Err(_tuples_to_json_dict(errs))
     else:
         obj = into(*args)
         if validate_object is None:
             return Ok(obj)
         else:
-            result = validate_object(obj)
-            if isinstance(result, Ok):
-                return result
-            else:
-                return Err([result.val])
+            return validate_object(obj)
 
 
 @dataclass(frozen=True)
@@ -254,7 +250,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializable:
+def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
     return dict(data)
 
 
@@ -275,7 +271,7 @@ class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, Serializable]):
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, Serializable]):
@@ -325,7 +321,7 @@ class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, Serializa
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, Serializable]):
@@ -353,7 +349,7 @@ class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, Seria
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict5KeysValidator(
