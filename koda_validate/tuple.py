@@ -6,7 +6,7 @@ from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
 from koda_validate.typedefs import Serializable, Validator
 from koda_validate.utils import OBJECT_ERRORS_FIELD, expected
-from koda_validate.validate_and_map import validate_and_map
+from koda_validate.validate_and_map import _validate_and_map
 
 
 def _tuple_to_dict_errors(errs: Tuple[Serializable, ...]) -> Dict[str, Serializable]:
@@ -31,7 +31,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
 
     def __call__(self, data: Any) -> Result[Tuple[A, B], Serializable]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
-            result: Result[Tuple[A, B], Tuple[Serializable, ...]] = validate_and_map(
+            result: Result[Tuple[A, B], Tuple[Serializable, ...]] = _validate_and_map(
                 _typed_tuple,
                 self.slot1_validator(data[0]),
                 self.slot2_validator(data[1]),
@@ -73,7 +73,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
 
     def __call__(self, data: Any) -> Result[Tuple[A, B, C], Serializable]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
-            result: Result[Tuple[A, B, C], Tuple[Serializable, ...]] = validate_and_map(
+            result: Result[Tuple[A, B, C], Tuple[Serializable, ...]] = _validate_and_map(
                 _typed_tuple,
                 self.slot1_validator(data[0]),
                 self.slot2_validator(data[1]),

@@ -16,21 +16,19 @@ def accum_errors(
     val: A, validators: Iterable[Predicate[A, FailT]]
 ) -> Result[A, List[FailT]]:
     errors: List[FailT] = []
-    result: Result[A, FailT] = Ok(val)
+    # result: Result[A, FailT] = Ok(val)
     for validator in validators:
         result = validator(val)
         if isinstance(result, Err):
             errors.append(result.val)
-        else:
-            val = result.val
+        # else:
+        # val = result.val
 
     if len(errors) > 0:
         return Err(errors)
     else:
         # has to be because there are no errors
-        if TYPE_CHECKING:
-            assert isinstance(result, Ok)
-        return Ok(result.val)
+        return Ok(val)
 
 
 def accum_errors_serializable(
@@ -39,7 +37,7 @@ def accum_errors_serializable(
     """
     Helper that exists only because mypy is not always great at narrowing types
     """
-    return cast(Result[A, Serializable], accum_errors(val, validators))
+    return accum_errors(val, validators)
 
 
 def _variant_errors(*variants: Serializable) -> Serializable:

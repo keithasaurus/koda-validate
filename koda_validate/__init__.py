@@ -97,4 +97,3 @@ from koda_validate.string import (
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
-from koda_validate.validate_and_map import validate_and_map
