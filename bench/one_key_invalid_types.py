@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from koda import Err, Ok
 from pydantic import BaseModel, ValidationError, constr
 
-from koda_validate import StringValidator
-from koda_validate.dictionary import dict_validator, key
+from koda_validate import StringValidator, key
+from koda_validate.dictionary import dict_validator
 
 
 @dataclass

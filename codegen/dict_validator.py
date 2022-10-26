@@ -9,109 +9,37 @@ def generate_code(num_keys: int) -> str:
     dict_validator_fields: List[str] = []
     dict_validator_overloads: List[str] = []
     ret = """from dataclasses import dataclass
-from typing import Dict, List, Tuple, Set, TypeVar, Generic, Any, Callable, Optional, cast, overload, Union, Final
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
-from koda import Err, Maybe, Ok, Result, mapping_get, Nothing, Just
+from koda import Err, Just, Maybe, Ok, Result, mapping_get
 
-from koda_validate._generics import A
-from koda_validate.utils import expected, OBJECT_ERRORS_FIELD
-from koda_validate.typedefs import Validator, Serializable, Predicate
+from koda_validate.typedefs import Predicate, Serializable, Validator
+from koda_validate.utils import (
+    OBJECT_ERRORS_FIELD,
+    KeyValidator,
+    _is_dict_validation_err,
+    _validate_and_map,
+    expected,
+)
 
 """
     type_vars = get_type_vars(num_keys)
     ret += add_type_vars(type_vars)
 
     ret += """
-
-_KEY_MISSING: Final[str] = "key missing"
-
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
-
-_is_dict_validation_err: Final[Dict[str, Serializable]] = {
-    OBJECT_ERRORS_FIELD: [expected("a dictionary")]
-}
-
-
-def too_many_keys(keys: set[str]) -> Err[Serializable]:
-    return Err({
-        OBJECT_ERRORS_FIELD: [
-            f"Received unknown keys. Only expected {sorted(keys)}"
-        ]
-    })
-
-
-def _validate_and_map(
-    into: Callable[..., Ret],
-    data: Any,
-    # this could be handled better with variadic generics
-    *fields: KeyValidator[Any],
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Result[Ret, Serializable]:
-    allowed_keys = {k for k, _ in fields}
-    if not isinstance(data, dict):
-        return Err(_is_dict_validation_err)
-    if len(data.keys() - allowed_keys) > 0:
-        return too_many_keys(allowed_keys)
-
-    args = []
-    errs: List[Tuple[str, Serializable]] = []
-    for key, validator in fields:
-        result = validator(mapping_get(data, key))
-
-        # (slightly) optimized for no .map_err call
-        if isinstance(result, Err):
-            errs.append((key, result.val))
-        else:
-            args.append(result.val)
-
-    if len(errs) > 0:
-        return Err(_tuples_to_json_dict(errs))
-    else:
-        obj = into(*args)
-        if validate_object is None:
-            return Ok(obj)
-        else:
-            return validate_object(obj)
-
-
-
-
-
-@dataclass(frozen=True)
-class RequiredField(Generic[A]):
-    validator: Validator[Any, A, Serializable]
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Serializable]:
-        if isinstance(maybe_val, Nothing):
-            return Err([_KEY_MISSING])
-        else:
-            return self.validator(maybe_val.val)
-
-
-@dataclass(frozen=True)
-class MaybeField(Generic[A]):
-    validator: Validator[Any, A, Serializable]
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
-        if isinstance(maybe_val, Just):
-            result: Result[Maybe[A], Serializable] = self.validator(maybe_val.val).map(Just)
-        else:
-            result = Ok(maybe_val)
-        return result
-
-
-
-def key(
-        prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[A, Serializable]]]:
-    return prop_, RequiredField(validator)
-
-
-def maybe_key(
-        prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[Maybe[A], Serializable]]]:
-    return prop_, MaybeField(validator)
-
 
 @dataclass(init=False)
 class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):

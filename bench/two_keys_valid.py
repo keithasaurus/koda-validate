@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel
 
-from koda_validate import IntValidator, StringValidator
-from koda_validate.dictionary import dict_validator, key
+from koda_validate import IntValidator, StringValidator, key
+from koda_validate.dictionary import dict_validator
 
 
 @dataclass
