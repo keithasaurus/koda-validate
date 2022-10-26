@@ -41,11 +41,11 @@ def too_many_keys(keys: set[str]) -> Err[Serializable]:
 
 
 def _validate_and_map(
-        into: Callable[..., Ret],
-        data: Any,
-        # this could be handled better with variadic generics
-        *fields: KeyValidator[Any],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Any]]] = None,
+    into: Callable[..., Ret],
+    data: Any,
+    # this could be handled better with variadic generics
+    *fields: KeyValidator[Any],
+    validate_object: Optional[Callable[[Ret], Result[Ret, Any]]] = None,
 ) -> Result[Ret, List[FailT]]:
     allowed_keys = {k for k, _ in fields}
     if not isinstance(data, dict):
@@ -65,17 +65,13 @@ def _validate_and_map(
             args.append(result.val)
 
     if len(errs) > 0:
-        return Err(errs)
+        return Err(_tuples_to_json_dict(errs))
     else:
         obj = into(*args)
         if validate_object is None:
             return Ok(obj)
         else:
-            result = validate_object(obj)
-            if isinstance(result, Ok):
-                return result
-            else:
-                return Err([result.val])
+            return validate_object(obj)
 
 
 
@@ -281,7 +277,7 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, S
             data,
             *self.dv_fields,
             validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 """
         # overload for dict_validator
         dv_overload = f"""

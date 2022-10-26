@@ -250,7 +250,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
+def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializable:
     return dict(data)
 
 
@@ -295,7 +295,7 @@ class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, Serializable]
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, Serializable]):
@@ -381,7 +381,7 @@ class Dict5KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict6KeysValidator(
@@ -415,7 +415,7 @@ class Dict6KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict7KeysValidator(
@@ -451,7 +451,7 @@ class Dict7KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict8KeysValidator(
@@ -489,7 +489,7 @@ class Dict8KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict9KeysValidator(
@@ -529,7 +529,7 @@ class Dict9KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict10KeysValidator(
@@ -572,7 +572,7 @@ class Dict10KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict11KeysValidator(
@@ -617,7 +617,7 @@ class Dict11KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict12KeysValidator(
@@ -664,7 +664,7 @@ class Dict12KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict13KeysValidator(
@@ -713,7 +713,7 @@ class Dict13KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict14KeysValidator(
@@ -766,7 +766,7 @@ class Dict14KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict15KeysValidator(
@@ -821,7 +821,7 @@ class Dict15KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict16KeysValidator(
@@ -878,7 +878,7 @@ class Dict16KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict17KeysValidator(
@@ -940,7 +940,7 @@ class Dict17KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict18KeysValidator(
@@ -1041,7 +1041,7 @@ class Dict18KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict19KeysValidator(
@@ -1146,7 +1146,7 @@ class Dict19KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 class Dict20KeysValidator(
@@ -1255,7 +1255,7 @@ class Dict20KeysValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         return _validate_and_map(
             self.into, data, *self.dv_fields, validate_object=self.validate_object
-        ).map_err(_tuples_to_json_dict)
+        )
 
 
 @overload
