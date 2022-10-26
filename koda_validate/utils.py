@@ -13,19 +13,22 @@ def expected(val: str) -> str:
 
 
 def accum_errors(
-    val: A, validators: Iterable[Predicate[A, FailT]]
-) -> Result[A, List[FailT]]:
-    errors: List[FailT] = []
-    for validator in validators:
-        result = validator(val)
-        if isinstance(result, Err):
-            errors.append(result.val)
+    val: A, validators: Iterable[Predicate[A, Serializable]]
+) -> Result[A, Serializable]:
+    errors: List[Serializable] = [
+        result.val
+        for validator in validators
+        if isinstance(result := validator(val), Err)
+    ]
 
     if len(errors) > 0:
-        return Err(errors)
+        result = Err(errors)
     else:
-        # has to be because there are no errors
-        return Ok(val)
+        # has to be original val because there are no
+        # errors, and predicates prevent there from being
+        # modification to the value
+        result = Ok(val)
+    return result
 
 
 def _variant_errors(*variants: Serializable) -> Serializable:

@@ -45,8 +45,8 @@ def _validate_and_map(
     data: Any,
     # this could be handled better with variadic generics
     *fields: KeyValidator[Any],
-    validate_object: Optional[Callable[[Ret], Result[Ret, Any]]] = None,
-) -> Result[Ret, List[FailT]]:
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Result[Ret, Serializable]:
     allowed_keys = {k for k, _ in fields}
     if not isinstance(data, dict):
         return Err(_is_dict_validation_err)
@@ -54,7 +54,7 @@ def _validate_and_map(
         return too_many_keys(allowed_keys)
 
     args = []
-    errs: List[Tuple[str, FailT]] = []
+    errs: List[Tuple[str, Serializable]] = []
     for key, validator in fields:
         result = validator(mapping_get(data, key))
 
@@ -72,6 +72,8 @@ def _validate_and_map(
             return Ok(obj)
         else:
             return validate_object(obj)
+
+
 
 
 
@@ -231,7 +233,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializable:
+def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
     return dict(data)
 
 

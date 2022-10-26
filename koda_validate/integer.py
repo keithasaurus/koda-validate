@@ -9,7 +9,7 @@ from koda_validate.utils import accum_errors, expected
 
 @dataclass(init=False)
 class IntValidator(Validator[Any, int, Serializable]):
-    predicates: Tuple[Predicate[int, Serializable]]
+    predicates: Tuple[Predicate[int, Serializable], ...]
 
     def __init__(self, *predicates: Predicate[int, Serializable]) -> None:
         self.predicates = predicates
