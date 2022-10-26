@@ -54,6 +54,12 @@ _is_dict_validation_err: Final[Dict[str, Serializable]] = {
 }
 
 
+def too_many_keys(keys: set[str]) -> Err[Serializable]:
+    return Err(
+        {OBJECT_ERRORS_FIELD: [f"Received unknown keys. Only expected {sorted(keys)}"]}
+    )
+
+
 def _validate_and_map(
     into: Callable[..., Ret],
     data: Any,
