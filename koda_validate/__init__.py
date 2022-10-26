@@ -57,8 +57,6 @@ __all__ = (
     "Predicate",
     "Serializable",
     "Processor",
-    # validate_and_map.py
-    "validate_and_map",
 )
 
 from koda_validate.boolean import BooleanValidator
