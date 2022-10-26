@@ -8,10 +8,8 @@ from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
 from koda_validate.utils import accum_errors, expected
 
 
-@dataclass(init=False)
 class StringValidator(Validator[Any, str, Serializable]):
-    predicates: Tuple[Predicate[str, Serializable], ...]
-    preprocessors: Optional[List[Processor[str]]]
+    __match_args = ("predicates", "preprocessors")
 
     def __init__(
         self,
@@ -32,7 +30,7 @@ class StringValidator(Validator[Any, str, Serializable]):
             return Err([expected("a string")])
 
 
-@dataclass(frozen=True)
+@dataclass
 class RegexPredicate(Predicate[str, Serializable]):
     pattern: Pattern[str]
 
@@ -43,7 +41,7 @@ class RegexPredicate(Predicate[str, Serializable]):
         return rf"must match pattern {self.pattern.pattern}"
 
 
-@dataclass(frozen=True)
+@dataclass
 class EmailPredicate(Predicate[str, Serializable]):
     pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
 
@@ -68,7 +66,7 @@ class NotBlank(Predicate[str, Serializable]):
 not_blank = NotBlank()
 
 
-@dataclass(frozen=True)
+@dataclass
 class MaxLength(Predicate[str, Serializable]):
     length: int
 
@@ -79,7 +77,7 @@ class MaxLength(Predicate[str, Serializable]):
         return f"maximum allowed length is {self.length}"
 
 
-@dataclass(frozen=True)
+@dataclass
 class MinLength(Predicate[str, Serializable]):
     length: int
 

@@ -7,9 +7,8 @@ from koda_validate.typedefs import Predicate, Serializable, Validator
 from koda_validate.utils import accum_errors, expected
 
 
-@dataclass(init=False)
 class IntValidator(Validator[Any, int, Serializable]):
-    predicates: Tuple[Predicate[int, Serializable], ...]
+    __match_args__ = ("predicates",)
 
     def __init__(self, *predicates: Predicate[int, Serializable]) -> None:
         self.predicates = predicates

@@ -139,7 +139,7 @@ def _dict_without_extra_keys(
 
 
 
-@dataclass(frozen=True)
+@dataclass
 class MinKeys(Predicate[Dict[Any, Any], Serializable]):
     size: int
 
@@ -150,7 +150,7 @@ class MinKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"minimum allowed properties is {self.size}"
 
 
-@dataclass(frozen=True)
+@dataclass
 class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
     size: int
 
@@ -159,10 +159,6 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
 
     def err(self, val: Dict[Any, Any]) -> str:
         return f"maximum allowed properties is {self.size}"
-
-
-def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
-    return dict(data)
 
 
 """
