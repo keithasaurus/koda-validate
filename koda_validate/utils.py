@@ -1,6 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Final, Generic, Iterable, List, Optional, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Final,
+    Generic,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+)
 
 from koda import Err, Just, Maybe, Nothing, Ok, Result, mapping_get
 
@@ -54,7 +65,7 @@ def _flat_map_same_type_if_not_none(
             return fn(r.val)
 
 
-OBJECT_ERRORS_FIELD = "__container__"
+OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 _is_dict_validation_err: Final[Dict[str, Serializable]] = {
     OBJECT_ERRORS_FIELD: [expected("a dictionary")]
@@ -78,7 +89,7 @@ def _validate_and_map(
     *fields: KeyValidator[Any],
     validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
 ) -> Result[Ret, Serializable]:
-    allowed_keys = {k for k, _ in fields}
+    allowed_keys: Set[str] = {k for k, _ in fields}
     if not isinstance(data, dict):
         return Err(_is_dict_validation_err)
     if len(data.keys() - allowed_keys) > 0:
