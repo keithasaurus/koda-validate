@@ -85,7 +85,7 @@ python-versions = "*"
 
 [[package]]
 name = "exceptiongroup"
-version = "1.0.0rc9"
+version = "1.0.0"
 description = "Backport of PEP 654 (exception groups)"
 category = "dev"
 optional = false
@@ -154,7 +154,7 @@ requirements-deprecated-finder = ["pip-api", "pipreqs"]
 
 [[package]]
 name = "koda"
-version = "1.3.0"
+version = "1.3.1"
 description = "Type-safe functional tools for Python"
 category = "main"
 optional = false
@@ -420,7 +420,7 @@ testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "083bf0c0d82c55ee1be24b6980dd9f1eb5a9f69db02d30d549915a1bae7956c5"
+content-hash = "f7fa22d304e611b394d18a42b856627c0d75f7caad000fdca3871b9b84b38afc"
 
 [metadata.files]
 attrs = [
@@ -519,8 +519,8 @@ distlib = [
     {file = "distlib-0.3.6.tar.gz", hash = "sha256:14bad2d9b04d3a36127ac97f30b12a19268f211063d8f8ee4f47108896e11b46"},
 ]
 exceptiongroup = [
-    {file = "exceptiongroup-1.0.0rc9-py3-none-any.whl", hash = "sha256:2e3c3fc1538a094aab74fad52d6c33fc94de3dfee3ee01f187c0e0c72aec5337"},
-    {file = "exceptiongroup-1.0.0rc9.tar.gz", hash = "sha256:9086a4a21ef9b31c72181c77c040a074ba0889ee56a7b289ff0afb0d97655f96"},
+    {file = "exceptiongroup-1.0.0-py3-none-any.whl", hash = "sha256:2ac84b496be68464a2da60da518af3785fff8b7ec0d090a581604bc870bdee41"},
+    {file = "exceptiongroup-1.0.0.tar.gz", hash = "sha256:affbabf13fb6e98988c38d9c5650e701569fe3c1de3233cfb61c5f33774690ad"},
 ]
 filelock = [
     {file = "filelock-3.8.0-py3-none-any.whl", hash = "sha256:617eb4e5eedc82fc5f47b6d61e4d11cb837c56cb4544e39081099fa17ad109d4"},
@@ -543,8 +543,8 @@ isort = [
     {file = "isort-5.10.1.tar.gz", hash = "sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951"},
 ]
 koda = [
-    {file = "koda-1.3.0-py3-none-any.whl", hash = "sha256:41b1cebd96a51b0df0fd7f8a8cb55ddd2047d3a19160044ada67fc8ee42ed32f"},
-    {file = "koda-1.3.0.tar.gz", hash = "sha256:5cf14090d135fa61c8f73a7650b034c2d1d9e745a04f931ddd269d5cd6fd92d6"},
+    {file = "koda-1.3.1-py3-none-any.whl", hash = "sha256:73b3ddd6f52076c957949c3b81e5db63a6ca8c54ca23efb81ed8f19e18bccc96"},
+    {file = "koda-1.3.1.tar.gz", hash = "sha256:e1c12c07f7a2a6b03559d1b9f49aef086e8402c265df455596e719a2118a4059"},
 ]
 mccabe = [
     {file = "mccabe-0.7.0-py2.py3-none-any.whl", hash = "sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e"},
