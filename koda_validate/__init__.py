@@ -69,8 +69,6 @@ from koda_validate.dictionary import (
     MaxKeys,
     MinKeys,
     dict_validator,
-    key,
-    maybe_key,
 )
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Choices, ExactValidator, Lazy, Max, Min, MultipleOf
@@ -99,4 +97,5 @@ from koda_validate.string import (
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
+from koda_validate.utils import key, maybe_key
 from koda_validate.validate_and_map import validate_and_map

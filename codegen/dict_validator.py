@@ -9,14 +9,31 @@ def generate_code(num_keys: int) -> str:
     dict_validator_fields: List[str] = []
     dict_validator_overloads: List[str] = []
     ret = """from dataclasses import dataclass
-from typing import Dict, List, Tuple, Set, TypeVar, Generic, Any, Callable, Optional, cast, overload, Union, Final
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
-from koda import Err, Maybe, Ok, Result, mapping_get, Nothing, Just
+from koda import Err, Just, Maybe, Ok, Result, mapping_get
 
-from koda_validate._generics import A
-from koda_validate.utils import expected, _flat_map_same_type_if_not_none, OBJECT_ERRORS_FIELD
-from koda_validate.typedefs import Validator, Serializable, Predicate
-from koda_validate.validate_and_map import validate_and_map
+from koda_validate.typedefs import Predicate, Serializable, Validator
+from koda_validate.utils import (
+    OBJECT_ERRORS_FIELD,
+    KeyValidator,
+    _is_dict_validation_err,
+    _validate_and_map,
+    expected,
+)
 
 """
     type_vars = get_type_vars(num_keys)
@@ -24,49 +41,7 @@ from koda_validate.validate_and_map import validate_and_map
 
     ret += """
 
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
-
-
-_KEY_MISSING: Final[str] = "key missing"
-
-
-@dataclass(frozen=True)
-class RequiredField(Generic[A]):
-    validator: Validator[Any, A, Serializable]
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Serializable]:
-        if isinstance(maybe_val, Nothing):
-            return Err([_KEY_MISSING])
-        else:
-            return self.validator(maybe_val.val)
-
-
-@dataclass(frozen=True)
-class MaybeField(Generic[A]):
-    validator: Validator[Any, A, Serializable]
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
-        if isinstance(maybe_val, Just):
-            result: Result[Maybe[A], Serializable] = self.validator(maybe_val.val).map(Just)
-        else:
-            result = Ok(maybe_val)
-        return result
-
-
-
-def key(
-        prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[A, Serializable]]]:
-    return prop_, RequiredField(validator)
-
-
-def maybe_key(
-        prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[Maybe[A], Serializable]]]:
-    return prop_, MaybeField(validator)
-
-
-@dataclass(frozen=True, init=False)
+@dataclass(init=False)
 class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
     key_validator: Validator[Any, T1, Serializable]
     value_validator: Validator[Any, T2, Serializable]
@@ -78,9 +53,9 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
         value_validator: Validator[Any, T2, Serializable],
         *predicates: Predicate[Dict[T1, T2], Serializable],
     ) -> None:
-        object.__setattr__(self, "key_validator", key_validator)
-        object.__setattr__(self, "value_validator", value_validator)
-        object.__setattr__(self, "predicates", predicates)
+        self.key_validator = key_validator
+        self.value_validator = value_validator
+        self.predicates = predicates
 
     def __call__(self, data: Any) -> Result[Dict[T1, T2], Serializable]:
         if isinstance(data, dict):
@@ -136,37 +111,35 @@ class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
         if isinstance(val, dict):
             return Ok(val)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("a dictionary")]})
+            return Err(_is_dict_validation_err)
 
 
 is_dict_validator = IsDictValidator()
 
-def _has_no_extra_keys(
-    keys: Set[str],
-) -> Callable[[Dict[T1, T2]], Result[Dict[T1, T2], Serializable]]:
-    def inner(mapping: Dict[T1, T2]) -> Result[Dict[T1, T2], Serializable]:
-        if len(mapping.keys() - keys) > 0:
-            return Err(
-                {
+
+def _dict_without_extra_keys(
+        keys: Set[str], data: Any
+) -> Optional[Dict[str, Serializable]]:
+    \"""
+    We're returning Optional here because it's faster than Ok/Err,
+    and this is just a private function
+    \"""
+    if isinstance(data, dict):
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in keys:
+                return {
                     OBJECT_ERRORS_FIELD: [
                         f"Received unknown keys. Only expected {sorted(keys)}"
                     ]
                 }
-            )
-        else:
-            return Ok(mapping)
-
-    return inner
-
-
-def _dict_without_extra_keys(
-    keys: Set[str], data: Any
-) -> Result[Dict[Any, Any], Serializable]:
-    return is_dict_validator(data).flat_map(_has_no_extra_keys(keys))
+        return None
+    else:
+        return _is_dict_validation_err
 
 
 
-@dataclass(frozen=True)
+@dataclass
 class MinKeys(Predicate[Dict[Any, Any], Serializable]):
     size: int
 
@@ -177,7 +150,7 @@ class MinKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"minimum allowed properties is {self.size}"
 
 
-@dataclass(frozen=True)
+@dataclass
 class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
     size: int
 
@@ -188,19 +161,6 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializable:
-    return dict(data)
-
-
-def _validate_with_key(
-        r: KeyValidator[T1], data: Dict[Any, Any]
-) -> Result[T1, Tuple[str, Serializable]]:
-    key, fn = r
-
-    def add_key(val: Serializable) -> Tuple[str, Serializable]:
-        return key, val
-
-    return fn(mapping_get(data, key)).map_err(add_key)
 """
     for i in range(num_keys):
         key_type_vars = type_vars[: i + 1]
@@ -216,7 +176,7 @@ def _validate_with_key(
         ret += f"""
 
 class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, Serializable]):
-    __match_args__: Tuple[str, ...] = ('dv_fields',)
+    __match_args__ = ('dv_fields',)
 """
         ret += f"""    def __init__(self,
                  into: {dict_validator_into_signatures[-1]},"""
@@ -238,34 +198,13 @@ class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, S
 """
         ret += """
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-    """
-        ret += "        {"
-        ret += ", ".join([f"self.dv_fields[{j}][0]" for j in range(i + 1)])
-        ret += "},"
-        ret += "\n            data"
-        ret += """
+        return _validate_and_map(
+            self.into,
+            data,
+            *self.dv_fields,
+            validate_object=self.validate_object
         )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
 """
-        ret += "\n".join(
-            [
-                f"                _validate_with_key(self.dv_fields[{j}], result.val),"
-                for j in range(i + 1)
-            ]
-        )
-        ret += """
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-"""
-
         # overload for dict_validator
         dv_overload = f"""
 

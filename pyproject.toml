@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "koda-validate"
-version = "1.0.0"
+version = "1.1.0"
 readme = "README.md"
 description = "Typesafe, combinable validation"
 authors = ["Keith Philpott"]
@@ -24,6 +24,7 @@ mypy = "0.982"
 
 
 [tool.mypy]
+exclude = ["build", "bench"]
 allow_redefinition = false
 check_untyped_defs = true
 disallow_any_generics = true
