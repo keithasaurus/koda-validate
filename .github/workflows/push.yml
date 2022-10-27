@@ -31,7 +31,7 @@ jobs:
         run: poetry run bash run_all_examples.sh
       - name: linting 3.9-
         if: matrix.python-version == 3.9 || matrix.python-version == 3.8
-        run: poetry run flake8 --exclude codegen,bench --ignore E741,W503,F405,F403,F401
+        run: poetry run flake8 --exclude codegen,bench,examples/metadata.py --ignore E741,W503,F405,F403,F401
       - name: linting 3.10+
         if: matrix.python-version == 3.10
         run: poetry run flake8 --exclude codegen --ignore E741,W503,F405,F403,F401

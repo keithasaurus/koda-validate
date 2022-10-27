@@ -6,6 +6,7 @@ from koda_validate import MaxLength, MinLength, Predicate, StringValidator, Vali
 def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]) -> str:
     # use `isinstance(...)` in python <= 3.10
     match validator:
+
         case StringValidator(predicates):
             predicate_descriptions = [
                 f"- {describe_validator(pred)}" for pred in predicates
