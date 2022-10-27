@@ -16,10 +16,29 @@ class Validator(Generic[A, B, FailT]):
 
     Not using protocol because we want it to be runtime checkable without
     being implicit or a false positive.
+
+    Compatible with Async / but async behavior is _not_ customizable. That's
+    why we have ValidatorAsync. Any IO needs should probably go there!
     """
 
     @abstractmethod
     def __call__(self, val: A) -> Result[B, FailT]:
+        raise NotImplementedError
+
+    @final
+    async def validate_async(self, val: A) -> Result[B, FailT]:
+        """
+        make all validators async-compatible for "free"
+        """
+        return self(val)
+
+
+class ValidatorAsync(Generic[A, B, FailT]):
+    """
+    This is for async-only validation.
+    """
+
+    async def __call__(self, val: A) -> Result[B, FailT]:
         raise NotImplementedError
 
 
@@ -29,6 +48,9 @@ class Predicate(Generic[A, FailT]):
     possible to change the data passed in (it is technically possible to mutate
     mutable values in the course of json, but that is considered an
     error in the opinion of this library).
+
+    Compatible with Async / but async behavior is _not_ customizable. that's
+    why we have PredicateAsync. Any IO needs should probably go there!
     """
 
     @abstractmethod
@@ -45,6 +67,30 @@ class Predicate(Generic[A, FailT]):
             return Ok(val)
         else:
             return Err(self.err(val))
+
+    @final
+    async def validate_async(self, val: A) -> Result[A, FailT]:
+        """
+        make all validators async-compatible for "free"
+        """
+        return self(val)
+
+
+class PredicateAsync(Generic[A, FailT]):
+    @abstractmethod
+    async def is_valid(self, val: A) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def err(self, val: A) -> FailT:
+        raise NotImplementedError
+
+    @final
+    async def __call__(self, val: A) -> Result[A, FailT]:
+        if await self.is_valid(val) is True:
+            return Ok(val)
+        else:
+            return Err(await self.err(val))
 
 
 # When mypy enables recursive types by default
