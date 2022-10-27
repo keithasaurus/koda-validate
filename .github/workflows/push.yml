@@ -26,5 +26,7 @@ jobs:
         run: poetry run mypy . --exclude examples
       - name: run tests
         run: poetry run pytest
+      - name: run all examples
+        run: bash run_all_examples.sh
       - name: linting
         run: poetry run flake8 --exclude examples,codegen --ignore E741,W503,F405,F403,F401
