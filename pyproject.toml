@@ -27,7 +27,7 @@ mypy = "0.982"
 pytest-asyncio = "^0.20.1"
 
 [tool.mypy]
-exclude = ["build"]
+exclude = ["build", "tests/test_examples.py"]
 allow_redefinition = false
 check_untyped_defs = true
 disallow_any_generics = true
