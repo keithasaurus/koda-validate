@@ -143,7 +143,7 @@ requirements-deprecated-finder = ["pip-api", "pipreqs"]
 
 [[package]]
 name = "koda"
-version = "1.2.0"
+version = "1.3.0"
 description = "Type-safe functional tools for Python"
 category = "main"
 optional = false
@@ -418,7 +418,7 @@ testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "c3faa186ef296b39775daa6ccde8850c98b764dab380043f786a8b0d33e6f1fa"
+content-hash = "e9258042340a970332a108c21bcf81c36f32fb50fb5cb536ba1a9df710911b89"
 
 [metadata.files]
 attrs = [
@@ -537,8 +537,8 @@ isort = [
     {file = "isort-5.10.1.tar.gz", hash = "sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951"},
 ]
 koda = [
-    {file = "koda-1.2.0-py3-none-any.whl", hash = "sha256:56ffe4a10d13e4f72850b943843fb88135897a498ad27d8a57eca36fe0401e8d"},
-    {file = "koda-1.2.0.tar.gz", hash = "sha256:f959da79f5445d5e9db9245db2d4961362296073b3c4619e6903b6044350ff7a"},
+    {file = "koda-1.3.0-py3-none-any.whl", hash = "sha256:41b1cebd96a51b0df0fd7f8a8cb55ddd2047d3a19160044ada67fc8ee42ed32f"},
+    {file = "koda-1.3.0.tar.gz", hash = "sha256:5cf14090d135fa61c8f73a7650b034c2d1d9e745a04f931ddd269d5cd6fd92d6"},
 ]
 mccabe = [
     {file = "mccabe-0.7.0-py2.py3-none-any.whl", hash = "sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e"},
