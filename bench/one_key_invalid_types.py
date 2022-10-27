@@ -19,9 +19,9 @@ def run_kv(iterations: int) -> None:
     for i in range(iterations):
         match string_validator({"val_1": i}):
             case Ok(val):
-                x = val
+                _ = val
             case Err(val):
-                x = val
+                _ = val
 
 
 class BasicString(BaseModel):
@@ -33,4 +33,4 @@ def run_pyd(iterations: int) -> None:
         try:
             BasicString(val_1=i)
         except ValidationError as e:
-            x = e
+            _ = e
