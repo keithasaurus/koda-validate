@@ -258,6 +258,62 @@ def dict_validator(
 {ret_stmt}
 """
 
+    ret += """
+
+class DictValidator(
+    Generic[T1, T2, Ret],
+    Validator[Any, Ret, Serializable]
+):
+    \"""
+    unfortunately, we have to have this be `Any` until
+    we're using variadic generics -- or we could generate lots of classes
+    \"""
+    fields: Tuple[Any, ...]
+    
+"""
+    for i in range(num_keys):
+        ret += f"""
+    @overload
+    def __init__(self,
+                 into: Callable[[{",".join(type_vars[:i+1])}], Ret],
+"""
+        for j in range(i + 1):
+            ret += f"                 {dict_validator_fields[j]},\n"
+        ret += """                 *,
+                 validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
+                 ) ->  None: ...
+
+"""
+
+    dv_fields_2: str = ",\n".join([f"        {f}" for f in dict_validator_fields])
+    tuple_fields = ", ".join([f"field{i+1}" for i in range(num_keys)])
+
+    ret += f"""
+
+    def __init__( 
+        self,
+        into: Union[
+            {", ".join(dict_validator_into_signatures)}
+        ],
+    {dv_fields_2},
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
+    ) -> None:
+        self.into = into
+        self.fields = tuple(
+            f for f in (
+                {tuple_fields},\n
+            ) if f is not None)
+        self.validate_object = validate_object
+        
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
+        return _validate_and_map(
+            self.into, data, *self.fields, validate_object=self.validate_object
+        )
+
+
+    """
+
     return ret
 
 
