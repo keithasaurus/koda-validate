@@ -4,7 +4,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Final,
     Generic,
     Iterable,
@@ -13,7 +12,7 @@ from typing import (
     Tuple,
 )
 
-from koda import Err, Just, Maybe, Nothing, Ok, Result, nothing
+from koda import Err, Just, Maybe, Ok, Result, nothing
 
 from koda_validate._generics import A, FailT
 from koda_validate.typedefs import Predicate, Serializable, Validator
@@ -68,12 +67,6 @@ OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 _is_dict_validation_err: Final[Err[Serializable]] = Err(
     {OBJECT_ERRORS_FIELD: [expected("a dictionary")]}
 )
-
-
-def too_many_keys(keys: set[str]) -> Err[Serializable]:
-    return Err(
-        {OBJECT_ERRORS_FIELD: [f"Received unknown keys. Only expected {sorted(keys)}"]}
-    )
 
 
 def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:

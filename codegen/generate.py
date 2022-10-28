@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "directory", type=str, nargs="?", help="directory to put the files"
     )
-    parser.add_argument("--num-keys", type=int, default=20)
+    parser.add_argument("--num-keys", type=int, default=12)
     args = parser.parse_args()
 
     if args.directory:
