@@ -3,7 +3,12 @@ from dataclasses import dataclass
 from time import perf_counter
 from typing import Callable
 
-from bench import one_key_invalid_types, two_keys_invalid_types, two_keys_valid
+from bench import (
+    nested_object_list,
+    one_key_invalid_types,
+    two_keys_invalid_types,
+    two_keys_valid,
+)
 
 
 @dataclass
@@ -20,6 +25,9 @@ benches = {
         two_keys_invalid_types.run_kv, two_keys_invalid_types.run_pyd
     ),
     "two_keys_valid": BenchCompare(two_keys_valid.run_kv, two_keys_valid.run_pyd),
+    "nested_object_list": BenchCompare(
+        nested_object_list.run_kv, nested_object_list.run_pyd
+    ),
 }
 
 
