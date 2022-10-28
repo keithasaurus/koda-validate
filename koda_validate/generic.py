@@ -39,8 +39,10 @@ class Choices(Predicate[EnumT, Serializable]):
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
+    __slots__ = ("choices",)
+
     def __init__(self, choices: Set[EnumT]) -> None:
-        self.choices = choices
+        self.choices: Set[EnumT] = choices
 
     def is_valid(self, val: EnumT) -> bool:
         return val in self.choices

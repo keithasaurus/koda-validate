@@ -467,17 +467,24 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
             return keys_result
 
         args = []
-        errs: List[Tuple[str, Serializable]] = []
-        for key, validator in self.fields:
-            result = validator(mapping_get(data, key))
-
-            # (slightly) optimized for no .map_err call
-            if isinstance(result, Err):
-                errs.append((key, result.val))
+        errs: Optional[List[Tuple[str, Serializable]]] = None
+        for key_, validator in self.fields:
+            # optimized away the call to `koda.mapping_get`
+            if key_ in data:
+                result = validator(Just(data[key_]))
             else:
+                result = validator(nothing)
+
+            # (slightly) optimized; can be simplified if needed
+            if isinstance(result, Err):
+                if errs is None:
+                    errs = [(key_, result.val)]
+                else:
+                    errs.append((key_, result.val))
+            elif errs is None:
                 args.append(result.val)
 
-        if len(errs) > 0:
+        if errs and len(errs) > 0:
             return Err(_tuples_to_json_dict(errs))
         else:
             obj = self.into(*args)
