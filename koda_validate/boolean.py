@@ -8,6 +8,7 @@ from koda_validate.utils import accum_errors
 
 class BooleanValidator(Validator[Any, bool, Serializable]):
     __slots__ = ("predicates",)
+    __match_args__ = ("predicates",)
 
     def __init__(self, *predicates: Predicate[bool, Serializable]) -> None:
         self.predicates = predicates

@@ -8,6 +8,9 @@ from koda_validate.typedefs import Predicate, Serializable, Validator
 
 
 class DecimalValidator(Validator[Any, Decimal, Serializable]):
+    __slots__ = ("predicates",)
+    __match_args__ = ("predicates",)
+
     def __init__(self, *predicates: Predicate[Decimal, Serializable]) -> None:
         self.predicates = predicates
 

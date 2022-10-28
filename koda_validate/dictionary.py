@@ -229,7 +229,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -240,7 +240,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -252,7 +252,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -265,7 +265,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -279,7 +279,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -294,7 +294,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -310,7 +310,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -327,7 +327,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -345,7 +345,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -364,7 +364,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -384,7 +384,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __init__(
@@ -405,7 +405,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        ...
+        ...  # pragma: no cover
 
     def __init__(
         self,

@@ -246,7 +246,8 @@ class DictValidator(
             ret += f"                 {dict_validator_fields[j]},\n"
         ret += """                 *,
                  validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
-                 ) -> None: ...
+                 ) -> None: 
+        ...  # pragma: no cover
 
 """
 

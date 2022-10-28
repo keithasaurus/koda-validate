@@ -7,6 +7,9 @@ from koda_validate.utils import accum_errors
 
 
 class FloatValidator(Validator[Any, float, Serializable]):
+    __slots__ = ("predicates",)
+    __match_args__ = ("predicates",)
+
     def __init__(self, *predicates: Predicate[float, Serializable]) -> None:
         self.predicates = predicates
 
