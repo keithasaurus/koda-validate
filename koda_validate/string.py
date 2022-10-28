@@ -36,9 +36,13 @@ class StringValidator(Validator[Any, str, Serializable]):
             return EXPECTED_STR_ERR
 
 
-@dataclass(frozen=True)
 class RegexPredicate(Predicate[str, Serializable]):
-    pattern: Pattern[str]
+    __slots__ = ("pattern",)
+
+    __match_args__ = ("pattern",)
+
+    def __init__(self, pattern: Pattern[str]) -> None:
+        self.pattern: Pattern[str] = pattern
 
     def is_valid(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None

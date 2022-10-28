@@ -98,6 +98,9 @@ FailT = TypeVar("FailT")
 
 
 class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
+    __slots__ = ("key_validator", "value_validator", "predicates")
+    __match_args__ = ("key_validator", "value_validator", "predicates")
+
     def __init__(
         self,
         key_validator: Validator[Any, T1, Serializable],
@@ -190,6 +193,9 @@ def _dict_without_extra_keys(keys: Set[str], data: Any) -> Optional[Err[Serializ
 
 
 class MinKeys(Predicate[Dict[Any, Any], Serializable]):
+    __slots__ = ("size",)
+    __match_args__ = ("size",)
+
     def __init__(self, size: int) -> None:
         self.size = size
 
@@ -201,6 +207,9 @@ class MinKeys(Predicate[Dict[Any, Any], Serializable]):
 
 
 class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
+    __slots__ = ("size",)
+    __match_args__ = ("size",)
+
     def __init__(self, size: int) -> None:
         self.size = size
 
@@ -217,9 +226,8 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     we're using variadic generics -- or we could generate lots of classes
     """
 
-    __slots__ = ("fields",)
-    __match_args__ = ("fields",)
-    fields: Tuple[KeyValidator[Any], ...]
+    __slots__ = ("into", "fields", "validate_object")
+    __match_args__ = ("into", "fields", "validate_object")
 
     @overload
     def __init__(
@@ -439,7 +447,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
-        self.fields = tuple(
+        self.fields: Tuple[KeyValidator[Any], ...] = tuple(
             f
             for f in (
                 field1,
