@@ -18,59 +18,23 @@ def generate_code(num_keys: int) -> str:
     Tuple,
     TypeVar,
     Union,
-    overload, Iterable, Final, TYPE_CHECKING,
+    overload, 
+    Final,
+    TYPE_CHECKING,
 )
 
 from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 from koda_validate._generics import A
 from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import expected
-
-
-def accum_errors(
-    val: A, validators: Iterable[Predicate[A, Serializable]]
-) -> Result[A, Serializable]:
-    errors: List[Serializable] = [
-        result.val
-        for validator in validators
-        if isinstance(result := validator(val), Err)
-    ]
-
-    if len(errors) > 0:
-        result = Err(errors)
-    else:
-        # has to be original val because there are no
-        # errors, and predicates prevent there from being
-        # modification to the value
-        result = Ok(val)
-    return result
 
 
 KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
 
 
-def _variant_errors(*variants: Serializable) -> Serializable:
-    return {f"variant {i + 1}": v for i, v in enumerate(variants)}
-
-
-def _flat_map_same_type_if_not_none(
-    fn: Optional[Callable[[A], Result[A, FailT]]],
-    r: Result[A, FailT],
-) -> Result[A, FailT]:
-    if fn is None:
-        return r
-    else:
-        # optimizing by not using flatmap
-        if isinstance(r, Err):
-            return r
-        else:
-            return fn(r.val)
-
-
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 _is_dict_validation_err: Final[Err[Serializable]] = Err(
-    {OBJECT_ERRORS_FIELD: [expected("a dictionary")]}
+    {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
 )
 
 
@@ -188,7 +152,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
             else:
                 return Ok(return_dict)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("a map")]})
+            return Err({OBJECT_ERRORS_FIELD: ["expected a map"]})
 
 
 class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):

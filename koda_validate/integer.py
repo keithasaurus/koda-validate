@@ -1,13 +1,12 @@
-from dataclasses import dataclass
-from typing import Any, Final, Tuple
+from typing import Any, Final
 
 from koda import Err, Result
 
 from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import accum_errors, expected
+from koda_validate.utils import accum_errors
 
 # extracted for optimization
-EXPECTED_INTEGER_ERR: Final[Err[Serializable]] = Err([expected("an integer")])
+EXPECTED_INTEGER_ERR: Final[Err[Serializable]] = Err([f"expected an integer"])
 
 
 class IntValidator(Validator[Any, int, Serializable]):

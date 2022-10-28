@@ -4,7 +4,7 @@ from typing import Any, Tuple
 from koda import Err, Result
 
 from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import accum_errors, expected
+from koda_validate.utils import accum_errors
 
 
 @dataclass(init=False, frozen=True)
@@ -18,4 +18,4 @@ class BooleanValidator(Validator[Any, bool, Serializable]):
         if isinstance(val, bool):
             return accum_errors(val, self.predicates)
         else:
-            return Err([expected("a boolean")])
+            return Err([f"expected a boolean"])

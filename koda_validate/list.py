@@ -5,7 +5,7 @@ from koda import Err, Ok, Result
 from koda._generics import A
 
 from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import OBJECT_ERRORS_FIELD, expected
+from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
 @dataclass(frozen=True)
@@ -96,7 +96,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             else:
                 return Ok(return_list)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("a list")]})
+            return Err({OBJECT_ERRORS_FIELD: [f"expected a list"]})
 
 
 unique_items = UniqueItems()

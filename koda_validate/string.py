@@ -1,13 +1,13 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Final, List, Optional, Pattern, Tuple
+from typing import Any, Final, List, Optional, Pattern
 
 from koda import Err, Result
 
 from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
-from koda_validate.utils import accum_errors, expected
+from koda_validate.utils import accum_errors
 
-EXPECTED_STR_ERR: Final[Err[Serializable]] = Err([expected("a string")])
+EXPECTED_STR_ERR: Final[Err[Serializable]] = Err([f"expected a string"])
 
 
 class StringValidator(Validator[Any, str, Serializable]):

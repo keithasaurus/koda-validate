@@ -5,7 +5,7 @@ from koda import Err, Ok, Result
 from koda._generics import A
 
 from koda_validate.typedefs import Serializable, Validator
-from koda_validate.utils import _variant_errors, expected
+from koda_validate.utils import _variant_errors
 
 
 @dataclass(frozen=True)
@@ -34,7 +34,7 @@ class NoneValidator(Validator[Any, None, Serializable]):
         if val is None:
             return Ok(val)
         else:
-            return Err([expected("null")])
+            return Err([f"expected null"])
 
 
 none_validator = NoneValidator()

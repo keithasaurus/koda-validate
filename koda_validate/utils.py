@@ -1,25 +1,11 @@
 from __future__ import annotations
 
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Final,
-    Generic,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-)
+from typing import Callable, Final, Iterable, List, Optional
 
-from koda import Err, Just, Maybe, Ok, Result, nothing
+from koda import Err, Ok, Result
 
 from koda_validate._generics import A, FailT
-from koda_validate.typedefs import Predicate, Serializable, Validator
-
-
-def expected(val: str) -> str:
-    return f"expected {val}"
+from koda_validate.typedefs import Predicate, Serializable
 
 
 def accum_errors(
@@ -41,9 +27,6 @@ def accum_errors(
     return result
 
 
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
-
-
 def _variant_errors(*variants: Serializable) -> Serializable:
     return {f"variant {i + 1}": v for i, v in enumerate(variants)}
 
@@ -63,59 +46,3 @@ def _flat_map_same_type_if_not_none(
 
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
-
-_is_dict_validation_err: Final[Err[Serializable]] = Err(
-    {OBJECT_ERRORS_FIELD: [expected("a dictionary")]}
-)
-
-
-def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
-    return dict(data)
-
-
-# extracted into constant to optimize
-KEY_MISSING_ERR: Final[Err[Serializable]] = Err(["key missing"])
-
-
-class RequiredField(Generic[A]):
-    __slots__ = ("validator",)
-
-    def __init__(self, validator: Validator[Any, A, Serializable]) -> None:
-        self.validator = validator
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Serializable]:
-        if maybe_val is nothing:
-            return KEY_MISSING_ERR
-        else:
-            # we use the `is nothing` comparison above because `nothing`
-            # is a singleton; but mypy doesn't know that this _must_ be a Just now
-            if TYPE_CHECKING:
-                assert isinstance(maybe_val, Just)
-            return self.validator(maybe_val.val)
-
-
-class MaybeField(Generic[A]):
-    __slots__ = ("validator",)
-
-    def __init__(self, validator: Validator[Any, A, Serializable]) -> None:
-        self.validator = validator
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
-        if maybe_val is nothing:
-            return Ok(maybe_val)
-        else:
-            if TYPE_CHECKING:
-                assert isinstance(maybe_val, Just)
-            return self.validator(maybe_val.val).map(Just)
-
-
-def key(
-    prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[A, Serializable]]]:
-    return prop_, RequiredField(validator)
-
-
-def maybe_key(
-    prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[Maybe[A], Serializable]]]:
-    return prop_, MaybeField(validator)

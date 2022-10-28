@@ -5,7 +5,6 @@ from typing import Any, Tuple
 from koda import Err, Ok, Result
 
 from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import expected
 
 
 @dataclass(frozen=True, init=False)
@@ -39,4 +38,4 @@ class DatetimeValidator(Validator[Any, date, Serializable]):
             # to add the dependency at some point
             return Ok(datetime.fromisoformat(val))
         except (ValueError, TypeError):
-            return Err([expected("iso8601-formatted string")])
+            return Err([f"expected iso8601-formatted string"])

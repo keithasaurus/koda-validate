@@ -9,7 +9,6 @@ from koda._generics import A
 
 from koda_validate._generics import Ret
 from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
-from koda_validate.utils import expected
 
 EnumT = TypeVar("EnumT", str, int)
 
@@ -139,4 +138,4 @@ class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
         else:
             value_str = str(self.match)
 
-        return Err([expected(f"exactly {value_str} ({match_type.__name__})")])
+        return Err([f"expected exactly {value_str} ({match_type.__name__})"])
