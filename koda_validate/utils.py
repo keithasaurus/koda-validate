@@ -1,21 +1,10 @@
 from __future__ import annotations
 
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Final,
-    Generic,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-)
+from typing import Any, Callable, Dict, Final, Generic, Iterable, List, Optional, Tuple
 
-from koda import Err, Just, Maybe, Nothing, Ok, Result, mapping_get
+from koda import Err, Just, Maybe, Nothing, Ok, Result
 
-from koda_validate._generics import A, FailT, Ret
+from koda_validate._generics import A, FailT
 from koda_validate.typedefs import Predicate, Serializable, Validator
 
 
@@ -67,9 +56,9 @@ def _flat_map_same_type_if_not_none(
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
-_is_dict_validation_err: Final[Dict[str, Serializable]] = {
-    OBJECT_ERRORS_FIELD: [expected("a dictionary")]
-}
+_is_dict_validation_err: Final[Err[Dict[str, Serializable]]] = Err(
+    {OBJECT_ERRORS_FIELD: [expected("a dictionary")]}
+)
 
 
 def too_many_keys(keys: set[str]) -> Err[Serializable]:
@@ -80,40 +69,6 @@ def too_many_keys(keys: set[str]) -> Err[Serializable]:
 
 def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
     return dict(data)
-
-
-def _validate_and_map(
-    into: Callable[..., Ret],
-    data: Any,
-    # this could be handled better with variadic generics
-    *fields: KeyValidator[Any],
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Result[Ret, Serializable]:
-    allowed_keys: Set[str] = {k for k, _ in fields}
-    if not isinstance(data, dict):
-        return Err(_is_dict_validation_err)
-    if len(data.keys() - allowed_keys) > 0:
-        return too_many_keys(allowed_keys)
-
-    args = []
-    errs: List[Tuple[str, Serializable]] = []
-    for key, validator in fields:
-        result = validator(mapping_get(data, key))
-
-        # (slightly) optimized for no .map_err call
-        if isinstance(result, Err):
-            errs.append((key, result.val))
-        else:
-            args.append(result.val)
-
-    if len(errs) > 0:
-        return Err(_tuples_to_json_dict(errs))
-    else:
-        obj = into(*args)
-        if validate_object is None:
-            return Ok(obj)
-        else:
-            return validate_object(obj)
 
 
 class RequiredField(Generic[A]):

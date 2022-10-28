@@ -22,7 +22,6 @@ from koda_validate.utils import (
     _is_dict_validation_err,
     _tuples_to_json_dict,
     expected,
-    too_many_keys,
 )
 
 T1 = TypeVar("T1")
@@ -119,7 +118,7 @@ class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
         if isinstance(val, dict):
             return Ok(val)
         else:
-            return Err(_is_dict_validation_err)
+            return _is_dict_validation_err
 
 
 is_dict_validator = IsDictValidator()
@@ -127,7 +126,7 @@ is_dict_validator = IsDictValidator()
 
 def _dict_without_extra_keys(
     keys: Set[str], data: Any
-) -> Optional[Dict[str, Serializable]]:
+) -> Optional[Err[Dict[str, Serializable]]]:
     """
     We're returning Optional here because it's faster than Ok/Err,
     and this is just a private function
@@ -136,11 +135,13 @@ def _dict_without_extra_keys(
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in keys:
-                return {
-                    OBJECT_ERRORS_FIELD: [
-                        f"Received unknown keys. Only expected {sorted(keys)}"
-                    ]
-                }
+                return Err(
+                    {
+                        OBJECT_ERRORS_FIELD: [
+                            f"Received unknown keys. Only expected {sorted(keys)}"
+                        ]
+                    }
+                )
         return None
     else:
         return _is_dict_validation_err
@@ -816,11 +817,10 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        allowed_keys: Set[str] = {k for k, _ in self.fields}
-        if not isinstance(data, dict):
-            return Err(_is_dict_validation_err)
-        if len(data.keys() - allowed_keys) > 0:
-            return too_many_keys(allowed_keys)
+        if (
+            keys_result := _dict_without_extra_keys({k for k, _ in self.fields}, data)
+        ) is not None:
+            return keys_result
 
         args = []
         errs: List[Tuple[str, Serializable]] = []
@@ -830,7 +830,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
             # (slightly) optimized for no .map_err call
             if isinstance(result, Err):
                 errs.append((key, result.val))
-            else:
+            elif len(errs) == 0:
                 args.append(result.val)
 
         if len(errs) > 0:
