@@ -5,8 +5,10 @@ from koda import Err, Ok, Result
 from koda_validate import (
     BooleanValidator,
     DecimalValidator,
+    FloatValidator,
     IntValidator,
     IsDictValidator,
+    Lazy,
     MapValidator,
     Serializable,
     StringValidator,
@@ -80,6 +82,28 @@ def test_match_args() -> None:
             assert fields[0] == str_1
             assert fields[1] == int_1
             assert validate_object == validate_person
+
+        case _:
+            assert False
+
+    match FloatValidator():
+        case FloatValidator(preds):
+            assert preds == ()
+        case _:
+            assert False
+
+    def lazy_dv_validator() -> DictValidator[Person]:
+        return dv_validator_2
+
+    dv_validator_2: DictValidator[Person] = DictValidator(
+        Person,
+        key("name", StringValidator()),
+        key("age", IntValidator()),
+    )
+    match Lazy(lazy_dv_validator):
+        case Lazy(validator, recurrent):
+            assert validator is lazy_dv_validator
+            assert recurrent is True
 
         case _:
             assert False
