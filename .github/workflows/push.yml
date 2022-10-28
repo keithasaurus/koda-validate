@@ -21,9 +21,15 @@ jobs:
           poetry-version: ${{ matrix.poetry-version }}
       - name: poetry install
         run: poetry install
-      - name: mypy
+      # not running mypy against 3.11 (yet) because it's like 10x slower
+      - name: mypy 3.9-
+        if: matrix.python-version == 3.9 || matrix.python-version == 3.8
         # exclude examples in CI because some 3.10 features are used
         run: poetry run mypy . --exclude examples
+      - name: mypy 3.10
+        if: matrix.python-version == 3.10
+        # exclude examples in CI because some 3.10 features are used
+        run: poetry run mypy .
       - name: run tests
         run: poetry run pytest
       - name: run all examples
