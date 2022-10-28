@@ -56,7 +56,7 @@ def _flat_map_same_type_if_not_none(
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
-_is_dict_validation_err: Final[Err[Dict[str, Serializable]]] = Err(
+_is_dict_validation_err: Final[Err[Serializable]] = Err(
     {OBJECT_ERRORS_FIELD: [expected("a dictionary")]}
 )
 
