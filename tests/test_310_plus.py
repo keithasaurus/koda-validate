@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 
 from koda import Err, Ok, Result
@@ -5,6 +6,8 @@ from koda import Err, Ok, Result
 from koda_validate import (
     BooleanValidator,
     Choices,
+    DatetimeValidator,
+    DateValidator,
     DecimalValidator,
     ExactValidator,
     FloatValidator,
@@ -18,9 +21,15 @@ from koda_validate import (
     Min,
     MinItems,
     MultipleOf,
+    OneOf2,
+    OneOf3,
     OptionalValidator,
+    RegexPredicate,
     Serializable,
     StringValidator,
+    Tuple2Validator,
+    Tuple3Validator,
+    strip,
 )
 from koda_validate.dictionary import (
     DictValidator,
@@ -176,4 +185,70 @@ def test_match_args() -> None:
             assert opt_validator is str_3
 
         case _:
+            assert False
+
+    match OneOf2(
+        s_3 := StringValidator(),
+        i_3 := IntValidator(),
+    ):
+        case OneOf2(var_1, var_2):
+            assert var_1 is s_3
+            assert var_2 is i_3
+        case _:
+            assert False
+
+    match OneOf3(
+        s_4 := StringValidator(), i_4 := IntValidator(), f_4 := FloatValidator()
+    ):
+        case OneOf3(var_1, var_2, var_3):
+            assert var_1 is s_4
+            assert var_2 is i_4
+            assert var_3 is f_4
+        case _:
+            assert False
+
+    match StringValidator(preprocessors=[strip]):
+        case StringValidator(preds_6, preproc_6):
+            assert preds_6 == ()
+            assert preproc_6 == [strip]
+        case _:
+            assert False
+
+    match RegexPredicate(ptrn := re.compile("abc")):
+        case RegexPredicate(pattern):
+            assert pattern is ptrn
+        case _:
+            assert False
+
+    match DateValidator():
+        case DateValidator(pred_7):
+            assert pred_7 == ()
+        case _:
+            assert False
+
+    match DatetimeValidator():
+        case DatetimeValidator(pred_8):
+            assert pred_8 == ()
+        case _:
+            assert False
+
+    match Tuple2Validator(
+        s_8 := StringValidator(),
+        i_8 := IntValidator(),
+    ):
+        case Tuple2Validator(vldtr_8, vldtr_9):
+            assert vldtr_8 is s_8
+            assert vldtr_9 is i_8
+
+        case _:
+            assert False
+
+    match Tuple3Validator(
+        s_9 := StringValidator(), i_9 := IntValidator(), f_9 := FloatValidator()
+    ):
+        case Tuple3Validator(vldtr_1, vldtr_2, vldtr_3):
+            assert vldtr_1 is s_9
+            assert vldtr_2 is i_9
+            assert vldtr_3 is f_9
+        case x:
             assert False

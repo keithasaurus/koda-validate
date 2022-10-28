@@ -7,21 +7,24 @@ from koda_validate.typedefs import Serializable, Validator
 
 
 class OneOf2(Validator[Any, Either[A, B], Serializable]):
+    __slots__ = ("variant_1", "variant_2")
+    __match_args__ = ("variant_1", "variant_2")
+
     def __init__(
         self,
-        variant_one: Validator[Any, A, Serializable],
-        variant_two: Validator[Any, B, Serializable],
+        variant_1: Validator[Any, A, Serializable],
+        variant_2: Validator[Any, B, Serializable],
     ) -> None:
-        self.variant_one = variant_one
-        self.variant_two = variant_two
+        self.variant_1 = variant_1
+        self.variant_2 = variant_2
 
     def __call__(self, val: Any) -> Result[Either[A, B], Serializable]:
-        v1_result = self.variant_one(val)
+        v1_result = self.variant_1(val)
 
         if isinstance(v1_result, Ok):
             return Ok(First(v1_result.val))
         else:
-            v2_result = self.variant_two(val)
+            v2_result = self.variant_2(val)
 
             if isinstance(v2_result, Ok):
                 return Ok(Second(v2_result.val))
@@ -35,28 +38,31 @@ class OneOf2(Validator[Any, Either[A, B], Serializable]):
 
 
 class OneOf3(Validator[Any, Either3[A, B, C], Serializable]):
+    __match_args__ = ("variant_1", "variant_2", "variant_3")
+    __slots__ = ("variant_1", "variant_2", "variant_3")
+
     def __init__(
         self,
-        variant_one: Validator[Any, A, Serializable],
-        variant_two: Validator[Any, B, Serializable],
-        variant_three: Validator[Any, C, Serializable],
+        variant_1: Validator[Any, A, Serializable],
+        variant_2: Validator[Any, B, Serializable],
+        variant_3: Validator[Any, C, Serializable],
     ) -> None:
-        self.variant_one = variant_one
-        self.variant_two = variant_two
-        self.variant_three = variant_three
+        self.variant_1 = variant_1
+        self.variant_2 = variant_2
+        self.variant_3 = variant_3
 
     def __call__(self, val: Any) -> Result[Either3[A, B, C], Serializable]:
-        v1_result = self.variant_one(val)
+        v1_result = self.variant_1(val)
 
         if isinstance(v1_result, Ok):
             return Ok(First(v1_result.val))
         else:
-            v2_result = self.variant_two(val)
+            v2_result = self.variant_2(val)
 
             if isinstance(v2_result, Ok):
                 return Ok(Second(v2_result.val))
             else:
-                v3_result = self.variant_three(val)
+                v3_result = self.variant_3(val)
 
                 if isinstance(v3_result, Ok):
                     return Ok(Third(v3_result.val))

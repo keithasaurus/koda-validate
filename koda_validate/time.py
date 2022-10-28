@@ -1,6 +1,5 @@
-from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, Tuple
+from typing import Any
 
 from koda import Err, Ok, Result
 
@@ -11,6 +10,9 @@ class DateValidator(Validator[Any, date, Serializable]):
     """
     Expects dates to be yyyy-mm-dd
     """
+
+    __slots__ = ("predicates",)
+    __match_args__ = ("predicates",)
 
     def __init__(self, *predicates: Predicate[date, Serializable]) -> None:
         self.predicates = predicates
@@ -23,6 +25,9 @@ class DateValidator(Validator[Any, date, Serializable]):
 
 
 class DatetimeValidator(Validator[Any, date, Serializable]):
+    __slots__ = ("predicates",)
+    __match_args__ = ("predicates",)
+
     def __init__(self, *predicates: Predicate[date, Serializable]) -> None:
         self.predicates = predicates
 

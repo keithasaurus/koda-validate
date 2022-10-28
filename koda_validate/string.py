@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Final, List, Optional, Pattern
+from typing import Any, Final, List, Optional, Pattern, Tuple
 
 from koda import Err, Ok, Result
 
@@ -12,7 +12,6 @@ EXPECTED_STR_ERR: Final[Err[Serializable]] = Err(["expected a string"])
 
 class StringValidator(Validator[Any, str, Serializable]):
     __slots__ = ("predicates", "preprocessors")
-
     __match_args__ = ("predicates", "preprocessors")
 
     def __init__(
@@ -20,7 +19,7 @@ class StringValidator(Validator[Any, str, Serializable]):
         *predicates: Predicate[str, Serializable],
         preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
-        self.predicates = predicates
+        self.predicates: Tuple[Predicate[str, Serializable], ...] = predicates
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[str, Serializable]:
@@ -38,7 +37,6 @@ class StringValidator(Validator[Any, str, Serializable]):
 
 class RegexPredicate(Predicate[str, Serializable]):
     __slots__ = ("pattern",)
-
     __match_args__ = ("pattern",)
 
     def __init__(self, pattern: Pattern[str]) -> None:
@@ -51,7 +49,6 @@ class RegexPredicate(Predicate[str, Serializable]):
         return rf"must match pattern {self.pattern.pattern}"
 
 
-@dataclass(frozen=True)
 class EmailPredicate(Predicate[str, Serializable]):
     pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
 

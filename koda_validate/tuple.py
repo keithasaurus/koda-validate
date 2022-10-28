@@ -15,6 +15,9 @@ def _tuple_to_dict_errors(errs: Tuple[Serializable, ...]) -> Dict[str, Serializa
 
 # todo: auto-generate
 class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
+    __slots__ = ("slot1_validator", "slot2_validator", "tuple_validator")
+    __match_args__ = ("slot1_validator", "slot2_validator", "tuple_validator")
+
     required_length: int = 2
 
     def __init__(
@@ -55,6 +58,19 @@ class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
 
 
 class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
+    __slots__ = (
+        "slot1_validator",
+        "slot2_validator",
+        "slot3_validator",
+        "tuple_validator",
+    )
+    __match_args__ = (
+        "slot1_validator",
+        "slot2_validator",
+        "slot3_validator",
+        "tuple_validator",
+    )
+
     required_length: int = 3
 
     def __init__(
