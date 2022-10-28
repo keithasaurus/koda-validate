@@ -10,7 +10,7 @@ __all__ = (
     "IsDictValidator",
     "MinKeys",
     "MaxKeys",
-    "dict_validator",
+    "DictValidator",
     # float.py
     "FloatValidator",
     # generic.py
@@ -64,11 +64,11 @@ __all__ = (
 from koda_validate.boolean import BooleanValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
+    DictValidator,
     IsDictValidator,
     MapValidator,
     MaxKeys,
     MinKeys,
-    dict_validator,
 )
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Choices, ExactValidator, Lazy, Max, Min, MultipleOf

@@ -7,7 +7,6 @@ def generate_code(num_keys: int) -> str:
 
     dict_validator_into_signatures: List[str] = []
     dict_validator_fields: List[str] = []
-    dict_validator_overloads: List[str] = []
     ret = """from dataclasses import dataclass
 from typing import (
     Any,
@@ -20,20 +19,11 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    cast,
     overload,
 )
 
 from koda import Err, Just, Maybe, Ok, Result, mapping_get
 
-from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import (
-    OBJECT_ERRORS_FIELD,
-    KeyValidator,
-    _is_dict_validation_err,
-    _validate_and_map,
-    expected,
-)
 
 """
     type_vars = get_type_vars(num_keys)
@@ -176,7 +166,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
     ret += """
 
 class DictValidator(
-    Generic[T1, T2, Ret],
+    Generic[Ret],
     Validator[Any, Ret, Serializable]
 ):
     \"""

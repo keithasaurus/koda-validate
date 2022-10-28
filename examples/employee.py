@@ -21,7 +21,7 @@ def no_dwight_regional_manager(employee: Employee) -> Result[Employee, Serializa
         return Ok(employee)
 
 
-employee_validator = dict_validator(
+employee_validator = DictValidator(
     Employee,
     key("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),
     key("name", StringValidator(not_blank, preprocessors=[strip])),

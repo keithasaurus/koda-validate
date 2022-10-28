@@ -16,21 +16,11 @@ from koda_validate import (
     Predicate,
     Serializable,
     StringValidator,
-    dict_validator,
     key,
     maybe_key,
     none_validator,
 )
-from koda_validate.dictionary import (
-    Dict4KeysValidator,
-    Dict5KeysValidator,
-    Dict6KeysValidator,
-    Dict7KeysValidator,
-    Dict8KeysValidator,
-    Dict9KeysValidator,
-    Dict10KeysValidator,
-    is_dict_validator,
-)
+from koda_validate.dictionary import DictValidator, is_dict_validator
 from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
@@ -124,7 +114,7 @@ def test_obj_1() -> None:
     class Person:
         name: str
 
-    validator = dict_validator(Person, key("name", StringValidator()))
+    validator = DictValidator(Person, key("name", StringValidator()))
 
     assert validator("not a dict") == Err({"__container__": ["expected a dictionary"]})
 
@@ -145,7 +135,7 @@ def test_obj_2() -> None:
         name: str
         age: Maybe[int]
 
-    validator = dict_validator(
+    validator = DictValidator(
         Person, key("name", StringValidator()), maybe_key("age", IntValidator())
     )
 
@@ -172,7 +162,7 @@ def test_obj_3() -> None:
         last_name: str
         age: int
 
-    validator = dict_validator(
+    validator = DictValidator(
         Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
@@ -203,7 +193,7 @@ def test_obj_4() -> None:
         age: int
         eye_color: str
 
-    validator = Dict4KeysValidator(
+    validator = DictValidator(
         Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
@@ -232,7 +222,7 @@ def test_obj_5() -> None:
         eye_color: str
         can_fly: bool
 
-    validator = Dict5KeysValidator(
+    validator = DictValidator(
         Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
@@ -275,7 +265,7 @@ def test_obj_6() -> None:
         can_fly: bool
         fingers: float
 
-    validator = Dict6KeysValidator(
+    validator = DictValidator(
         Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
@@ -310,7 +300,7 @@ def test_obj_7() -> None:
         fingers: float
         toes: float
 
-    validator = Dict7KeysValidator(
+    validator = DictValidator(
         Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
@@ -348,7 +338,7 @@ def test_obj_8() -> None:
         toes: float
         favorite_color: Maybe[str]
 
-    validator = Dict8KeysValidator(
+    validator = DictValidator(
         Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
@@ -415,7 +405,7 @@ def test_obj_9() -> None:
         favorite_color: Maybe[str]
         requires_none: None
 
-    validator = Dict9KeysValidator(
+    validator = DictValidator(
         Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
@@ -460,7 +450,7 @@ def test_obj_10() -> None:
         requires_none: None
         something_else: List[str]
 
-    validator = Dict10KeysValidator(
+    validator = DictValidator(
         Person,
         key("first_name", StringValidator()),
         key("last_name", StringValidator()),
