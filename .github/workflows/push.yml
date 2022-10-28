@@ -25,7 +25,7 @@ jobs:
       - name: mypy 3.9-
         if: matrix.python-version == 3.9 || matrix.python-version == 3.8
         # exclude examples in CI because some 3.10 features are used
-        run: poetry run mypy . --exclude examples
+        run: poetry run mypy . --exclude examples,tests/test_310_plus.py
       - name: mypy 3.10
         if: matrix.python-version == 3.10
         # exclude examples in CI because some 3.10 features are used
@@ -37,7 +37,7 @@ jobs:
         run: poetry run bash run_all_examples.sh
       - name: linting 3.9-
         if: matrix.python-version == 3.9 || matrix.python-version == 3.8
-        run: poetry run flake8 --exclude codegen,bench,examples/metadata.py --ignore E741,W503,F405,F403,F401
+        run: poetry run flake8 --exclude codegen,bench,examples/metadata.py,tests/test_310_plus.py --ignore E741,W503,F405,F403,F401
       - name: linting 3.10+
         if: matrix.python-version == 3.10 || matrix.python-version == 3.11
         run: poetry run flake8 --exclude codegen --ignore E741,W503,F405,F403,F401
