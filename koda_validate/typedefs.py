@@ -61,9 +61,9 @@ Serializable = Union[
     str,
     bool,
     float,
-    List[Any],
-    Tuple[Any, ...],
-    Dict[str, Any],
+    List[Serializable1],
+    Tuple[Serializable1, ...],
+    Dict[str, Serializable1],
 ]
 
 

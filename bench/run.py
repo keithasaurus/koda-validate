@@ -69,12 +69,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--iterations",
         type=int,
-        default=5,
+        default=50,
     )
     parser.add_argument(
         "--chunk-size",
         type=int,
-        default=10_000,
+        default=1_000,
     )
 
     args = parser.parse_args()

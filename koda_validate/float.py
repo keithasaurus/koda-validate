@@ -1,9 +1,11 @@
-from typing import Any
+from typing import Any, Final
 
 from koda import Err, Ok, Result
 
 from koda_validate.typedefs import Predicate, Serializable, Validator
 from koda_validate.utils import accum_errors
+
+EXPECTED_FLOAT_ERR: Final[Err[Serializable]] = Err(["expected a float"])
 
 
 class FloatValidator(Validator[Any, float, Serializable]):
@@ -20,4 +22,4 @@ class FloatValidator(Validator[Any, float, Serializable]):
             else:
                 return accum_errors(val, self.predicates)
         else:
-            return Err(["expected a float"])
+            return EXPECTED_FLOAT_ERR
