@@ -53,7 +53,7 @@ def test_map_validator() -> None:
         {"a": 5, "b": 22}
     )
 
-    assert MapValidator(StringValidator(), IntValidator())({5: None,}) == Err(
+    assert MapValidator(StringValidator(), IntValidator())({5: None}) == Err(
         {
             "5": {
                 "key_error": ["expected a string"],
