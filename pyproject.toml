@@ -21,6 +21,7 @@ black = "22.10.0"
 flake8 = "5.0.4"
 pre-commit = "2.20.0"
 mypy = "0.982"
+pydantic = "1.10.2"
 
 
 [tool.mypy]
