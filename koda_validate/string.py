@@ -7,19 +7,22 @@ from koda import Err, Result
 from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
 from koda_validate.utils import accum_errors, expected
 
+EXPECTED_STR_ERR: Final[Err[Serializable]] = Err([expected("a string")])
 
-@dataclass(init=False, frozen=True)
+
 class StringValidator(Validator[Any, str, Serializable]):
-    predicates: Tuple[Predicate[str, Serializable], ...]
-    preprocessors: Optional[List[Processor[str]]]
+    __slots__ = ("predicates", "preprocessors")
+
+    __match_args__ = ("predicates", "preprocessors")
 
     def __init__(
         self,
         *predicates: Predicate[str, Serializable],
         preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
-        object.__setattr__(self, "predicates", predicates)
-        object.__setattr__(self, "preprocessors", preprocessors)
+
+        self.predicates = predicates
+        self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[str, Serializable]:
         if isinstance(val, str):
@@ -29,7 +32,7 @@ class StringValidator(Validator[Any, str, Serializable]):
 
             return accum_errors(val, self.predicates)
         else:
-            return Err([expected("a string")])
+            return EXPECTED_STR_ERR
 
 
 @dataclass(frozen=True)

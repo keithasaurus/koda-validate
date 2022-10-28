@@ -202,14 +202,14 @@ class DictValidator(
             {", ".join(dict_validator_into_signatures)}
         ],
     {dv_fields_2},
-        *,
+        *non_typed_fields: KeyValidator[Any],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
     ) -> None:
         self.into = into
         self.fields = tuple(
             f for f in (
                 {tuple_fields},\n
-            ) if f is not None)
+            ) + non_typed_fields if f is not None)
         self.validate_object = validate_object
 """
     ret += """   

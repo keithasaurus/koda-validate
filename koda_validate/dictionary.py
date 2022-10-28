@@ -329,7 +329,8 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         field8: Optional[KeyValidator[T8]] = None,
         field9: Optional[KeyValidator[T9]] = None,
         field10: Optional[KeyValidator[T10]] = None,
-        *,
+        # catchall for extra keys,
+        *fields: Optional[KeyValidator[Any]],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
