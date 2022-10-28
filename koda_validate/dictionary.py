@@ -220,7 +220,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
+class DictValidator(Validator[Any, Ret, Serializable]):
     """
     unfortunately, we have to have this be `Any` until
     we're using variadic generics -- or we could generate lots of classes

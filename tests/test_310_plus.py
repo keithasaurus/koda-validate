@@ -11,7 +11,13 @@ from koda_validate import (
     Serializable,
     StringValidator,
 )
-from koda_validate.dictionary import DictValidator, MaxKeys, MinKeys, is_dict_validator
+from koda_validate.dictionary import (
+    DictValidator,
+    MaxKeys,
+    MinKeys,
+    is_dict_validator,
+    key,
+)
 
 
 def test_match_args() -> None:
@@ -62,12 +68,13 @@ def test_match_args() -> None:
         else:
             return Ok(p)
 
-    match DictValidator(
+    dv_validator: DictValidator[Person] = DictValidator(
         (into_ := Person),
-        (str_1 := StringValidator()),
-        (int_1 := IntValidator()),
+        (str_1 := key("name", StringValidator())),
+        (int_1 := key("age", IntValidator())),
         validate_object=validate_person,
-    ):
+    )
+    match dv_validator:
         case DictValidator(into, fields, validate_object):
             assert into == into_
             assert fields[0] == str_1
