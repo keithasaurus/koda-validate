@@ -30,7 +30,11 @@ jobs:
         if: matrix.python-version == 3.10
         # exclude examples in CI because some 3.10 features are used
         run: poetry run mypy .
-      - name: run tests
+      - name: run 3.9- tests
+        if: matrix.python-version == 3.9 || matrix.python-version == 3.8
+        run: poetry run pytest --ignore tests/test_310_plus.py
+      - name: run 3.10+ tests
+        if: matrix.python-version == 3.10 || matrix.python-version == 3.11
         run: poetry run pytest
       - name: run all examples
         if: matrix.python-version == 3.10
