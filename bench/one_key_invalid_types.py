@@ -3,8 +3,7 @@ from dataclasses import dataclass
 from koda import Err, Ok
 from pydantic import BaseModel, ValidationError, constr
 
-from koda_validate import StringValidator, key
-from koda_validate.dictionary import dict_validator
+from koda_validate import DictValidator, StringValidator, key
 
 
 @dataclass
@@ -12,7 +11,7 @@ class SimpleStr:
     val_1: str
 
 
-string_validator = dict_validator(SimpleStr, key("val_1", StringValidator()))
+string_validator = DictValidator(SimpleStr, key("val_1", StringValidator()))
 
 
 def run_kv(iterations: int) -> None:

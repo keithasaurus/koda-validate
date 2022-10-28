@@ -2,8 +2,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel
 
-from koda_validate import IntValidator, StringValidator, key
-from koda_validate.dictionary import dict_validator
+from koda_validate import DictValidator, IntValidator, StringValidator, key
 
 
 @dataclass
@@ -12,7 +11,7 @@ class SimpleStr:
     val_2: int
 
 
-string_validator = dict_validator(
+string_validator = DictValidator(
     SimpleStr, key("val_1", StringValidator()), key("val_2", IntValidator())
 )
 

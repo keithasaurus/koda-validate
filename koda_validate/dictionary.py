@@ -20,8 +20,9 @@ from koda_validate.utils import (
     OBJECT_ERRORS_FIELD,
     KeyValidator,
     _is_dict_validation_err,
-    _validate_and_map,
+    _tuples_to_json_dict,
     expected,
+    too_many_keys,
 )
 
 T1 = TypeVar("T1")
@@ -34,6 +35,16 @@ T7 = TypeVar("T7")
 T8 = TypeVar("T8")
 T9 = TypeVar("T9")
 T10 = TypeVar("T10")
+T11 = TypeVar("T11")
+T12 = TypeVar("T12")
+T13 = TypeVar("T13")
+T14 = TypeVar("T14")
+T15 = TypeVar("T15")
+T16 = TypeVar("T16")
+T17 = TypeVar("T17")
+T18 = TypeVar("T18")
+T19 = TypeVar("T19")
+T20 = TypeVar("T20")
 Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
@@ -163,7 +174,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     we're using variadic generics -- or we could generate lots of classes
     """
 
-    fields: Tuple[Any, ...]
+    fields: Tuple[KeyValidator[Any], ...]
 
     @overload
     def __init__(
@@ -310,6 +321,329 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     ) -> None:
         ...
 
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+        field1: KeyValidator[T1],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+        field1: KeyValidator[T1],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        field12: Optional[KeyValidator[T12]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
+        field1: KeyValidator[T1],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        field12: Optional[KeyValidator[T12]] = None,
+        field13: Optional[KeyValidator[T13]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret
+        ],
+        field1: KeyValidator[T1],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        field12: Optional[KeyValidator[T12]] = None,
+        field13: Optional[KeyValidator[T13]] = None,
+        field14: Optional[KeyValidator[T14]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
+        ],
+        field1: KeyValidator[T1],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        field12: Optional[KeyValidator[T12]] = None,
+        field13: Optional[KeyValidator[T13]] = None,
+        field14: Optional[KeyValidator[T14]] = None,
+        field15: Optional[KeyValidator[T15]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
+        ],
+        field1: KeyValidator[T1],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        field12: Optional[KeyValidator[T12]] = None,
+        field13: Optional[KeyValidator[T13]] = None,
+        field14: Optional[KeyValidator[T14]] = None,
+        field15: Optional[KeyValidator[T15]] = None,
+        field16: Optional[KeyValidator[T16]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17],
+            Ret,
+        ],
+        field1: KeyValidator[T1],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        field12: Optional[KeyValidator[T12]] = None,
+        field13: Optional[KeyValidator[T13]] = None,
+        field14: Optional[KeyValidator[T14]] = None,
+        field15: Optional[KeyValidator[T15]] = None,
+        field16: Optional[KeyValidator[T16]] = None,
+        field17: Optional[KeyValidator[T17]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+            ],
+            Ret,
+        ],
+        field1: KeyValidator[T1],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        field12: Optional[KeyValidator[T12]] = None,
+        field13: Optional[KeyValidator[T13]] = None,
+        field14: Optional[KeyValidator[T14]] = None,
+        field15: Optional[KeyValidator[T15]] = None,
+        field16: Optional[KeyValidator[T16]] = None,
+        field17: Optional[KeyValidator[T17]] = None,
+        field18: Optional[KeyValidator[T18]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+            ],
+            Ret,
+        ],
+        field1: KeyValidator[T1],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        field12: Optional[KeyValidator[T12]] = None,
+        field13: Optional[KeyValidator[T13]] = None,
+        field14: Optional[KeyValidator[T14]] = None,
+        field15: Optional[KeyValidator[T15]] = None,
+        field16: Optional[KeyValidator[T16]] = None,
+        field17: Optional[KeyValidator[T17]] = None,
+        field18: Optional[KeyValidator[T18]] = None,
+        field19: Optional[KeyValidator[T19]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[
+            [
+                T1,
+                T2,
+                T3,
+                T4,
+                T5,
+                T6,
+                T7,
+                T8,
+                T9,
+                T10,
+                T11,
+                T12,
+                T13,
+                T14,
+                T15,
+                T16,
+                T17,
+                T18,
+                T19,
+                T20,
+            ],
+            Ret,
+        ],
+        field1: KeyValidator[T1],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        field12: Optional[KeyValidator[T12]] = None,
+        field13: Optional[KeyValidator[T13]] = None,
+        field14: Optional[KeyValidator[T14]] = None,
+        field15: Optional[KeyValidator[T15]] = None,
+        field16: Optional[KeyValidator[T16]] = None,
+        field17: Optional[KeyValidator[T17]] = None,
+        field18: Optional[KeyValidator[T18]] = None,
+        field19: Optional[KeyValidator[T19]] = None,
+        field20: Optional[KeyValidator[T20]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...
+
     def __init__(
         self,
         into: Union[
@@ -323,6 +657,111 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
             Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
             Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
             Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret],
+            Callable[
+                [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
+            ],
+            Callable[
+                [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16],
+                Ret,
+            ],
+            Callable[
+                [
+                    T1,
+                    T2,
+                    T3,
+                    T4,
+                    T5,
+                    T6,
+                    T7,
+                    T8,
+                    T9,
+                    T10,
+                    T11,
+                    T12,
+                    T13,
+                    T14,
+                    T15,
+                    T16,
+                    T17,
+                ],
+                Ret,
+            ],
+            Callable[
+                [
+                    T1,
+                    T2,
+                    T3,
+                    T4,
+                    T5,
+                    T6,
+                    T7,
+                    T8,
+                    T9,
+                    T10,
+                    T11,
+                    T12,
+                    T13,
+                    T14,
+                    T15,
+                    T16,
+                    T17,
+                    T18,
+                ],
+                Ret,
+            ],
+            Callable[
+                [
+                    T1,
+                    T2,
+                    T3,
+                    T4,
+                    T5,
+                    T6,
+                    T7,
+                    T8,
+                    T9,
+                    T10,
+                    T11,
+                    T12,
+                    T13,
+                    T14,
+                    T15,
+                    T16,
+                    T17,
+                    T18,
+                    T19,
+                ],
+                Ret,
+            ],
+            Callable[
+                [
+                    T1,
+                    T2,
+                    T3,
+                    T4,
+                    T5,
+                    T6,
+                    T7,
+                    T8,
+                    T9,
+                    T10,
+                    T11,
+                    T12,
+                    T13,
+                    T14,
+                    T15,
+                    T16,
+                    T17,
+                    T18,
+                    T19,
+                    T20,
+                ],
+                Ret,
+            ],
         ],
         field1: KeyValidator[T1],
         field2: Optional[KeyValidator[T2]] = None,
@@ -334,6 +773,16 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         field8: Optional[KeyValidator[T8]] = None,
         field9: Optional[KeyValidator[T9]] = None,
         field10: Optional[KeyValidator[T10]] = None,
+        field11: Optional[KeyValidator[T11]] = None,
+        field12: Optional[KeyValidator[T12]] = None,
+        field13: Optional[KeyValidator[T13]] = None,
+        field14: Optional[KeyValidator[T14]] = None,
+        field15: Optional[KeyValidator[T15]] = None,
+        field16: Optional[KeyValidator[T16]] = None,
+        field17: Optional[KeyValidator[T17]] = None,
+        field18: Optional[KeyValidator[T18]] = None,
+        field19: Optional[KeyValidator[T19]] = None,
+        field20: Optional[KeyValidator[T20]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -351,12 +800,44 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
                 field8,
                 field9,
                 field10,
+                field11,
+                field12,
+                field13,
+                field14,
+                field15,
+                field16,
+                field17,
+                field18,
+                field19,
+                field20,
             )
             if f is not None
         )
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        return _validate_and_map(
-            self.into, data, *self.fields, validate_object=self.validate_object
-        )
+        allowed_keys: Set[str] = {k for k, _ in self.fields}
+        if not isinstance(data, dict):
+            return Err(_is_dict_validation_err)
+        if len(data.keys() - allowed_keys) > 0:
+            return too_many_keys(allowed_keys)
+
+        args = []
+        errs: List[Tuple[str, Serializable]] = []
+        for key, validator in self.fields:
+            result = validator(mapping_get(data, key))
+
+            # (slightly) optimized for no .map_err call
+            if isinstance(result, Err):
+                errs.append((key, result.val))
+            else:
+                args.append(result.val)
+
+        if len(errs) > 0:
+            return Err(_tuples_to_json_dict(errs))
+        else:
+            obj = self.into(*args)
+            if self.validate_object is None:
+                return Ok(obj)
+            else:
+                return self.validate_object(obj)

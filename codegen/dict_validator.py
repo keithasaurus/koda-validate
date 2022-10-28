@@ -24,6 +24,13 @@ from typing import (
 
 from koda import Err, Just, Maybe, Ok, Result, mapping_get
 
+from koda_validate.typedefs import Predicate, Serializable, Validator
+from koda_validate.utils import (
+    OBJECT_ERRORS_FIELD,
+    KeyValidator,
+    _is_dict_validation_err,
+    expected, too_many_keys, _tuples_to_json_dict,
+)
 
 """
     type_vars = get_type_vars(num_keys)
@@ -173,7 +180,7 @@ class DictValidator(
     unfortunately, we have to have this be `Any` until
     we're using variadic generics -- or we could generate lots of classes
     \"""
-    fields: Tuple[Any, ...]
+    fields: Tuple[KeyValidator[Any], ...]
     
 """
     for i in range(num_keys):
@@ -210,11 +217,34 @@ class DictValidator(
                 {tuple_fields},\n
             ) if f is not None)
         self.validate_object = validate_object
-        
+"""
+    ret += """   
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        return _validate_and_map(
-            self.into, data, *self.fields, validate_object=self.validate_object
-        )
+        allowed_keys: Set[str] = {k for k, _ in self.fields}
+        if not isinstance(data, dict):
+            return Err(_is_dict_validation_err)
+        if len(data.keys() - allowed_keys) > 0:
+            return too_many_keys(allowed_keys)
+
+        args = []
+        errs: List[Tuple[str, Serializable]] = []
+        for key, validator in self.fields:
+            result = validator(mapping_get(data, key))
+
+            # (slightly) optimized for no .map_err call
+            if isinstance(result, Err):
+                errs.append((key, result.val))
+            else:
+                args.append(result.val)
+
+        if len(errs) > 0:
+            return Err(_tuples_to_json_dict(errs))
+        else:
+            obj = self.into(*args)
+            if self.validate_object is None:
+                return Ok(obj)
+            else:
+                return self.validate_object(obj)
 
 
     """
