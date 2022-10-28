@@ -52,6 +52,7 @@ if __name__ == "__main__":
         default=100_000,
         help="How many iterations of each test we'll run",
     )
+
     args = parser.parse_args()
 
     print(f"{args.iterations} ITERATIONS")
