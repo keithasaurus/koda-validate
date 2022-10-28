@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any, List
 
 from pydantic import BaseModel
 
@@ -16,9 +17,9 @@ string_validator = DictValidator(
 )
 
 
-def run_kv(iterations: int) -> None:
-    for i in range(iterations):
-        string_validator({"val_1": i, "val_2": str(i)})
+def run_kv(objs: List[Any]) -> None:
+    for obj in objs:
+        string_validator(obj)
 
 
 class BasicString(BaseModel):
@@ -26,6 +27,6 @@ class BasicString(BaseModel):
     val_2: int
 
 
-def run_pyd(iterations: int) -> None:
-    for i in range(iterations):
-        BasicString(val_1=i, val_2=str(i))
+def run_pyd(objs: List[Any]) -> None:
+    for obj in objs:
+        BasicString(**obj)

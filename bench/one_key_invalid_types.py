@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any, List
 
 from koda import Ok
 from pydantic import BaseModel, ValidationError, constr
@@ -14,9 +15,9 @@ class SimpleStr:
 string_validator = DictValidator(SimpleStr, key("val_1", StringValidator()))
 
 
-def run_kv(iterations: int) -> None:
-    for i in range(iterations):
-        if isinstance(result := string_validator({"val_1": i}), Ok):
+def run_kv(objs: Any) -> None:
+    for obj in objs:
+        if isinstance(result := string_validator(obj), Ok):
             _ = result.val
         else:
             _ = result.val
@@ -26,9 +27,9 @@ class BasicString(BaseModel):
     val_1: constr(strict=True)
 
 
-def run_pyd(iterations: int) -> None:
-    for i in range(iterations):
+def run_pyd(objs: List[Any]) -> None:
+    for obj in objs:
         try:
-            _ = BasicString(val_1=i)
+            _ = BasicString(**obj)
         except ValidationError as e:
             _ = e

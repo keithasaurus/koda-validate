@@ -80,14 +80,14 @@ def get_valid_data(i: int) -> Dict[str, Any]:
     }
 
 
-def run_kv(iterations: int) -> None:
-    for i in range(iterations):
-        assert isinstance(k_validator(get_valid_data(i)), Ok)
+def run_kv(objs: List[Any]) -> None:
+    for obj in objs:
+        assert isinstance(k_validator(obj), Ok)
 
 
-def run_pyd(iterations: int) -> None:
-    for i in range(iterations):
-        assert isinstance(PydPerson(**get_valid_data(i)), PydPerson)
+def run_pyd(objs: List[Any]) -> None:
+    for obj in objs:
+        assert isinstance(PydPerson(**obj), PydPerson)
 
 
 if __name__ == "__main__":

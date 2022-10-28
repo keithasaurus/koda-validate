@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Callable
+from typing import Callable, Generic, List
 
 from bench import (
     nested_object_list,
@@ -9,33 +9,53 @@ from bench import (
     two_keys_invalid_types,
     two_keys_valid,
 )
+from koda_validate._generics import A
 
 
 @dataclass
-class BenchCompare:
-    kv_run: Callable[[int], None]
-    pyd_run: Callable[[int], None]
+class BenchCompare(Generic[A]):
+    gen: Callable[[int], A]
+    kv_run: Callable[[List[A]], None]
+    pyd_run: Callable[[List[A]], None]
 
 
 benches = {
     "one_key_invalid_types": BenchCompare(
-        one_key_invalid_types.run_kv, one_key_invalid_types.run_pyd
+        lambda i: {"val_1": i},
+        one_key_invalid_types.run_kv,
+        one_key_invalid_types.run_pyd,
     ),
     "two_keys_invalid_types": BenchCompare(
-        two_keys_invalid_types.run_kv, two_keys_invalid_types.run_pyd
+        lambda i: {"val_1": i, "val_2": str(i)},
+        two_keys_invalid_types.run_kv,
+        two_keys_invalid_types.run_pyd,
     ),
-    "two_keys_valid": BenchCompare(two_keys_valid.run_kv, two_keys_valid.run_pyd),
+    "two_keys_valid": BenchCompare(
+        lambda i: {"val_1": str(i), "val_2": i},
+        two_keys_valid.run_kv,
+        two_keys_valid.run_pyd,
+    ),
     "nested_object_list": BenchCompare(
-        nested_object_list.run_kv, nested_object_list.run_pyd
+        nested_object_list.get_valid_data,
+        nested_object_list.run_kv,
+        nested_object_list.run_pyd,
     ),
 }
 
 
-def run_bench(iterations: int, fn: Callable[[int], None]) -> None:
-    start = perf_counter()
-    fn(iterations)
-    t_ = perf_counter() - start
-    print(f"Execution time: {t_:.4f} secs\n")
+def run_bench(
+    chunks: int, chunk_size: int, gen: Callable[[int], A], fn: Callable[[List[A]], None]
+) -> None:
+    total_time: float = 0.0
+    for i in range(chunks):
+        # generate in chunks so generation isn't included in the
+        # measured time
+        objs = [gen((i * chunk_size) + j + 1) for j in range(chunk_size)]
+        start = perf_counter()
+        fn(objs)
+        total_time += perf_counter() - start
+
+    print(f"Execution time: {total_time:.4f} secs\n")
 
 
 if __name__ == "__main__":
@@ -49,8 +69,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--iterations",
         type=int,
-        default=50_000,
-        help="How many iterations of each test we'll run",
+        default=5,
+    )
+    parser.add_argument(
+        "--chunk-size",
+        type=int,
+        default=10_000,
     )
 
     args = parser.parse_args()
@@ -61,7 +85,11 @@ if __name__ == "__main__":
         if args.tests == [] or name in args.tests:
             print(f"----- BEGIN {name} -----\n")
             print("KODA_VALIDATE")
-            run_bench(args.iterations, compare_bench.kv_run)
+            run_bench(
+                args.iterations, args.chunk_size, compare_bench.gen, compare_bench.kv_run
+            )
             print("PYDANTIC")
-            run_bench(args.iterations, compare_bench.pyd_run)
+            run_bench(
+                args.iterations, args.chunk_size, compare_bench.gen, compare_bench.pyd_run
+            )
             print(f"----- END {name} -----\n")
