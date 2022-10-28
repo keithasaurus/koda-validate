@@ -92,7 +92,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             else:
                 return Ok(return_list)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [f"expected a list"]})
+            return Err({OBJECT_ERRORS_FIELD: ["expected a list"]})
 
 
 unique_items = UniqueItems()

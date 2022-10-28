@@ -6,7 +6,7 @@ from koda_validate.typedefs import Predicate, Serializable, Validator
 from koda_validate.utils import accum_errors
 
 # extracted for optimization
-EXPECTED_INTEGER_ERR: Final[Err[Serializable]] = Err([f"expected an integer"])
+EXPECTED_INTEGER_ERR: Final[Err[Serializable]] = Err(["expected an integer"])
 
 
 class IntValidator(Validator[Any, int, Serializable]):

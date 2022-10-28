@@ -7,7 +7,7 @@ from koda import Err, Ok, Result
 from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
 from koda_validate.utils import accum_errors
 
-EXPECTED_STR_ERR: Final[Err[Serializable]] = Err([f"expected a string"])
+EXPECTED_STR_ERR: Final[Err[Serializable]] = Err(["expected a string"])
 
 
 class StringValidator(Validator[Any, str, Serializable]):

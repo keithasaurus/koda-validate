@@ -34,7 +34,7 @@ class NoneValidator(Validator[Any, None, Serializable]):
         if val is None:
             return Ok(val)
         else:
-            return Err([f"expected null"])
+            return Err(["expected None"])
 
 
 none_validator = NoneValidator()

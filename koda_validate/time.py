@@ -32,4 +32,4 @@ class DatetimeValidator(Validator[Any, date, Serializable]):
             # to add the dependency at some point
             return Ok(datetime.fromisoformat(val))
         except (ValueError, TypeError):
-            return Err([f"expected iso8601-formatted string"])
+            return Err(["expected iso8601-formatted string"])

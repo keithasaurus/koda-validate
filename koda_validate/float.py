@@ -17,4 +17,4 @@ class FloatValidator(Validator[Any, float, Serializable]):
             else:
                 return accum_errors(val, self.predicates)
         else:
-            return Err([f"expected a float"])
+            return Err(["expected a float"])

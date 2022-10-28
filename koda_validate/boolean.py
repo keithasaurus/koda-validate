@@ -18,4 +18,4 @@ class BooleanValidator(Validator[Any, bool, Serializable]):
                 return Ok(val)
             return accum_errors(val, self.predicates)
         else:
-            return Err([f"expected a boolean"])
+            return Err(["expected a boolean"])
