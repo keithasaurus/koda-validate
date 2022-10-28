@@ -49,7 +49,7 @@ class RequiredField(Generic[A]):
         else:
             # we use the `is nothing` comparison above because `nothing`
             # is a singleton; but mypy doesn't know that this _must_ be a Just now
-            if TYPE_CHECKING:
+            if TYPE_CHECKING:  # pragma: no cover
                 assert isinstance(maybe_val, Just)
             return self.validator(maybe_val.val)
 
@@ -64,7 +64,7 @@ class MaybeField(Generic[A]):
         if maybe_val is nothing:
             return Ok(maybe_val)
         else:
-            if TYPE_CHECKING:
+            if TYPE_CHECKING:  # pragma: no cover
                 assert isinstance(maybe_val, Just)
             return self.validator(maybe_val.val).map(Just)
 
