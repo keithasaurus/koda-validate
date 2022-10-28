@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any, Dict, List
 
 from koda import Ok
 from pydantic import BaseModel
@@ -26,7 +26,7 @@ class Hobby:
 class Person:
     name: str
     age: int
-    hobbies: list[Hobby]
+    hobbies: List[Hobby]
 
 
 k_validator = DictValidator(
@@ -64,7 +64,7 @@ class PydPerson(BaseModel):
     hobbies: List[PydHobby]
 
 
-def get_valid_data(i: int) -> dict[str, Any]:
+def get_valid_data(i: int) -> Dict[str, Any]:
     return {
         "name": f"name{i}",
         "age": i,
