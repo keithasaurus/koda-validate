@@ -4,12 +4,21 @@ from koda import Err, Ok, Result
 
 from koda_validate import (
     BooleanValidator,
+    Choices,
     DecimalValidator,
+    ExactValidator,
     FloatValidator,
     IntValidator,
     IsDictValidator,
     Lazy,
+    ListValidator,
     MapValidator,
+    Max,
+    MaxItems,
+    Min,
+    MinItems,
+    MultipleOf,
+    OptionalValidator,
     Serializable,
     StringValidator,
 )
@@ -104,6 +113,67 @@ def test_match_args() -> None:
         case Lazy(validator, recurrent):
             assert validator is lazy_dv_validator
             assert recurrent is True
+
+        case _:
+            assert False
+
+    match Choices({1, 2, 3}):
+        case Choices(choices):
+            assert choices == {1, 2, 3}
+        case _:
+            assert False
+
+    match Min(5):
+        case Min(num, excl):
+            assert num == 5
+            assert excl is False
+        case _:
+            assert False
+
+    match Max(5):
+        case Max(num, excl):
+            assert num == 5
+            assert excl is False
+        case _:
+            assert False
+
+    match MultipleOf(3):
+        case MultipleOf(num):
+            assert num == 3
+        case _:
+            assert False
+
+    match ExactValidator("abc"):
+        case ExactValidator(match, preprocessors):
+            assert match == "abc"
+            assert preprocessors is None
+
+    match IntValidator((int_min := Min(5))):
+        case IntValidator(predicates):
+            assert predicates == (int_min,)
+        case _:
+            assert False
+
+    match MinItems(2):
+        case MinItems(length):
+            assert length == 2
+        case _:
+            assert False
+
+    match MaxItems(2):
+        case MaxItems(length):
+            assert length == 2
+        case _:
+            assert False
+
+    match ListValidator((str_vldtr := StringValidator()), (min_items_ := MinItems(2))):
+        case ListValidator(item_validator, predicates):
+            assert item_validator is str_vldtr
+            assert predicates == (min_items_,)
+
+    match OptionalValidator(str_3 := StringValidator()):
+        case OptionalValidator(opt_validator):
+            assert opt_validator is str_3
 
         case _:
             assert False
