@@ -13,11 +13,7 @@ from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
 EnumT = TypeVar("EnumT", str, int)
 
 
-@dataclass(frozen=True, init=False)
 class Lazy(Validator[A, Ret, Serializable]):
-    validator: Thunk[Validator[A, Ret, Serializable]]
-    recurrent: bool = True
-
     def __init__(
         self,
         validator: Thunk[Validator[A, Ret, Serializable]],
@@ -30,24 +26,21 @@ class Lazy(Validator[A, Ret, Serializable]):
                 is useful, so we can avoid infinite loops when traversing
                 over validators (i.e. for openapi generation)
         """
-        object.__setattr__(self, "validator", validator)
-        object.__setattr__(self, "recurrent", recurrent)
+        self.validator = validator
+        self.recurrent = recurrent
 
     def __call__(self, data: A) -> Result[Ret, Serializable]:
         return self.validator()(data)
 
 
-@dataclass(frozen=True, init=False)
 class Choices(Predicate[EnumT, Serializable]):
     """
     This only exists separately from a more generic form because
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
-    choices: Set[EnumT]
-
     def __init__(self, choices: Set[EnumT]) -> None:
-        object.__setattr__(self, "choices", choices)
+        self.choices = choices
 
     def is_valid(self, val: EnumT) -> bool:
         return val in self.choices

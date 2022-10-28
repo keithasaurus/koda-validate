@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Final, Iterable, List, Optional
+from typing import Callable, Final, Iterable, List, Optional, Tuple
 
 from koda import Err, Ok, Result
 
@@ -9,7 +9,7 @@ from koda_validate.typedefs import Predicate, Serializable
 
 
 def accum_errors(
-    val: A, validators: Iterable[Predicate[A, Serializable]]
+    val: A, validators: Tuple[Predicate[A, Serializable], ...]
 ) -> Result[A, Serializable]:
     errors: List[Serializable] = [
         result.val

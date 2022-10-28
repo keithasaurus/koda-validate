@@ -56,18 +56,14 @@ class UniqueItems(Predicate[List[Any], Serializable]):
         return "all items must be unique"
 
 
-@dataclass(frozen=True, init=False)
 class ListValidator(Validator[Any, List[A], Serializable]):
-    item_validator: Validator[Any, A, Serializable]
-    list_validators: Tuple[Predicate[List[A], Serializable], ...]
-
     def __init__(
         self,
         item_validator: Validator[Any, A, Serializable],
         *list_validators: Predicate[List[A], Serializable],
     ) -> None:
-        object.__setattr__(self, "item_validator", item_validator)
-        object.__setattr__(self, "list_validators", list_validators)
+        self.item_validator = item_validator
+        self.list_validators = list_validators
 
     def __call__(self, val: Any) -> Result[List[A], Serializable]:
         if isinstance(val, list):

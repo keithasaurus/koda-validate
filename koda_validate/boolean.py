@@ -12,10 +12,12 @@ class BooleanValidator(Validator[Any, bool, Serializable]):
     predicates: Tuple[Predicate[bool, Serializable], ...]
 
     def __init__(self, *predicates: Predicate[bool, Serializable]) -> None:
-        object.__setattr__(self, "predicates", predicates)
+        self.predicates = predicates
 
     def __call__(self, val: Any) -> Result[bool, Serializable]:
         if isinstance(val, bool):
+            if len(self.predicates) > 0:
+                return
             return accum_errors(val, self.predicates)
         else:
             return Err([f"expected a boolean"])

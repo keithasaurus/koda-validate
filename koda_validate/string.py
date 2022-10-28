@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Final, List, Optional, Pattern
 
-from koda import Err, Result
+from koda import Err, Ok, Result
 
 from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
 from koda_validate.utils import accum_errors
@@ -20,7 +20,6 @@ class StringValidator(Validator[Any, str, Serializable]):
         *predicates: Predicate[str, Serializable],
         preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
-
         self.predicates = predicates
         self.preprocessors = preprocessors
 
@@ -29,8 +28,10 @@ class StringValidator(Validator[Any, str, Serializable]):
             if self.preprocessors is not None:
                 for preprocess in self.preprocessors:
                     val = preprocess(val)
-
-            return accum_errors(val, self.predicates)
+            if len(self.predicates) > 0:
+                return accum_errors(val, self.predicates)
+            else:
+                return Ok(val)
         else:
             return EXPECTED_STR_ERR
 

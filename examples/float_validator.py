@@ -1,6 +1,6 @@
 from typing import Any
 
-from koda import Err, Result
+from koda import Err, Ok, Result
 
 from koda_validate import Predicate, Serializable, Validator
 from koda_validate.utils import accum_errors
@@ -12,6 +12,9 @@ class FloatValidator(Validator[Any, float, Serializable]):
 
     def __call__(self, val: Any) -> Result[float, Serializable]:
         if isinstance(val, float):
-            return accum_errors(val, self.predicates)
+            if len(self.predicates) > 0:
+                return accum_errors(val, self.predicates)
+            else:
+                return Ok(val)
         else:
             return Err(["expected a float"])

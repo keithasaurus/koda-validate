@@ -231,6 +231,8 @@ class DictValidator(
     unfortunately, we have to have this be `Any` until
     we're using variadic generics -- or we could generate lots of classes
     \"""
+    __slots__ = ('fields', )
+    __match_args__ = ('fields', )
     fields: Tuple[KeyValidator[Any], ...]
     
 """

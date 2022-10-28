@@ -217,6 +217,8 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     we're using variadic generics -- or we could generate lots of classes
     """
 
+    __slots__ = ("fields",)
+    __match_args__ = ("fields",)
     fields: Tuple[KeyValidator[Any], ...]
 
     @overload

@@ -1,19 +1,15 @@
 import decimal
-from dataclasses import dataclass
 from decimal import Decimal as Decimal
-from typing import Any, Tuple
+from typing import Any
 
 from koda import Err, Ok, Result
 
 from koda_validate.typedefs import Predicate, Serializable, Validator
 
 
-@dataclass(init=False, frozen=True)
 class DecimalValidator(Validator[Any, Decimal, Serializable]):
-    predicates: Tuple[Predicate[Decimal, Serializable], ...]
-
     def __init__(self, *predicates: Predicate[Decimal, Serializable]) -> None:
-        object.__setattr__(self, "predicates", predicates)
+        self.predicates = predicates
 
     def __call__(self, val: Any) -> Result[Decimal, Serializable]:
         expected_msg = f"expected a decimal-compatible string or integer"
