@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from typing import Tuple
 
 from koda import Err, Ok, Result
 
