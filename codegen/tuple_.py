@@ -9,7 +9,6 @@ def generate_code(num_keys: int) -> str:
     Callable,
     Dict,
     Generic,
-    List,
     Optional,
     Tuple,
     TypeVar,
@@ -22,7 +21,6 @@ from koda import Err, Ok, Result
 from koda_validate._generics import A
 from koda_validate.typedefs import Serializable, Validator
 from koda_validate.utils import OBJECT_ERRORS_FIELD
-
 
 
 class _NotSet:
