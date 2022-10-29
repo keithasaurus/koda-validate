@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from typing import Tuple
 
 from koda import Err, Ok, Result
 
@@ -28,7 +27,6 @@ from koda_validate import (
     RegexPredicate,
     Serializable,
     StringValidator,
-    TupleValidator,
     strip,
 )
 from koda_validate.dictionary import (
@@ -38,7 +36,7 @@ from koda_validate.dictionary import (
     is_dict_validator,
     key,
 )
-from koda_validate.tuple import typed_tuple
+from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 
 
 def test_match_args() -> None:
@@ -233,20 +231,23 @@ def test_match_args() -> None:
         case _:
             assert False
 
-    def validate_tup(tup: Tuple[str, int]) -> Result[Tuple[str, int], Serializable]:
-        return Ok(tup)
-
-    match TupleValidator(
-        typed_tuple,
+    match Tuple2Validator(
         s_8 := StringValidator(),
         i_8 := IntValidator(),
-        validate_object=validate_tup,
     ):
-        case TupleValidator(into, (vldtr_8, vldtr_9), obj_vldtr):
-            assert into is typed_tuple
+        case Tuple2Validator(vldtr_8, vldtr_9):
             assert vldtr_8 is s_8
             assert vldtr_9 is i_8
-            assert obj_vldtr is validate_tup
 
+        case _:
+            assert False
+
+    match Tuple3Validator(
+        s_9 := StringValidator(), i_9 := IntValidator(), f_9 := FloatValidator()
+    ):
+        case Tuple3Validator(vldtr_1, vldtr_2, vldtr_3):
+            assert vldtr_1 is s_9
+            assert vldtr_2 is i_9
+            assert vldtr_3 is f_9
         case _:
             assert False

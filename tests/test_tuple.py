@@ -2,35 +2,25 @@ from typing import Tuple
 
 from koda import Err, Ok, Result
 
-from koda_validate import (
-    BooleanValidator,
-    IntValidator,
-    Serializable,
-    StringValidator,
-    TupleValidator,
-)
-from koda_validate.tuple import typed_tuple
+from koda_validate import BooleanValidator, IntValidator, Serializable, StringValidator
+from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 
 
 def test_tuple2() -> None:
-    assert TupleValidator(typed_tuple, StringValidator(), IntValidator())({}) == Err(
+    assert Tuple2Validator(StringValidator(), IntValidator())({}) == Err(
         {"__container__": ["expected list or tuple of length 2"]}
     )
 
-    assert TupleValidator(typed_tuple, StringValidator(), IntValidator())([]) == Err(
+    assert Tuple2Validator(StringValidator(), IntValidator())([]) == Err(
         {"__container__": ["expected list or tuple of length 2"]}
     )
 
-    assert TupleValidator(typed_tuple, StringValidator(), IntValidator())(["a", 1]) == Ok(
-        ("a", 1)
-    )
-    assert TupleValidator(typed_tuple, StringValidator(), IntValidator())(("a", 1)) == Ok(
-        ("a", 1)
-    )
+    assert Tuple2Validator(StringValidator(), IntValidator())(["a", 1]) == Ok(("a", 1))
+    assert Tuple2Validator(StringValidator(), IntValidator())(("a", 1)) == Ok(("a", 1))
 
-    assert TupleValidator(typed_tuple, StringValidator(), IntValidator())(
-        [1, "a"]
-    ) == Err({"0": ["expected a string"], "1": ["expected an integer"]})
+    assert Tuple2Validator(StringValidator(), IntValidator())([1, "a"]) == Err(
+        {"0": ["expected a string"], "1": ["expected an integer"]}
+    )
 
     def must_be_a_if_integer_is_1(
         ab: Tuple[str, int]
@@ -43,11 +33,10 @@ def test_tuple2() -> None:
         else:
             return Ok(ab)
 
-    a1_validator = TupleValidator(
-        typed_tuple,
+    a1_validator = Tuple2Validator(
         StringValidator(),
         IntValidator(),
-        validate_object=must_be_a_if_integer_is_1,
+        must_be_a_if_integer_is_1,
     )
 
     assert a1_validator(["a", 1]) == Ok(("a", 1))
@@ -56,25 +45,25 @@ def test_tuple2() -> None:
 
 
 def test_tuple3() -> None:
-    assert TupleValidator(
-        typed_tuple, StringValidator(), IntValidator(), BooleanValidator()
-    )({}) == Err({"__container__": ["expected list or tuple of length 3"]})
+    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+        {}
+    ) == Err({"__container__": ["expected list or tuple of length 3"]})
 
-    assert TupleValidator(
-        typed_tuple, StringValidator(), IntValidator(), BooleanValidator()
-    )([]) == Err({"__container__": ["expected list or tuple of length 3"]})
+    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+        []
+    ) == Err({"__container__": ["expected list or tuple of length 3"]})
 
-    assert TupleValidator(
-        typed_tuple, StringValidator(), IntValidator(), BooleanValidator()
-    )(["a", 1, False]) == Ok(("a", 1, False))
+    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+        ["a", 1, False]
+    ) == Ok(("a", 1, False))
 
-    assert TupleValidator(
-        typed_tuple, StringValidator(), IntValidator(), BooleanValidator()
-    )(("a", 1, False)) == Ok(("a", 1, False))
+    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+        ("a", 1, False)
+    ) == Ok(("a", 1, False))
 
-    assert TupleValidator(
-        typed_tuple, StringValidator(), IntValidator(), BooleanValidator()
-    )([1, "a", 7.42]) == Err(
+    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+        [1, "a", 7.42]
+    ) == Err(
         {
             "0": ["expected a string"],
             "1": ["expected an integer"],
@@ -93,12 +82,11 @@ def test_tuple3() -> None:
         else:
             return Ok(abc)
 
-    a1_validator = TupleValidator(
-        typed_tuple,
+    a1_validator = Tuple3Validator(
         StringValidator(),
         IntValidator(),
         BooleanValidator(),
-        validate_object=must_be_a_if_1_and_true,
+        must_be_a_if_1_and_true,
     )
 
     assert a1_validator(["a", 1, True]) == Ok(("a", 1, True))
