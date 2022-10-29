@@ -1,3 +1,5 @@
+"""Deprecated. Should be removed soon"""
+
 from functools import partial
 from typing import Callable, Optional, Tuple, TypeVar, Union, cast, overload
 

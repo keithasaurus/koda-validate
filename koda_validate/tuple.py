@@ -1,3 +1,9 @@
+"""
+We should replace Tuple2Validator and Tuple3Validator
+with a generic TupleValidator... (2 and 3 can still use the new one
+under the hood, if needed)
+"""
+
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from koda import Err, Result

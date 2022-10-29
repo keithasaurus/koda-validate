@@ -1,3 +1,5 @@
+"""Deprecated. Should be removed soon"""
+
 from typing import Tuple, Union, overload
 
 from koda_validate._generics import A, B, C
