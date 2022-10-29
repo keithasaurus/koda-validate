@@ -2,8 +2,17 @@ from typing import Any, Callable, Generic, List, Optional, Tuple, TypeVar, Union
 
 from koda import Err, Ok, Result
 
+from koda_validate._generics import A
 from koda_validate.typedefs import Serializable, Validator
 
+
+class _NotSet:
+    pass
+
+
+_not_set = _NotSet()
+
+_Settable = Union[A, _NotSet]
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 T3 = TypeVar("T3")
@@ -18,6 +27,253 @@ T11 = TypeVar("T11")
 T12 = TypeVar("T12")
 Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
+
+
+@overload
+def typed_tuple(t1: T1) -> Tuple[T1]:
+    ...
+
+
+@overload
+def typed_tuple(t1: T1, t2: T2) -> Tuple[T1, T2]:
+    ...
+
+
+@overload
+def typed_tuple(t1: T1, t2: T2, t3: T3) -> Tuple[T1, T2, T3]:
+    ...
+
+
+@overload
+def typed_tuple(t1: T1, t2: T2, t3: T3, t4: T4) -> Tuple[T1, T2, T3, T4]:
+    ...
+
+
+@overload
+def typed_tuple(t1: T1, t2: T2, t3: T3, t4: T4, t5: T5) -> Tuple[T1, T2, T3, T4, T5]:
+    ...
+
+
+@overload
+def typed_tuple(
+    t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6
+) -> Tuple[T1, T2, T3, T4, T5, T6]:
+    ...
+
+
+@overload
+def typed_tuple(
+    t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6, t7: T7
+) -> Tuple[T1, T2, T3, T4, T5, T6, T7]:
+    ...
+
+
+@overload
+def typed_tuple(
+    t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6, t7: T7, t8: T8
+) -> Tuple[T1, T2, T3, T4, T5, T6, T7, T8]:
+    ...
+
+
+@overload
+def typed_tuple(
+    t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6, t7: T7, t8: T8, t9: T9
+) -> Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9]:
+    ...
+
+
+@overload
+def typed_tuple(
+    t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6, t7: T7, t8: T8, t9: T9, t10: T10
+) -> Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]:
+    ...
+
+
+@overload
+def typed_tuple(
+    t1: T1,
+    t2: T2,
+    t3: T3,
+    t4: T4,
+    t5: T5,
+    t6: T6,
+    t7: T7,
+    t8: T8,
+    t9: T9,
+    t10: T10,
+    t11: T11,
+) -> Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]:
+    ...
+
+
+@overload
+def typed_tuple(
+    t1: T1,
+    t2: T2,
+    t3: T3,
+    t4: T4,
+    t5: T5,
+    t6: T6,
+    t7: T7,
+    t8: T8,
+    t9: T9,
+    t10: T10,
+    t11: T11,
+    t12: T12,
+) -> Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]:
+    ...
+
+
+def typed_tuple(
+    t1: T1,
+    t2: Union[T2, _NotSet] = _not_set,
+    t3: Union[T3, _NotSet] = _not_set,
+    t4: Union[T4, _NotSet] = _not_set,
+    t5: Union[T5, _NotSet] = _not_set,
+    t6: Union[T6, _NotSet] = _not_set,
+    t7: Union[T7, _NotSet] = _not_set,
+    t8: Union[T8, _NotSet] = _not_set,
+    t9: Union[T9, _NotSet] = _not_set,
+    t10: Union[T10, _NotSet] = _not_set,
+    t11: Union[T11, _NotSet] = _not_set,
+    t12: Union[T12, _NotSet] = _not_set,
+) -> Union[
+    Tuple[T1],
+    Tuple[T1, T2],
+    Tuple[T1, T2, T3],
+    Tuple[T1, T2, T3, T4],
+    Tuple[T1, T2, T3, T4, T5],
+    Tuple[T1, T2, T3, T4, T5, T6],
+    Tuple[T1, T2, T3, T4, T5, T6, T7],
+    Tuple[T1, T2, T3, T4, T5, T6, T7, T8],
+    Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9],
+    Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10],
+    Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11],
+    Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12],
+]:
+    if isinstance(t2, _NotSet):
+        return (t1,)
+
+    elif isinstance(t3, _NotSet):
+        return (
+            t1,
+            t2,
+        )
+
+    elif isinstance(t4, _NotSet):
+        return (
+            t1,
+            t2,
+            t3,
+        )
+
+    elif isinstance(t5, _NotSet):
+        return (
+            t1,
+            t2,
+            t3,
+            t4,
+        )
+
+    elif isinstance(t6, _NotSet):
+        return (
+            t1,
+            t2,
+            t3,
+            t4,
+            t5,
+        )
+
+    elif isinstance(t7, _NotSet):
+        return (
+            t1,
+            t2,
+            t3,
+            t4,
+            t5,
+            t6,
+        )
+
+    elif isinstance(t8, _NotSet):
+        return (
+            t1,
+            t2,
+            t3,
+            t4,
+            t5,
+            t6,
+            t7,
+        )
+
+    elif isinstance(t9, _NotSet):
+        return (
+            t1,
+            t2,
+            t3,
+            t4,
+            t5,
+            t6,
+            t7,
+            t8,
+        )
+
+    elif isinstance(t10, _NotSet):
+        return (
+            t1,
+            t2,
+            t3,
+            t4,
+            t5,
+            t6,
+            t7,
+            t8,
+            t9,
+        )
+
+    elif isinstance(t11, _NotSet):
+        return (
+            t1,
+            t2,
+            t3,
+            t4,
+            t5,
+            t6,
+            t7,
+            t8,
+            t9,
+            t10,
+        )
+
+    elif isinstance(t12, _NotSet):
+        return (
+            t1,
+            t2,
+            t3,
+            t4,
+            t5,
+            t6,
+            t7,
+            t8,
+            t9,
+            t10,
+            t11,
+        )
+
+    else:
+        return (
+            t1,
+            t2,
+            t3,
+            t4,
+            t5,
+            t6,
+            t7,
+            t8,
+            t9,
+            t10,
+            t11,
+            t12,
+        )
 
 
 class TupleValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
@@ -238,6 +494,7 @@ class TupleValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         field10: Optional[Validator[Any, T10, Serializable]] = None,
         field11: Optional[Validator[Any, T11, Serializable]] = None,
         field12: Optional[Validator[Any, T12, Serializable]] = None,
+        *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
@@ -272,7 +529,7 @@ class TupleValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
             result = validator(value)
             if isinstance(result, Err):
                 errs.append(result.val)
-            elif errs is None:
+            else:
                 args.append(result.val)
 
         if len(errs) > 0:

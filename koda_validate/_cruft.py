@@ -15,11 +15,6 @@ _Settable = Union[A, _NotSet]
 
 
 @overload
-def _typed_tuple(v1: A) -> Tuple[A]:
-    ...
-
-
-@overload
 def _typed_tuple(v1: A, v2: B) -> Tuple[A, B]:
     ...
 

@@ -7,24 +7,23 @@ from koda_validate import (
     IntValidator,
     Serializable,
     StringValidator,
-    Tuple2Validator,
-    Tuple3Validator,
+    TupleValidator,
 )
 
 
 def test_tuple2() -> None:
-    assert Tuple2Validator(StringValidator(), IntValidator())({}) == Err(
+    assert TupleValidator(StringValidator(), IntValidator())({}) == Err(
         {"__container__": ["expected list or tuple of length 2"]}
     )
 
-    assert Tuple2Validator(StringValidator(), IntValidator())([]) == Err(
+    assert TupleValidator(StringValidator(), IntValidator())([]) == Err(
         {"__container__": ["expected list or tuple of length 2"]}
     )
 
-    assert Tuple2Validator(StringValidator(), IntValidator())(["a", 1]) == Ok(("a", 1))
-    assert Tuple2Validator(StringValidator(), IntValidator())(("a", 1)) == Ok(("a", 1))
+    assert TupleValidator(StringValidator(), IntValidator())(["a", 1]) == Ok(("a", 1))
+    assert TupleValidator(StringValidator(), IntValidator())(("a", 1)) == Ok(("a", 1))
 
-    assert Tuple2Validator(StringValidator(), IntValidator())([1, "a"]) == Err(
+    assert TupleValidator(StringValidator(), IntValidator())([1, "a"]) == Err(
         {"0": ["expected a string"], "1": ["expected an integer"]}
     )
 
@@ -39,7 +38,7 @@ def test_tuple2() -> None:
         else:
             return Ok(ab)
 
-    a1_validator = Tuple2Validator(
+    a1_validator = TupleValidator(
         StringValidator(), IntValidator(), must_be_a_if_integer_is_1
     )
 
@@ -49,23 +48,23 @@ def test_tuple2() -> None:
 
 
 def test_tuple3() -> None:
-    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+    assert TupleValidator(StringValidator(), IntValidator(), BooleanValidator())(
         {}
     ) == Err({"__container__": ["expected list or tuple of length 3"]})
 
-    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+    assert TupleValidator(StringValidator(), IntValidator(), BooleanValidator())(
         []
     ) == Err({"__container__": ["expected list or tuple of length 3"]})
 
-    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+    assert TupleValidator(StringValidator(), IntValidator(), BooleanValidator())(
         ["a", 1, False]
     ) == Ok(("a", 1, False))
 
-    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+    assert TupleValidator(StringValidator(), IntValidator(), BooleanValidator())(
         ("a", 1, False)
     ) == Ok(("a", 1, False))
 
-    assert Tuple3Validator(StringValidator(), IntValidator(), BooleanValidator())(
+    assert TupleValidator(StringValidator(), IntValidator(), BooleanValidator())(
         [1, "a", 7.42]
     ) == Err(
         {
@@ -86,7 +85,7 @@ def test_tuple3() -> None:
         else:
             return Ok(abc)
 
-    a1_validator = Tuple3Validator(
+    a1_validator = TupleValidator(
         StringValidator(), IntValidator(), BooleanValidator(), must_be_a_if_1_and_true
     )
 
