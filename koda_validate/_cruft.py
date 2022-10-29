@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Tuple, Union, overload
 
 from koda_validate._generics import A, B, C
