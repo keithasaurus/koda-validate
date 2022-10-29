@@ -236,10 +236,6 @@ class DictValidator(
     Generic[Ret],
     Validator[Any, Ret, Serializable]
 ):
-    \"""
-    unfortunately, we have to have this be `Any` until
-    we're using variadic generics -- or we could generate lots of classes
-    \"""
     __slots__ = ('into', 'fields', 'validate_object')
     __match_args__ = ('into', 'fields', 'validate_object')
     
@@ -274,6 +270,10 @@ class DictValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
     ) -> None:
         self.into = into
+        \"""
+        unfortunately, we have to have this be `Any` until
+        we're using variadic generics -- or we could generate lots of classes
+        \"""
         self.fields: Tuple[KeyValidator[Any], ...] = tuple(
             f for f in (
                 {tuple_fields},\n

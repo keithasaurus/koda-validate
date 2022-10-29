@@ -2,7 +2,7 @@ import os.path
 from argparse import ArgumentParser
 from pathlib import Path
 
-from codegen import dict_validator, validate_and_map  # type: ignore
+from codegen import dict_validator, tuple_, validate_and_map  # type: ignore
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -24,4 +24,8 @@ if __name__ == "__main__":
 
     validate_and_map_code = validate_and_map.generate_code(args.num_keys)
     with open(target_dir / "validate_and_map.py", "w") as f:
+        f.write(validate_and_map_code)
+
+    validate_and_map_code = tuple_.generate_code(args.num_keys)
+    with open(target_dir / "tuple.py", "w") as f:
         f.write(validate_and_map_code)

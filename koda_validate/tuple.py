@@ -1,113 +1,285 @@
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Generic, List, Optional, Tuple, TypeVar, Union, overload
 
-from koda import Err, Result
+from koda import Err, Ok, Result
 
-from koda_validate._cruft import _typed_tuple
-from koda_validate._generics import A, B, C
 from koda_validate.typedefs import Serializable, Validator
-from koda_validate.utils import OBJECT_ERRORS_FIELD
-from koda_validate.validate_and_map import validate_and_map
+
+T1 = TypeVar("T1")
+T2 = TypeVar("T2")
+T3 = TypeVar("T3")
+T4 = TypeVar("T4")
+T5 = TypeVar("T5")
+T6 = TypeVar("T6")
+T7 = TypeVar("T7")
+T8 = TypeVar("T8")
+T9 = TypeVar("T9")
+T10 = TypeVar("T10")
+T11 = TypeVar("T11")
+T12 = TypeVar("T12")
+Ret = TypeVar("Ret")
+FailT = TypeVar("FailT")
 
 
-def _tuple_to_dict_errors(errs: Tuple[Serializable, ...]) -> Dict[str, Serializable]:
-    return {str(i): err for i, err in enumerate(errs)}
+class TupleValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
+    __slots__ = ("into", "fields", "validate_object")
+    __match_args__ = ("into", "fields", "validate_object")
 
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1], Ret],
+        field1: Validator[Any, T1, Serializable],
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
 
-# todo: auto-generate
-class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
-    __slots__ = ("slot1_validator", "slot2_validator", "tuple_validator")
-    __match_args__ = ("slot1_validator", "slot2_validator", "tuple_validator")
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
 
-    required_length: int = 2
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        field4: Optional[Validator[Any, T4, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        field4: Optional[Validator[Any, T4, Serializable]] = None,
+        field5: Optional[Validator[Any, T5, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5, T6], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        field4: Optional[Validator[Any, T4, Serializable]] = None,
+        field5: Optional[Validator[Any, T5, Serializable]] = None,
+        field6: Optional[Validator[Any, T6, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        field4: Optional[Validator[Any, T4, Serializable]] = None,
+        field5: Optional[Validator[Any, T5, Serializable]] = None,
+        field6: Optional[Validator[Any, T6, Serializable]] = None,
+        field7: Optional[Validator[Any, T7, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        field4: Optional[Validator[Any, T4, Serializable]] = None,
+        field5: Optional[Validator[Any, T5, Serializable]] = None,
+        field6: Optional[Validator[Any, T6, Serializable]] = None,
+        field7: Optional[Validator[Any, T7, Serializable]] = None,
+        field8: Optional[Validator[Any, T8, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        field4: Optional[Validator[Any, T4, Serializable]] = None,
+        field5: Optional[Validator[Any, T5, Serializable]] = None,
+        field6: Optional[Validator[Any, T6, Serializable]] = None,
+        field7: Optional[Validator[Any, T7, Serializable]] = None,
+        field8: Optional[Validator[Any, T8, Serializable]] = None,
+        field9: Optional[Validator[Any, T9, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        field4: Optional[Validator[Any, T4, Serializable]] = None,
+        field5: Optional[Validator[Any, T5, Serializable]] = None,
+        field6: Optional[Validator[Any, T6, Serializable]] = None,
+        field7: Optional[Validator[Any, T7, Serializable]] = None,
+        field8: Optional[Validator[Any, T8, Serializable]] = None,
+        field9: Optional[Validator[Any, T9, Serializable]] = None,
+        field10: Optional[Validator[Any, T10, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        field4: Optional[Validator[Any, T4, Serializable]] = None,
+        field5: Optional[Validator[Any, T5, Serializable]] = None,
+        field6: Optional[Validator[Any, T6, Serializable]] = None,
+        field7: Optional[Validator[Any, T7, Serializable]] = None,
+        field8: Optional[Validator[Any, T8, Serializable]] = None,
+        field9: Optional[Validator[Any, T9, Serializable]] = None,
+        field10: Optional[Validator[Any, T10, Serializable]] = None,
+        field11: Optional[Validator[Any, T11, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        field4: Optional[Validator[Any, T4, Serializable]] = None,
+        field5: Optional[Validator[Any, T5, Serializable]] = None,
+        field6: Optional[Validator[Any, T6, Serializable]] = None,
+        field7: Optional[Validator[Any, T7, Serializable]] = None,
+        field8: Optional[Validator[Any, T8, Serializable]] = None,
+        field9: Optional[Validator[Any, T9, Serializable]] = None,
+        field10: Optional[Validator[Any, T10, Serializable]] = None,
+        field11: Optional[Validator[Any, T11, Serializable]] = None,
+        field12: Optional[Validator[Any, T12, Serializable]] = None,
+        *,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
 
     def __init__(
         self,
-        slot1_validator: Callable[[Any], Result[A, Serializable]],
-        slot2_validator: Callable[[Any], Result[B, Serializable]],
-        tuple_validator: Optional[
-            Callable[[Tuple[A, B]], Result[Tuple[A, B], Serializable]]
-        ] = None,
+        into: Union[
+            Callable[[T1], Ret],
+            Callable[[T1, T2], Ret],
+            Callable[[T1, T2, T3], Ret],
+            Callable[[T1, T2, T3, T4], Ret],
+            Callable[[T1, T2, T3, T4, T5], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+        ],
+        field1: Validator[Any, T1, Serializable],
+        field2: Optional[Validator[Any, T2, Serializable]] = None,
+        field3: Optional[Validator[Any, T3, Serializable]] = None,
+        field4: Optional[Validator[Any, T4, Serializable]] = None,
+        field5: Optional[Validator[Any, T5, Serializable]] = None,
+        field6: Optional[Validator[Any, T6, Serializable]] = None,
+        field7: Optional[Validator[Any, T7, Serializable]] = None,
+        field8: Optional[Validator[Any, T8, Serializable]] = None,
+        field9: Optional[Validator[Any, T9, Serializable]] = None,
+        field10: Optional[Validator[Any, T10, Serializable]] = None,
+        field11: Optional[Validator[Any, T11, Serializable]] = None,
+        field12: Optional[Validator[Any, T12, Serializable]] = None,
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.slot1_validator = slot1_validator
-        self.slot2_validator = slot2_validator
-        self.tuple_validator = tuple_validator
-
-    def __call__(self, data: Any) -> Result[Tuple[A, B], Serializable]:
-        if isinstance(data, (list, tuple)) and len(data) == self.required_length:
-            result: Result[Tuple[A, B], Tuple[Serializable, ...]] = validate_and_map(
-                _typed_tuple,
-                self.slot1_validator(data[0]),
-                self.slot2_validator(data[1]),
+        self.into = into
+        self.fields: Tuple[Validator[Any, Any, Serializable], ...] = tuple(
+            f
+            for f in (
+                field1,
+                field2,
+                field3,
+                field4,
+                field5,
+                field6,
+                field7,
+                field8,
+                field9,
+                field10,
+                field11,
+                field12,
             )
+            if f is not None
+        )
+        self.validate_object = validate_object
 
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
+        if not isinstance(data, (tuple, list)) or len(data) != len(self.fields):
+            return Err([f"expected a tuple or list of length {len(self.fields)}"])
+
+        args = []
+        errs: List[Serializable] = []
+        # we know that self.fields and data are tuples / lists of the same length
+        for value, validator in zip(data, self.fields):
+            result = validator(value)
             if isinstance(result, Err):
-                return result.map_err(_tuple_to_dict_errors)
-            else:
-                if self.tuple_validator is None:
-                    return result
-                else:
-                    return result.flat_map(self.tuple_validator)
+                errs.append(result.val)
+            elif errs is None:
+                args.append(result.val)
+
+        if len(errs) > 0:
+            return Err(errs)
         else:
-            return Err(
-                {
-                    OBJECT_ERRORS_FIELD: [
-                        f"expected list or tuple of length {self.required_length}"
-                    ]
-                }
-            )
-
-
-class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
-    __slots__ = (
-        "slot1_validator",
-        "slot2_validator",
-        "slot3_validator",
-        "tuple_validator",
-    )
-    __match_args__ = (
-        "slot1_validator",
-        "slot2_validator",
-        "slot3_validator",
-        "tuple_validator",
-    )
-
-    required_length: int = 3
-
-    def __init__(
-        self,
-        slot1_validator: Callable[[Any], Result[A, Serializable]],
-        slot2_validator: Callable[[Any], Result[B, Serializable]],
-        slot3_validator: Callable[[Any], Result[C, Serializable]],
-        tuple_validator: Optional[
-            Callable[[Tuple[A, B, C]], Result[Tuple[A, B, C], Serializable]]
-        ] = None,
-    ) -> None:
-        self.slot1_validator = slot1_validator
-        self.slot2_validator = slot2_validator
-        self.slot3_validator = slot3_validator
-        self.tuple_validator = tuple_validator
-
-    def __call__(self, data: Any) -> Result[Tuple[A, B, C], Serializable]:
-        if isinstance(data, (list, tuple)) and len(data) == self.required_length:
-            result: Result[Tuple[A, B, C], Tuple[Serializable, ...]] = validate_and_map(
-                _typed_tuple,
-                self.slot1_validator(data[0]),
-                self.slot2_validator(data[1]),
-                self.slot3_validator(data[2]),
-            )
-
-            if isinstance(result, Err):
-                return result.map_err(_tuple_to_dict_errors)
+            obj = self.into(*args)
+            if self.validate_object is None:
+                return Ok(obj)
             else:
-                if self.tuple_validator is None:
-                    return result
-                else:
-                    return result.flat_map(self.tuple_validator)
-        else:
-            return Err(
-                {
-                    OBJECT_ERRORS_FIELD: [
-                        f"expected list or tuple of length {self.required_length}"
-                    ]
-                }
-            )
+                return self.validate_object(obj)
