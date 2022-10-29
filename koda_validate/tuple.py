@@ -1,9 +1,21 @@
-from typing import Any, Callable, Generic, List, Optional, Tuple, TypeVar, Union, overload
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from koda import Err, Ok, Result
 
 from koda_validate._generics import A
 from koda_validate.typedefs import Serializable, Validator
+from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
 class _NotSet:
@@ -31,62 +43,62 @@ FailT = TypeVar("FailT")
 
 @overload
 def typed_tuple(t1: T1) -> Tuple[T1]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
 def typed_tuple(t1: T1, t2: T2) -> Tuple[T1, T2]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
 def typed_tuple(t1: T1, t2: T2, t3: T3) -> Tuple[T1, T2, T3]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
 def typed_tuple(t1: T1, t2: T2, t3: T3, t4: T4) -> Tuple[T1, T2, T3, T4]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
 def typed_tuple(t1: T1, t2: T2, t3: T3, t4: T4, t5: T5) -> Tuple[T1, T2, T3, T4, T5]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
 def typed_tuple(
     t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6
 ) -> Tuple[T1, T2, T3, T4, T5, T6]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
 def typed_tuple(
     t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6, t7: T7
 ) -> Tuple[T1, T2, T3, T4, T5, T6, T7]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
 def typed_tuple(
     t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6, t7: T7, t8: T8
 ) -> Tuple[T1, T2, T3, T4, T5, T6, T7, T8]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
 def typed_tuple(
     t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6, t7: T7, t8: T8, t9: T9
 ) -> Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
 def typed_tuple(
     t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6, t7: T7, t8: T8, t9: T9, t10: T10
 ) -> Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -103,7 +115,7 @@ def typed_tuple(
     t10: T10,
     t11: T11,
 ) -> Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -121,7 +133,7 @@ def typed_tuple(
     t11: T11,
     t12: T12,
 ) -> Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]:
-    ...
+    ...  # pragma: no cover
 
 
 def typed_tuple(
@@ -151,6 +163,7 @@ def typed_tuple(
     Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11],
     Tuple[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12],
 ]:
+
     if isinstance(t2, _NotSet):
         return (t1,)
 
@@ -520,15 +533,21 @@ class TupleValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         if not isinstance(data, (tuple, list)) or len(data) != len(self.fields):
-            return Err([f"expected a tuple or list of length {len(self.fields)}"])
+            return Err(
+                {
+                    OBJECT_ERRORS_FIELD: [
+                        f"expected list or tuple of length {len(self.fields)}"
+                    ]
+                }
+            )
 
         args = []
-        errs: List[Serializable] = []
+        errs: Dict[str, Serializable] = {}
         # we know that self.fields and data are tuples / lists of the same length
-        for value, validator in zip(data, self.fields):
+        for i, (value, validator) in enumerate(zip(data, self.fields)):
             result = validator(value)
             if isinstance(result, Err):
-                errs.append(result.val)
+                errs[str(i)] = result.val
             else:
                 args.append(result.val)
 

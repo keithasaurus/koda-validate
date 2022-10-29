@@ -7,6 +7,7 @@ def generate_code(num_keys: int) -> str:
     ret = """from typing import (
     Any,
     Callable,
+    Dict,
     Generic,
     List,
     Optional,
@@ -20,6 +21,7 @@ from koda import Err, Ok, Result
 
 from koda_validate._generics import A
 from koda_validate.typedefs import Serializable, Validator
+from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
 
@@ -60,7 +62,7 @@ _Settable = Union[A, _NotSet]
         ret += f"""
 @overload
 def typed_tuple({typed_tuple_args[i]}) -> Tuple[{typed_tuple_ret[i]}]:
-    ...
+    ...  # pragma: no cover
     
 """
 
@@ -75,7 +77,6 @@ def typed_tuple({typed_tuple_args[i]}) -> Tuple[{typed_tuple_ret[i]}]:
         ]
     )
     tt_return_fields: str = "\n    ".join([f"Tuple[{t}]," for t in typed_tuple_ret])
-    tt_vars = ", ".join([t.lower() for t in type_vars])
     ret += f"""
 def typed_tuple(
 {tt_fields}
@@ -83,7 +84,6 @@ def typed_tuple(
 {tt_return_fields}
 ]:
 """
-    print(type_vars_at_indices)
     for i, type_vars_ in enumerate(type_vars_at_indices):
         return_line = f"""return {", ".join([t.lower() for t in type_vars_])},"""
         if i == 0:
@@ -151,15 +151,15 @@ class TupleValidator(
     ret += """
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         if not isinstance(data, (tuple, list)) or len(data) != len(self.fields):
-            return Err([f'expected a tuple or list of length {len(self.fields)}'])
+            return Err({OBJECT_ERRORS_FIELD: [f'expected list or tuple of length {len(self.fields)}']})
 
         args = []
-        errs: List[Serializable] = []
+        errs: Dict[str, Serializable] = {}
         # we know that self.fields and data are tuples / lists of the same length
-        for value, validator in zip(data, self.fields):
+        for i, (value, validator) in enumerate(zip(data, self.fields)):
             result = validator(value)
             if isinstance(result, Err):
-                errs.append(result.val)
+                errs[str(i)] = result.val
             else:
                 args.append(result.val)
 
@@ -171,6 +171,7 @@ class TupleValidator(
                 return Ok(obj)
             else:
                 return self.validate_object(obj)
+    
     """
 
     return ret

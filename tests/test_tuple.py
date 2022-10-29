@@ -9,23 +9,28 @@ from koda_validate import (
     StringValidator,
     TupleValidator,
 )
+from koda_validate.tuple import typed_tuple
 
 
 def test_tuple2() -> None:
-    assert TupleValidator(StringValidator(), IntValidator())({}) == Err(
+    assert TupleValidator(typed_tuple, StringValidator(), IntValidator())({}) == Err(
         {"__container__": ["expected list or tuple of length 2"]}
     )
 
-    assert TupleValidator(StringValidator(), IntValidator())([]) == Err(
+    assert TupleValidator(typed_tuple, StringValidator(), IntValidator())([]) == Err(
         {"__container__": ["expected list or tuple of length 2"]}
     )
 
-    assert TupleValidator(StringValidator(), IntValidator())(["a", 1]) == Ok(("a", 1))
-    assert TupleValidator(StringValidator(), IntValidator())(("a", 1)) == Ok(("a", 1))
-
-    assert TupleValidator(StringValidator(), IntValidator())([1, "a"]) == Err(
-        {"0": ["expected a string"], "1": ["expected an integer"]}
+    assert TupleValidator(typed_tuple, StringValidator(), IntValidator())(["a", 1]) == Ok(
+        ("a", 1)
     )
+    assert TupleValidator(typed_tuple, StringValidator(), IntValidator())(("a", 1)) == Ok(
+        ("a", 1)
+    )
+
+    assert TupleValidator(typed_tuple, StringValidator(), IntValidator())(
+        [1, "a"]
+    ) == Err({"0": ["expected a string"], "1": ["expected an integer"]})
 
     def must_be_a_if_integer_is_1(
         ab: Tuple[str, int]
@@ -39,7 +44,10 @@ def test_tuple2() -> None:
             return Ok(ab)
 
     a1_validator = TupleValidator(
-        StringValidator(), IntValidator(), must_be_a_if_integer_is_1
+        typed_tuple,
+        StringValidator(),
+        IntValidator(),
+        validate_object=must_be_a_if_integer_is_1,
     )
 
     assert a1_validator(["a", 1]) == Ok(("a", 1))
@@ -48,25 +56,25 @@ def test_tuple2() -> None:
 
 
 def test_tuple3() -> None:
-    assert TupleValidator(StringValidator(), IntValidator(), BooleanValidator())(
-        {}
-    ) == Err({"__container__": ["expected list or tuple of length 3"]})
+    assert TupleValidator(
+        typed_tuple, StringValidator(), IntValidator(), BooleanValidator()
+    )({}) == Err({"__container__": ["expected list or tuple of length 3"]})
 
-    assert TupleValidator(StringValidator(), IntValidator(), BooleanValidator())(
-        []
-    ) == Err({"__container__": ["expected list or tuple of length 3"]})
+    assert TupleValidator(
+        typed_tuple, StringValidator(), IntValidator(), BooleanValidator()
+    )([]) == Err({"__container__": ["expected list or tuple of length 3"]})
 
-    assert TupleValidator(StringValidator(), IntValidator(), BooleanValidator())(
-        ["a", 1, False]
-    ) == Ok(("a", 1, False))
+    assert TupleValidator(
+        typed_tuple, StringValidator(), IntValidator(), BooleanValidator()
+    )(["a", 1, False]) == Ok(("a", 1, False))
 
-    assert TupleValidator(StringValidator(), IntValidator(), BooleanValidator())(
-        ("a", 1, False)
-    ) == Ok(("a", 1, False))
+    assert TupleValidator(
+        typed_tuple, StringValidator(), IntValidator(), BooleanValidator()
+    )(("a", 1, False)) == Ok(("a", 1, False))
 
-    assert TupleValidator(StringValidator(), IntValidator(), BooleanValidator())(
-        [1, "a", 7.42]
-    ) == Err(
+    assert TupleValidator(
+        typed_tuple, StringValidator(), IntValidator(), BooleanValidator()
+    )([1, "a", 7.42]) == Err(
         {
             "0": ["expected a string"],
             "1": ["expected an integer"],
@@ -86,7 +94,11 @@ def test_tuple3() -> None:
             return Ok(abc)
 
     a1_validator = TupleValidator(
-        StringValidator(), IntValidator(), BooleanValidator(), must_be_a_if_1_and_true
+        typed_tuple,
+        StringValidator(),
+        IntValidator(),
+        BooleanValidator(),
+        validate_object=must_be_a_if_1_and_true,
     )
 
     assert a1_validator(["a", 1, True]) == Ok(("a", 1, True))
