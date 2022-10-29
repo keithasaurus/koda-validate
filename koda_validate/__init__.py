@@ -50,7 +50,8 @@ __all__ = (
     "DateValidator",
     "DatetimeValidator",
     # tuple.py
-    "TupleValidator",
+    "Tuple2Validator",
+    "Tuple3Validator",
     # typedefs.py
     "Validator",
     "Predicate",
@@ -94,5 +95,5 @@ from koda_validate.string import (
     upper_case,
 )
 from koda_validate.time import DatetimeValidator, DateValidator
-from koda_validate.tuple import TupleValidator
+from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
