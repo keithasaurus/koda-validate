@@ -87,7 +87,7 @@ def test_match_args() -> None:
         else:
             return Ok(p)
 
-    dv_validator: DictValidator[Person] = DictValidator(
+    dv_validator: DictValidator[str, Person] = DictValidator(
         (into_ := Person),
         (str_1 := key("name", StringValidator())),
         (int_1 := key("age", IntValidator())),
@@ -109,10 +109,10 @@ def test_match_args() -> None:
         case _:
             assert False
 
-    def lazy_dv_validator() -> DictValidator[Person]:
+    def lazy_dv_validator() -> DictValidator[str, Person]:
         return dv_validator_2
 
-    dv_validator_2: DictValidator[Person] = DictValidator(
+    dv_validator_2: DictValidator[str, Person] = DictValidator(
         Person,
         key("name", StringValidator()),
         key("age", IntValidator()),

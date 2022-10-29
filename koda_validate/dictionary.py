@@ -11,6 +11,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    cast,
     overload,
 )
 
@@ -174,7 +175,9 @@ class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
 is_dict_validator = IsDictValidator()
 
 
-def _dict_without_extra_keys(keys: Set[str], data: Any) -> Optional[Err[Serializable]]:
+def _dict_without_extra_keys(
+    keys: Set[DictKeyT], data: Any
+) -> Optional[Err[Serializable]]:
     """
     We're returning Optional here because it's faster than Ok/Err,
     and this is just a private function
@@ -183,10 +186,11 @@ def _dict_without_extra_keys(keys: Set[str], data: Any) -> Optional[Err[Serializ
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in keys:
+                sorted_keys = [str(k) for k in sorted(keys)]
                 return Err(
                     {
                         OBJECT_ERRORS_FIELD: [
-                            f"Received unknown keys. Only expected {sorted(keys)}"
+                            f"Received unknown keys. Only expected {sorted_keys}"
                         ]
                     }
                 )
@@ -474,7 +478,8 @@ class DictValidator(Generic[DictKeyT, Ret], Validator[Any, Ret, Serializable]):
         if (
             keys_result := _dict_without_extra_keys({k for k, _ in self.fields}, data)
         ) is not None:
-            return keys_result
+            # we know this is what it is...
+            return cast(Err[Serializable], keys_result)
 
         args = []
         errs: Optional[List[Tuple[str, Serializable]]] = None
