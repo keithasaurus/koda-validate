@@ -28,7 +28,10 @@ from koda_validate._generics import A
 from koda_validate.typedefs import Predicate, Serializable, Validator
 
 
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
+DictKeyT = TypeVar('DictKeyT', str, int)
+
+
+KeyValidator = Tuple[DictKeyT, Callable[[Maybe[Any]], Result[A, Serializable]]]
 
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
@@ -79,15 +82,15 @@ class MaybeField(Generic[A]):
 
 
 def key(
-    prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[A, Serializable]]]:
-    return prop_, RequiredField(validator)
+        key_: DictKeyT, validator: Validator[Any, A, Serializable]
+) -> Tuple[DictKeyT, Callable[[Any], Result[A, Serializable]]]:
+    return key_, RequiredField(validator)
 
 
 def maybe_key(
-    prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[Maybe[A], Serializable]]]:
-    return prop_, MaybeField(validator)
+        key_: DictKeyT, validator: Validator[Any, A, Serializable]
+) -> Tuple[DictKeyT, Callable[[Any], Result[Maybe[A], Serializable]]]:
+    return key_, MaybeField(validator)
 
 """
     type_vars = get_type_vars(num_keys)
@@ -225,15 +228,15 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         dict_validator_into_signatures.append(f"Callable[[{generic_vals}], Ret]")
 
         dict_validator_fields.append(
-            f"field{i+1}: KeyValidator[{type_vars[i]}]"
+            f"field{i+1}: KeyValidator[DictKeyT, {type_vars[i]}]"
             if i == 0
-            else f"field{i+1}: Optional[KeyValidator[{type_vars[i]}]] = None"
+            else f"field{i+1}: Optional[KeyValidator[DictKeyT, {type_vars[i]}]] = None"
         )
 
     ret += """
 
 class DictValidator(
-    Generic[Ret],
+    Generic[DictKeyT, Ret],
     Validator[Any, Ret, Serializable]
 ):
     __slots__ = ('into', 'fields', 'validate_object')
@@ -266,7 +269,7 @@ class DictValidator(
             {", ".join(dict_validator_into_signatures)}
         ],
     {dv_fields_2},
-        *non_typed_fields: KeyValidator[Any],
+        *non_typed_fields: KeyValidator[DictKeyT, Any],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
     ) -> None:
         self.into = into
@@ -274,7 +277,7 @@ class DictValidator(
         unfortunately, we have to have this be `Any` until
         we're using variadic generics -- or we could generate lots of classes
         \"""
-        self.fields: Tuple[KeyValidator[Any], ...] = tuple(
+        self.fields: Tuple[KeyValidator[DictKeyT, Any], ...] = tuple(
             f for f in (
                 {tuple_fields},\n
             ) + non_typed_fields if f is not None)
@@ -298,10 +301,11 @@ class DictValidator(
 
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
+                err = (str(key_), result.val)
                 if errs is None:
-                    errs = [(key_, result.val)]
+                    errs = [err]
                 else:
-                    errs.append((key_, result.val))
+                    errs.append(err)
             elif errs is None:
                 args.append(result.val)
 

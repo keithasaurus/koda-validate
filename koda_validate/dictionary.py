@@ -19,7 +19,10 @@ from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 from koda_validate._generics import A
 from koda_validate.typedefs import Predicate, Serializable, Validator
 
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
+DictKeyT = TypeVar("DictKeyT", str, int)
+
+
+KeyValidator = Tuple[DictKeyT, Callable[[Maybe[Any]], Result[A, Serializable]]]
 
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
@@ -70,15 +73,15 @@ class MaybeField(Generic[A]):
 
 
 def key(
-    prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[A, Serializable]]]:
-    return prop_, RequiredField(validator)
+    key_: DictKeyT, validator: Validator[Any, A, Serializable]
+) -> Tuple[DictKeyT, Callable[[Any], Result[A, Serializable]]]:
+    return key_, RequiredField(validator)
 
 
 def maybe_key(
-    prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[Maybe[A], Serializable]]]:
-    return prop_, MaybeField(validator)
+    key_: DictKeyT, validator: Validator[Any, A, Serializable]
+) -> Tuple[DictKeyT, Callable[[Any], Result[Maybe[A], Serializable]]]:
+    return key_, MaybeField(validator)
 
 
 T1 = TypeVar("T1")
@@ -220,7 +223,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
+class DictValidator(Generic[DictKeyT, Ret], Validator[Any, Ret, Serializable]):
     __slots__ = ("into", "fields", "validate_object")
     __match_args__ = ("into", "fields", "validate_object")
 
@@ -228,7 +231,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1], Ret],
-        field1: KeyValidator[T1],
+        field1: KeyValidator[DictKeyT, T1],
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -238,8 +241,8 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -249,9 +252,9 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2, T3], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -261,10 +264,10 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
+        field4: Optional[KeyValidator[DictKeyT, T4]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -274,11 +277,11 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
-        field5: Optional[KeyValidator[T5]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
+        field4: Optional[KeyValidator[DictKeyT, T4]] = None,
+        field5: Optional[KeyValidator[DictKeyT, T5]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -288,12 +291,12 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
-        field5: Optional[KeyValidator[T5]] = None,
-        field6: Optional[KeyValidator[T6]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
+        field4: Optional[KeyValidator[DictKeyT, T4]] = None,
+        field5: Optional[KeyValidator[DictKeyT, T5]] = None,
+        field6: Optional[KeyValidator[DictKeyT, T6]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -303,13 +306,13 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
-        field5: Optional[KeyValidator[T5]] = None,
-        field6: Optional[KeyValidator[T6]] = None,
-        field7: Optional[KeyValidator[T7]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
+        field4: Optional[KeyValidator[DictKeyT, T4]] = None,
+        field5: Optional[KeyValidator[DictKeyT, T5]] = None,
+        field6: Optional[KeyValidator[DictKeyT, T6]] = None,
+        field7: Optional[KeyValidator[DictKeyT, T7]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -319,14 +322,14 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
-        field5: Optional[KeyValidator[T5]] = None,
-        field6: Optional[KeyValidator[T6]] = None,
-        field7: Optional[KeyValidator[T7]] = None,
-        field8: Optional[KeyValidator[T8]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
+        field4: Optional[KeyValidator[DictKeyT, T4]] = None,
+        field5: Optional[KeyValidator[DictKeyT, T5]] = None,
+        field6: Optional[KeyValidator[DictKeyT, T6]] = None,
+        field7: Optional[KeyValidator[DictKeyT, T7]] = None,
+        field8: Optional[KeyValidator[DictKeyT, T8]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -336,15 +339,15 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
-        field5: Optional[KeyValidator[T5]] = None,
-        field6: Optional[KeyValidator[T6]] = None,
-        field7: Optional[KeyValidator[T7]] = None,
-        field8: Optional[KeyValidator[T8]] = None,
-        field9: Optional[KeyValidator[T9]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
+        field4: Optional[KeyValidator[DictKeyT, T4]] = None,
+        field5: Optional[KeyValidator[DictKeyT, T5]] = None,
+        field6: Optional[KeyValidator[DictKeyT, T6]] = None,
+        field7: Optional[KeyValidator[DictKeyT, T7]] = None,
+        field8: Optional[KeyValidator[DictKeyT, T8]] = None,
+        field9: Optional[KeyValidator[DictKeyT, T9]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -354,16 +357,16 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
-        field5: Optional[KeyValidator[T5]] = None,
-        field6: Optional[KeyValidator[T6]] = None,
-        field7: Optional[KeyValidator[T7]] = None,
-        field8: Optional[KeyValidator[T8]] = None,
-        field9: Optional[KeyValidator[T9]] = None,
-        field10: Optional[KeyValidator[T10]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
+        field4: Optional[KeyValidator[DictKeyT, T4]] = None,
+        field5: Optional[KeyValidator[DictKeyT, T5]] = None,
+        field6: Optional[KeyValidator[DictKeyT, T6]] = None,
+        field7: Optional[KeyValidator[DictKeyT, T7]] = None,
+        field8: Optional[KeyValidator[DictKeyT, T8]] = None,
+        field9: Optional[KeyValidator[DictKeyT, T9]] = None,
+        field10: Optional[KeyValidator[DictKeyT, T10]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -373,17 +376,17 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
-        field5: Optional[KeyValidator[T5]] = None,
-        field6: Optional[KeyValidator[T6]] = None,
-        field7: Optional[KeyValidator[T7]] = None,
-        field8: Optional[KeyValidator[T8]] = None,
-        field9: Optional[KeyValidator[T9]] = None,
-        field10: Optional[KeyValidator[T10]] = None,
-        field11: Optional[KeyValidator[T11]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
+        field4: Optional[KeyValidator[DictKeyT, T4]] = None,
+        field5: Optional[KeyValidator[DictKeyT, T5]] = None,
+        field6: Optional[KeyValidator[DictKeyT, T6]] = None,
+        field7: Optional[KeyValidator[DictKeyT, T7]] = None,
+        field8: Optional[KeyValidator[DictKeyT, T8]] = None,
+        field9: Optional[KeyValidator[DictKeyT, T9]] = None,
+        field10: Optional[KeyValidator[DictKeyT, T10]] = None,
+        field11: Optional[KeyValidator[DictKeyT, T11]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -393,18 +396,18 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
-        field5: Optional[KeyValidator[T5]] = None,
-        field6: Optional[KeyValidator[T6]] = None,
-        field7: Optional[KeyValidator[T7]] = None,
-        field8: Optional[KeyValidator[T8]] = None,
-        field9: Optional[KeyValidator[T9]] = None,
-        field10: Optional[KeyValidator[T10]] = None,
-        field11: Optional[KeyValidator[T11]] = None,
-        field12: Optional[KeyValidator[T12]] = None,
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
+        field4: Optional[KeyValidator[DictKeyT, T4]] = None,
+        field5: Optional[KeyValidator[DictKeyT, T5]] = None,
+        field6: Optional[KeyValidator[DictKeyT, T6]] = None,
+        field7: Optional[KeyValidator[DictKeyT, T7]] = None,
+        field8: Optional[KeyValidator[DictKeyT, T8]] = None,
+        field9: Optional[KeyValidator[DictKeyT, T9]] = None,
+        field10: Optional[KeyValidator[DictKeyT, T10]] = None,
+        field11: Optional[KeyValidator[DictKeyT, T11]] = None,
+        field12: Optional[KeyValidator[DictKeyT, T12]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
@@ -426,19 +429,19 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
             Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
             Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
         ],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
-        field5: Optional[KeyValidator[T5]] = None,
-        field6: Optional[KeyValidator[T6]] = None,
-        field7: Optional[KeyValidator[T7]] = None,
-        field8: Optional[KeyValidator[T8]] = None,
-        field9: Optional[KeyValidator[T9]] = None,
-        field10: Optional[KeyValidator[T10]] = None,
-        field11: Optional[KeyValidator[T11]] = None,
-        field12: Optional[KeyValidator[T12]] = None,
-        *non_typed_fields: KeyValidator[Any],
+        field1: KeyValidator[DictKeyT, T1],
+        field2: Optional[KeyValidator[DictKeyT, T2]] = None,
+        field3: Optional[KeyValidator[DictKeyT, T3]] = None,
+        field4: Optional[KeyValidator[DictKeyT, T4]] = None,
+        field5: Optional[KeyValidator[DictKeyT, T5]] = None,
+        field6: Optional[KeyValidator[DictKeyT, T6]] = None,
+        field7: Optional[KeyValidator[DictKeyT, T7]] = None,
+        field8: Optional[KeyValidator[DictKeyT, T8]] = None,
+        field9: Optional[KeyValidator[DictKeyT, T9]] = None,
+        field10: Optional[KeyValidator[DictKeyT, T10]] = None,
+        field11: Optional[KeyValidator[DictKeyT, T11]] = None,
+        field12: Optional[KeyValidator[DictKeyT, T12]] = None,
+        *non_typed_fields: KeyValidator[DictKeyT, Any],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
@@ -446,7 +449,7 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         unfortunately, we have to have this be `Any` until
         we're using variadic generics -- or we could generate lots of classes
         """
-        self.fields: Tuple[KeyValidator[Any], ...] = tuple(
+        self.fields: Tuple[KeyValidator[DictKeyT, Any], ...] = tuple(
             f
             for f in (
                 field1,
@@ -484,10 +487,11 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
 
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
+                err = (str(key_), result.val)
                 if errs is None:
-                    errs = [(key_, result.val)]
+                    errs = [err]
                 else:
-                    errs.append((key_, result.val))
+                    errs.append(err)
             elif errs is None:
                 args.append(result.val)
 
