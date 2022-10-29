@@ -59,7 +59,12 @@ class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
 
 class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
     required_length: int = 3
-    __match_args__ = ("slot1_validator", "slot2_validator", "tuple_validator")
+    __match_args__ = (
+        "slot1_validator",
+        "slot2_validator",
+        "slot3_validator",
+        "tuple_validator",
+    )
     __slots__ = __match_args__
 
     def __init__(
@@ -94,5 +99,9 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
                     return result.flat_map(self.tuple_validator)
         else:
             return Err(
-                {OBJECT_ERRORS_FIELD: [f"list or tuple of length {self.required_length}"]}
+                {
+                    OBJECT_ERRORS_FIELD: [
+                        f"expected list or tuple of length {self.required_length}"
+                    ]
+                }
             )

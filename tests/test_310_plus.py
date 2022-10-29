@@ -250,5 +250,5 @@ def test_match_args() -> None:
             assert vldtr_1 is s_9
             assert vldtr_2 is i_9
             assert vldtr_3 is f_9
-        case x:
+        case _:
             assert False
