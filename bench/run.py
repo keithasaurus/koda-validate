@@ -8,6 +8,7 @@ from bench import (
     one_key_invalid_types,
     two_keys_invalid_types,
     two_keys_valid,
+    validate_string,
 )
 from koda_validate._generics import A
 
@@ -39,6 +40,9 @@ benches = {
         nested_object_list.get_valid_data,
         nested_object_list.run_kv,
         nested_object_list.run_pyd,
+    ),
+    "string_valid": BenchCompare(
+        validate_string.get_str, validate_string.run_kv, validate_string.run_pyd
     ),
 }
 
