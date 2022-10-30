@@ -35,7 +35,7 @@ assert city_validator({}) == Err({"name": ["key missing"]})
 # Extra keys are also errors
 assert city_validator(
     {"region": "California", "population": 510, "country": "USA"}
-) == Err({"__container__": ['Received unknown keys. Only expected "name", "region".']})
+) == Err({"__container__": ["Received unknown keys. Only expected 'name', 'region'."]})
 
 
 @dataclass
