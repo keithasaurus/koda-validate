@@ -7,8 +7,7 @@ def generate_code(num_keys: int) -> str:
 
     dict_validator_into_signatures: List[str] = []
     dict_validator_fields: List[str] = []
-    ret = """from decimal import Decimal
-from typing import (
+    ret = """from typing import (
     Any,
     Callable,
     Dict,

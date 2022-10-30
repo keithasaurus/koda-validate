@@ -251,7 +251,8 @@ def test_obj_4_mix_and_match_key_types() -> None:
     assert validator({"bad field": 1}) == Err(
         {
             "__container__": [
-                "Received unknown keys. Only expected \"first_name\", ('age', 'field') (tuple), 5 (int), 6 (Decimal)."
+                "Received unknown keys. Only expected "
+                "\"first_name\", ('age', 'field') (tuple), 5 (int), 6 (Decimal)."
             ]
         }
     )
