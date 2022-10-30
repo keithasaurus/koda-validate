@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass
+from typing import Any, Dict, Hashable
 
 from koda import Err, Ok, Result
 
@@ -31,7 +32,7 @@ from koda_validate import (
 )
 from koda_validate.dictionary import (
     DictValidator,
-    DictValidatorUnsafe,
+    DictValidatorAny,
     MaxKeys,
     MinKeys,
     is_dict_validator,
@@ -104,18 +105,25 @@ def test_match_args() -> None:
         case _:
             assert False
 
-    dvu_validator: DictValidatorUnsafe[Person] = DictValidatorUnsafe(
-        (into_ := Person),
+    def validate_person_dict_any(
+        p: Dict[Hashable, Any]
+    ) -> Result[Dict[Hashable, Any], Serializable]:
+        if len(p["name"]) > p["age"]:
+            return Err(["your name cannot be longer than your name"])
+        else:
+            return Ok(p)
+
+    dvu_validator: DictValidatorAny[Person] = DictValidatorAny(
         (str_0 := key("name", StringValidator())),
         (int_0 := key("age", IntValidator())),
-        validate_object=validate_person,
+        validate_object=validate_person_dict_any,
     )
     match dvu_validator:
-        case DictValidatorUnsafe(into, fields, validate_object):
+        case DictValidatorAny(fields, validate_object):
             assert into == into_
             assert fields[0] == str_0
             assert fields[1] == int_0
-            assert validate_object == validate_person
+            assert validate_object == validate_person_dict_any
 
         case _:
             assert False

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Protocol
+from typing import Any, Dict, Hashable, List, Protocol
 
 from koda import Err, Just, Maybe, Ok, Result, nothing
 
@@ -20,8 +20,9 @@ from koda_validate import (
     key,
     maybe_key,
     none_validator,
+    strip,
 )
-from koda_validate.dictionary import DictValidator, DictValidatorUnsafe, is_dict_validator
+from koda_validate.dictionary import DictValidator, DictValidatorAny, is_dict_validator
 from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
@@ -617,38 +618,27 @@ def test_obj_decimal_keys() -> None:
 
 
 def test_dict_validator_unsafe_empty() -> None:
-    class EmptyDictTarget:
-        pass
+    empty_dict_validator = DictValidatorAny()
 
-    empty_dict_validator = DictValidatorUnsafe(EmptyDictTarget)
-
-    assert isinstance(empty_dict_validator({}).val, EmptyDictTarget)
+    assert empty_dict_validator({}).val == {}
 
     assert empty_dict_validator({"oops": 5}).val == {
         "__container__": ["Received unknown keys. Expected empty dictionary."]
     }
 
 
-def test_dict_validator_unsafe() -> None:
-    @dataclass
-    class Person:
-        first_name: str
-        last_name: str
-        age: int
-        eye_color: str
-        can_fly: bool
-        fingers: float
-        toes: float
-        favorite_color: Maybe[str]
-        requires_none: None
-        something_else: List[str]
-        aaa: str
-        bbb: int
-        ccc: float
+def _nobody_named_jones_has_brown_eyes_dict_any(
+    person: Dict[Hashable, Any],
+) -> Result[Dict[Hashable, Any], Serializable]:
+    if person["last_name"].lower() == "jones" and person["eye_color"] == "brown":
+        return Err(_JONES_ERROR_MSG)
+    else:
+        return Ok(person)
 
-    validator = DictValidatorUnsafe(
-        Person,
-        key("first_name", StringValidator()),
+
+def test_dict_validator_unsafe() -> None:
+    validator = DictValidatorAny(
+        key("first_name", StringValidator(preprocessors=[strip])),
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
@@ -661,12 +651,13 @@ def test_dict_validator_unsafe() -> None:
         key("aaa", StringValidator()),
         key("owbwohe", IntValidator()),
         key("something else", FloatValidator()),
-        validate_object=_nobody_named_jones_has_brown_eyes,
+        key(12, BooleanValidator()),
+        validate_object=_nobody_named_jones_has_brown_eyes_dict_any,
     )
 
     assert validator(
         {
-            "first_name": "bob",
+            "first_name": " bob ",
             "last_name": "smith",
             "age": 50,
             "eye color": "brown",
@@ -679,23 +670,25 @@ def test_dict_validator_unsafe() -> None:
             "aaa": "bla",
             "owbwohe": 4,
             "something else": 4.4,
+            12: False,
         }
     ) == Ok(
-        Person(
-            "bob",
-            "smith",
-            50,
-            "brown",
-            True,
-            6.5,
-            9.8,
-            Just("blue"),
-            None,
-            ["war and peace", "pale fire"],
-            "bla",
-            4,
-            4.4,
-        )
+        {
+            "first_name": "bob",
+            "last_name": "smith",
+            "age": 50,
+            "eye color": "brown",
+            "can-fly": True,
+            "number_of_fingers": 6.5,
+            "number of toes": 9.8,
+            "favorite_color": Just("blue"),
+            "requires_none": None,
+            "favorite_books": ["war and peace", "pale fire"],
+            "aaa": "bla",
+            "owbwohe": 4,
+            "something else": 4.4,
+            12: False,
+        }
     )
 
     assert validator("") == Err({"__container__": ["expected a dictionary"]})
