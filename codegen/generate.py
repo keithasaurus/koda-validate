@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "directory", type=str, nargs="?", help="directory to put the files"
     )
-    parser.add_argument("--num-keys", type=int, default=12)
+    parser.add_argument("--num-keys", type=int, default=10)
     args = parser.parse_args()
 
     if args.directory:
@@ -21,7 +21,3 @@ if __name__ == "__main__":
     dict_code = dict_validator.generate_code(args.num_keys)
     with open(target_dir / "dictionary.py", "w") as f:
         f.write(dict_code)
-
-    tuple_code = tuple_.generate_code(args.num_keys)
-    with open(target_dir / "tuple.py", "w") as f:
-        f.write(tuple_code)

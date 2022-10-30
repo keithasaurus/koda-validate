@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, List, Protocol
 
-from koda import Err, Just, Maybe, Ok, Result, nothing
+from koda import Either, Err, Just, Maybe, Ok, Result, nothing
 
 from koda_validate import (
     BooleanValidator,
@@ -14,6 +14,7 @@ from koda_validate import (
     MaxLength,
     Min,
     MinKeys,
+    OneOf2,
     Predicate,
     Serializable,
     StringValidator,

@@ -7,7 +7,8 @@ def generate_code(num_keys: int) -> str:
 
     dict_validator_into_signatures: List[str] = []
     dict_validator_fields: List[str] = []
-    ret = """from typing import (
+    ret = """from decimal import Decimal
+from typing import (
     Any,
     Callable,
     Dict,
@@ -21,6 +22,7 @@ def generate_code(num_keys: int) -> str:
     overload, 
     Final,
     TYPE_CHECKING,
+    cast,
 )
 
 from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
@@ -28,8 +30,9 @@ from koda_validate._generics import A
 from koda_validate.typedefs import Predicate, Serializable, Validator
 
 
-DictKeyT = TypeVar('DictKeyT', str, int)
-
+DictKeyT = TypeVar(
+    "DictKeyT", str, int, Decimal, Tuple[str, ...], Tuple[int, ...], Tuple[Decimal, ...]
+)
 
 KeyValidator = Tuple[DictKeyT, Callable[[Maybe[Any]], Result[A, Serializable]]]
 
@@ -269,7 +272,6 @@ class DictValidator(
             {", ".join(dict_validator_into_signatures)}
         ],
     {dv_fields_2},
-        *non_typed_fields: KeyValidator[DictKeyT, Any],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
     ) -> None:
         self.into = into
@@ -280,7 +282,7 @@ class DictValidator(
         self.fields: Tuple[KeyValidator[DictKeyT, Any], ...] = tuple(
             f for f in (
                 {tuple_fields},\n
-            ) + non_typed_fields if f is not None)
+            ) if f is not None)
         self.validate_object = validate_object
 """
     ret += """   
@@ -288,7 +290,8 @@ class DictValidator(
         if (
             keys_result := _dict_without_extra_keys({k for k, _ in self.fields}, data)
         ) is not None:
-            return keys_result
+            # we know this is what it is... c'mon mypy...
+            return cast(Err[Serializable], keys_result)
 
         args = []
         errs: Optional[List[Tuple[str, Serializable]]] = None
