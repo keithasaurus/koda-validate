@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, List, Protocol
 
-from koda import Either, Err, Just, Maybe, Ok, Result, nothing
+from koda import Err, Just, Maybe, Ok, Result, nothing
 
 from koda_validate import (
     BooleanValidator,
@@ -14,7 +14,6 @@ from koda_validate import (
     MaxLength,
     Min,
     MinKeys,
-    OneOf2,
     Predicate,
     Serializable,
     StringValidator,
@@ -220,6 +219,42 @@ def test_obj_4() -> None:
     assert validator(
         {"first_name": "bob", "last_name": "Jones", "age": 50, "eye color": "brown"}
     ) == Err(_JONES_ERROR_MSG)
+
+    assert validator("") == Err({"__container__": ["expected a dictionary"]})
+
+
+def test_obj_4_mix_and_match_key_types() -> None:
+    @dataclass
+    class Person:
+        first_name: str
+        last_name: str
+        age: int
+        eye_color: str
+
+    validator = DictValidator(
+        Person,
+        key("first_name", StringValidator()),
+        key(5, StringValidator()),
+        key(("age", "field"), IntValidator()),
+        key(Decimal(6), StringValidator()),
+        validate_object=_nobody_named_jones_has_brown_eyes,
+    )
+
+    assert validator(
+        {"first_name": "bob", 5: "smith", ("age", "field"): 50, Decimal(6): "brown"}
+    ) == Ok(Person("bob", "smith", 50, "brown"))
+
+    assert validator(
+        {"first_name": "bob", 5: "Jones", ("age", "field"): 50, Decimal(6): "brown"}
+    ) == Err(_JONES_ERROR_MSG)
+
+    assert validator({"bad field": 1}) == Err(
+        {
+            "__container__": [
+                "Received unknown keys. Only expected \"first_name\", ('age', 'field') (tuple), 5 (int), 6 (Decimal)."
+            ]
+        }
+    )
 
     assert validator("") == Err({"__container__": ["expected a dictionary"]})
 

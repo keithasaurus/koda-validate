@@ -12,10 +12,10 @@ def test_lazy() -> None:
         val: int
         next: Maybe["TestNonEmptyList"]  # noqa: F821
 
-    def recur_tnel() -> DictValidator[str, TestNonEmptyList]:
+    def recur_tnel() -> DictValidator[TestNonEmptyList]:
         return nel_validator
 
-    nel_validator: DictValidator[str, TestNonEmptyList] = DictValidator(
+    nel_validator: DictValidator[TestNonEmptyList] = DictValidator(
         TestNonEmptyList,
         key("val", IntValidator()),
         maybe_key("next", Lazy(recur_tnel)),

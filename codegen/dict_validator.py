@@ -22,7 +22,7 @@ from typing import (
     overload, 
     Final,
     TYPE_CHECKING,
-    cast,
+    Hashable
 )
 
 from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
@@ -30,11 +30,9 @@ from koda_validate._generics import A
 from koda_validate.typedefs import Predicate, Serializable, Validator
 
 
-DictKeyT = TypeVar(
-    "DictKeyT", str, int, Decimal, Tuple[str, ...], Tuple[int, ...], Tuple[Decimal, ...]
-)
+DictKey = Hashable 
 
-KeyValidator = Tuple[DictKeyT, Callable[[Maybe[Any]], Result[A, Serializable]]]
+KeyValidator = Tuple[DictKey, Callable[[Maybe[Any]], Result[A, Serializable]]]
 
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
@@ -85,14 +83,14 @@ class MaybeField(Generic[A]):
 
 
 def key(
-        key_: DictKeyT, validator: Validator[Any, A, Serializable]
-) -> Tuple[DictKeyT, Callable[[Any], Result[A, Serializable]]]:
+        key_: DictKey, validator: Validator[Any, A, Serializable]
+) -> Tuple[DictKey, Callable[[Any], Result[A, Serializable]]]:
     return key_, RequiredField(validator)
 
 
 def maybe_key(
-        key_: DictKeyT, validator: Validator[Any, A, Serializable]
-) -> Tuple[DictKeyT, Callable[[Any], Result[Maybe[A], Serializable]]]:
+        key_: DictKey, validator: Validator[Any, A, Serializable]
+) -> Tuple[DictKey, Callable[[Any], Result[Maybe[A], Serializable]]]:
     return key_, MaybeField(validator)
 
 """
@@ -175,9 +173,8 @@ class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
 is_dict_validator = IsDictValidator()
 
 
-def _dict_without_extra_keys(
-        keys: Set[str], data: Any
-) -> Optional[Err[Serializable]]:
+
+def _dict_without_extra_keys(keys: Set[Hashable], data: Any) -> Optional[Err[Serializable]]:
     \"""
     We're returning Optional here because it's faster than Ok/Err,
     and this is just a private function
@@ -186,11 +183,22 @@ def _dict_without_extra_keys(
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in keys:
-                return Err({
-                    OBJECT_ERRORS_FIELD: [
-                        f"Received unknown keys. Only expected {sorted(keys)}"
-                    ]
-                })
+                if len(keys) == 0:
+                    key_msg = "Expected empty dictionary"
+                else:
+                    key_msg = "Only expected " + ", ".join(
+                        sorted(
+                            [
+                                (
+                                    f'"{k}"'
+                                    if isinstance(k, str)
+                                    else f"{k} ({k.__class__.__name__})"
+                                )
+                                for k in keys
+                            ]
+                        )
+                    )
+                return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
         return None
     else:
         return _is_dict_validation_err
@@ -231,15 +239,15 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         dict_validator_into_signatures.append(f"Callable[[{generic_vals}], Ret]")
 
         dict_validator_fields.append(
-            f"field{i+1}: KeyValidator[DictKeyT, {type_vars[i]}]"
+            f"field{i+1}: KeyValidator[{type_vars[i]}]"
             if i == 0
-            else f"field{i+1}: Optional[KeyValidator[DictKeyT, {type_vars[i]}]] = None"
+            else f"field{i+1}: Optional[KeyValidator[{type_vars[i]}]] = None"
         )
 
     ret += """
 
 class DictValidator(
-    Generic[DictKeyT, Ret],
+    Generic[Ret],
     Validator[Any, Ret, Serializable]
 ):
     __slots__ = ('into', 'fields', 'validate_object')
@@ -279,7 +287,7 @@ class DictValidator(
         unfortunately, we have to have this be `Any` until
         we're using variadic generics -- or we could generate lots of classes
         \"""
-        self.fields: Tuple[KeyValidator[DictKeyT, Any], ...] = tuple(
+        self.fields: Tuple[KeyValidator[Any], ...] = tuple(
             f for f in (
                 {tuple_fields},\n
             ) if f is not None)
@@ -287,42 +295,81 @@ class DictValidator(
 """
     ret += """   
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        if (
-            keys_result := _dict_without_extra_keys({k for k, _ in self.fields}, data)
-        ) is not None:
-            # we know this is what it is... c'mon mypy...
-            return cast(Err[Serializable], keys_result)
+        return _dict_validator_call(self.into, self.fields, data, self.validate_object)
 
-        args = []
-        errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.fields:
-            # optimized away the call to `koda.mapping_get`
-            if key_ in data:
-                result = validator(Just(data[key_]))
-            else:
-                result = validator(nothing)
 
-            # (slightly) optimized; can be simplified if needed
-            if isinstance(result, Err):
-                err = (str(key_), result.val)
-                if errs is None:
-                    errs = [err]
-                else:
-                    errs.append(err)
-            elif errs is None:
-                args.append(result.val)
+def _dict_validator_call(
+    into: Callable[..., Ret],
+    fields: Tuple[KeyValidator[Any], ...],
+    data: Any,
+    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+) -> Result[Ret, Serializable]:
+    if (
+        keys_result := _dict_without_extra_keys({k for k, _ in fields}, data)
+    ) is not None:
+        return keys_result
 
-        if errs and len(errs) > 0:
-            return Err(_tuples_to_json_dict(errs))
+    args = []
+    errs: Optional[List[Tuple[str, Serializable]]] = None
+    for key_, validator in fields:
+        # optimized away the call to `koda.mapping_get`
+        if key_ in data:
+            result = validator(Just(data[key_]))
         else:
-            obj = self.into(*args)
-            if self.validate_object is None:
-                return Ok(obj)
+            result = validator(nothing)
+
+        # (slightly) optimized; can be simplified if needed
+        if isinstance(result, Err):
+            err = (str(key_), result.val)
+            if errs is None:
+                errs = [err]
             else:
-                return self.validate_object(obj)
+                errs.append(err)
+        elif errs is None:
+            args.append(result.val)
 
-    """
+    if errs and len(errs) > 0:
+        return Err(_tuples_to_json_dict(errs))
+    else:
+        obj = into(*args)
+        if validate_object is None:
+            return Ok(obj)
+        else:
+            return validate_object(obj)
 
+
+class DictValidatorUnsafe(Generic[Ret], Validator[Any, Ret, Serializable]):
+    \"""
+    This validator does NOT type check the validators and the `into` object!
+
+    `DictValidator` can be used for that if you are checking against 10 keys
+    or fewer. This class exists for two reasons:
+    - because the overloads we use to define `DictValidator` get very slow
+    for type checkers beyond a certain point
+    - if you really don't care about the types in the target object
+
+    VALIDATION WILL STILL WORK PROPERLY, but some type-hinting assistance
+    will most likely be lost.
+    \"""
+    __slots__ = ('into', 'fields', 'validate_object')
+    __match_args__ = ('into', 'fields', 'validate_object')
+    
+
+
+    def __init__(
+        self,
+        into: Callable[..., Ret],
+        *fields: KeyValidator[Any],
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+    ) -> None:
+        self.into = into
+        self.fields: Tuple[KeyValidator[Any], ...] = fields
+        self.validate_object = validate_object
+
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
+        return _dict_validator_call(self.into, self.fields, data, self.validate_object)
+    
+"""
     return ret
 
 

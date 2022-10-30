@@ -31,6 +31,7 @@ from koda_validate import (
 )
 from koda_validate.dictionary import (
     DictValidator,
+    DictValidatorUnsafe,
     MaxKeys,
     MinKeys,
     is_dict_validator,
@@ -87,7 +88,7 @@ def test_match_args() -> None:
         else:
             return Ok(p)
 
-    dv_validator: DictValidator[str, Person] = DictValidator(
+    dv_validator: DictValidator[Person] = DictValidator(
         (into_ := Person),
         (str_1 := key("name", StringValidator())),
         (int_1 := key("age", IntValidator())),
@@ -103,16 +104,32 @@ def test_match_args() -> None:
         case _:
             assert False
 
+    dvu_validator: DictValidatorUnsafe[Person] = DictValidatorUnsafe(
+        (into_ := Person),
+        (str_0 := key("name", StringValidator())),
+        (int_0 := key("age", IntValidator())),
+        validate_object=validate_person,
+    )
+    match dvu_validator:
+        case DictValidatorUnsafe(into, fields, validate_object):
+            assert into == into_
+            assert fields[0] == str_0
+            assert fields[1] == int_0
+            assert validate_object == validate_person
+
+        case _:
+            assert False
+
     match FloatValidator():
         case FloatValidator(preds):
             assert preds == ()
         case _:
             assert False
 
-    def lazy_dv_validator() -> DictValidator[str, Person]:
+    def lazy_dv_validator() -> DictValidator[Person]:
         return dv_validator_2
 
-    dv_validator_2: DictValidator[str, Person] = DictValidator(
+    dv_validator_2: DictValidator[Person] = DictValidator(
         Person,
         key("name", StringValidator()),
         key("age", IntValidator()),
