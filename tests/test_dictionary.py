@@ -22,7 +22,7 @@ from koda_validate import (
     maybe_key,
     none_validator,
 )
-from koda_validate.dictionary import DictValidator, is_dict_validator
+from koda_validate.dictionary import DictValidator, DictValidatorUnsafe, is_dict_validator
 from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
@@ -134,7 +134,7 @@ def test_obj_1() -> None:
     assert validator({"name": 5}) == Err({"name": ["expected a string"]})
 
     assert validator({"name": "bob", "age": 50}) == Err(
-        {"__container__": ["Received unknown keys. Only expected ['name']"]}
+        {"__container__": ['Received unknown keys. Only expected "name".']}
     )
 
     assert validator({"name": "bob"}) == Ok(Person("bob"))
@@ -159,7 +159,7 @@ def test_obj_2() -> None:
     )
 
     assert validator({"name": "bob", "age": 50, "eye_color": "brown"}) == Err(
-        {"__container__": ["Received unknown keys. Only expected ['age', 'name']"]}
+        {"__container__": ['Received unknown keys. Only expected "age", "name".']}
     )
 
     assert validator({"name": "bob", "age": 50}) == Ok(Person("bob", Just(50)))
@@ -578,3 +578,88 @@ def test_obj_decimal_keys() -> None:
     assert dv({Decimal("1.111"): test_age, Decimal(22): test_name}) == Ok(
         Person(test_name, test_age)
     )
+
+
+def test_dict_validator_unsafe_empty() -> None:
+    class EmptyDictTarget:
+        pass
+
+    empty_dict_validator = DictValidatorUnsafe(EmptyDictTarget)
+
+    assert isinstance(empty_dict_validator({}).val, EmptyDictTarget)
+
+    assert empty_dict_validator({"oops": 5}).val == {
+        "__container__": ["Received unknown keys. Expected empty dictionary."]
+    }
+
+
+def test_dict_validator_unsafe() -> None:
+    @dataclass
+    class Person:
+        first_name: str
+        last_name: str
+        age: int
+        eye_color: str
+        can_fly: bool
+        fingers: float
+        toes: float
+        favorite_color: Maybe[str]
+        requires_none: None
+        something_else: List[str]
+        aaa: str
+        bbb: int
+        ccc: float
+
+    validator = DictValidatorUnsafe(
+        Person,
+        key("first_name", StringValidator()),
+        key("last_name", StringValidator()),
+        key("age", IntValidator()),
+        key("eye color", StringValidator()),
+        key("can-fly", BooleanValidator()),
+        key("number_of_fingers", FloatValidator()),
+        key("number of toes", FloatValidator()),
+        maybe_key("favorite_color", StringValidator()),
+        key("requires_none", none_validator),
+        key("favorite_books", ListValidator(StringValidator())),
+        key("aaa", StringValidator()),
+        key("owbwohe", IntValidator()),
+        key("something else", FloatValidator()),
+        validate_object=_nobody_named_jones_has_brown_eyes,
+    )
+
+    assert validator(
+        {
+            "first_name": "bob",
+            "last_name": "smith",
+            "age": 50,
+            "eye color": "brown",
+            "can-fly": True,
+            "number_of_fingers": 6.5,
+            "number of toes": 9.8,
+            "favorite_color": "blue",
+            "requires_none": None,
+            "favorite_books": ["war and peace", "pale fire"],
+            "aaa": "bla",
+            "owbwohe": 4,
+            "something else": 4.4,
+        }
+    ) == Ok(
+        Person(
+            "bob",
+            "smith",
+            50,
+            "brown",
+            True,
+            6.5,
+            9.8,
+            Just("blue"),
+            None,
+            ["war and peace", "pale fire"],
+            "bla",
+            4,
+            4.4,
+        )
+    )
+
+    assert validator("") == Err({"__container__": ["expected a dictionary"]})
