@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Any, Dict, List, Protocol
 
 from koda import Err, Just, Maybe, Ok, Result, nothing
@@ -503,3 +504,76 @@ def test_obj_10() -> None:
     )
 
     assert validator("") == Err({"__container__": ["expected a dictionary"]})
+
+
+def test_obj_int_keys() -> None:
+    @dataclass
+    class Person:
+        name: str
+        age: int
+
+    test_age = 10
+    test_name = "bob"
+
+    def asserted_ok(p: Person) -> Result[Person, Serializable]:
+        assert p.age == test_age
+        assert p.name == test_name
+        return Ok(p)
+
+    dv = DictValidator(
+        Person,
+        key(22, StringValidator()),
+        key(10, IntValidator()),
+        validate_object=asserted_ok,
+    )
+    assert dv({10: test_age, 22: test_name}) == Ok(Person(test_name, test_age))
+
+
+def test_obj_tuple_str_keys() -> None:
+    @dataclass
+    class Person:
+        name: str
+        age: int
+
+    test_age = 10
+    test_name = "bob"
+
+    def asserted_ok(p: Person) -> Result[Person, Serializable]:
+        assert p.age == test_age
+        assert p.name == test_name
+        return Ok(p)
+
+    dv = DictValidator(
+        Person,
+        key(("ok",), StringValidator()),
+        key(("neat", "cool"), IntValidator()),
+        validate_object=asserted_ok,
+    )
+    assert dv({("ok",): test_name, ("neat", "cool"): test_age}) == Ok(
+        Person(test_name, test_age)
+    )
+
+
+def test_obj_decimal_keys() -> None:
+    @dataclass
+    class Person:
+        name: str
+        age: int
+
+    test_age = 10
+    test_name = "bob"
+
+    def asserted_ok(p: Person) -> Result[Person, Serializable]:
+        assert p.age == test_age
+        assert p.name == test_name
+        return Ok(p)
+
+    dv = DictValidator(
+        Person,
+        key(Decimal(22), StringValidator()),
+        key(Decimal("1.111"), IntValidator()),
+        validate_object=asserted_ok,
+    )
+    assert dv({Decimal("1.111"): test_age, Decimal(22): test_name}) == Ok(
+        Person(test_name, test_age)
+    )

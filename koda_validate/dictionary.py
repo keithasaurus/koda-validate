@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -20,7 +21,9 @@ from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 from koda_validate._generics import A
 from koda_validate.typedefs import Predicate, Serializable, Validator
 
-DictKeyT = TypeVar("DictKeyT", str, int)
+DictKeyT = TypeVar(
+    "DictKeyT", str, int, Decimal, Tuple[str, ...], Tuple[int, ...], Tuple[Decimal, ...]
+)
 
 
 KeyValidator = Tuple[DictKeyT, Callable[[Maybe[Any]], Result[A, Serializable]]]
