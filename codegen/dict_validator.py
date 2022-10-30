@@ -186,16 +186,7 @@ def _dict_without_extra_keys(keys: Set[Hashable], data: Any) -> Optional[Err[Ser
                     key_msg = "Expected empty dictionary"
                 else:
                     key_msg = "Only expected " + ", ".join(
-                        sorted(
-                            [
-                                (
-                                    f'"{k}"'
-                                    if isinstance(k, str)
-                                    else f"{k} ({k.__class__.__name__})"
-                                )
-                                for k in keys
-                            ]
-                        )
+                        sorted([repr(k) for k in keys])
                     )
                 return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
         return None

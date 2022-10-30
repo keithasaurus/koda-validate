@@ -133,7 +133,7 @@ def test_obj_1() -> None:
     assert validator({"name": 5}) == Err({"name": ["expected a string"]})
 
     assert validator({"name": "bob", "age": 50}) == Err(
-        {"__container__": ['Received unknown keys. Only expected "name".']}
+        {"__container__": ["Received unknown keys. Only expected 'name'."]}
     )
 
     assert validator({"name": "bob"}) == Ok(Person("bob"))
@@ -158,7 +158,7 @@ def test_obj_2() -> None:
     )
 
     assert validator({"name": "bob", "age": 50, "eye_color": "brown"}) == Err(
-        {"__container__": ['Received unknown keys. Only expected "age", "name".']}
+        {"__container__": ["Received unknown keys. Only expected 'age', 'name'."]}
     )
 
     assert validator({"name": "bob", "age": 50}) == Ok(Person("bob", Just(50)))
@@ -252,7 +252,7 @@ def test_obj_4_mix_and_match_key_types() -> None:
         {
             "__container__": [
                 "Received unknown keys. Only expected "
-                "\"first_name\", ('age', 'field') (tuple), 5 (int), 6 (Decimal)."
+                "'first_name', ('age', 'field'), 5, Decimal('6')."
             ]
         }
     )
