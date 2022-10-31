@@ -1,6 +1,17 @@
+import asyncio
+
+import pytest
 from koda import Err, Ok
 
-from koda_validate import IntValidator, Max, Min, Predicate, Serializable
+from koda_validate import (
+    IntValidator,
+    Max,
+    Min,
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+)
 
 
 def test_integer() -> None:
@@ -27,3 +38,26 @@ def test_integer() -> None:
     assert IntValidator(Min(2), Max(10), DivisibleBy2(),)(
         11
     ) == Err(["maximum allowed value is 10", "must be divisible by 2"])
+
+
+@pytest.mark.asyncio
+async def test_float_async() -> None:
+    class Add1Int(Processor[int]):
+        def __call__(self, val: int) -> int:
+            return val + 1
+
+    class LessThan4(PredicateAsync[int, Serializable]):
+        async def is_valid_async(self, val: int) -> bool:
+            await asyncio.sleep(0.001)
+            return val < 4.0
+
+        async def err_async(self, val: int) -> Serializable:
+            return "not less than 4!"
+
+    result = await IntValidator(
+        preprocessors=[Add1Int()], predicates_async=[LessThan4()]
+    ).validate_async(3)
+    assert result == Err(["not less than 4!"])
+    assert await IntValidator(
+        preprocessors=[Add1Int()], predicates_async=[LessThan4()]
+    ).validate_async(2) == Ok(3)

@@ -1,8 +1,10 @@
+import asyncio
 import re
 
+import pytest
 from koda import Err, Ok
 
-from koda_validate import EmailPredicate, RegexPredicate
+from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate, Serializable
 from koda_validate.string import (
     BLANK_STRING_MSG,
     MaxLength,
@@ -85,3 +87,27 @@ def test_not_blank() -> None:
 def test_email() -> None:
     assert EmailPredicate()("notanemail") == Err("expected a valid email address")
     assert EmailPredicate()("a@b.com") == Ok("a@b.com")
+
+
+@pytest.mark.asyncio
+async def test_validate_fake_db_async() -> None:
+    test_valid_username = "valid_username"
+
+    hit = []
+
+    class CheckUsername(PredicateAsync[str, Serializable]):
+        async def is_valid_async(self, val: str) -> bool:
+            hit.append("ok")
+            # fake db call
+            await asyncio.sleep(0.001)
+            print("HHEEERRE")
+            return val == test_valid_username
+
+        async def err_async(self, val: str) -> Serializable:
+            return "not in db!"
+
+    result = await StringValidator(predicates_async=[CheckUsername()]).validate_async(
+        "bad username"
+    )
+    assert hit == ["ok"]
+    assert result == Err(["not in db!"])

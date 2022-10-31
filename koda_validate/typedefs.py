@@ -27,7 +27,7 @@ class Validator(Generic[A, B, FailT]):
         """
         make all validators async-compatible for "free"
         """
-        return self(val)
+        raise NotImplementedError
 
 
 class ValidatorAsync(Generic[A, B, FailT]):
@@ -55,15 +55,9 @@ class Predicate(Generic[A, FailT]):
     def is_valid(self, val: A) -> bool:  # pragma: no cover
         raise NotImplementedError
 
-    async def is_valid_async(self, val: A) -> bool:  # pragma: no cover
-        return self.is_valid(val)
-
     @abstractmethod
     def err(self, val: A) -> FailT:
         raise NotImplementedError
-
-    async def err_async(self, val: A) -> FailT:
-        return self.err(val)
 
     @final
     def __call__(self, val: A) -> Result[A, FailT]:
@@ -71,16 +65,6 @@ class Predicate(Generic[A, FailT]):
             return Ok(val)
         else:
             return Err(self.err(val))
-
-    @final
-    async def validate_async(self, val: A) -> Result[A, FailT]:
-        """
-        make all validators async-compatible for "free"
-        """
-        if await self.is_valid_async(val) is True:
-            return Ok(val)
-        else:
-            return Err(await self.err_async(val))
 
 
 class PredicateAsync(Generic[A, FailT]):

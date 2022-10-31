@@ -19,8 +19,10 @@ from koda_validate import (
     MapValidator,
     Max,
     MaxItems,
+    MaxLength,
     Min,
     MinItems,
+    MinLength,
     MultipleOf,
     OneOf2,
     OneOf3,
@@ -187,6 +189,18 @@ def test_match_args() -> None:
         case _:
             assert False
 
+    match MinLength(2):
+        case MinLength(length):
+            assert length == 2
+        case _:
+            assert False
+
+    match MaxLength(2):
+        case MaxLength(length):
+            assert length == 2
+        case _:
+            assert False
+
     match MinItems(2):
         case MinItems(length):
             assert length == 2
@@ -232,8 +246,9 @@ def test_match_args() -> None:
             assert False
 
     match StringValidator(preprocessors=[strip]):
-        case StringValidator(preds_6, preproc_6):
+        case StringValidator(preds_6, preds_async, preproc_6):
             assert preds_6 == ()
+            assert preds_async is None
             assert preproc_6 == [strip]
         case _:
             assert False

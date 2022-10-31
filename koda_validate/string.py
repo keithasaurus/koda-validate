@@ -1,36 +1,49 @@
 import re
-from dataclasses import dataclass
-from typing import Any, Final, List, Optional, Pattern, Tuple
+from typing import Any, Final, List, Optional, Pattern
 
-from koda import Err, Ok, Result
+from koda import Err, Result
 
-from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
-from koda_validate.utils import accum_errors
+from koda_validate.typedefs import (
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+    Validator,
+)
+from koda_validate.utils import (
+    _handle_processors_and_predicates,
+    _handle_processors_and_predicates_async,
+)
 
 EXPECTED_STR_ERR: Final[Err[Serializable]] = Err(["expected a string"])
 
 
 class StringValidator(Validator[Any, str, Serializable]):
-    __slots__ = ("predicates", "preprocessors")
-    __match_args__ = ("predicates", "preprocessors")
+    __match_args__ = ("predicates", "predicates_async", "preprocessors")
+    __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
         *predicates: Predicate[str, Serializable],
+        predicates_async: Optional[List[PredicateAsync[str, Serializable]]] = None,
         preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
-        self.predicates: Tuple[Predicate[str, Serializable], ...] = predicates
+        self.predicates = predicates
+        self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[str, Serializable]:
         if isinstance(val, str):
-            if self.preprocessors is not None:
-                for preprocess in self.preprocessors:
-                    val = preprocess(val)
-            if len(self.predicates) > 0:
-                return accum_errors(val, self.predicates)
-            else:
-                return Ok(val)
+            return _handle_processors_and_predicates(
+                val, self.preprocessors, self.predicates
+            )
+        return EXPECTED_STR_ERR
+
+    async def validate_async(self, val: Any) -> Result[str, Serializable]:
+        if isinstance(val, str):
+            return await _handle_processors_and_predicates_async(
+                val, self.preprocessors, self.predicates, self.predicates_async
+            )
         else:
             return EXPECTED_STR_ERR
 
@@ -73,9 +86,12 @@ class NotBlank(Predicate[str, Serializable]):
 not_blank = NotBlank()
 
 
-@dataclass(frozen=True)
 class MaxLength(Predicate[str, Serializable]):
-    length: int
+    __match_args__ = ("length",)
+    __slots__ = ("length",)
+
+    def __init__(self, length: int):
+        self.length = length
 
     def is_valid(self, val: str) -> bool:
         return len(val) <= self.length
@@ -84,9 +100,12 @@ class MaxLength(Predicate[str, Serializable]):
         return f"maximum allowed length is {self.length}"
 
 
-@dataclass(frozen=True)
 class MinLength(Predicate[str, Serializable]):
-    length: int
+    __match_args__ = ("length",)
+    __slots__ = ("length",)
+
+    def __init__(self, length: int):
+        self.length = length
 
     def is_valid(self, val: str) -> bool:
         return len(val) >= self.length
