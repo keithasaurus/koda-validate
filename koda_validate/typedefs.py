@@ -23,7 +23,6 @@ class Validator(Generic[A, B, FailT]):
     def __call__(self, val: A) -> Result[B, FailT]:  # pragma: no cover
         raise NotImplementedError
 
-    @final
     async def validate_async(self, val: A) -> Result[B, FailT]:
         """
         make all validators async-compatible for "free"
@@ -36,7 +35,8 @@ class ValidatorAsync(Generic[A, B, FailT]):
     This is for async-only validation.
     """
 
-    async def __call__(self, val: A) -> Result[B, FailT]:
+    @abstractmethod
+    async def validate_async(self, val: A) -> Result[B, FailT]:
         raise NotImplementedError
 
 
@@ -55,9 +55,15 @@ class Predicate(Generic[A, FailT]):
     def is_valid(self, val: A) -> bool:  # pragma: no cover
         raise NotImplementedError
 
+    async def is_valid_async(self, val: A) -> bool:  # pragma: no cover
+        return self.is_valid(val)
+
     @abstractmethod
     def err(self, val: A) -> FailT:
         raise NotImplementedError
+
+    async def err_async(self, val: A) -> FailT:
+        return self.err(val)
 
     @final
     def __call__(self, val: A) -> Result[A, FailT]:
@@ -71,24 +77,31 @@ class Predicate(Generic[A, FailT]):
         """
         make all validators async-compatible for "free"
         """
-        return self(val)
+        if await self.is_valid_async(val) is True:
+            return Ok(val)
+        else:
+            return Err(await self.err_async(val))
 
 
 class PredicateAsync(Generic[A, FailT]):
+    """
+    For async-only validation.
+    """
+
     @abstractmethod
-    async def is_valid(self, val: A) -> bool:
+    async def is_valid_async(self, val: A) -> bool:
         raise NotImplementedError
 
     @abstractmethod
-    async def err(self, val: A) -> FailT:
+    async def err_async(self, val: A) -> FailT:
         raise NotImplementedError
 
     @final
-    async def __call__(self, val: A) -> Result[A, FailT]:
-        if await self.is_valid(val) is True:
+    async def validate_async(self, val: A) -> Result[A, FailT]:
+        if await self.is_valid_async(val) is True:
             return Ok(val)
         else:
-            return Err(await self.err(val))
+            return Err(await self.err_async(val))
 
 
 # When mypy enables recursive types by default

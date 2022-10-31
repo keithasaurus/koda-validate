@@ -47,7 +47,7 @@ async def test_async_defaults_to_call_for_predicate() -> None:
 @pytest.mark.asyncio
 async def test_async_validator_works_as_expected() -> None:
     class ExampleStringValidator(ValidatorAsync[Any, str, List[str]]):
-        async def __call__(self, val: Any) -> Result[str, List[str]]:
+        async def validate_async(self, val: Any) -> Result[str, List[str]]:
             await asyncio.sleep(0.001)
             if isinstance(val, str):
                 return Ok(val)
@@ -55,8 +55,8 @@ async def test_async_validator_works_as_expected() -> None:
                 return Err(["expected a string"])
 
     obj = ExampleStringValidator()
-    assert await obj("neat") == Ok("neat")
-    assert await obj(5) == Err(["expected a string"])
+    assert await obj.validate_async("neat") == Ok("neat")
+    assert await obj.validate_async(5) == Err(["expected a string"])
 
 
 @pytest.mark.asyncio
@@ -65,13 +65,13 @@ async def test_async_predicate_works_as_expected() -> None:
     class ExampleStartsWithPredicate(PredicateAsync[str, str]):
         prefix: str
 
-        async def is_valid(self, val: str) -> bool:
+        async def is_valid_async(self, val: str) -> bool:
             await asyncio.sleep(0.001)
             return val.startswith(self.prefix)
 
-        async def err(self, val: str) -> str:
+        async def err_async(self, val: str) -> str:
             return f"did not start with {self.prefix}"
 
     obj = ExampleStartsWithPredicate("abc")
-    assert await obj("def") == Err("did not start with abc")
-    assert await obj("abc123") == Ok("abc123")
+    assert await obj.validate_async("def") == Err("did not start with abc")
+    assert await obj.validate_async("abc123") == Ok("abc123")
