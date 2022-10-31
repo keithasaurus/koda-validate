@@ -10,7 +10,7 @@ __all__ = (
     "IsDictValidator",
     "MinKeys",
     "MaxKeys",
-    "dict_validator",
+    "DictValidator",
     # float.py
     "FloatValidator",
     # generic.py
@@ -59,18 +59,16 @@ __all__ = (
     "PredicateAsync",
     "Serializable",
     "Processor",
-    # validate_and_map.py
-    "validate_and_map",
 )
 
 from koda_validate.boolean import BooleanValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
+    DictValidator,
     IsDictValidator,
     MapValidator,
     MaxKeys,
     MinKeys,
-    dict_validator,
     key,
     maybe_key,
 )
@@ -108,4 +106,3 @@ from koda_validate.typedefs import (
     Validator,
     ValidatorAsync,
 )
-from koda_validate.validate_and_map import validate_and_map

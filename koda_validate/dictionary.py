@@ -1,30 +1,88 @@
-from dataclasses import dataclass
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
     Final,
     Generic,
+    Hashable,
     List,
     Optional,
     Set,
     Tuple,
     TypeVar,
     Union,
-    cast,
     overload,
 )
 
-from koda import Err, Just, Maybe, Nothing, Ok, Result, mapping_get
+from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 
 from koda_validate._generics import A
 from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import (
-    OBJECT_ERRORS_FIELD,
-    _flat_map_same_type_if_not_none,
-    expected,
+
+DictKey = Hashable
+
+KeyValidator = Tuple[DictKey, Callable[[Maybe[Any]], Result[A, Serializable]]]
+
+
+OBJECT_ERRORS_FIELD: Final[str] = "__container__"
+
+_is_dict_validation_err: Final[Err[Serializable]] = Err(
+    {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
 )
-from koda_validate.validate_and_map import validate_and_map
+
+
+def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
+    return dict(data)
+
+
+# extracted into constant to optimize
+KEY_MISSING_ERR: Final[Err[Serializable]] = Err(["key missing"])
+
+
+class RequiredField(Generic[A]):
+    __slots__ = ("validator",)
+
+    def __init__(self, validator: Validator[Any, A, Serializable]) -> None:
+        self.validator = validator
+
+    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Serializable]:
+        if maybe_val is nothing:
+            return KEY_MISSING_ERR
+        else:
+            # we use the `is nothing` comparison above because `nothing`
+            # is a singleton; but mypy doesn't know that this _must_ be a Just now
+            if TYPE_CHECKING:  # pragma: no cover
+                assert isinstance(maybe_val, Just)
+            return self.validator(maybe_val.val)
+
+
+class MaybeField(Generic[A]):
+    __slots__ = ("validator",)
+
+    def __init__(self, validator: Validator[Any, A, Serializable]) -> None:
+        self.validator = validator
+
+    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
+        if maybe_val is nothing:
+            return Ok(maybe_val)
+        else:
+            if TYPE_CHECKING:  # pragma: no cover
+                assert isinstance(maybe_val, Just)
+            return self.validator(maybe_val.val).map(Just)
+
+
+def key(
+    key_: DictKey, validator: Validator[Any, A, Serializable]
+) -> Tuple[DictKey, Callable[[Any], Result[A, Serializable]]]:
+    return key_, RequiredField(validator)
+
+
+def maybe_key(
+    key_: DictKey, validator: Validator[Any, A, Serializable]
+) -> Tuple[DictKey, Callable[[Any], Result[Maybe[A], Serializable]]]:
+    return key_, MaybeField(validator)
+
 
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
@@ -36,68 +94,13 @@ T7 = TypeVar("T7")
 T8 = TypeVar("T8")
 T9 = TypeVar("T9")
 T10 = TypeVar("T10")
-T11 = TypeVar("T11")
-T12 = TypeVar("T12")
-T13 = TypeVar("T13")
-T14 = TypeVar("T14")
-T15 = TypeVar("T15")
-T16 = TypeVar("T16")
-T17 = TypeVar("T17")
-T18 = TypeVar("T18")
-T19 = TypeVar("T19")
-T20 = TypeVar("T20")
 Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
 
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
-
-
-_KEY_MISSING: Final[str] = "key missing"
-
-
-@dataclass(frozen=True)
-class RequiredField(Generic[A]):
-    validator: Validator[Any, A, Serializable]
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Serializable]:
-        if isinstance(maybe_val, Nothing):
-            return Err([_KEY_MISSING])
-        else:
-            return self.validator(maybe_val.val)
-
-
-@dataclass(frozen=True)
-class MaybeField(Generic[A]):
-    validator: Validator[Any, A, Serializable]
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
-        if isinstance(maybe_val, Just):
-            result: Result[Maybe[A], Serializable] = self.validator(maybe_val.val).map(
-                Just
-            )
-        else:
-            result = Ok(maybe_val)
-        return result
-
-
-def key(
-    prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[A, Serializable]]]:
-    return prop_, RequiredField(validator)
-
-
-def maybe_key(
-    prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[Maybe[A], Serializable]]]:
-    return prop_, MaybeField(validator)
-
-
-@dataclass(frozen=True, init=False)
 class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
-    key_validator: Validator[Any, T1, Serializable]
-    value_validator: Validator[Any, T2, Serializable]
-    predicates: Tuple[Predicate[Dict[T1, T2], Serializable], ...]
+    __slots__ = ("key_validator", "value_validator", "predicates")
+    __match_args__ = ("key_validator", "value_validator", "predicates")
 
     def __init__(
         self,
@@ -105,9 +108,9 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
         value_validator: Validator[Any, T2, Serializable],
         *predicates: Predicate[Dict[T1, T2], Serializable],
     ) -> None:
-        object.__setattr__(self, "key_validator", key_validator)
-        object.__setattr__(self, "value_validator", value_validator)
-        object.__setattr__(self, "predicates", predicates)
+        self.key_validator = key_validator
+        self.value_validator = value_validator
+        self.predicates = predicates
 
     def __call__(self, data: Any) -> Result[Dict[T1, T2], Serializable]:
         if isinstance(data, dict):
@@ -155,7 +158,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
             else:
                 return Ok(return_dict)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("a map")]})
+            return Err({OBJECT_ERRORS_FIELD: ["expected a map"]})
 
 
 class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
@@ -163,39 +166,41 @@ class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
         if isinstance(val, dict):
             return Ok(val)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("a dictionary")]})
+            return _is_dict_validation_err
 
 
 is_dict_validator = IsDictValidator()
 
 
-def _has_no_extra_keys(
-    keys: Set[str],
-) -> Callable[[Dict[T1, T2]], Result[Dict[T1, T2], Serializable]]:
-    def inner(mapping: Dict[T1, T2]) -> Result[Dict[T1, T2], Serializable]:
-        if len(mapping.keys() - keys) > 0:
-            return Err(
-                {
-                    OBJECT_ERRORS_FIELD: [
-                        f"Received unknown keys. Only expected {sorted(keys)}"
-                    ]
-                }
-            )
-        else:
-            return Ok(mapping)
-
-    return inner
-
-
 def _dict_without_extra_keys(
-    keys: Set[str], data: Any
-) -> Result[Dict[Any, Any], Serializable]:
-    return is_dict_validator(data).flat_map(_has_no_extra_keys(keys))
+    keys: Set[Hashable], data: Any
+) -> Optional[Err[Serializable]]:
+    """
+    We're returning Optional here because it's faster than Ok/Err,
+    and this is just a private function
+    """
+    if isinstance(data, dict):
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in keys:
+                if len(keys) == 0:
+                    key_msg = "Expected empty dictionary"
+                else:
+                    key_msg = "Only expected " + ", ".join(
+                        sorted([repr(k) for k in keys])
+                    )
+                return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
+        return None
+    else:
+        return _is_dict_validation_err
 
 
-@dataclass(frozen=True)
 class MinKeys(Predicate[Dict[Any, Any], Serializable]):
-    size: int
+    __slots__ = ("size",)
+    __match_args__ = ("size",)
+
+    def __init__(self, size: int) -> None:
+        self.size = size
 
     def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) >= self.size
@@ -204,9 +209,12 @@ class MinKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"minimum allowed properties is {self.size}"
 
 
-@dataclass(frozen=True)
 class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
-    size: int
+    __slots__ = ("size",)
+    __match_args__ = ("size",)
+
+    def __init__(self, size: int) -> None:
+        self.size = size
 
     def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) <= self.size
@@ -215,24 +223,11 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializable:
-    return dict(data)
+class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
+    __slots__ = ("into", "fields", "validate_object")
+    __match_args__ = ("into", "fields", "validate_object")
 
-
-def _validate_with_key(
-    r: KeyValidator[T1], data: Dict[Any, Any]
-) -> Result[T1, Tuple[str, Serializable]]:
-    key, fn = r
-
-    def add_key(val: Serializable) -> Tuple[str, Serializable]:
-        return key, val
-
-    return fn(mapping_get(data, key)).map_err(add_key)
-
-
-class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, Serializable]):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
+    @overload
     def __init__(
         self,
         into: Callable[[T1], Ret],
@@ -240,2677 +235,287 @@ class Dict1KeysValidator(Generic[T1, Ret], Validator[Any, Ret, Serializable]):
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (field1,)
-        self.validate_object = validate_object
+        ...  # pragma: no cover
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys({self.dv_fields[0][0]}, data)
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict2KeysValidator(Generic[T1, T2, Ret], Validator[Any, Ret, Serializable]):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
+    @overload
     def __init__(
         self,
         into: Callable[[T1, T2], Ret],
         field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
+        field2: Optional[KeyValidator[T2]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-        )
-        self.validate_object = validate_object
+        ...  # pragma: no cover
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {self.dv_fields[0][0], self.dv_fields[1][0]}, data
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict3KeysValidator(Generic[T1, T2, T3, Ret], Validator[Any, Ret, Serializable]):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
+    @overload
     def __init__(
         self,
         into: Callable[[T1, T2, T3], Ret],
         field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-        )
-        self.validate_object = validate_object
+        ...  # pragma: no cover
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {self.dv_fields[0][0], self.dv_fields[1][0], self.dv_fields[2][0]}, data
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict4KeysValidator(Generic[T1, T2, T3, T4, Ret], Validator[Any, Ret, Serializable]):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
+    @overload
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4], Ret],
         field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-        )
-        self.validate_object = validate_object
+        ...  # pragma: no cover
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict5KeysValidator(
-    Generic[T1, T2, T3, T4, T5, Ret], Validator[Any, Ret, Serializable]
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
+    @overload
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5], Ret],
         field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-        )
-        self.validate_object = validate_object
+        ...  # pragma: no cover
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict6KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, Ret], Validator[Any, Ret, Serializable]
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
+    @overload
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6], Ret],
         field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-        )
-        self.validate_object = validate_object
+        ...  # pragma: no cover
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict7KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, Ret], Validator[Any, Ret, Serializable]
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
+    @overload
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
         field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-        )
-        self.validate_object = validate_object
+        ...  # pragma: no cover
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict8KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, Ret], Validator[Any, Ret, Serializable]
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
+    @overload
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
         field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-        )
-        self.validate_object = validate_object
+        ...  # pragma: no cover
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict9KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret], Validator[Any, Ret, Serializable]
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
+    @overload
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
         field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-        )
-        self.validate_object = validate_object
+        ...  # pragma: no cover
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict10KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
+    @overload
     def __init__(
         self,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
         field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
         *,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-        )
-        self.validate_object = validate_object
-
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict11KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
+        ...  # pragma: no cover
 
     def __init__(
         self,
-        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+        into: Union[
+            Callable[[T1], Ret],
+            Callable[[T1, T2], Ret],
+            Callable[[T1, T2, T3], Ret],
+            Callable[[T1, T2, T3, T4], Ret],
+            Callable[[T1, T2, T3, T4, T5], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
+        ],
         field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
-        field11: KeyValidator[T11],
-        *,
+        field2: Optional[KeyValidator[T2]] = None,
+        field3: Optional[KeyValidator[T3]] = None,
+        field4: Optional[KeyValidator[T4]] = None,
+        field5: Optional[KeyValidator[T5]] = None,
+        field6: Optional[KeyValidator[T6]] = None,
+        field7: Optional[KeyValidator[T7]] = None,
+        field8: Optional[KeyValidator[T8]] = None,
+        field9: Optional[KeyValidator[T9]] = None,
+        field10: Optional[KeyValidator[T10]] = None,
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
+        """
+        unfortunately, we have to have this be `Any` until
+        we're using variadic generics -- or we could generate lots of classes
+        """
+        self.fields: Tuple[KeyValidator[Any], ...] = tuple(
+            f
+            for f in (
+                field1,
+                field2,
+                field3,
+                field4,
+                field5,
+                field6,
+                field7,
+                field8,
+                field9,
+                field10,
+            )
+            if f is not None
         )
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-            },
-            data,
-        )
+        if (
+            keys_result := _dict_without_extra_keys({k for k, _ in self.fields}, data)
+        ) is not None:
+            return keys_result
 
-        if isinstance(result, Err):
-            return result
+        args = []
+        errs: Optional[List[Tuple[str, Serializable]]] = None
+        for key_, validator in self.fields:
+            # optimized away the call to `koda.mapping_get`
+            if key_ in data:
+                result = validator(Just(data[key_]))
+            else:
+                result = validator(nothing)
+
+            # (slightly) optimized; can be simplified if needed
+            if isinstance(result, Err):
+                err = (str(key_), result.val)
+                if errs is None:
+                    errs = [err]
+                else:
+                    errs.append(err)
+            elif errs is None:
+                args.append(result.val)
+
+        if errs and len(errs) > 0:
+            return Err(_tuples_to_json_dict(errs))
         else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-                _validate_with_key(self.dv_fields[10], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
+            obj = self.into(*args)
+            if self.validate_object is None:
+                return Ok(obj)
+            else:
+                return self.validate_object(obj)
 
 
-class Dict12KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
+class DictValidatorAny(Validator[Any, Any, Serializable]):
+    """
+    This differs from DictValidator in a few ways:
+    - if valid, it returns a dict; it does not allow another target to be specified
+    - it does not narrow the types of keys / values. It always returns
+    `Dict[Hashable, Any]`
+    - it allows for any number of `KeyValidator`s
+
+    This class exists for two reasons:
+    - because the overloads we use to define `DictValidator` get very slow
+    for type checkers beyond a certain point, sa we have a max number of
+    type-checkable keys
+    - if you don't care about the types in the target object
+
+    VALIDATION WILL STILL WORK PROPERLY, but there won't be much type hinting
+    assistance.
+    """
+
+    __slots__ = ("fields", "validate_object")
+    __match_args__ = ("fields", "validate_object")
 
     def __init__(
         self,
-        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
-        field11: KeyValidator[T11],
-        field12: KeyValidator[T12],
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        *fields: KeyValidator[Any],
+        validate_object: Optional[
+            Callable[[Dict[Hashable, Any]], Result[Dict[Hashable, Any], Serializable]]
+        ] = None,
     ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-        )
+        self.fields: Tuple[KeyValidator[Any], ...] = fields
         self.validate_object = validate_object
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-            },
-            data,
-        )
+    def __call__(self, data: Any) -> Result[Dict[Hashable, Any], Serializable]:
+        if (
+            keys_result := _dict_without_extra_keys({k for k, _ in self.fields}, data)
+        ) is not None:
+            return keys_result
 
-        if isinstance(result, Err):
-            return result
+        success_dict: Dict[Hashable, Any] = {}
+        errs: Optional[List[Tuple[str, Serializable]]] = None
+        for key_, validator in self.fields:
+            # optimized away the call to `koda.mapping_get`
+            if key_ in data:
+                result = validator(Just(data[key_]))
+            else:
+                result = validator(nothing)
+
+            # (slightly) optimized; can be simplified if needed
+            if isinstance(result, Err):
+                err = (str(key_), result.val)
+                if errs is None:
+                    errs = [err]
+                else:
+                    errs.append(err)
+            elif errs is None:
+                success_dict[key_] = result.val
+
+        if errs and len(errs) > 0:
+            return Err(_tuples_to_json_dict(errs))
         else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-                _validate_with_key(self.dv_fields[10], result.val),
-                _validate_with_key(self.dv_fields[11], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict13KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
-    def __init__(
-        self,
-        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
-        field11: KeyValidator[T11],
-        field12: KeyValidator[T12],
-        field13: KeyValidator[T13],
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-    ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-        )
-        self.validate_object = validate_object
-
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-                _validate_with_key(self.dv_fields[10], result.val),
-                _validate_with_key(self.dv_fields[11], result.val),
-                _validate_with_key(self.dv_fields[12], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict14KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
-    def __init__(
-        self,
-        into: Callable[
-            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret
-        ],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
-        field11: KeyValidator[T11],
-        field12: KeyValidator[T12],
-        field13: KeyValidator[T13],
-        field14: KeyValidator[T14],
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-    ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-        )
-        self.validate_object = validate_object
-
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-                _validate_with_key(self.dv_fields[10], result.val),
-                _validate_with_key(self.dv_fields[11], result.val),
-                _validate_with_key(self.dv_fields[12], result.val),
-                _validate_with_key(self.dv_fields[13], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict15KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
-    def __init__(
-        self,
-        into: Callable[
-            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
-        ],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
-        field11: KeyValidator[T11],
-        field12: KeyValidator[T12],
-        field13: KeyValidator[T13],
-        field14: KeyValidator[T14],
-        field15: KeyValidator[T15],
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-    ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-        )
-        self.validate_object = validate_object
-
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-                _validate_with_key(self.dv_fields[10], result.val),
-                _validate_with_key(self.dv_fields[11], result.val),
-                _validate_with_key(self.dv_fields[12], result.val),
-                _validate_with_key(self.dv_fields[13], result.val),
-                _validate_with_key(self.dv_fields[14], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict16KeysValidator(
-    Generic[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
-    def __init__(
-        self,
-        into: Callable[
-            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
-        ],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
-        field11: KeyValidator[T11],
-        field12: KeyValidator[T12],
-        field13: KeyValidator[T13],
-        field14: KeyValidator[T14],
-        field15: KeyValidator[T15],
-        field16: KeyValidator[T16],
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-    ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            field16,
-        )
-        self.validate_object = validate_object
-
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-                self.dv_fields[15][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-                _validate_with_key(self.dv_fields[10], result.val),
-                _validate_with_key(self.dv_fields[11], result.val),
-                _validate_with_key(self.dv_fields[12], result.val),
-                _validate_with_key(self.dv_fields[13], result.val),
-                _validate_with_key(self.dv_fields[14], result.val),
-                _validate_with_key(self.dv_fields[15], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict17KeysValidator(
-    Generic[
-        T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret
-    ],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
-    def __init__(
-        self,
-        into: Callable[
-            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17],
-            Ret,
-        ],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
-        field11: KeyValidator[T11],
-        field12: KeyValidator[T12],
-        field13: KeyValidator[T13],
-        field14: KeyValidator[T14],
-        field15: KeyValidator[T15],
-        field16: KeyValidator[T16],
-        field17: KeyValidator[T17],
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-    ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            field16,
-            field17,
-        )
-        self.validate_object = validate_object
-
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-                self.dv_fields[15][0],
-                self.dv_fields[16][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-                _validate_with_key(self.dv_fields[10], result.val),
-                _validate_with_key(self.dv_fields[11], result.val),
-                _validate_with_key(self.dv_fields[12], result.val),
-                _validate_with_key(self.dv_fields[13], result.val),
-                _validate_with_key(self.dv_fields[14], result.val),
-                _validate_with_key(self.dv_fields[15], result.val),
-                _validate_with_key(self.dv_fields[16], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict18KeysValidator(
-    Generic[
-        T1,
-        T2,
-        T3,
-        T4,
-        T5,
-        T6,
-        T7,
-        T8,
-        T9,
-        T10,
-        T11,
-        T12,
-        T13,
-        T14,
-        T15,
-        T16,
-        T17,
-        T18,
-        Ret,
-    ],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
-    def __init__(
-        self,
-        into: Callable[
-            [
-                T1,
-                T2,
-                T3,
-                T4,
-                T5,
-                T6,
-                T7,
-                T8,
-                T9,
-                T10,
-                T11,
-                T12,
-                T13,
-                T14,
-                T15,
-                T16,
-                T17,
-                T18,
-            ],
-            Ret,
-        ],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
-        field11: KeyValidator[T11],
-        field12: KeyValidator[T12],
-        field13: KeyValidator[T13],
-        field14: KeyValidator[T14],
-        field15: KeyValidator[T15],
-        field16: KeyValidator[T16],
-        field17: KeyValidator[T17],
-        field18: KeyValidator[T18],
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-    ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            field16,
-            field17,
-            field18,
-        )
-        self.validate_object = validate_object
-
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-                self.dv_fields[15][0],
-                self.dv_fields[16][0],
-                self.dv_fields[17][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-                _validate_with_key(self.dv_fields[10], result.val),
-                _validate_with_key(self.dv_fields[11], result.val),
-                _validate_with_key(self.dv_fields[12], result.val),
-                _validate_with_key(self.dv_fields[13], result.val),
-                _validate_with_key(self.dv_fields[14], result.val),
-                _validate_with_key(self.dv_fields[15], result.val),
-                _validate_with_key(self.dv_fields[16], result.val),
-                _validate_with_key(self.dv_fields[17], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict19KeysValidator(
-    Generic[
-        T1,
-        T2,
-        T3,
-        T4,
-        T5,
-        T6,
-        T7,
-        T8,
-        T9,
-        T10,
-        T11,
-        T12,
-        T13,
-        T14,
-        T15,
-        T16,
-        T17,
-        T18,
-        T19,
-        Ret,
-    ],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
-    def __init__(
-        self,
-        into: Callable[
-            [
-                T1,
-                T2,
-                T3,
-                T4,
-                T5,
-                T6,
-                T7,
-                T8,
-                T9,
-                T10,
-                T11,
-                T12,
-                T13,
-                T14,
-                T15,
-                T16,
-                T17,
-                T18,
-                T19,
-            ],
-            Ret,
-        ],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
-        field11: KeyValidator[T11],
-        field12: KeyValidator[T12],
-        field13: KeyValidator[T13],
-        field14: KeyValidator[T14],
-        field15: KeyValidator[T15],
-        field16: KeyValidator[T16],
-        field17: KeyValidator[T17],
-        field18: KeyValidator[T18],
-        field19: KeyValidator[T19],
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-    ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            field16,
-            field17,
-            field18,
-            field19,
-        )
-        self.validate_object = validate_object
-
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-                self.dv_fields[15][0],
-                self.dv_fields[16][0],
-                self.dv_fields[17][0],
-                self.dv_fields[18][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-                _validate_with_key(self.dv_fields[10], result.val),
-                _validate_with_key(self.dv_fields[11], result.val),
-                _validate_with_key(self.dv_fields[12], result.val),
-                _validate_with_key(self.dv_fields[13], result.val),
-                _validate_with_key(self.dv_fields[14], result.val),
-                _validate_with_key(self.dv_fields[15], result.val),
-                _validate_with_key(self.dv_fields[16], result.val),
-                _validate_with_key(self.dv_fields[17], result.val),
-                _validate_with_key(self.dv_fields[18], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-class Dict20KeysValidator(
-    Generic[
-        T1,
-        T2,
-        T3,
-        T4,
-        T5,
-        T6,
-        T7,
-        T8,
-        T9,
-        T10,
-        T11,
-        T12,
-        T13,
-        T14,
-        T15,
-        T16,
-        T17,
-        T18,
-        T19,
-        T20,
-        Ret,
-    ],
-    Validator[Any, Ret, Serializable],
-):
-    __match_args__: Tuple[str, ...] = ("dv_fields",)
-
-    def __init__(
-        self,
-        into: Callable[
-            [
-                T1,
-                T2,
-                T3,
-                T4,
-                T5,
-                T6,
-                T7,
-                T8,
-                T9,
-                T10,
-                T11,
-                T12,
-                T13,
-                T14,
-                T15,
-                T16,
-                T17,
-                T18,
-                T19,
-                T20,
-            ],
-            Ret,
-        ],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
-        field11: KeyValidator[T11],
-        field12: KeyValidator[T12],
-        field13: KeyValidator[T13],
-        field14: KeyValidator[T14],
-        field15: KeyValidator[T15],
-        field16: KeyValidator[T16],
-        field17: KeyValidator[T17],
-        field18: KeyValidator[T18],
-        field19: KeyValidator[T19],
-        field20: KeyValidator[T20],
-        *,
-        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-    ) -> None:
-        self.into = into
-        self.dv_fields = (
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            field16,
-            field17,
-            field18,
-            field19,
-            field20,
-        )
-        self.validate_object = validate_object
-
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-            {
-                self.dv_fields[0][0],
-                self.dv_fields[1][0],
-                self.dv_fields[2][0],
-                self.dv_fields[3][0],
-                self.dv_fields[4][0],
-                self.dv_fields[5][0],
-                self.dv_fields[6][0],
-                self.dv_fields[7][0],
-                self.dv_fields[8][0],
-                self.dv_fields[9][0],
-                self.dv_fields[10][0],
-                self.dv_fields[11][0],
-                self.dv_fields[12][0],
-                self.dv_fields[13][0],
-                self.dv_fields[14][0],
-                self.dv_fields[15][0],
-                self.dv_fields[16][0],
-                self.dv_fields[17][0],
-                self.dv_fields[18][0],
-                self.dv_fields[19][0],
-            },
-            data,
-        )
-
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-                _validate_with_key(self.dv_fields[0], result.val),
-                _validate_with_key(self.dv_fields[1], result.val),
-                _validate_with_key(self.dv_fields[2], result.val),
-                _validate_with_key(self.dv_fields[3], result.val),
-                _validate_with_key(self.dv_fields[4], result.val),
-                _validate_with_key(self.dv_fields[5], result.val),
-                _validate_with_key(self.dv_fields[6], result.val),
-                _validate_with_key(self.dv_fields[7], result.val),
-                _validate_with_key(self.dv_fields[8], result.val),
-                _validate_with_key(self.dv_fields[9], result.val),
-                _validate_with_key(self.dv_fields[10], result.val),
-                _validate_with_key(self.dv_fields[11], result.val),
-                _validate_with_key(self.dv_fields[12], result.val),
-                _validate_with_key(self.dv_fields[13], result.val),
-                _validate_with_key(self.dv_fields[14], result.val),
-                _validate_with_key(self.dv_fields[15], result.val),
-                _validate_with_key(self.dv_fields[16], result.val),
-                _validate_with_key(self.dv_fields[17], result.val),
-                _validate_with_key(self.dv_fields[18], result.val),
-                _validate_with_key(self.dv_fields[19], result.val),
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1], Ret],
-    field1: KeyValidator[T1],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4, T5], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4, T5, T6], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    field11: KeyValidator[T11],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    field11: KeyValidator[T11],
-    field12: KeyValidator[T12],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    field11: KeyValidator[T11],
-    field12: KeyValidator[T12],
-    field13: KeyValidator[T13],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    field11: KeyValidator[T11],
-    field12: KeyValidator[T12],
-    field13: KeyValidator[T13],
-    field14: KeyValidator[T14],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[
-        [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
-    ],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    field11: KeyValidator[T11],
-    field12: KeyValidator[T12],
-    field13: KeyValidator[T13],
-    field14: KeyValidator[T14],
-    field15: KeyValidator[T15],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[
-        [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
-    ],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    field11: KeyValidator[T11],
-    field12: KeyValidator[T12],
-    field13: KeyValidator[T13],
-    field14: KeyValidator[T14],
-    field15: KeyValidator[T15],
-    field16: KeyValidator[T16],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[
-        [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17], Ret
-    ],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    field11: KeyValidator[T11],
-    field12: KeyValidator[T12],
-    field13: KeyValidator[T13],
-    field14: KeyValidator[T14],
-    field15: KeyValidator[T15],
-    field16: KeyValidator[T16],
-    field17: KeyValidator[T17],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[
-        [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18],
-        Ret,
-    ],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    field11: KeyValidator[T11],
-    field12: KeyValidator[T12],
-    field13: KeyValidator[T13],
-    field14: KeyValidator[T14],
-    field15: KeyValidator[T15],
-    field16: KeyValidator[T16],
-    field17: KeyValidator[T17],
-    field18: KeyValidator[T18],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[
-        [
-            T1,
-            T2,
-            T3,
-            T4,
-            T5,
-            T6,
-            T7,
-            T8,
-            T9,
-            T10,
-            T11,
-            T12,
-            T13,
-            T14,
-            T15,
-            T16,
-            T17,
-            T18,
-            T19,
-        ],
-        Ret,
-    ],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    field11: KeyValidator[T11],
-    field12: KeyValidator[T12],
-    field13: KeyValidator[T13],
-    field14: KeyValidator[T14],
-    field15: KeyValidator[T15],
-    field16: KeyValidator[T16],
-    field17: KeyValidator[T17],
-    field18: KeyValidator[T18],
-    field19: KeyValidator[T19],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-@overload
-def dict_validator(
-    into: Callable[
-        [
-            T1,
-            T2,
-            T3,
-            T4,
-            T5,
-            T6,
-            T7,
-            T8,
-            T9,
-            T10,
-            T11,
-            T12,
-            T13,
-            T14,
-            T15,
-            T16,
-            T17,
-            T18,
-            T19,
-            T20,
-        ],
-        Ret,
-    ],
-    field1: KeyValidator[T1],
-    field2: KeyValidator[T2],
-    field3: KeyValidator[T3],
-    field4: KeyValidator[T4],
-    field5: KeyValidator[T5],
-    field6: KeyValidator[T6],
-    field7: KeyValidator[T7],
-    field8: KeyValidator[T8],
-    field9: KeyValidator[T9],
-    field10: KeyValidator[T10],
-    field11: KeyValidator[T11],
-    field12: KeyValidator[T12],
-    field13: KeyValidator[T13],
-    field14: KeyValidator[T14],
-    field15: KeyValidator[T15],
-    field16: KeyValidator[T16],
-    field17: KeyValidator[T17],
-    field18: KeyValidator[T18],
-    field19: KeyValidator[T19],
-    field20: KeyValidator[T20],
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-
-
-def dict_validator(
-    into: Union[
-        Callable[[T1], Ret],
-        Callable[[T1, T2], Ret],
-        Callable[[T1, T2, T3], Ret],
-        Callable[[T1, T2, T3, T4], Ret],
-        Callable[[T1, T2, T3, T4, T5], Ret],
-        Callable[[T1, T2, T3, T4, T5, T6], Ret],
-        Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
-        Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
-        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
-        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
-        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
-        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
-        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
-        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret],
-        Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret],
-        Callable[
-            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
-        ],
-        Callable[
-            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17],
-            Ret,
-        ],
-        Callable[
-            [
-                T1,
-                T2,
-                T3,
-                T4,
-                T5,
-                T6,
-                T7,
-                T8,
-                T9,
-                T10,
-                T11,
-                T12,
-                T13,
-                T14,
-                T15,
-                T16,
-                T17,
-                T18,
-            ],
-            Ret,
-        ],
-        Callable[
-            [
-                T1,
-                T2,
-                T3,
-                T4,
-                T5,
-                T6,
-                T7,
-                T8,
-                T9,
-                T10,
-                T11,
-                T12,
-                T13,
-                T14,
-                T15,
-                T16,
-                T17,
-                T18,
-                T19,
-            ],
-            Ret,
-        ],
-        Callable[
-            [
-                T1,
-                T2,
-                T3,
-                T4,
-                T5,
-                T6,
-                T7,
-                T8,
-                T9,
-                T10,
-                T11,
-                T12,
-                T13,
-                T14,
-                T15,
-                T16,
-                T17,
-                T18,
-                T19,
-                T20,
-            ],
-            Ret,
-        ],
-    ],
-    field1: KeyValidator[T1],
-    field2: Optional[KeyValidator[T2]] = None,
-    field3: Optional[KeyValidator[T3]] = None,
-    field4: Optional[KeyValidator[T4]] = None,
-    field5: Optional[KeyValidator[T5]] = None,
-    field6: Optional[KeyValidator[T6]] = None,
-    field7: Optional[KeyValidator[T7]] = None,
-    field8: Optional[KeyValidator[T8]] = None,
-    field9: Optional[KeyValidator[T9]] = None,
-    field10: Optional[KeyValidator[T10]] = None,
-    field11: Optional[KeyValidator[T11]] = None,
-    field12: Optional[KeyValidator[T12]] = None,
-    field13: Optional[KeyValidator[T13]] = None,
-    field14: Optional[KeyValidator[T14]] = None,
-    field15: Optional[KeyValidator[T15]] = None,
-    field16: Optional[KeyValidator[T16]] = None,
-    field17: Optional[KeyValidator[T17]] = None,
-    field18: Optional[KeyValidator[T18]] = None,
-    field19: Optional[KeyValidator[T19]] = None,
-    field20: Optional[KeyValidator[T20]] = None,
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-
-    if field2 is None:
-        return Dict1KeysValidator(
-            cast(Callable[[T1], Ret], into), field1, validate_object=validate_object
-        )
-    elif field3 is None:
-        return Dict2KeysValidator(
-            cast(Callable[[T1, T2], Ret], into),
-            field1,
-            field2,
-            validate_object=validate_object,
-        )
-
-    elif field4 is None:
-        return Dict3KeysValidator(
-            cast(Callable[[T1, T2, T3], Ret], into),
-            field1,
-            field2,
-            field3,
-            validate_object=validate_object,
-        )
-
-    elif field5 is None:
-        return Dict4KeysValidator(
-            cast(Callable[[T1, T2, T3, T4], Ret], into),
-            field1,
-            field2,
-            field3,
-            field4,
-            validate_object=validate_object,
-        )
-
-    elif field6 is None:
-        return Dict5KeysValidator(
-            cast(Callable[[T1, T2, T3, T4, T5], Ret], into),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            validate_object=validate_object,
-        )
-
-    elif field7 is None:
-        return Dict6KeysValidator(
-            cast(Callable[[T1, T2, T3, T4, T5, T6], Ret], into),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            validate_object=validate_object,
-        )
-
-    elif field8 is None:
-        return Dict7KeysValidator(
-            cast(Callable[[T1, T2, T3, T4, T5, T6, T7], Ret], into),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            validate_object=validate_object,
-        )
-
-    elif field9 is None:
-        return Dict8KeysValidator(
-            cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret], into),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            validate_object=validate_object,
-        )
-
-    elif field10 is None:
-        return Dict9KeysValidator(
-            cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret], into),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            validate_object=validate_object,
-        )
-
-    elif field11 is None:
-        return Dict10KeysValidator(
-            cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret], into),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            validate_object=validate_object,
-        )
-
-    elif field12 is None:
-        return Dict11KeysValidator(
-            cast(Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret], into),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            validate_object=validate_object,
-        )
-
-    elif field13 is None:
-        return Dict12KeysValidator(
-            cast(
-                Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret], into
-            ),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            validate_object=validate_object,
-        )
-
-    elif field14 is None:
-        return Dict13KeysValidator(
-            cast(
-                Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
-                into,
-            ),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            validate_object=validate_object,
-        )
-
-    elif field15 is None:
-        return Dict14KeysValidator(
-            cast(
-                Callable[
-                    [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret
-                ],
-                into,
-            ),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            validate_object=validate_object,
-        )
-
-    elif field16 is None:
-        return Dict15KeysValidator(
-            cast(
-                Callable[
-                    [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15],
-                    Ret,
-                ],
-                into,
-            ),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            validate_object=validate_object,
-        )
-
-    elif field17 is None:
-        return Dict16KeysValidator(
-            cast(
-                Callable[
-                    [
-                        T1,
-                        T2,
-                        T3,
-                        T4,
-                        T5,
-                        T6,
-                        T7,
-                        T8,
-                        T9,
-                        T10,
-                        T11,
-                        T12,
-                        T13,
-                        T14,
-                        T15,
-                        T16,
-                    ],
-                    Ret,
-                ],
-                into,
-            ),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            field16,
-            validate_object=validate_object,
-        )
-
-    elif field18 is None:
-        return Dict17KeysValidator(
-            cast(
-                Callable[
-                    [
-                        T1,
-                        T2,
-                        T3,
-                        T4,
-                        T5,
-                        T6,
-                        T7,
-                        T8,
-                        T9,
-                        T10,
-                        T11,
-                        T12,
-                        T13,
-                        T14,
-                        T15,
-                        T16,
-                        T17,
-                    ],
-                    Ret,
-                ],
-                into,
-            ),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            field16,
-            field17,
-            validate_object=validate_object,
-        )
-
-    elif field19 is None:
-        return Dict18KeysValidator(
-            cast(
-                Callable[
-                    [
-                        T1,
-                        T2,
-                        T3,
-                        T4,
-                        T5,
-                        T6,
-                        T7,
-                        T8,
-                        T9,
-                        T10,
-                        T11,
-                        T12,
-                        T13,
-                        T14,
-                        T15,
-                        T16,
-                        T17,
-                        T18,
-                    ],
-                    Ret,
-                ],
-                into,
-            ),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            field16,
-            field17,
-            field18,
-            validate_object=validate_object,
-        )
-
-    elif field20 is None:
-        return Dict19KeysValidator(
-            cast(
-                Callable[
-                    [
-                        T1,
-                        T2,
-                        T3,
-                        T4,
-                        T5,
-                        T6,
-                        T7,
-                        T8,
-                        T9,
-                        T10,
-                        T11,
-                        T12,
-                        T13,
-                        T14,
-                        T15,
-                        T16,
-                        T17,
-                        T18,
-                        T19,
-                    ],
-                    Ret,
-                ],
-                into,
-            ),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            field16,
-            field17,
-            field18,
-            field19,
-            validate_object=validate_object,
-        )
-
-    else:
-        return Dict20KeysValidator(
-            cast(
-                Callable[
-                    [
-                        T1,
-                        T2,
-                        T3,
-                        T4,
-                        T5,
-                        T6,
-                        T7,
-                        T8,
-                        T9,
-                        T10,
-                        T11,
-                        T12,
-                        T13,
-                        T14,
-                        T15,
-                        T16,
-                        T17,
-                        T18,
-                        T19,
-                        T20,
-                    ],
-                    Ret,
-                ],
-                into,
-            ),
-            field1,
-            field2,
-            field3,
-            field4,
-            field5,
-            field6,
-            field7,
-            field8,
-            field9,
-            field10,
-            field11,
-            field12,
-            field13,
-            field14,
-            field15,
-            field16,
-            field17,
-            field18,
-            field19,
-            field20,
-            validate_object=validate_object,
-        )
+            if self.validate_object is None:
+                return Ok(success_dict)
+            else:
+                return self.validate_object(success_dict)

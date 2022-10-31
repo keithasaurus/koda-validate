@@ -1,21 +1,22 @@
-from dataclasses import dataclass
-from typing import Any, Tuple
+from typing import Any
 
-from koda import Err, Result
+from koda import Err, Ok, Result
 
 from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import accum_errors_serializable, expected
+from koda_validate.utils import accum_errors
 
 
-@dataclass(init=False, frozen=True)
 class BooleanValidator(Validator[Any, bool, Serializable]):
-    predicates: Tuple[Predicate[bool, Serializable], ...]
+    __slots__ = ("predicates",)
+    __match_args__ = ("predicates",)
 
     def __init__(self, *predicates: Predicate[bool, Serializable]) -> None:
-        object.__setattr__(self, "predicates", predicates)
+        self.predicates = predicates
 
     def __call__(self, val: Any) -> Result[bool, Serializable]:
         if isinstance(val, bool):
-            return accum_errors_serializable(val, self.predicates)
+            if len(self.predicates) == 0:
+                return Ok(val)
+            return accum_errors(val, self.predicates)
         else:
-            return Err([expected("a boolean")])
+            return Err(["expected a boolean"])

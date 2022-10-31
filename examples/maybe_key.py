@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from koda import Just, Maybe, Ok, nothing
 
-from koda_validate import IntValidator, StringValidator, dict_validator, key, maybe_key
+from koda_validate import DictValidator, IntValidator, StringValidator, key, maybe_key
 
 
 @dataclass
@@ -11,7 +11,7 @@ class Person:
     age: Maybe[int]
 
 
-person_validator = dict_validator(
+person_validator = DictValidator(
     Person, key("name", StringValidator()), maybe_key("age", IntValidator())
 )
 assert person_validator({"name": "Bob"}) == Ok(Person("Bob", nothing))

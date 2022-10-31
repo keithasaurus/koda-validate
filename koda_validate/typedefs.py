@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from abc import abstractmethod
 from typing import Any, Dict, Generic, List, Tuple, Union, final
 
@@ -22,7 +20,7 @@ class Validator(Generic[A, B, FailT]):
     """
 
     @abstractmethod
-    def __call__(self, val: A) -> Result[B, FailT]:
+    def __call__(self, val: A) -> Result[B, FailT]:  # pragma: no cover
         raise NotImplementedError
 
     @final
@@ -54,7 +52,7 @@ class Predicate(Generic[A, FailT]):
     """
 
     @abstractmethod
-    def is_valid(self, val: A) -> bool:
+    def is_valid(self, val: A) -> bool:  # pragma: no cover
         raise NotImplementedError
 
     @abstractmethod
@@ -115,5 +113,5 @@ Serializable = Union[
 
 class Processor(Generic[A]):
     @abstractmethod
-    def __call__(self, val: A) -> A:
+    def __call__(self, val: A) -> A:  # pragma: no cover
         raise NotImplementedError

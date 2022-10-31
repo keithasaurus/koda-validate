@@ -85,9 +85,3 @@ def test_not_blank() -> None:
 def test_email() -> None:
     assert EmailPredicate()("notanemail") == Err("expected a valid email address")
     assert EmailPredicate()("a@b.com") == Ok("a@b.com")
-
-    custom_regex_validator = EmailPredicate(re.compile(r"[a-z.]+@somecompany\.com"))
-    assert custom_regex_validator("a.b@somecompany.com") == Ok("a.b@somecompany.com")
-    assert custom_regex_validator("a.b@example.com") == Err(
-        "expected a valid email address"
-    )

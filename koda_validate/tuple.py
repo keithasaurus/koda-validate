@@ -1,12 +1,18 @@
+"""
+We should replace Tuple2Validator and Tuple3Validator
+with a generic TupleValidator... (2 and 3 can still use the new one
+under the hood, if needed)
+"""
+
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from koda import Err, Result
 
 from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
+from koda_validate._validate_and_map import validate_and_map
 from koda_validate.typedefs import Serializable, Validator
-from koda_validate.utils import OBJECT_ERRORS_FIELD, expected
-from koda_validate.validate_and_map import validate_and_map
+from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
 def _tuple_to_dict_errors(errs: Tuple[Serializable, ...]) -> Dict[str, Serializable]:
@@ -16,6 +22,9 @@ def _tuple_to_dict_errors(errs: Tuple[Serializable, ...]) -> Dict[str, Serializa
 # todo: auto-generate
 class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
     required_length: int = 2
+
+    __match_args__ = ("slot1_validator", "slot2_validator", "tuple_validator")
+    __slots__ = __match_args__
 
     def __init__(
         self,
@@ -48,7 +57,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
             return Err(
                 {
                     OBJECT_ERRORS_FIELD: [
-                        expected(f"list or tuple of length {self.required_length}")
+                        f"expected list or tuple of length {self.required_length}"
                     ]
                 }
             )
@@ -56,6 +65,13 @@ class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
 
 class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
     required_length: int = 3
+    __match_args__ = (
+        "slot1_validator",
+        "slot2_validator",
+        "slot3_validator",
+        "tuple_validator",
+    )
+    __slots__ = __match_args__
 
     def __init__(
         self,
@@ -91,7 +107,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
             return Err(
                 {
                     OBJECT_ERRORS_FIELD: [
-                        expected(f"list or tuple of length {self.required_length}")
+                        f"expected list or tuple of length {self.required_length}"
                     ]
                 }
             )

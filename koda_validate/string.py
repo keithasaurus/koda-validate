@@ -2,39 +2,45 @@ import re
 from dataclasses import dataclass
 from typing import Any, Final, List, Optional, Pattern, Tuple
 
-from koda import Err, Result
+from koda import Err, Ok, Result
 
 from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
-from koda_validate.utils import accum_errors_serializable, expected
+from koda_validate.utils import accum_errors
+
+EXPECTED_STR_ERR: Final[Err[Serializable]] = Err(["expected a string"])
 
 
-@dataclass(init=False, frozen=True)
 class StringValidator(Validator[Any, str, Serializable]):
-    predicates: Tuple[Predicate[str, Serializable], ...]
-    preprocessors: Optional[List[Processor[str]]]
+    __slots__ = ("predicates", "preprocessors")
+    __match_args__ = ("predicates", "preprocessors")
 
     def __init__(
         self,
         *predicates: Predicate[str, Serializable],
         preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
-        object.__setattr__(self, "predicates", predicates)
-        object.__setattr__(self, "preprocessors", preprocessors)
+        self.predicates: Tuple[Predicate[str, Serializable], ...] = predicates
+        self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[str, Serializable]:
         if isinstance(val, str):
             if self.preprocessors is not None:
                 for preprocess in self.preprocessors:
                     val = preprocess(val)
-
-            return accum_errors_serializable(val, self.predicates)
+            if len(self.predicates) > 0:
+                return accum_errors(val, self.predicates)
+            else:
+                return Ok(val)
         else:
-            return Err([expected("a string")])
+            return EXPECTED_STR_ERR
 
 
-@dataclass(frozen=True)
 class RegexPredicate(Predicate[str, Serializable]):
-    pattern: Pattern[str]
+    __slots__ = ("pattern",)
+    __match_args__ = ("pattern",)
+
+    def __init__(self, pattern: Pattern[str]) -> None:
+        self.pattern: Pattern[str] = pattern
 
     def is_valid(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
@@ -43,7 +49,6 @@ class RegexPredicate(Predicate[str, Serializable]):
         return rf"must match pattern {self.pattern.pattern}"
 
 
-@dataclass(frozen=True)
 class EmailPredicate(Predicate[str, Serializable]):
     pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
 

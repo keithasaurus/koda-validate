@@ -1,20 +1,22 @@
-from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Final, Optional
 
 from koda import Err, Ok, Result
 from koda._generics import A
 
 from koda_validate.typedefs import Serializable, Validator
-from koda_validate.utils import _variant_errors, expected
+from koda_validate.utils import _variant_errors
 
 
-@dataclass(frozen=True)
 class OptionalValidator(Validator[Any, Optional[A], Serializable]):
     """
     We have a value for a key, but it can be null (None)
     """
 
-    validator: Validator[Any, A, Serializable]
+    __slots__ = ("validator",)
+    __match_args__ = ("validator",)
+
+    def __init__(self, validator: Validator[Any, A, Serializable]) -> None:
+        self.validator = validator
 
     def __call__(self, val: Optional[Any]) -> Result[Optional[A], Serializable]:
         if val is None:
@@ -29,12 +31,15 @@ class OptionalValidator(Validator[Any, Optional[A], Serializable]):
                 )
 
 
+EXPECTED_NONE: Final[Err[Serializable]] = Err(["expected None"])
+
+
 class NoneValidator(Validator[Any, None, Serializable]):
     def __call__(self, val: Any) -> Result[None, Serializable]:
         if val is None:
             return Ok(val)
         else:
-            return Err([expected("null")])
+            return EXPECTED_NONE
 
 
 none_validator = NoneValidator()

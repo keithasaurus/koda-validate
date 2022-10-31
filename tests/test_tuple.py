@@ -2,14 +2,8 @@ from typing import Tuple
 
 from koda import Err, Ok, Result
 
-from koda_validate import (
-    BooleanValidator,
-    IntValidator,
-    Serializable,
-    StringValidator,
-    Tuple2Validator,
-    Tuple3Validator,
-)
+from koda_validate import BooleanValidator, IntValidator, Serializable, StringValidator
+from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 
 
 def test_tuple2() -> None:
@@ -40,7 +34,9 @@ def test_tuple2() -> None:
             return Ok(ab)
 
     a1_validator = Tuple2Validator(
-        StringValidator(), IntValidator(), must_be_a_if_integer_is_1
+        StringValidator(),
+        IntValidator(),
+        must_be_a_if_integer_is_1,
     )
 
     assert a1_validator(["a", 1]) == Ok(("a", 1))
@@ -87,7 +83,10 @@ def test_tuple3() -> None:
             return Ok(abc)
 
     a1_validator = Tuple3Validator(
-        StringValidator(), IntValidator(), BooleanValidator(), must_be_a_if_1_and_true
+        StringValidator(),
+        IntValidator(),
+        BooleanValidator(),
+        must_be_a_if_1_and_true,
     )
 
     assert a1_validator(["a", 1, True]) == Ok(("a", 1, True))

@@ -11,7 +11,7 @@ class Person:
     age: int
 
 
-person_validator = dict_validator(
+person_validator = DictValidator(
     Person,
     key("name", StringValidator()),
     key("age", IntValidator()),
@@ -34,7 +34,7 @@ class Group:
     people: list[Person]
 
 
-group_validator = dict_validator(
+group_validator = DictValidator(
     Group,
     key("name", StringValidator()),
     key("people", people_validator),

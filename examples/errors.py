@@ -20,7 +20,7 @@ class City:
     region: Maybe[str]
 
 
-city_validator = dict_validator(
+city_validator = DictValidator(
     City,
     key("name", StringValidator(not_blank)),
     maybe_key("region", StringValidator(not_blank)),
@@ -35,7 +35,7 @@ assert city_validator({}) == Err({"name": ["key missing"]})
 # Extra keys are also errors
 assert city_validator(
     {"region": "California", "population": 510, "country": "USA"}
-) == Err({"__container__": ["Received unknown keys. Only expected ['name', 'region']"]})
+) == Err({"__container__": ["Received unknown keys. Only expected 'name', 'region'."]})
 
 
 @dataclass
@@ -44,7 +44,7 @@ class Neighborhood:
     city: City
 
 
-neighborhood_validator = dict_validator(
+neighborhood_validator = DictValidator(
     Neighborhood, key("name", StringValidator(not_blank)), key("city", city_validator)
 )
 

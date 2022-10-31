@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from koda import Just, Maybe, Ok, nothing
 
 from koda_validate import IntValidator, Lazy, key, maybe_key
-from koda_validate.dictionary import Dict2KeysValidator
+from koda_validate.dictionary import DictValidator
 
 
 def test_lazy() -> None:
@@ -12,14 +12,10 @@ def test_lazy() -> None:
         val: int
         next: Maybe["TestNonEmptyList"]  # noqa: F821
 
-    def recur_tnel() -> Dict2KeysValidator[
-        int, Maybe[TestNonEmptyList], TestNonEmptyList
-    ]:
+    def recur_tnel() -> DictValidator[TestNonEmptyList]:
         return nel_validator
 
-    nel_validator: Dict2KeysValidator[
-        int, Maybe[TestNonEmptyList], TestNonEmptyList
-    ] = Dict2KeysValidator(
+    nel_validator: DictValidator[TestNonEmptyList] = DictValidator(
         TestNonEmptyList,
         key("val", IntValidator()),
         maybe_key("next", Lazy(recur_tnel)),

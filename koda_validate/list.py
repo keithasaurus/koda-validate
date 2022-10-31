@@ -1,16 +1,18 @@
-from dataclasses import dataclass
 from typing import Any, Dict, List, Set, Tuple, Type
 
 from koda import Err, Ok, Result
 from koda._generics import A
 
 from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import OBJECT_ERRORS_FIELD, expected
+from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
-@dataclass(frozen=True)
 class MinItems(Predicate[List[Any], Serializable]):
-    length: int
+    __match_args__ = ("length",)
+    __slots__ = ("length",)
+
+    def __init__(self, length: int) -> None:
+        self.length = length
 
     def is_valid(self, val: List[Any]) -> bool:
         return len(val) >= self.length
@@ -19,9 +21,12 @@ class MinItems(Predicate[List[Any], Serializable]):
         return f"minimum allowed length is {self.length}"
 
 
-@dataclass(frozen=True)
 class MaxItems(Predicate[List[Any], Serializable]):
-    length: int
+    __match_args__ = ("length",)
+    __slots__ = ("length",)
+
+    def __init__(self, length: int) -> None:
+        self.length = length
 
     def is_valid(self, val: List[Any]) -> bool:
         return len(val) <= self.length
@@ -56,18 +61,20 @@ class UniqueItems(Predicate[List[Any], Serializable]):
         return "all items must be unique"
 
 
-@dataclass(frozen=True, init=False)
+unique_items = UniqueItems()
+
+
 class ListValidator(Validator[Any, List[A], Serializable]):
-    item_validator: Validator[Any, A, Serializable]
-    list_validators: Tuple[Predicate[List[A], Serializable], ...]
+    __match_args__ = ("item_validator", "predicates")
+    __slots__ = ("item_validator", "predicates")
 
     def __init__(
         self,
         item_validator: Validator[Any, A, Serializable],
-        *list_validators: Predicate[List[A], Serializable],
+        *predicates: Predicate[List[A], Serializable],
     ) -> None:
-        object.__setattr__(self, "item_validator", item_validator)
-        object.__setattr__(self, "list_validators", list_validators)
+        self.item_validator = item_validator
+        self.predicates = predicates
 
     def __call__(self, val: Any) -> Result[List[A], Serializable]:
         if isinstance(val, list):
@@ -75,7 +82,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             errors: Dict[str, Serializable] = {}
 
             list_errors: List[Serializable] = []
-            for validator in self.list_validators:
+            for validator in self.predicates:
                 result = validator(val)
 
                 if isinstance(result, Err):
@@ -96,7 +103,4 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             else:
                 return Ok(return_list)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("a list")]})
-
-
-unique_items = UniqueItems()
+            return Err({OBJECT_ERRORS_FIELD: ["expected a list"]})

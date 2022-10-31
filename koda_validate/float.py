@@ -1,21 +1,25 @@
-from dataclasses import dataclass
-from typing import Any, Tuple
+from typing import Any, Final
 
-from koda import Err, Result
+from koda import Err, Ok, Result
 
 from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import accum_errors_serializable, expected
+from koda_validate.utils import accum_errors
+
+EXPECTED_FLOAT_ERR: Final[Err[Serializable]] = Err(["expected a float"])
 
 
-@dataclass(init=False, frozen=True)
 class FloatValidator(Validator[Any, float, Serializable]):
-    predicates: Tuple[Predicate[float, Serializable], ...]
+    __slots__ = ("predicates",)
+    __match_args__ = ("predicates",)
 
     def __init__(self, *predicates: Predicate[float, Serializable]) -> None:
-        object.__setattr__(self, "predicates", predicates)
+        self.predicates = predicates
 
     def __call__(self, val: Any) -> Result[float, Serializable]:
         if isinstance(val, float):
-            return accum_errors_serializable(val, self.predicates)
+            if len(self.predicates) == 0:
+                return Ok(val)
+            else:
+                return accum_errors(val, self.predicates)
         else:
-            return Err([expected("a float")])
+            return EXPECTED_FLOAT_ERR

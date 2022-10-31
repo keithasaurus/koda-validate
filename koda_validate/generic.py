@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, List, Optional, Set, TypeVar
@@ -9,15 +8,19 @@ from koda._generics import A
 
 from koda_validate._generics import Ret
 from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
-from koda_validate.utils import expected
 
 EnumT = TypeVar("EnumT", str, int)
 
 
-@dataclass(frozen=True, init=False)
 class Lazy(Validator[A, Ret, Serializable]):
-    validator: Thunk[Validator[A, Ret, Serializable]]
-    recurrent: bool = True
+    __match_args__ = (
+        "validator",
+        "recurrent",
+    )
+    __slots__ = (
+        "validator",
+        "recurrent",
+    )
 
     def __init__(
         self,
@@ -31,24 +34,24 @@ class Lazy(Validator[A, Ret, Serializable]):
                 is useful, so we can avoid infinite loops when traversing
                 over validators (i.e. for openapi generation)
         """
-        object.__setattr__(self, "validator", validator)
-        object.__setattr__(self, "recurrent", recurrent)
+        self.validator = validator
+        self.recurrent = recurrent
 
     def __call__(self, data: A) -> Result[Ret, Serializable]:
         return self.validator()(data)
 
 
-@dataclass(frozen=True, init=False)
 class Choices(Predicate[EnumT, Serializable]):
     """
     This only exists separately from a more generic form because
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
-    choices: Set[EnumT]
+    __slots__ = ("choices",)
+    __match_args__ = ("choices",)
 
     def __init__(self, choices: Set[EnumT]) -> None:
-        object.__setattr__(self, "choices", choices)
+        self.choices: Set[EnumT] = choices
 
     def is_valid(self, val: EnumT) -> bool:
         return val in self.choices
@@ -60,10 +63,16 @@ class Choices(Predicate[EnumT, Serializable]):
 Num = TypeVar("Num", int, float, Decimal)
 
 
-@dataclass(frozen=True)
 class Min(Predicate[Num, Serializable]):
-    minimum: Num
-    exclusive_minimum: bool = False
+    __slots__ = (
+        "minimum",
+        "exclusive_minimum",
+    )
+    __match_args__ = ("minimum", "exclusive_minimum")
+
+    def __init__(self, minimum: Num, exclusive_minimum: bool = False) -> None:
+        self.minimum: Num = minimum
+        self.exclusive_minimum = exclusive_minimum
 
     def is_valid(self, val: Num) -> bool:
         if self.exclusive_minimum:
@@ -76,10 +85,16 @@ class Min(Predicate[Num, Serializable]):
         return f"minimum allowed value{exclusive} is {self.minimum}"
 
 
-@dataclass(frozen=True)
 class Max(Predicate[Num, Serializable]):
-    maximum: Num
-    exclusive_maximum: bool = False
+    __slots__ = (
+        "maximum",
+        "exclusive_maximum",
+    )
+    __match_args__ = ("maximum", "exclusive_maximum")
+
+    def __init__(self, maximum: Num, exclusive_maximum: bool = False) -> None:
+        self.maximum: Num = maximum
+        self.exclusive_maximum = exclusive_maximum
 
     def is_valid(self, val: Num) -> bool:
         if self.exclusive_maximum:
@@ -92,9 +107,12 @@ class Max(Predicate[Num, Serializable]):
         return f"maximum allowed value{exclusive} is {self.maximum}"
 
 
-@dataclass(frozen=True)
 class MultipleOf(Predicate[Num, Serializable]):
-    factor: Num
+    __slots__ = ("factor",)
+    __match_args__ = ("factor",)
+
+    def __init__(self, factor: Num) -> None:
+        self.factor: Num = factor
 
     def is_valid(self, val: Num) -> bool:
         return val % self.factor == 0
@@ -119,10 +137,17 @@ ExactMatchT = TypeVar(
 )
 
 
-@dataclass(frozen=True)
 class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
-    match: ExactMatchT
-    preprocessors: Optional[List[Processor[ExactMatchT]]] = None
+    __slots__ = ("match", "preprocessors")
+    __match_args__ = ("match", "preprocessors")
+
+    def __init__(
+        self,
+        match: ExactMatchT,
+        preprocessors: Optional[List[Processor[ExactMatchT]]] = None,
+    ) -> None:
+        self.match: ExactMatchT = match
+        self.preprocessors: Optional[List[Processor[ExactMatchT]]] = preprocessors
 
     def __call__(self, val: Any) -> Result[ExactMatchT, Serializable]:
         if (match_type := type(self.match)) == type(val):
@@ -139,4 +164,4 @@ class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
         else:
             value_str = str(self.match)
 
-        return Err([expected(f"exactly {value_str} ({match_type.__name__})")])
+        return Err([f"expected exactly {value_str} ({match_type.__name__})"])
