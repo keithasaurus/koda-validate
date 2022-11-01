@@ -10,8 +10,8 @@ from koda_validate.typedefs import (
     Validator,
 )
 from koda_validate.utils import (
-    _handle_processors_and_predicates,
-    _handle_processors_and_predicates_async,
+    _handle_scalar_processors_and_predicates,
+    _handle_scalar_processors_and_predicates_async,
 )
 
 EXPECTED_FLOAT_ERR: Final[Err[Serializable]] = Err(["expected a float"])
@@ -33,14 +33,14 @@ class FloatValidator(Validator[Any, float, Serializable]):
 
     def __call__(self, val: Any) -> Result[float, Serializable]:
         if isinstance(val, float):
-            return _handle_processors_and_predicates(
+            return _handle_scalar_processors_and_predicates(
                 val, self.preprocessors, self.predicates
             )
         return EXPECTED_FLOAT_ERR
 
     async def validate_async(self, val: Any) -> Result[float, Serializable]:
         if isinstance(val, float):
-            return await _handle_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:

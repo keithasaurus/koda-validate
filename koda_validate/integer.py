@@ -10,8 +10,8 @@ from koda_validate.typedefs import (
     Validator,
 )
 from koda_validate.utils import (
-    _handle_processors_and_predicates,
-    _handle_processors_and_predicates_async,
+    _handle_scalar_processors_and_predicates,
+    _handle_scalar_processors_and_predicates_async,
 )
 
 # extracted for optimization
@@ -34,14 +34,14 @@ class IntValidator(Validator[Any, int, Serializable]):
 
     def __call__(self, val: Any) -> Result[int, Serializable]:
         if isinstance(val, int) and not isinstance(val, bool):
-            return _handle_processors_and_predicates(
+            return _handle_scalar_processors_and_predicates(
                 val, self.preprocessors, self.predicates
             )
         return EXPECTED_INTEGER_ERR
 
     async def validate_async(self, val: Any) -> Result[int, Serializable]:
         if isinstance(val, int) and not isinstance(val, bool):
-            return await _handle_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:

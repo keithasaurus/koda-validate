@@ -1,6 +1,6 @@
 __all__ = (
     # boolean.py
-    "BooleanValidator",
+    "BoolValidator",
     # decimal.py
     "DecimalValidator",
     # dictionary.py
@@ -61,7 +61,7 @@ __all__ = (
     "Processor",
 )
 
-from koda_validate.boolean import BooleanValidator
+from koda_validate.boolean import BoolValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
     DictValidator,

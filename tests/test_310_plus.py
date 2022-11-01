@@ -5,7 +5,7 @@ from typing import Any, Dict, Hashable
 from koda import Err, Ok, Result
 
 from koda_validate import (
-    BooleanValidator,
+    BoolValidator,
     Choices,
     DatetimeValidator,
     DateValidator,
@@ -44,8 +44,8 @@ from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 
 
 def test_match_args() -> None:
-    match BooleanValidator():
-        case BooleanValidator(predicates_bool):
+    match BoolValidator():
+        case BoolValidator(predicates_bool):
             assert predicates_bool == ()
         case _:
             assert False

@@ -11,8 +11,8 @@ from koda_validate.typedefs import (
     Validator,
 )
 from koda_validate.utils import (
-    _handle_processors_and_predicates,
-    _handle_processors_and_predicates_async,
+    _handle_scalar_processors_and_predicates,
+    _handle_scalar_processors_and_predicates_async,
 )
 
 EXPECTED_STR_ERR: Final[Err[Serializable]] = Err(["expected a string"])
@@ -34,14 +34,14 @@ class StringValidator(Validator[Any, str, Serializable]):
 
     def __call__(self, val: Any) -> Result[str, Serializable]:
         if isinstance(val, str):
-            return _handle_processors_and_predicates(
+            return _handle_scalar_processors_and_predicates(
                 val, self.preprocessors, self.predicates
             )
         return EXPECTED_STR_ERR
 
     async def validate_async(self, val: Any) -> Result[str, Serializable]:
         if isinstance(val, str):
-            return await _handle_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:

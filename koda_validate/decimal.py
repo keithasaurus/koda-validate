@@ -12,8 +12,8 @@ from koda_validate.typedefs import (
     Validator,
 )
 from koda_validate.utils import (
-    _handle_processors_and_predicates,
-    _handle_processors_and_predicates_async,
+    _handle_scalar_processors_and_predicates,
+    _handle_scalar_processors_and_predicates_async,
 )
 
 EXPECTED_DECIMAL_ERR: Final[Err[Serializable]] = Err(
@@ -37,7 +37,7 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
 
     def __call__(self, val: Any) -> Result[Decimal, Serializable]:
         if isinstance(val, Decimal):
-            return _handle_processors_and_predicates(
+            return _handle_scalar_processors_and_predicates(
                 val, self.preprocessors, self.predicates
             )
 
@@ -47,7 +47,7 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
             except decimal.InvalidOperation:
                 return EXPECTED_DECIMAL_ERR
             else:
-                return _handle_processors_and_predicates(
+                return _handle_scalar_processors_and_predicates(
                     dec, self.preprocessors, self.predicates
                 )
 
@@ -56,7 +56,7 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
 
     async def validate_async(self, val: Any) -> Result[Decimal, Serializable]:
         if isinstance(val, Decimal):
-            return await _handle_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
 
@@ -66,7 +66,7 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
             except decimal.InvalidOperation:
                 return EXPECTED_DECIMAL_ERR
             else:
-                return await _handle_processors_and_predicates_async(
+                return await _handle_scalar_processors_and_predicates_async(
                     dec, self.preprocessors, self.predicates, self.predicates_async
                 )
 

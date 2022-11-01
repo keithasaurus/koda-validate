@@ -5,7 +5,7 @@ from typing import Any, Dict, Hashable, List, Protocol
 from koda import Err, Just, Maybe, Ok, Result, nothing
 
 from koda_validate import (
-    BooleanValidator,
+    BoolValidator,
     FloatValidator,
     IntValidator,
     ListValidator,
@@ -276,7 +276,7 @@ def test_obj_5() -> None:
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
-        key("can-fly", BooleanValidator()),
+        key("can-fly", BoolValidator()),
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -319,7 +319,7 @@ def test_obj_6() -> None:
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
-        key("can-fly", BooleanValidator()),
+        key("can-fly", BoolValidator()),
         key("number_of_fingers", FloatValidator()),
     )
 
@@ -354,7 +354,7 @@ def test_obj_7() -> None:
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
-        key("can-fly", BooleanValidator()),
+        key("can-fly", BoolValidator()),
         key("number_of_fingers", FloatValidator()),
         key("number of toes", FloatValidator()),
     )
@@ -392,7 +392,7 @@ def test_obj_8() -> None:
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
-        key("can-fly", BooleanValidator()),
+        key("can-fly", BoolValidator()),
         key("number_of_fingers", FloatValidator()),
         key("number of toes", FloatValidator()),
         maybe_key("favorite_color", StringValidator()),
@@ -459,7 +459,7 @@ def test_obj_9() -> None:
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
-        key("can-fly", BooleanValidator()),
+        key("can-fly", BoolValidator()),
         key("number_of_fingers", FloatValidator()),
         key("number of toes", FloatValidator()),
         maybe_key("favorite_color", StringValidator()),
@@ -504,7 +504,7 @@ def test_obj_10() -> None:
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
-        key("can-fly", BooleanValidator()),
+        key("can-fly", BoolValidator()),
         key("number_of_fingers", FloatValidator()),
         key("number of toes", FloatValidator()),
         maybe_key("favorite_color", StringValidator()),
@@ -642,7 +642,7 @@ def test_dict_validator_unsafe() -> None:
         key("last_name", StringValidator()),
         key("age", IntValidator()),
         key("eye color", StringValidator()),
-        key("can-fly", BooleanValidator()),
+        key("can-fly", BoolValidator()),
         key("number_of_fingers", FloatValidator()),
         key("number of toes", FloatValidator()),
         maybe_key("favorite_color", StringValidator()),
@@ -651,7 +651,7 @@ def test_dict_validator_unsafe() -> None:
         key("aaa", StringValidator()),
         key("owbwohe", IntValidator()),
         key("something else", FloatValidator()),
-        key(12, BooleanValidator()),
+        key(12, BoolValidator()),
         validate_object=_nobody_named_jones_has_brown_eyes_dict_any,
     )
 

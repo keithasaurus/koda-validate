@@ -1,15 +1,9 @@
-from typing import Any, Callable, Final, List, Optional, Tuple
+from typing import Callable, Final, List, Optional, Tuple
 
 from koda import Err, Ok, Result
 
 from koda_validate._generics import A, FailT
-from koda_validate.typedefs import (
-    Predicate,
-    PredicateAsync,
-    Processor,
-    Serializable,
-    Validator,
-)
+from koda_validate.typedefs import Predicate, PredicateAsync, Processor, Serializable
 
 
 def _handle_accum(val: A, errors: List[Serializable]) -> Result[A, Serializable]:
@@ -72,15 +66,7 @@ def _flat_map_same_type_if_not_none(
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 
-def _process(val: A, processors: Optional[List[Processor[A]]]) -> A:
-    if processors is not None:
-        for proc in processors:
-            val = proc(val)
-
-    return val
-
-
-def _handle_processors_and_predicates(
+def _handle_scalar_processors_and_predicates(
     val: A,
     preprocessors: Optional[List[Processor[A]]],
     predicates: Tuple[Predicate[A, Serializable], ...],
@@ -104,7 +90,7 @@ def _handle_processors_and_predicates(
         return Ok(val)
 
 
-async def _handle_processors_and_predicates_async(
+async def _handle_scalar_processors_and_predicates_async(
     val: A,
     preprocessors: Optional[List[Processor[A]]],
     predicates: Tuple[Predicate[A, Serializable], ...],
