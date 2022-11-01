@@ -128,9 +128,11 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
         key_validator: Validator[Any, T1, Serializable],
         value_validator: Validator[Any, T2, Serializable],
         *,
-        predicates: Optional[List[Predicate[List[A], Serializable]]] = None,
-        predicates_async: Optional[List[PredicateAsync[List[A], Serializable]]] = None,
-        preprocessors: Optional[List[Processor[List[Any]]]] = None,
+        predicates: Optional[List[Predicate[Dict[T1, T2], Serializable]]] = None,
+        predicates_async: Optional[
+            List[PredicateAsync[Dict[T1, T2], Serializable]]
+        ] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         self.key_validator = key_validator
         self.value_validator = value_validator

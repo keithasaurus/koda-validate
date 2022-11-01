@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, Hashable, List, Protocol
 
+import pytest
 from koda import Err, Just, Maybe, Ok, Result, nothing
 
 from koda_validate import (
@@ -15,6 +16,7 @@ from koda_validate import (
     Min,
     MinKeys,
     Predicate,
+    Processor,
     Serializable,
     StringValidator,
     key,
@@ -22,7 +24,12 @@ from koda_validate import (
     none_validator,
     strip,
 )
-from koda_validate.dictionary import DictValidator, DictValidatorAny, is_dict_validator
+from koda_validate.dictionary import (
+    EXPECTED_MAP_ERR,
+    DictValidator,
+    DictValidatorAny,
+    is_dict_validator,
+)
 from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
@@ -45,6 +52,8 @@ def test_is_dict() -> None:
 
 
 def test_map_validator() -> None:
+    assert MapValidator(StringValidator(), FloatValidator())(None) == EXPECTED_MAP_ERR
+
     assert MapValidator(StringValidator(), StringValidator())(5) == Err(
         {"__container__": ["expected a map"]}
     )
@@ -89,6 +98,8 @@ def test_map_validator() -> None:
 
     assert complex_validator({"a": 100}) == Ok({"a": 100})
 
+    # we need to make sure that errors are not lost even if there are key naming
+    # collisions with the object field
     assert MapValidator(StringValidator(), IntValidator(), predicates=[MaxKeys(1)])(
         {OBJECT_ERRORS_FIELD: "not an int", "b": 1}
     ) == Err(
@@ -98,10 +109,98 @@ def test_map_validator() -> None:
                 {"value_error": ["expected an integer"]},
             ]
         }
-    ), (
-        "we need to make sure that errors are not lost even if there are key naming "
-        "collisions with the object field"
     )
+
+    class AddVal(Processor[Dict[Any, Any]]):
+        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
+            val["newkey"] = 123
+            return val
+
+    map_validator_preprocessor = MapValidator(
+        StringValidator(), IntValidator(), preprocessors=[AddVal()]
+    )
+
+    assert map_validator_preprocessor({}) == Ok({"newkey": 123})
+
+
+@pytest.mark.asyncio
+async def test_map_validator() -> None:
+    assert (
+        await MapValidator(StringValidator(), FloatValidator()).validate_async(None)
+        == EXPECTED_MAP_ERR
+    )
+
+    assert await MapValidator(StringValidator(), StringValidator()).validate_async(
+        5
+    ) == Err({"__container__": ["expected a map"]})
+
+    assert await MapValidator(StringValidator(), StringValidator()).validate_async(
+        {}
+    ) == Ok({})
+
+    assert await MapValidator(StringValidator(), IntValidator()).validate_async(
+        {"a": 5, "b": 22}
+    ) == Ok({"a": 5, "b": 22})
+
+    assert await MapValidator(StringValidator(), IntValidator()).validate_async(
+        {5: None}
+    ) == Err(
+        {
+            "5": {
+                "key_error": ["expected a string"],
+                "value_error": ["expected an integer"],
+            }
+        }
+    )
+
+    @dataclass(frozen=True)
+    class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
+        max: int
+
+        def is_valid(self, val: Dict[Any, Any]) -> bool:
+            return len(val) <= self.max
+
+        def err(self, val: Dict[Any, Any]) -> Serializable:
+            return f"max {self.max} key(s) allowed"
+
+    complex_validator = MapValidator(
+        StringValidator(MaxLength(4)), IntValidator(Min(5)), predicates=[MaxKeys(1)]
+    )
+    assert await complex_validator.validate_async({"key1": 10, "key1a": 2}) == Err(
+        {
+            "key1a": {
+                "value_error": ["minimum allowed value is 5"],
+                "key_error": ["maximum allowed length is 4"],
+            },
+            "__container__": ["max 1 key(s) allowed"],
+        }
+    )
+
+    assert await complex_validator.validate_async({"a": 100}) == Ok({"a": 100})
+
+    # we need to make sure that errors are not lost even if there are key naming
+    # collisions with the object field
+    assert MapValidator(StringValidator(), IntValidator(), predicates=[MaxKeys(1)])(
+        {OBJECT_ERRORS_FIELD: "not an int", "b": 1}
+    ) == Err(
+        {
+            OBJECT_ERRORS_FIELD: [
+                "max 1 key(s) allowed",
+                {"value_error": ["expected an integer"]},
+            ]
+        }
+    )
+
+    class AddVal(Processor[Dict[Any, Any]]):
+        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
+            val["newkey"] = 123
+            return val
+
+    map_validator_preprocessor = MapValidator(
+        StringValidator(), IntValidator(), preprocessors=[AddVal()]
+    )
+
+    assert map_validator_preprocessor({}) == Ok({"newkey": 123})
 
 
 def test_max_keys() -> None:
