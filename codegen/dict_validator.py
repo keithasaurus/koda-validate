@@ -22,7 +22,8 @@ def generate_code(num_keys: int) -> str:
     Tuple,
     TypeVar,
     Union,
-    overload, cast, )
+    overload,
+)
 
 from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 
