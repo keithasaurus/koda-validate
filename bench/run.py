@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    print(f"{args.iterations} ITERATIONS")
+    print(f"{args.iterations} ITERATIONS of {args.chunk_size}")
 
     for name, compare_bench in benches.items():
         if args.tests == [] or name in args.tests:
