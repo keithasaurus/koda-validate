@@ -28,7 +28,6 @@ from koda_validate.typedefs import (
 
 DictKey = Hashable
 
-KeyValidator = Tuple[DictKey, Callable[[Maybe[Any]], Result[A, Serializable]]]
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
@@ -61,6 +60,16 @@ class RequiredField(Generic[A]):
                 assert isinstance(maybe_val, Just)
             return self.validator(maybe_val.val)
 
+    async def validate_async(self, maybe_val: Maybe[Any]) -> Result[A, Serializable]:
+        if maybe_val is nothing:
+            return KEY_MISSING_ERR
+        else:
+            # we use the `is nothing` comparison above because `nothing`
+            # is a singleton; but mypy doesn't know that this _must_ be a Just now
+            if TYPE_CHECKING:  # pragma: no cover
+                assert isinstance(maybe_val, Just)
+            return self.validator(maybe_val.val)
+
 
 class MaybeField(Generic[A]):
     __slots__ = ("validator",)
@@ -76,16 +85,31 @@ class MaybeField(Generic[A]):
                 assert isinstance(maybe_val, Just)
             return self.validator(maybe_val.val).map(Just)
 
+    async def validate_async(
+        self, maybe_val: Maybe[Any]
+    ) -> Result[Maybe[A], Serializable]:
+        if maybe_val is nothing:
+            return Ok(maybe_val)
+        else:
+            # we use the `is nothing` comparison above because `nothing`
+            # is a singleton; but mypy doesn't know that this _must_ be a Just now
+            if TYPE_CHECKING:  # pragma: no cover
+                assert isinstance(maybe_val, Just)
+            return self.validator(maybe_val.val).map(Just)
+
+
+KeyValidator = Tuple[DictKey, Union[RequiredField[A], MaybeField[A]]]
+
 
 def key(
     key_: DictKey, validator: Validator[Any, A, Serializable]
-) -> Tuple[DictKey, Callable[[Any], Result[A, Serializable]]]:
+) -> Tuple[DictKey, RequiredField[A]]:
     return key_, RequiredField(validator)
 
 
 def maybe_key(
     key_: DictKey, validator: Validator[Any, A, Serializable]
-) -> Tuple[DictKey, Callable[[Any], Result[Maybe[A], Serializable]]]:
+) -> Tuple[DictKey, MaybeField[A]]:
     return key_, MaybeField(validator)
 
 
