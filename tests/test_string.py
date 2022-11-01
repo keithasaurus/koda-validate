@@ -111,3 +111,4 @@ async def test_validate_fake_db_async() -> None:
     )
     assert hit == ["ok"]
     assert result == Err(["not in db!"])
+    assert await StringValidator().validate_async(5) == Err(["expected a string"])

@@ -75,7 +75,7 @@ def test_map_validator() -> None:
             return f"max {self.max} key(s) allowed"
 
     complex_validator = MapValidator(
-        StringValidator(MaxLength(4)), IntValidator(Min(5)), MaxKeys(1)
+        StringValidator(MaxLength(4)), IntValidator(Min(5)), predicates=[MaxKeys(1)]
     )
     assert complex_validator({"key1": 10, "key1a": 2},) == Err(
         {
@@ -89,7 +89,7 @@ def test_map_validator() -> None:
 
     assert complex_validator({"a": 100}) == Ok({"a": 100})
 
-    assert MapValidator(StringValidator(), IntValidator(), MaxKeys(1))(
+    assert MapValidator(StringValidator(), IntValidator(), predicates=[MaxKeys(1)])(
         {OBJECT_ERRORS_FIELD: "not an int", "b": 1}
     ) == Err(
         {

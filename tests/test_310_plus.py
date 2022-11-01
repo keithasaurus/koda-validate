@@ -57,10 +57,14 @@ def test_match_args() -> None:
             assert False
 
     match MapValidator((str_ := StringValidator()), (int_ := IntValidator())):
-        case MapValidator(string_validator, int_validator, predicates_map):
+        case MapValidator(
+            string_validator, int_validator, predicates_map, preds_async_2, process_2
+        ):
             assert string_validator == str_
             assert int_validator == int_
-            assert predicates_map == ()
+            assert predicates_map is None
+            assert preds_async_2 is None
+            assert process_2 is None
 
     match is_dict_validator:
         case IsDictValidator():

@@ -29,9 +29,15 @@ def test_list_validator() -> None:
 
     assert ListValidator(FloatValidator())([]) == Ok([])
 
-    assert ListValidator(FloatValidator(Min(5.5)), predicates=[MinItems(1), MaxItems(3)])(
-        [10.1, 7.7, 2.2, 5]
-    ) == Err(
+    class RemoveLast(Processor[List[Any]]):
+        def __call__(self, val: List[Any]) -> List[Any]:
+            return val[:-1]
+
+    assert ListValidator(
+        FloatValidator(Min(5.5)),
+        predicates=[MinItems(1), MaxItems(3)],
+        preprocessors=[RemoveLast()],
+    )([10.1, 7.7, 2.2, 5, 0.0]) == Err(
         {
             "2": ["minimum allowed value is 5.5"],
             "3": ["expected a float"],
