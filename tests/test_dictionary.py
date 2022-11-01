@@ -51,6 +51,17 @@ def test_is_dict() -> None:
     )
 
 
+@pytest.mark.asyncio
+async def test_is_dict_async() -> None:
+    assert await is_dict_validator.validate_async({}) == Ok({})
+    assert await is_dict_validator.validate_async(None) == Err(
+        {"__container__": ["expected a dictionary"]}
+    )
+    assert await is_dict_validator.validate_async({"a": 1, "b": 2, 5: "whatever"}) == Ok(
+        {"a": 1, "b": 2, 5: "whatever"}
+    )
+
+
 def test_map_validator() -> None:
     assert MapValidator(StringValidator(), FloatValidator())(None) == EXPECTED_MAP_ERR
 
@@ -124,7 +135,7 @@ def test_map_validator() -> None:
 
 
 @pytest.mark.asyncio
-async def test_map_validator() -> None:
+async def test_map_validator_async() -> None:
     assert (
         await MapValidator(StringValidator(), FloatValidator()).validate_async(None)
         == EXPECTED_MAP_ERR

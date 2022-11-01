@@ -32,7 +32,7 @@ KeyValidator = Tuple[DictKey, Callable[[Maybe[Any]], Result[A, Serializable]]]
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
-_is_dict_validation_err: Final[Err[Serializable]] = Err(
+EXPECTED_DICT_ERR: Final[Err[Serializable]] = Err(
     {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
 )
 
@@ -259,7 +259,13 @@ class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
         if isinstance(val, dict):
             return Ok(val)
         else:
-            return _is_dict_validation_err
+            return EXPECTED_DICT_ERR
+
+    async def validate_async(self, val: Any) -> Result[Dict[Any, Any], Serializable]:
+        if isinstance(val, dict):
+            return Ok(val)
+        else:
+            return EXPECTED_DICT_ERR
 
 
 is_dict_validator = IsDictValidator()
@@ -285,7 +291,7 @@ def _dict_without_extra_keys(
                 return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
         return None
     else:
-        return _is_dict_validation_err
+        return EXPECTED_DICT_ERR
 
 
 class MinKeys(Predicate[Dict[Any, Any], Serializable]):
