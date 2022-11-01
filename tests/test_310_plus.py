@@ -213,10 +213,14 @@ def test_match_args() -> None:
         case _:
             assert False
 
-    match ListValidator((str_vldtr := StringValidator()), (min_items_ := MinItems(2))):
-        case ListValidator(item_validator, predicates):
+    match ListValidator(
+        (str_vldtr := StringValidator()), predicates=[min_items_ := MinItems(2)]
+    ):
+        case ListValidator(item_validator, preds_1, preds_async_1, preprocess_1):
             assert item_validator is str_vldtr
-            assert predicates == (min_items_,)
+            assert preds_1 == [min_items_]
+            assert preds_async_1 is None
+            assert preprocess_1 is None
 
     match OptionalValidator(str_3 := StringValidator()):
         case OptionalValidator(opt_validator):

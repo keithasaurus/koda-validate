@@ -1,9 +1,15 @@
-from typing import Any, Dict, List, Set, Tuple, Type
+from typing import Any, Dict, Final, List, Optional, Set, Tuple, Type
 
 from koda import Err, Ok, Result
 from koda._generics import A
 
-from koda_validate.typedefs import Predicate, Serializable, Validator
+from koda_validate.typedefs import (
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+    Validator,
+)
 from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
@@ -63,31 +69,45 @@ class UniqueItems(Predicate[List[Any], Serializable]):
 
 unique_items = UniqueItems()
 
+EXPECTED_LIST_ERR: Final[Err[Serializable]] = Err(
+    {OBJECT_ERRORS_FIELD: ["expected a list"]}
+)
+
 
 class ListValidator(Validator[Any, List[A], Serializable]):
-    __match_args__ = ("item_validator", "predicates")
-    __slots__ = ("item_validator", "predicates")
+    __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
+    __slots__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
         item_validator: Validator[Any, A, Serializable],
-        *predicates: Predicate[List[A], Serializable],
+        *,
+        predicates: Optional[List[Predicate[List[A], Serializable]]] = None,
+        predicates_async: Optional[List[PredicateAsync[List[A], Serializable]]] = None,
+        preprocessors: Optional[List[Processor[List[Any]]]] = None,
     ) -> None:
         self.item_validator = item_validator
         self.predicates = predicates
+        self.predicates_async = predicates_async
+        self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[List[A], Serializable]:
         if isinstance(val, list):
+            if self.preprocessors is not None:
+                for processor in self.preprocessors:
+                    val = processor(val)
             return_list: List[A] = []
             errors: Dict[str, Serializable] = {}
 
             list_errors: List[Serializable] = []
-            for validator in self.predicates:
-                result = validator(val)
+            if self.predicates is not None:
+                for pred in self.predicates:
+                    result = pred(val)
 
-                if isinstance(result, Err):
-                    list_errors.append(result.val)
+                    if isinstance(result, Err):
+                        list_errors.append(result.val)
 
+            # Not running async validators! They shouldn't be set!
             if len(list_errors) > 0:
                 errors[OBJECT_ERRORS_FIELD] = list_errors
 
@@ -103,4 +123,41 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             else:
                 return Ok(return_list)
         else:
-            return Err({OBJECT_ERRORS_FIELD: ["expected a list"]})
+            return EXPECTED_LIST_ERR
+
+    async def validate_async(self, val: Any) -> Result[List[A], Serializable]:
+        if isinstance(val, list):
+            if self.preprocessors is not None:
+                for processor in self.preprocessors:
+                    val = processor(val)
+            return_list: List[A] = []
+            errors: Dict[str, Serializable] = {}
+
+            list_errors: List[Serializable] = []
+            if self.predicates is not None:
+                for pred in self.predicates:
+                    if isinstance(result := pred(val), Err):
+                        list_errors.append(result.val)
+
+            if self.predicates_async is not None:
+                for pred_async in self.predicates_async:
+                    result = await pred_async.validate_async(val)
+                    if isinstance(result, Err):
+                        list_errors.append(result.val)
+
+            if len(list_errors) > 0:
+                errors[OBJECT_ERRORS_FIELD] = list_errors
+
+            for i, item in enumerate(val):
+                item_result = await self.item_validator.validate_async(item)
+                if isinstance(item_result, Ok):
+                    return_list.append(item_result.val)
+                else:
+                    errors[str(i)] = item_result.val
+
+            if len(errors) > 0:
+                return Err(errors)
+            else:
+                return Ok(return_list)
+        else:
+            return EXPECTED_LIST_ERR

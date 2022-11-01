@@ -25,7 +25,7 @@ class Validator(Generic[A, B, FailT]):
 
     async def validate_async(self, val: A) -> Result[B, FailT]:
         """
-        make all validators async-compatible for "free"
+        make it possible for all validators to be async-compatible
         """
         raise NotImplementedError
 
