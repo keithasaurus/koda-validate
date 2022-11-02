@@ -931,7 +931,7 @@ async def test_validate_dictionary_any_async() -> None:
 
 
 @pytest.mark.asyncio
-async def test_dict_validator_async_processor() -> None:
+async def test_dict_validator_any_async_processor() -> None:
     class RemoveKey(Processor[Dict[Any, Any]]):
         def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
             if "a" in val:
@@ -1095,4 +1095,74 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
     # calling sync validate_object_async within async context
     assert await validator_async.validate_async({"name": "jones", "age": 100}) == Err(
         "Cannot be jones and 100"
+    )
+
+    # calling sync validate_object_async within async context
+    assert await validator_async.validate_async({"name": "other", "age": 100}) == Ok(
+        Person("other", 100)
+    )
+
+
+@pytest.mark.asyncio
+async def test_validate_dictionary_async() -> None:
+    @dataclass
+    class Person:
+        first_name: Maybe[str]
+        last_name: str
+
+    validator = DictValidator(
+        into=Person,
+        keys=(
+            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
+            ("last_name", StringValidator()),
+        ),
+    )
+
+    assert await validator.validate_async(None) == EXPECTED_DICT_ERR
+
+    assert await validator.validate_async(
+        {"first_name": " bob ", "last_name": "smith"}
+    ) == Ok(Person(Just("bob"), "smith"))
+
+    assert await validator.validate_async({"last_name": "smith"}) == Ok(
+        Person(nothing, "smith")
+    )
+
+    assert await validator.validate_async({"first_name": 5}) == Err(
+        {"last_name": ["key missing"], "first_name": ["expected a string"]}
+    )
+
+    assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Err(
+        {
+            "__container__": [
+                "Received unknown keys. Only expected 'first_name', 'last_name'."
+            ]
+        }
+    )
+
+
+@pytest.mark.asyncio
+async def test_dict_validator_async_processor() -> None:
+    class RemoveKey(Processor[Dict[Any, Any]]):
+        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
+            if "a" in val:
+                del val["a"]
+            return val
+
+    @dataclass
+    class Person:
+        first_name: Maybe[str]
+        last_name: str
+
+    validator = DictValidator(
+        into=Person,
+        keys=(
+            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
+            ("last_name", StringValidator()),
+        ),
+        preprocessors=[RemoveKey()],
+    )
+
+    assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Ok(
+        Person(nothing, "smith")
     )

@@ -428,7 +428,7 @@ class DictValidator(
                 return Ok(obj)
             else:
                 return self.validate_object(obj)
-                
+                 
     async def validate_async(self, data: Any) -> Result[Ret, Serializable]:
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
@@ -442,24 +442,19 @@ class DictValidator(
         ) is not None:
             return keys_result
 
-        success_dict: Dict[Hashable, Any] = {}
+        args = []
         errs: Optional[List[Tuple[str, Serializable]]] = None
         for key_, validator in self.keys:
             if key_ in data:
                 if isinstance(validator, Validator):
-                    result = await validator.validate_async(data[key_])
+                    result = validator(data[key_])
                 else:
-                    # ignore because it's difficult to make `validate_async` 
-                    # apparent to KeyValidator...
-                    result = await validator.validate_async(    # type: ignore
-                        Just(data[key_])
-                    )
-
+                    result = validator(Just(data[key_]))
             else:
                 if isinstance(validator, Validator):
                     result = KEY_MISSING_ERR
                 else:
-                    result = Ok(nothing)
+                    result = Ok(nothing)  # type: ignore
 
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
@@ -469,17 +464,19 @@ class DictValidator(
                 else:
                     errs.append(err)
             elif errs is None:
-                success_dict[key_] = result.val
+                args.append(result.val)
 
         if errs and len(errs) > 0:
             return Err(_tuples_to_json_dict(errs))
         else:
+            # we know this should be ret
+            obj = self.into(*args)  # type: ignore
             if self.validate_object is not None:
-                return self.validate_object(success_dict)
+                return self.validate_object(obj)
             elif self.validate_object_async is not None:
-                return await self.validate_object_async(success_dict)
+                return await self.validate_object_async(obj)
             else:
-                return Ok(success_dict)
+                return Ok(obj)
 
 
 class DictValidatorAny(Validator[Any, Any, Serializable]):
