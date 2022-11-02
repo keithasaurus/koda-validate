@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, Hashable, List, Protocol
@@ -23,6 +24,7 @@ from koda_validate import (
     strip,
 )
 from koda_validate.dictionary import (
+    EXPECTED_DICT_ERR,
     EXPECTED_MAP_ERR,
     DictValidator,
     DictValidatorAny,
@@ -773,10 +775,10 @@ def test_dict_validator_any_empty() -> None:
     }
 
 
-def _nobody_named_jones_has_brown_eyes_dict_any(
+def _nobody_named_jones_has_first_name_alice(
     person: Dict[Hashable, Any],
 ) -> Result[Dict[Hashable, Any], Serializable]:
-    if person["last_name"].lower() == "jones" and person["eye_color"] == "brown":
+    if person["last_name"].lower() == "jones" and person["first_name"] == Just("alice"):
         return Err(_JONES_ERROR_MSG)
     else:
         return Ok(person)
@@ -800,7 +802,7 @@ def test_dict_validator_any() -> None:
             ("something else", FloatValidator()),
             (12, BoolValidator()),
         ),
-        validate_object=_nobody_named_jones_has_brown_eyes_dict_any,
+        validate_object=_nobody_named_jones_has_first_name_alice,
     )
 
     assert validator(
@@ -848,7 +850,7 @@ def test_dict_validator_any_key_missing() -> None:
             ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
             ("last_name", StringValidator()),
         ),
-        validate_object=_nobody_named_jones_has_brown_eyes_dict_any,
+        validate_object=_nobody_named_jones_has_first_name_alice,
     )
 
     assert validator({"first_name": " bob ", "last_name": "smith"}) == Ok(
@@ -879,3 +881,131 @@ def test_dict_validator_any_preprocessors() -> None:
     )
 
     assert dv({"a": 123, "name": "bob"}) == Ok({"name": "bob"})
+
+
+@pytest.mark.asyncio
+async def test_validate_dictionary_any_async() -> None:
+    validator = DictValidatorAny(
+        keys=(
+            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
+            ("last_name", StringValidator()),
+        ),
+        validate_object=_nobody_named_jones_has_first_name_alice,
+    )
+
+    assert await validator.validate_async(None) == EXPECTED_DICT_ERR
+
+    assert await validator.validate_async(
+        {"first_name": " bob ", "last_name": "smith"}
+    ) == Ok(
+        {
+            "first_name": Just("bob"),
+            "last_name": "smith",
+        }
+    )
+
+    assert await validator.validate_async({"last_name": "smith"}) == Ok(
+        {"first_name": nothing, "last_name": "smith"}
+    )
+
+    assert await validator.validate_async({"first_name": 5}) == Err(
+        {"last_name": ["key missing"], "first_name": ["expected a string"]}
+    )
+
+    assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Err(
+        {
+            "__container__": [
+                "Received unknown keys. Only expected 'first_name', 'last_name'."
+            ]
+        }
+    )
+
+
+@pytest.mark.asyncio
+async def test_dict_validator_async_processor() -> None:
+    class RemoveKey(Processor[Dict[Any, Any]]):
+        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
+            if "a" in val:
+                del val["a"]
+            return val
+
+    validator = DictValidatorAny(
+        keys=(
+            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
+            ("last_name", StringValidator()),
+        ),
+        preprocessors=[RemoveKey()],
+    )
+
+    assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Ok(
+        {"first_name": nothing, "last_name": "smith"}
+    )
+
+
+@pytest.mark.asyncio
+async def test_dict_validator_any_with_validate_object_async() -> None:
+    async def val_obj_async(
+        obj: Dict[Hashable, Any]
+    ) -> Result[Dict[Hashable, Any], Serializable]:
+        await asyncio.sleep(0.001)
+        return _nobody_named_jones_has_first_name_alice(obj)
+
+    validator = DictValidatorAny(
+        keys=(
+            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
+            ("last_name", StringValidator()),
+        ),
+        validate_object_async=val_obj_async,
+    )
+
+    assert await validator.validate_async(
+        {"first_name": " bob ", "last_name": "smith"}
+    ) == Ok(
+        {
+            "first_name": Just("bob"),
+            "last_name": "smith",
+        }
+    )
+
+    assert await validator.validate_async({"last_name": "smith"}) == Ok(
+        {"first_name": nothing, "last_name": "smith"}
+    )
+
+    assert await validator.validate_async({"first_name": 5}) == Err(
+        {"last_name": ["key missing"], "first_name": ["expected a string"]}
+    )
+
+    assert await validator.validate_async(
+        {"last_name": "jones", "first_name": "alice"}
+    ) == Err(_JONES_ERROR_MSG)
+
+
+@pytest.mark.asyncio
+async def test_dict_validator_any_no_validate_object() -> None:
+    validator = DictValidatorAny(
+        keys=(
+            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
+            ("last_name", StringValidator()),
+        )
+    )
+    assert await validator.validate_async(
+        {"last_name": "jones", "first_name": "alice"}
+    ) == Ok({"last_name": "jones", "first_name": Just("alice")})
+
+
+def test_dict_validator_any_cannot_have_validate_object_and_validate_object_async() -> None:
+    async def val_obj_async(
+        obj: Dict[Hashable, Any]
+    ) -> Result[Dict[Hashable, Any], Serializable]:
+        await asyncio.sleep(0.001)
+        return _nobody_named_jones_has_first_name_alice(obj)
+
+    with pytest.raises(AssertionError):
+        DictValidatorAny(
+            keys=(
+                ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
+                ("last_name", StringValidator()),
+            ),
+            validate_object=_nobody_named_jones_has_first_name_alice,
+            validate_object_async=val_obj_async,
+        )
