@@ -109,7 +109,7 @@ def test_match_args() -> None:
             assert fields[0] == str_1
             assert fields[1][0] == "age"
             assert isinstance(fields[1][1], KeyNotRequired)
-            assert fields[1][1].validator == int_1[1][0].validator  # type: ignore
+            assert fields[1][1].validator == int_1[1].validator  # type: ignore
             assert validate_object == validate_person
 
         case _:
