@@ -48,6 +48,8 @@ EXPECTED_MAP_ERR: Final[Err[Serializable]] = Err(
     {OBJECT_ERRORS_FIELD: ["expected a map"]}
 )
 
+OK_NOTHING: Final[Result[Maybe[Any], Any]] = Ok(nothing)
+
 
 def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
     return dict(data)
@@ -407,7 +409,7 @@ class DictValidator(
                 if isinstance(validator, Validator):
                     result = KEY_MISSING_ERR
                 else:
-                    result = Ok(nothing)  # type: ignore
+                    result = OK_NOTHING  # type: ignore
             
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
@@ -454,7 +456,7 @@ class DictValidator(
                 if isinstance(validator, Validator):
                     result = KEY_MISSING_ERR
                 else:
-                    result = Ok(nothing)  # type: ignore
+                    result = OK_NOTHING  # type: ignore
 
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
@@ -552,7 +554,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 if isinstance(validator, Validator):
                     result = KEY_MISSING_ERR
                 else:
-                    result = Ok(nothing)
+                    result = OK_NOTHING
 
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
@@ -604,7 +606,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 if isinstance(validator, Validator):
                     result = KEY_MISSING_ERR
                 else:
-                    result = Ok(nothing)
+                    result = OK_NOTHING
 
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
