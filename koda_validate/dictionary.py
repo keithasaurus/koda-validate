@@ -649,7 +649,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         *,
         keys: Tuple[KeyValidator[Any], ...],
         validate_object: Optional[
-            Callable[[Dict[Hashable, Any]], Result[Dict[Hashable, Any], Serializable]],
+            Callable[[Dict[Hashable, Any]], Result[Dict[Hashable, Any], Serializable]]
         ] = None,
         validate_object_async: Optional[
             Callable[
