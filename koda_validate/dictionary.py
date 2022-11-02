@@ -80,8 +80,6 @@ KeyValidator = Tuple[
         Validator[Any, A, Serializable],
         # this is NOT a validator intentionally; for typing reasons
         # ONLY intended for using KeyNotRequired
-        # BUT, if we put KeyNotRequired here, mypy won't warn
-        # about `Maybe[...]` issues in the `into` target
         Callable[[Maybe[Any]], Result[A, Serializable]],
     ],
 ]
@@ -737,7 +735,11 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 if isinstance(validator, Validator):
                     result = await validator.validate_async(data[key_])
                 else:
-                    result = await validator.validate_async(Just(data[key_]))  # type: ignore
+                    # ignore because it's difficult to `validate_async`
+                    # apparent to KeyValidator...
+                    result = await validator.validate_async(  # type: ignore
+                        Just(data[key_])
+                    )
 
             else:
                 if isinstance(validator, Validator):

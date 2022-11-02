@@ -993,7 +993,7 @@ async def test_dict_validator_any_no_validate_object() -> None:
     ) == Ok({"last_name": "jones", "first_name": Just("alice")})
 
 
-def test_dict_validator_any_cannot_have_validate_object_and_validate_object_async() -> None:
+def test_dict_validator_any_cannot_have_validate_object_and_validate_object_async() -> None:  # noqa:m E501
     async def val_obj_async(
         obj: Dict[Hashable, Any]
     ) -> Result[Dict[Hashable, Any], Serializable]:
