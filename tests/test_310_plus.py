@@ -39,7 +39,6 @@ from koda_validate.dictionary import (
     MaxKeys,
     MinKeys,
     is_dict_validator,
-    key_not_required,
 )
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 
@@ -100,7 +99,7 @@ def test_match_args() -> None:
         into=(into_ := Person),
         keys=(
             (str_1 := ("name", StringValidator())),
-            (int_1 := ("age", key_not_required(IntValidator()))),
+            (int_1 := ("age", KeyNotRequired(IntValidator()))),
         ),
         validate_object=validate_person,
     )
@@ -152,7 +151,7 @@ def test_match_args() -> None:
         into=Person,
         keys=(
             ("name", StringValidator()),
-            ("age", key_not_required(IntValidator())),
+            ("age", KeyNotRequired(IntValidator())),
         ),
     )
     match Lazy(lazy_dv_validator):

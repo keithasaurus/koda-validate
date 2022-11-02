@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from koda import Just, Maybe, Ok, nothing
 
 from koda_validate import DictValidator, IntValidator, StringValidator
-from koda_validate.dictionary import key_not_required
+from koda_validate.dictionary import KeyNotRequired
 
 
 @dataclass
@@ -14,7 +14,7 @@ class Person:
 
 person_validator = DictValidator(
     into=Person,
-    keys=(("name", StringValidator()), ("age", key_not_required(IntValidator()))),
+    keys=(("name", StringValidator()), ("age", KeyNotRequired(IntValidator()))),
 )
 assert person_validator({"name": "Bob"}) == Ok(Person("Bob", nothing))
 assert person_validator({"name": "Bob", "age": 42}) == Ok(Person("Bob", Just(42)))

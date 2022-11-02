@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from koda import Err, Maybe
 
 from koda_validate import *
-from koda_validate.dictionary import KeyNotRequired, key_not_required
+from koda_validate.dictionary import KeyNotRequired
 
 # Wrong type
 assert StringValidator()(None) == Err(["expected a string"])
@@ -25,7 +25,7 @@ city_validator = DictValidator(
     into=City,
     keys=(
         ("name", StringValidator(not_blank)),
-        ("region", key_not_required(StringValidator(not_blank))),
+        ("region", KeyNotRequired(StringValidator(not_blank))),
     ),
 )
 

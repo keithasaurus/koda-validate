@@ -26,8 +26,8 @@ from koda_validate.dictionary import (
     EXPECTED_MAP_ERR,
     DictValidator,
     DictValidatorAny,
+    KeyNotRequired,
     is_dict_validator,
-    key_not_required,
 )
 from koda_validate.utils import OBJECT_ERRORS_FIELD
 
@@ -257,7 +257,7 @@ def test_obj_2() -> None:
 
     validator = DictValidator(
         into=Person,
-        keys=(("name", StringValidator()), ("age", key_not_required(IntValidator()))),
+        keys=(("name", StringValidator()), ("age", KeyNotRequired(IntValidator()))),
     )
 
     assert validator("not a dict") == Err({"__container__": ["expected a dictionary"]})
@@ -518,7 +518,7 @@ def test_obj_8() -> None:
             ("can-fly", BoolValidator()),
             ("number_of_fingers", FloatValidator()),
             ("number of toes", FloatValidator()),
-            ("favorite_color", key_not_required(StringValidator())),
+            ("favorite_color", KeyNotRequired(StringValidator())),
         ),
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
@@ -587,7 +587,7 @@ def test_obj_9() -> None:
             ("can-fly", BoolValidator()),
             ("number_of_fingers", FloatValidator()),
             ("number of toes", FloatValidator()),
-            ("favorite_color", key_not_required(StringValidator())),
+            ("favorite_color", KeyNotRequired(StringValidator())),
             ("requires_none", none_validator),
         ),
         validate_object=_nobody_named_jones_has_brown_eyes,
@@ -634,7 +634,7 @@ def test_obj_10() -> None:
             ("can-fly", BoolValidator()),
             ("number_of_fingers", FloatValidator()),
             ("number of toes", FloatValidator()),
-            ("favorite_color", key_not_required(StringValidator())),
+            ("favorite_color", KeyNotRequired(StringValidator())),
             ("requires_none", none_validator),
             ("favorite_books", ListValidator(StringValidator())),
         ),
@@ -773,7 +773,7 @@ def test_dict_validator_unsafe() -> None:
         ("can-fly", BoolValidator()),
         ("number_of_fingers", FloatValidator()),
         ("number of toes", FloatValidator()),
-        ("favorite_color", key_not_required(StringValidator())),
+        ("favorite_color", KeyNotRequired(StringValidator())),
         ("requires_none", none_validator),
         ("favorite_books", ListValidator(StringValidator())),
         ("aaa", StringValidator()),
