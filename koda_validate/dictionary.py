@@ -12,6 +12,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    cast,
     overload,
 )
 
@@ -27,7 +28,6 @@ from koda_validate.typedefs import (
 )
 
 DictKey = Hashable
-
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
@@ -346,16 +346,18 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
+class DictValidator(Validator[Any, Ret, Serializable]):
     __slots__ = ("into", "fields", "validate_object")
     __match_args__ = ("into", "fields", "validate_object")
 
     @overload
     def __init__(
         self,
+        *,
         into: Callable[[T1], Ret],
-        field1: KeyValidator[T1],
-        *,
+        keys: Tuple[
+            KeyValidator[T1],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -363,10 +365,12 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     @overload
     def __init__(
         self,
+        *,
         into: Callable[[T1, T2], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        *,
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -374,11 +378,13 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     @overload
     def __init__(
         self,
+        *,
         into: Callable[[T1, T2, T3], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        *,
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -386,12 +392,14 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     @overload
     def __init__(
         self,
+        *,
         into: Callable[[T1, T2, T3, T4], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        *,
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -399,13 +407,15 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     @overload
     def __init__(
         self,
+        *,
         into: Callable[[T1, T2, T3, T4, T5], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        *,
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -413,14 +423,16 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     @overload
     def __init__(
         self,
+        *,
         into: Callable[[T1, T2, T3, T4, T5, T6], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        *,
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -428,15 +440,17 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     @overload
     def __init__(
         self,
+        *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        *,
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+            KeyValidator[T7],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -444,16 +458,18 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     @overload
     def __init__(
         self,
+        *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        *,
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+            KeyValidator[T7],
+            KeyValidator[T8],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -461,17 +477,19 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     @overload
     def __init__(
         self,
+        *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        *,
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+            KeyValidator[T7],
+            KeyValidator[T8],
+            KeyValidator[T9],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -479,18 +497,20 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
     @overload
     def __init__(
         self,
-        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
-        field1: KeyValidator[T1],
-        field2: KeyValidator[T2],
-        field3: KeyValidator[T3],
-        field4: KeyValidator[T4],
-        field5: KeyValidator[T5],
-        field6: KeyValidator[T6],
-        field7: KeyValidator[T7],
-        field8: KeyValidator[T8],
-        field9: KeyValidator[T9],
-        field10: KeyValidator[T10],
         *,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+            KeyValidator[T7],
+            KeyValidator[T8],
+            KeyValidator[T9],
+            KeyValidator[T10],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -509,16 +529,69 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
             Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
             Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
         ],
-        field1: KeyValidator[T1],
-        field2: Optional[KeyValidator[T2]] = None,
-        field3: Optional[KeyValidator[T3]] = None,
-        field4: Optional[KeyValidator[T4]] = None,
-        field5: Optional[KeyValidator[T5]] = None,
-        field6: Optional[KeyValidator[T6]] = None,
-        field7: Optional[KeyValidator[T7]] = None,
-        field8: Optional[KeyValidator[T8]] = None,
-        field9: Optional[KeyValidator[T9]] = None,
-        field10: Optional[KeyValidator[T10]] = None,
+        keys: Union[
+            Tuple[KeyValidator[T1]],
+            Tuple[KeyValidator[T1], KeyValidator[T2]],
+            Tuple[KeyValidator[T1], KeyValidator[T2], KeyValidator[T3]],
+            Tuple[KeyValidator[T1], KeyValidator[T2], KeyValidator[T3], KeyValidator[T4]],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+            ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+            ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+                KeyValidator[T7],
+            ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+                KeyValidator[T7],
+                KeyValidator[T8],
+            ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+                KeyValidator[T7],
+                KeyValidator[T8],
+                KeyValidator[T9],
+            ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+                KeyValidator[T7],
+                KeyValidator[T8],
+                KeyValidator[T9],
+                KeyValidator[T10],
+            ],
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
         self.into = into
@@ -526,33 +599,18 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         unfortunately, we have to have this be `Any` until
         we're using variadic generics -- or we could generate lots of classes
         """
-        self.fields: Tuple[KeyValidator[Any], ...] = tuple(
-            f
-            for f in (
-                field1,
-                field2,
-                field3,
-                field4,
-                field5,
-                field6,
-                field7,
-                field8,
-                field9,
-                field10,
-            )
-            if f is not None
-        )
+        self.keys = keys
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         if (
-            keys_result := _dict_without_extra_keys({k for k, _ in self.fields}, data)
+            keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
         ) is not None:
             return keys_result
 
         args = []
         errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.fields:
+        for key_, validator in self.keys:
             # optimized away the call to `koda.mapping_get`
             if key_ in data:
                 result = validator(Just(data[key_]))
@@ -572,7 +630,8 @@ class DictValidator(Generic[Ret], Validator[Any, Ret, Serializable]):
         if errs and len(errs) > 0:
             return Err(_tuples_to_json_dict(errs))
         else:
-            obj = self.into(*args)
+            # we know this should be ret
+            obj = self.into(*args)  # type: ignore
             if self.validate_object is None:
                 return Ok(obj)
             else:
@@ -597,28 +656,28 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     assistance.
     """
 
-    __slots__ = ("fields", "validate_object")
-    __match_args__ = ("fields", "validate_object")
+    __slots__ = ("keys", "validate_object")
+    __match_args__ = ("keys", "validate_object")
 
     def __init__(
         self,
-        *fields: KeyValidator[Any],
+        *keys: KeyValidator[Any],
         validate_object: Optional[
             Callable[[Dict[Hashable, Any]], Result[Dict[Hashable, Any], Serializable]]
         ] = None,
     ) -> None:
-        self.fields: Tuple[KeyValidator[Any], ...] = fields
+        self.keys: Tuple[KeyValidator[Any], ...] = keys
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Dict[Hashable, Any], Serializable]:
         if (
-            keys_result := _dict_without_extra_keys({k for k, _ in self.fields}, data)
+            keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
         ) is not None:
             return keys_result
 
         success_dict: Dict[Hashable, Any] = {}
         errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.fields:
+        for key_, validator in self.keys:
             # optimized away the call to `koda.mapping_get`
             if key_ in data:
                 result = validator(Just(data[key_]))

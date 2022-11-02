@@ -12,18 +12,18 @@ class Person:
 
 
 person_validator = DictValidator(
-    Person,
-    key("name", StringValidator()),
-    key("age", IntValidator()),
+    into=Person,
+    keys=(
+        key("name", StringValidator()),
+        key("age", IntValidator()),
+    ),
 )
-
 
 result = person_validator({"name": "John Doe", "age": 30})
 if isinstance(result, Ok):
     print(f"{result.val.name} is {result.val.age} years old")
 else:
     print(result.val)
-
 
 people_validator = ListValidator(person_validator)
 
@@ -35,9 +35,11 @@ class Group:
 
 
 group_validator = DictValidator(
-    Group,
-    key("name", StringValidator()),
-    key("people", people_validator),
+    into=Group,
+    keys=(
+        key("name", StringValidator()),
+        key("people", people_validator),
+    ),
 )
 
 data = {

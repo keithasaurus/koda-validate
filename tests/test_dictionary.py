@@ -235,7 +235,7 @@ def test_obj_1() -> None:
     class Person:
         name: str
 
-    validator = DictValidator(Person, key("name", StringValidator()))
+    validator = DictValidator(into=Person, keys=(key("name", StringValidator()),))
 
     assert validator("not a dict") == Err({"__container__": ["expected a dictionary"]})
 
@@ -257,7 +257,8 @@ def test_obj_2() -> None:
         age: Maybe[int]
 
     validator = DictValidator(
-        Person, key("name", StringValidator()), maybe_key("age", IntValidator())
+        into=Person,
+        keys=(key("name", StringValidator()), maybe_key("age", IntValidator())),
     )
 
     assert validator("not a dict") == Err({"__container__": ["expected a dictionary"]})
@@ -284,10 +285,12 @@ def test_obj_3() -> None:
         age: int
 
     validator = DictValidator(
-        Person,
-        key("first_name", StringValidator()),
-        key("last_name", StringValidator()),
-        key("age", IntValidator()),
+        into=Person,
+        keys=(
+            key("first_name", StringValidator()),
+            key("last_name", StringValidator()),
+            key("age", IntValidator()),
+        ),
     )
 
     assert validator({"first_name": "bob", "last_name": "smith", "age": 50}) == Ok(
@@ -315,11 +318,13 @@ def test_obj_4() -> None:
         eye_color: str
 
     validator = DictValidator(
-        Person,
-        key("first_name", StringValidator()),
-        key("last_name", StringValidator()),
-        key("age", IntValidator()),
-        key("eye color", StringValidator()),
+        into=Person,
+        keys=(
+            key("first_name", StringValidator()),
+            key("last_name", StringValidator()),
+            key("age", IntValidator()),
+            key("eye color", StringValidator()),
+        ),
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -343,11 +348,13 @@ def test_obj_4_mix_and_match_key_types() -> None:
         eye_color: str
 
     validator = DictValidator(
-        Person,
-        key("first_name", StringValidator()),
-        key(5, StringValidator()),
-        key(("age", "field"), IntValidator()),
-        key(Decimal(6), StringValidator()),
+        into=Person,
+        keys=(
+            key("first_name", StringValidator()),
+            key(5, StringValidator()),
+            key(("age", "field"), IntValidator()),
+            key(Decimal(6), StringValidator()),
+        ),
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -381,12 +388,14 @@ def test_obj_5() -> None:
         can_fly: bool
 
     validator = DictValidator(
-        Person,
-        key("first_name", StringValidator()),
-        key("last_name", StringValidator()),
-        key("age", IntValidator()),
-        key("eye color", StringValidator()),
-        key("can-fly", BoolValidator()),
+        into=Person,
+        keys=(
+            key("first_name", StringValidator()),
+            key("last_name", StringValidator()),
+            key("age", IntValidator()),
+            key("eye color", StringValidator()),
+            key("can-fly", BoolValidator()),
+        ),
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -424,13 +433,15 @@ def test_obj_6() -> None:
         fingers: float
 
     validator = DictValidator(
-        Person,
-        key("first_name", StringValidator()),
-        key("last_name", StringValidator()),
-        key("age", IntValidator()),
-        key("eye color", StringValidator()),
-        key("can-fly", BoolValidator()),
-        key("number_of_fingers", FloatValidator()),
+        into=Person,
+        keys=(
+            key("first_name", StringValidator()),
+            key("last_name", StringValidator()),
+            key("age", IntValidator()),
+            key("eye color", StringValidator()),
+            key("can-fly", BoolValidator()),
+            key("number_of_fingers", FloatValidator()),
+        ),
     )
 
     assert validator(
@@ -459,14 +470,16 @@ def test_obj_7() -> None:
         toes: float
 
     validator = DictValidator(
-        Person,
-        key("first_name", StringValidator()),
-        key("last_name", StringValidator()),
-        key("age", IntValidator()),
-        key("eye color", StringValidator()),
-        key("can-fly", BoolValidator()),
-        key("number_of_fingers", FloatValidator()),
-        key("number of toes", FloatValidator()),
+        into=Person,
+        keys=(
+            key("first_name", StringValidator()),
+            key("last_name", StringValidator()),
+            key("age", IntValidator()),
+            key("eye color", StringValidator()),
+            key("can-fly", BoolValidator()),
+            key("number_of_fingers", FloatValidator()),
+            key("number of toes", FloatValidator()),
+        ),
     )
 
     assert validator(
@@ -497,15 +510,17 @@ def test_obj_8() -> None:
         favorite_color: Maybe[str]
 
     validator = DictValidator(
-        Person,
-        key("first_name", StringValidator()),
-        key("last_name", StringValidator()),
-        key("age", IntValidator()),
-        key("eye color", StringValidator()),
-        key("can-fly", BoolValidator()),
-        key("number_of_fingers", FloatValidator()),
-        key("number of toes", FloatValidator()),
-        maybe_key("favorite_color", StringValidator()),
+        into=Person,
+        keys=(
+            key("first_name", StringValidator()),
+            key("last_name", StringValidator()),
+            key("age", IntValidator()),
+            key("eye color", StringValidator()),
+            key("can-fly", BoolValidator()),
+            key("number_of_fingers", FloatValidator()),
+            key("number of toes", FloatValidator()),
+            maybe_key("favorite_color", StringValidator()),
+        ),
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -564,16 +579,18 @@ def test_obj_9() -> None:
         requires_none: None
 
     validator = DictValidator(
-        Person,
-        key("first_name", StringValidator()),
-        key("last_name", StringValidator()),
-        key("age", IntValidator()),
-        key("eye color", StringValidator()),
-        key("can-fly", BoolValidator()),
-        key("number_of_fingers", FloatValidator()),
-        key("number of toes", FloatValidator()),
-        maybe_key("favorite_color", StringValidator()),
-        key("requires_none", none_validator),
+        into=Person,
+        keys=(
+            key("first_name", StringValidator()),
+            key("last_name", StringValidator()),
+            key("age", IntValidator()),
+            key("eye color", StringValidator()),
+            key("can-fly", BoolValidator()),
+            key("number_of_fingers", FloatValidator()),
+            key("number of toes", FloatValidator()),
+            maybe_key("favorite_color", StringValidator()),
+            key("requires_none", none_validator),
+        ),
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -609,17 +626,19 @@ def test_obj_10() -> None:
         something_else: List[str]
 
     validator = DictValidator(
-        Person,
-        key("first_name", StringValidator()),
-        key("last_name", StringValidator()),
-        key("age", IntValidator()),
-        key("eye color", StringValidator()),
-        key("can-fly", BoolValidator()),
-        key("number_of_fingers", FloatValidator()),
-        key("number of toes", FloatValidator()),
-        maybe_key("favorite_color", StringValidator()),
-        key("requires_none", none_validator),
-        key("favorite_books", ListValidator(StringValidator())),
+        into=Person,
+        keys=(
+            key("first_name", StringValidator()),
+            key("last_name", StringValidator()),
+            key("age", IntValidator()),
+            key("eye color", StringValidator()),
+            key("can-fly", BoolValidator()),
+            key("number_of_fingers", FloatValidator()),
+            key("number of toes", FloatValidator()),
+            maybe_key("favorite_color", StringValidator()),
+            key("requires_none", none_validator),
+            key("favorite_books", ListValidator(StringValidator())),
+        ),
         validate_object=_nobody_named_jones_has_brown_eyes,
     )
 
@@ -669,9 +688,11 @@ def test_obj_int_keys() -> None:
         return Ok(p)
 
     dv = DictValidator(
-        Person,
-        key(22, StringValidator()),
-        key(10, IntValidator()),
+        into=Person,
+        keys=(
+            key(22, StringValidator()),
+            key(10, IntValidator()),
+        ),
         validate_object=asserted_ok,
     )
     assert dv({10: test_age, 22: test_name}) == Ok(Person(test_name, test_age))
@@ -692,9 +713,8 @@ def test_obj_tuple_str_keys() -> None:
         return Ok(p)
 
     dv = DictValidator(
-        Person,
-        key(("ok",), StringValidator()),
-        key(("neat", "cool"), IntValidator()),
+        into=Person,
+        keys=(key(("ok",), StringValidator()), key(("neat", "cool"), IntValidator())),
         validate_object=asserted_ok,
     )
     assert dv({("ok",): test_name, ("neat", "cool"): test_age}) == Ok(
@@ -717,9 +737,8 @@ def test_obj_decimal_keys() -> None:
         return Ok(p)
 
     dv = DictValidator(
-        Person,
-        key(Decimal(22), StringValidator()),
-        key(Decimal("1.111"), IntValidator()),
+        into=Person,
+        keys=(key(Decimal(22), StringValidator()), key(Decimal("1.111"), IntValidator())),
         validate_object=asserted_ok,
     )
     assert dv({Decimal("1.111"): test_age, Decimal(22): test_name}) == Ok(

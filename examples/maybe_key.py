@@ -12,7 +12,7 @@ class Person:
 
 
 person_validator = DictValidator(
-    Person, key("name", StringValidator()), maybe_key("age", IntValidator())
+    into=Person, keys=(key("name", StringValidator()), maybe_key("age", IntValidator()))
 )
 assert person_validator({"name": "Bob"}) == Ok(Person("Bob", nothing))
 assert person_validator({"name": "Bob", "age": 42}) == Ok(Person("Bob", Just(42)))

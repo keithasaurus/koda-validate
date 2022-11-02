@@ -353,16 +353,16 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         generic_vals = ", ".join(key_type_vars)
         dict_validator_into_signatures.append(f"Callable[[{generic_vals}], Ret]")
 
-        dict_validator_fields.append(f"field{i+1}: KeyValidator[{type_vars[i]}]")
+        dict_validator_fields.append(f"KeyValidator[{type_vars[i]}]")
+        final_tuple_fields = [
+            f"            KeyValidator[{type_vars[j]}]" for j in range(i + 1)
+        ]
         dict_validator_fields_final.append(
-            f"field{i + 1}: KeyValidator[{type_vars[i]}]"
-            if i == 0
-            else f"field{i + 1}: Optional[KeyValidator[{type_vars[i]}]] = None"
+            "Tuple[" + ",\n".join(final_tuple_fields) + "]"
         )
 
     ret += """
 class DictValidator(
-    Generic[Ret],
     Validator[Any, Ret, Serializable]
 ):
     __slots__ = ('into', 'fields', 'validate_object')
@@ -373,18 +373,20 @@ class DictValidator(
         ret += f"""
     @overload
     def __init__(self,
+                 *,
                  into: Callable[[{",".join(type_vars[:i+1])}], Ret],
+                 keys: Tuple[
 """
         for j in range(i + 1):
-            ret += f"                 {dict_validator_fields[j]},\n"
-        ret += """                 *,
+            ret += f"                     {dict_validator_fields[j]},\n"
+        ret += """                 ],
                  validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
                  ) -> None: 
         ...  # pragma: no cover
 
 """
 
-    dv_fields_2: str = ",\n".join([f"        {f}" for f in dict_validator_fields_final])
+    dv_fields_2: str = ",\n".join([f"         {f}" for f in dict_validator_fields_final])
     tuple_fields = ", ".join([f"field{i+1}" for i in range(num_keys)])
 
     ret += f"""
@@ -394,7 +396,9 @@ class DictValidator(
         into: Union[
             {", ".join(dict_validator_into_signatures)}
         ],
+        keys: Union[
     {dv_fields_2},
+        ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
     ) -> None:
         self.into = into
@@ -402,22 +406,19 @@ class DictValidator(
         unfortunately, we have to have this be `Any` until
         we're using variadic generics -- or we could generate lots of classes
         \"""
-        self.fields: Tuple[KeyValidator[Any], ...] = tuple(
-            f for f in (
-                {tuple_fields},\n
-            ) if f is not None)
+        self.keys = keys  
         self.validate_object = validate_object
 """
     ret += """   
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
         if (
-                keys_result := _dict_without_extra_keys({k for k, _ in self.fields}, data)
+                keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
         ) is not None:
             return keys_result
 
         args = []
         errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.fields:
+        for key_, validator in self.keys:
             # optimized away the call to `koda.mapping_get`
             if key_ in data:
                 result = validator(Just(data[key_]))
@@ -472,18 +473,18 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
             Callable[[Dict[Hashable, Any]], Result[Dict[Hashable, Any], Serializable]]
         ] = None,
     ) -> None:
-        self.fields: Tuple[KeyValidator[Any], ...] = fields
+        self.keys: Tuple[KeyValidator[Any], ...] = fields
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Dict[Hashable, Any], Serializable]:
         if (
-            keys_result := _dict_without_extra_keys({k for k, _ in self.fields}, data)
+            keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
         ) is not None:
             return keys_result
 
         success_dict: Dict[Hashable, Any] = {}
         errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.fields:
+        for key_, validator in self.keys:
             # optimized away the call to `koda.mapping_get`
             if key_ in data:
                 result = validator(Just(data[key_]))

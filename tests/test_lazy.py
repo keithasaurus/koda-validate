@@ -16,9 +16,8 @@ def test_lazy() -> None:
         return nel_validator
 
     nel_validator: DictValidator[TestNonEmptyList] = DictValidator(
-        TestNonEmptyList,
-        key("val", IntValidator()),
-        maybe_key("next", Lazy(recur_tnel)),
+        into=TestNonEmptyList,
+        keys=(key("val", IntValidator()), maybe_key("next", Lazy(recur_tnel))),
     )
 
     assert nel_validator({"val": 5, "next": {"val": 6, "next": {"val": 7}}}) == Ok(

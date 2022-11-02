@@ -96,9 +96,11 @@ def test_match_args() -> None:
             return Ok(p)
 
     dv_validator: DictValidator[Person] = DictValidator(
-        (into_ := Person),
-        (str_1 := key("name", StringValidator())),
-        (int_1 := key("age", IntValidator())),
+        into=(into_ := Person),
+        keys=(
+            (str_1 := key("name", StringValidator())),
+            (int_1 := key("age", IntValidator())),
+        ),
         validate_object=validate_person,
     )
     match dv_validator:
@@ -144,9 +146,11 @@ def test_match_args() -> None:
         return dv_validator_2
 
     dv_validator_2: DictValidator[Person] = DictValidator(
-        Person,
-        key("name", StringValidator()),
-        key("age", IntValidator()),
+        into=Person,
+        keys=(
+            key("name", StringValidator()),
+            key("age", IntValidator()),
+        ),
     )
     match Lazy(lazy_dv_validator):
         case Lazy(validator, recurrent):

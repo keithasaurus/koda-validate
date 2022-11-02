@@ -21,9 +21,11 @@ class City:
 
 
 city_validator = DictValidator(
-    City,
-    key("name", StringValidator(not_blank)),
-    maybe_key("region", StringValidator(not_blank)),
+    into=City,
+    keys=(
+        key("name", StringValidator(not_blank)),
+        maybe_key("region", StringValidator(not_blank)),
+    ),
 )
 
 # We use the key "__container__" for object-level errors
@@ -45,7 +47,8 @@ class Neighborhood:
 
 
 neighborhood_validator = DictValidator(
-    Neighborhood, key("name", StringValidator(not_blank)), key("city", city_validator)
+    into=Neighborhood,
+    keys=(key("name", StringValidator(not_blank)), key("city", city_validator)),
 )
 
 # Errors are nested in predictable manner
