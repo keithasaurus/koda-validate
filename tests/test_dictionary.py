@@ -784,15 +784,6 @@ def _nobody_named_jones_has_first_name_alice_dict(
         return Ok(person)
 
 
-def _nobody_named_jones_has_first_name_alice_dict(
-    person: Dict[Hashable, Any],
-) -> Result[Dict[Hashable, Any], Serializable]:
-    if person["last_name"].lower() == "jones" and person["first_name"] == Just("alice"):
-        return Err(_JONES_ERROR_MSG)
-    else:
-        return Ok(person)
-
-
 def test_dict_validator_any() -> None:
     validator = DictValidatorAny(
         keys=(
@@ -1043,7 +1034,7 @@ def test_dict_validator_cannot_have_validate_object_and_validate_object_async() 
             into=Person,
             keys=(
                 ("first_name", StringValidator(preprocessors=[strip])),
-                ("last_name", StringValidator()),
+                ("age", IntValidator()),
             ),
             validate_object=_nobody_named_jones_is_100,
             validate_object_async=val_obj_async,
