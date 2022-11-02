@@ -32,6 +32,14 @@ def test_decimal() -> None:
 
 @pytest.mark.asyncio
 async def test_decimal_async() -> None:
+    assert await DecimalValidator().validate_async("abc") == Err(
+        ["expected a Decimal, or a Decimal-compatible string or integer"]
+    )
+
+    assert await DecimalValidator().validate_async(5.5) == Err(
+        ["expected a Decimal, or a Decimal-compatible string or integer"]
+    )
+
     class Add1Decimal(Processor[Decimal]):
         def __call__(self, val: Decimal) -> Decimal:
             return val + 1
