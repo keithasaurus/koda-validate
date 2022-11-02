@@ -4,8 +4,7 @@ __all__ = (
     # decimal.py
     "DecimalValidator",
     # dictionary.py
-    "key",
-    "maybe_key",
+    "key_not_required",
     "MapValidator",
     "IsDictValidator",
     "MinKeys",
@@ -69,8 +68,7 @@ from koda_validate.dictionary import (
     MapValidator,
     MaxKeys,
     MinKeys,
-    key,
-    maybe_key,
+    key_not_required,
 )
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Choices, ExactValidator, Lazy, Max, Min, MultipleOf

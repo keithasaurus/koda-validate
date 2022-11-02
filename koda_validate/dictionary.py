@@ -46,60 +46,6 @@ def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
 KEY_MISSING_ERR: Final[Err[Serializable]] = Err(["key missing"])
 
 
-class RequiredField(Validator[Maybe[Any], A, Serializable]):
-    __slots__ = ("validator",)
-
-    def __init__(self, validator: Validator[Any, A, Serializable]) -> None:
-        self.validator = validator
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Serializable]:
-        if maybe_val is nothing:
-            return KEY_MISSING_ERR
-        else:
-            # we use the `is nothing` comparison above because `nothing`
-            # is a singleton; but mypy doesn't know that this _must_ be a Just now
-            if TYPE_CHECKING:  # pragma: no cover
-                assert isinstance(maybe_val, Just)
-            return self.validator(maybe_val.val)
-
-    async def validate_async(self, maybe_val: Maybe[Any]) -> Result[A, Serializable]:
-        if maybe_val is nothing:
-            return KEY_MISSING_ERR
-        else:
-            # we use the `is nothing` comparison above because `nothing`
-            # is a singleton; but mypy doesn't know that this _must_ be a Just now
-            if TYPE_CHECKING:  # pragma: no cover
-                assert isinstance(maybe_val, Just)
-            return self.validator(maybe_val.val)
-
-
-class MaybeField(Validator[Maybe[Any], Maybe[A], Serializable]):
-    __slots__ = ("validator",)
-
-    def __init__(self, validator: Validator[Any, A, Serializable]) -> None:
-        self.validator = validator
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
-        if maybe_val is nothing:
-            return Ok(maybe_val)
-        else:
-            if TYPE_CHECKING:  # pragma: no cover
-                assert isinstance(maybe_val, Just)
-            return self.validator(maybe_val.val).map(Just)
-
-    async def validate_async(
-        self, maybe_val: Maybe[Any]
-    ) -> Result[Maybe[A], Serializable]:
-        if maybe_val is nothing:
-            return Ok(maybe_val)
-        else:
-            # we use the `is nothing` comparison above because `nothing`
-            # is a singleton; but mypy doesn't know that this _must_ be a Just now
-            if TYPE_CHECKING:  # pragma: no cover
-                assert isinstance(maybe_val, Just)
-            return self.validator(maybe_val.val).map(Just)
-
-
 class KeyNotRequired(Validator[Maybe[Any], Maybe[A], Serializable]):
     def __init__(self, validator: Validator[Any, A, Serializable]):
         self.validator = validator
@@ -123,19 +69,6 @@ KeyValidator = Tuple[
     Hashable,
     Union[Validator[Any, A, Serializable], Tuple[Validator[Maybe[Any], A, Serializable]]],
 ]
-
-
-def key(
-    key_: DictKey, validator: Validator[Any, A, Serializable]
-) -> Tuple[DictKey, Validator[Maybe[Any], A, Serializable]]:
-    return key_, RequiredField(validator)
-
-
-def maybe_key(
-    key_: DictKey, validator: Validator[Any, A, Serializable]
-) -> Tuple[DictKey, Validator[Maybe[Any], Maybe[A], Serializable]]:
-    return key_, MaybeField(validator)
-
 
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
@@ -614,6 +547,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
     ) -> None:
+
         self.into = into
         """
         unfortunately, we have to have this be `Any` until
