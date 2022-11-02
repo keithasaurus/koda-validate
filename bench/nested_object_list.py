@@ -10,7 +10,6 @@ from koda_validate import (
     IntValidator,
     ListValidator,
     StringValidator,
-    key,
 )
 
 
@@ -30,19 +29,23 @@ class Person:
 
 
 k_validator = DictValidator(
-    Person,
-    key("name", StringValidator()),
-    key("age", IntValidator()),
-    key(
-        "hobbies",
-        ListValidator(
-            DictValidator(
-                Hobby,
-                key("name", StringValidator()),
-                key("reason", StringValidator()),
-                key("category", StringValidator()),
-                key("enjoyment", FloatValidator()),
-            )
+    into=Person,
+    keys=(
+        ("name", StringValidator()),
+        ("age", IntValidator()),
+        (
+            "hobbies",
+            ListValidator(
+                DictValidator(
+                    into=Hobby,
+                    keys=(
+                        ("name", StringValidator()),
+                        ("reason", StringValidator()),
+                        ("category", StringValidator()),
+                        ("enjoyment", FloatValidator()),
+                    ),
+                )
+            ),
         ),
     ),
 )

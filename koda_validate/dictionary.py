@@ -4,7 +4,6 @@ from typing import (
     Callable,
     Dict,
     Final,
-    Generic,
     Hashable,
     List,
     Optional,
@@ -12,7 +11,6 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    cast,
     overload,
 )
 
@@ -102,18 +100,40 @@ class MaybeField(Validator[Maybe[Any], Maybe[A], Serializable]):
             return self.validator(maybe_val.val).map(Just)
 
 
-KeyValidator = Tuple[DictKey, Callable[[Maybe[Any]], Result[A, Serializable]]]
+class KeyNotRequired(Validator[Maybe[Any], Maybe[A], Serializable]):
+    def __init__(self, validator: Validator[Any, A, Serializable]):
+        self.validator = validator
+
+    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
+        if maybe_val is nothing:
+            return Ok(maybe_val)
+        else:
+            if TYPE_CHECKING:  # pragma: no cover
+                assert isinstance(maybe_val, Just)
+            return self.validator(maybe_val.val).map(Just)
+
+
+def key_not_required(
+    validator: Validator[Any, A, Serializable]
+) -> Tuple[Validator[Maybe[Any], Maybe[A], Serializable]]:
+    return (KeyNotRequired(validator),)
+
+
+KeyValidator = Tuple[
+    Hashable,
+    Union[Validator[Any, A, Serializable], Tuple[Validator[Maybe[Any], A, Serializable]]],
+]
 
 
 def key(
     key_: DictKey, validator: Validator[Any, A, Serializable]
-) -> Tuple[DictKey, Callable[[Any], Result[A, Serializable]]]:
+) -> Tuple[DictKey, Validator[Maybe[Any], A, Serializable]]:
     return key_, RequiredField(validator)
 
 
 def maybe_key(
     key_: DictKey, validator: Validator[Any, A, Serializable]
-) -> Tuple[DictKey, Callable[[Any], Result[Maybe[A], Serializable]]]:
+) -> Tuple[DictKey, Validator[Maybe[Any], Maybe[A], Serializable]]:
     return key_, MaybeField(validator)
 
 
@@ -347,8 +367,8 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
 
 
 class DictValidator(Validator[Any, Ret, Serializable]):
-    __slots__ = ("into", "fields", "validate_object")
-    __match_args__ = ("into", "fields", "validate_object")
+    __slots__ = ("into", "keys", "keys_flat", "validate_object")
+    __match_args__ = ("keys_flat", "into", "validate_object")
 
     @overload
     def __init__(
@@ -600,6 +620,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         we're using variadic generics -- or we could generate lots of classes
         """
         self.keys = keys
+        self.keys_flat = [
+            ((k, v[0]) if isinstance(v, tuple) else (k, v)) for k, v in keys
+        ]
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
@@ -611,11 +634,16 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         args = []
         errs: Optional[List[Tuple[str, Serializable]]] = None
         for key_, validator in self.keys:
-            # optimized away the call to `koda.mapping_get`
             if key_ in data:
-                result = validator(Just(data[key_]))
+                if isinstance(validator, tuple):
+                    result = validator[0](Just(data[key_]))
+                else:
+                    result = validator(data[key_])
             else:
-                result = validator(nothing)
+                if isinstance(validator, tuple):
+                    result = Ok(nothing)
+                else:
+                    result = KEY_MISSING_ERR
 
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
@@ -678,11 +706,16 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         success_dict: Dict[Hashable, Any] = {}
         errs: Optional[List[Tuple[str, Serializable]]] = None
         for key_, validator in self.keys:
-            # optimized away the call to `koda.mapping_get`
             if key_ in data:
-                result = validator(Just(data[key_]))
+                if isinstance(validator, tuple):
+                    result = validator[0](Just(data[key_]))
+                else:
+                    result = validator(data[key_])
             else:
-                result = validator(nothing)
+                if isinstance(validator, tuple):
+                    result = Ok(nothing)
+                else:
+                    result = KEY_MISSING_ERR
 
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):

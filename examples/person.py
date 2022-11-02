@@ -14,8 +14,8 @@ class Person:
 person_validator = DictValidator(
     into=Person,
     keys=(
-        key("name", StringValidator()),
-        key("age", IntValidator()),
+        ("name", StringValidator()),
+        ("age", IntValidator()),
     ),
 )
 
@@ -37,8 +37,8 @@ class Group:
 group_validator = DictValidator(
     into=Group,
     keys=(
-        key("name", StringValidator()),
-        key("people", people_validator),
+        ("name", StringValidator()),
+        ("people", people_validator),
     ),
 )
 

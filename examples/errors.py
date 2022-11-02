@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from koda import Err, Maybe
 
 from koda_validate import *
+from koda_validate.dictionary import KeyNotRequired, key_not_required
 
 # Wrong type
 assert StringValidator()(None) == Err(["expected a string"])
@@ -23,8 +24,8 @@ class City:
 city_validator = DictValidator(
     into=City,
     keys=(
-        key("name", StringValidator(not_blank)),
-        maybe_key("region", StringValidator(not_blank)),
+        ("name", StringValidator(not_blank)),
+        ("region", key_not_required(StringValidator(not_blank))),
     ),
 )
 
@@ -32,6 +33,7 @@ city_validator = DictValidator(
 assert city_validator(None) == Err({"__container__": ["expected a dictionary"]})
 
 # Missing keys are errors
+print(city_validator({}))
 assert city_validator({}) == Err({"name": ["key missing"]})
 
 # Extra keys are also errors
@@ -48,7 +50,7 @@ class Neighborhood:
 
 neighborhood_validator = DictValidator(
     into=Neighborhood,
-    keys=(key("name", StringValidator(not_blank)), key("city", city_validator)),
+    keys=(("name", StringValidator(not_blank)), ("city", city_validator)),
 )
 
 # Errors are nested in predictable manner

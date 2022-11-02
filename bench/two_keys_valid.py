@@ -3,7 +3,7 @@ from typing import Any, List
 
 from pydantic import BaseModel
 
-from koda_validate import DictValidator, IntValidator, StringValidator, key
+from koda_validate import DictValidator, IntValidator, StringValidator
 
 
 @dataclass
@@ -13,7 +13,7 @@ class SimpleStr:
 
 
 string_validator = DictValidator(
-    SimpleStr, key("val_1", StringValidator()), key("val_2", IntValidator())
+    into=SimpleStr, keys=(("val_1", StringValidator()), ("val_2", IntValidator()))
 )
 
 
