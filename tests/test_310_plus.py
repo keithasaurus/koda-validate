@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Dict, Hashable
 
-from koda import Err, Ok, Result
+from koda import Err, Maybe, Ok, Result
 
 from koda_validate import (
     BoolValidator,
@@ -88,11 +88,11 @@ def test_match_args() -> None:
     @dataclass
     class Person:
         name: str
-        age: int
+        age: Maybe[int]
 
     def validate_person(p: Person) -> Result[Person, Serializable]:
-        if len(p.name) > p.age:
-            return Err(["your name cannot be longer than your name"])
+        if len(p.name) > p.age.get_or_else(100):
+            return Err(["your name cannot be longer than your age"])
         else:
             return Ok(p)
 
@@ -110,7 +110,7 @@ def test_match_args() -> None:
             assert fields[0] == str_1
             assert fields[1][0] == "age"
             assert isinstance(fields[1][1], KeyNotRequired)
-            assert fields[1][1].validator is int_1[1][0].validator
+            assert fields[1][1].validator == int_1[1][0].validator  # type: ignore
             assert validate_object == validate_person
 
         case _:
@@ -152,7 +152,7 @@ def test_match_args() -> None:
         into=Person,
         keys=(
             ("name", StringValidator()),
-            ("age", IntValidator()),
+            ("age", key_not_required(IntValidator())),
         ),
     )
     match Lazy(lazy_dv_validator):

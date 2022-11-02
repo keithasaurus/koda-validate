@@ -575,7 +575,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                     result = validator(data[key_])
             else:
                 if isinstance(validator, tuple):
-                    result = Ok(nothing)
+                    result = Ok(nothing)  # type: ignore
                 else:
                     result = KEY_MISSING_ERR
 
