@@ -775,7 +775,16 @@ def test_dict_validator_any_empty() -> None:
     }
 
 
-def _nobody_named_jones_has_first_name_alice(
+def _nobody_named_jones_has_first_name_alice_dict(
+    person: Dict[Hashable, Any],
+) -> Result[Dict[Hashable, Any], Serializable]:
+    if person["last_name"].lower() == "jones" and person["first_name"] == Just("alice"):
+        return Err(_JONES_ERROR_MSG)
+    else:
+        return Ok(person)
+
+
+def _nobody_named_jones_has_first_name_alice_dict(
     person: Dict[Hashable, Any],
 ) -> Result[Dict[Hashable, Any], Serializable]:
     if person["last_name"].lower() == "jones" and person["first_name"] == Just("alice"):
@@ -802,7 +811,7 @@ def test_dict_validator_any() -> None:
             ("something else", FloatValidator()),
             (12, BoolValidator()),
         ),
-        validate_object=_nobody_named_jones_has_first_name_alice,
+        validate_object=_nobody_named_jones_has_first_name_alice_dict,
     )
 
     assert validator(
@@ -850,7 +859,7 @@ def test_dict_validator_any_key_missing() -> None:
             ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
             ("last_name", StringValidator()),
         ),
-        validate_object=_nobody_named_jones_has_first_name_alice,
+        validate_object=_nobody_named_jones_has_first_name_alice_dict,
     )
 
     assert validator({"first_name": " bob ", "last_name": "smith"}) == Ok(
@@ -890,7 +899,7 @@ async def test_validate_dictionary_any_async() -> None:
             ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
             ("last_name", StringValidator()),
         ),
-        validate_object=_nobody_named_jones_has_first_name_alice,
+        validate_object=_nobody_named_jones_has_first_name_alice_dict,
     )
 
     assert await validator.validate_async(None) == EXPECTED_DICT_ERR
@@ -948,7 +957,7 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
         obj: Dict[Hashable, Any]
     ) -> Result[Dict[Hashable, Any], Serializable]:
         await asyncio.sleep(0.001)
-        return _nobody_named_jones_has_first_name_alice(obj)
+        return _nobody_named_jones_has_first_name_alice_dict(obj)
 
     validator = DictValidatorAny(
         keys=(
@@ -998,7 +1007,7 @@ def test_dict_validator_any_cannot_have_validate_object_and_validate_object_asyn
         obj: Dict[Hashable, Any]
     ) -> Result[Dict[Hashable, Any], Serializable]:
         await asyncio.sleep(0.001)
-        return _nobody_named_jones_has_first_name_alice(obj)
+        return _nobody_named_jones_has_first_name_alice_dict(obj)
 
     with pytest.raises(AssertionError):
         DictValidatorAny(
@@ -1006,6 +1015,84 @@ def test_dict_validator_any_cannot_have_validate_object_and_validate_object_asyn
                 ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
                 ("last_name", StringValidator()),
             ),
-            validate_object=_nobody_named_jones_has_first_name_alice,
+            validate_object=_nobody_named_jones_has_first_name_alice_dict,
             validate_object_async=val_obj_async,
         )
+
+
+def test_dict_validator_cannot_have_validate_object_and_validate_object_async() -> None:  # noqa:m E501
+    @dataclass
+    class Person:
+        name: str
+        age: int
+
+    def _nobody_named_jones_is_100(
+        person: Person,
+    ) -> Result[Person, Serializable]:
+        if person.name.lower() == "jones" and person.age == 100:
+            return Err("Cannot be jones and 100")
+        else:
+            return Ok(person)
+
+    async def val_obj_async(obj: Person) -> Result[Person, Serializable]:
+        await asyncio.sleep(0.001)
+        return _nobody_named_jones_is_100(obj)
+
+    with pytest.raises(AssertionError):
+        DictValidator(
+            into=Person,
+            keys=(
+                ("first_name", StringValidator(preprocessors=[strip])),
+                ("last_name", StringValidator()),
+            ),
+            validate_object=_nobody_named_jones_is_100,
+            validate_object_async=val_obj_async,
+        )
+
+
+@pytest.mark.asyncio
+async def test_dict_validator_handles_validate_object_async_or_validate_object() -> None:
+    @dataclass
+    class Person:
+        name: str
+        age: int
+
+    def _nobody_named_jones_is_100(
+        person: Person,
+    ) -> Result[Person, Serializable]:
+        if person.name.lower() == "jones" and person.age == 100:
+            return Err("Cannot be jones and 100")
+        else:
+            return Ok(person)
+
+    async def val_obj_async(obj: Person) -> Result[Person, Serializable]:
+        await asyncio.sleep(0.001)
+        return _nobody_named_jones_is_100(obj)
+
+    validator_sync = DictValidator(
+        into=Person,
+        keys=(
+            ("name", StringValidator(preprocessors=[strip])),
+            ("age", IntValidator()),
+        ),
+        validate_object=_nobody_named_jones_is_100,
+    )
+
+    # calling sync validate_object, even within async context
+    assert await validator_sync.validate_async({"name": "jones", "age": 100}) == Err(
+        "Cannot be jones and 100"
+    )
+
+    validator_async = DictValidator(
+        into=Person,
+        keys=(
+            ("name", StringValidator(preprocessors=[strip])),
+            ("age", IntValidator()),
+        ),
+        validate_object_async=val_obj_async,
+    )
+
+    # calling sync validate_object_async within async context
+    assert await validator_async.validate_async({"name": "jones", "age": 100}) == Err(
+        "Cannot be jones and 100"
+    )

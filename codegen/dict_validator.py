@@ -331,8 +331,8 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
 class DictValidator(
     Validator[Any, Ret, Serializable]
 ):
-    __slots__ = ("keys", "into", "preprocessors", "validate_object")
-    __match_args__ = ("keys", "into", "preprocessors", "validate_object")
+    __slots__ = ("keys", "into", "preprocessors", "validate_object", "validate_object_async")
+    __match_args__ = ("keys", "into", "preprocessors", "validate_object", "validate_object_async")
 
 """
     for i in range(num_keys):
@@ -347,6 +347,7 @@ class DictValidator(
             ret += f"                     {dict_validator_fields[j]},\n"
         ret += """                 ],
                  validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+                 validate_object_async: Optional[Callable[[Ret], Awaitable[Result[Ret, Serializable]]]] = None,
                  preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None
                  ) -> None: 
         ...  # pragma: no cover
@@ -366,13 +367,19 @@ class DictValidator(
     {dv_fields_2},
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[Callable[[Ret], Awaitable[Result[Ret, Serializable]]]] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None
     ) -> None:
 """
     ret += """
         self.into = into
         self.keys = keys 
+        if validate_object is not None and validate_object_async is not None:
+            raise AssertionError(
+                "validate_object and validate_object_async cannot both be defined"
+            )
         self.validate_object = validate_object
+        self.validate_object_async = validate_object_async
         self.preprocessors = preprocessors
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
@@ -421,6 +428,58 @@ class DictValidator(
                 return Ok(obj)
             else:
                 return self.validate_object(obj)
+                
+    async def validate_async(self, data: Any) -> Result[Ret, Serializable]:
+        if not isinstance(data, dict):
+            return EXPECTED_DICT_ERR
+
+        if self.preprocessors is not None:
+            for preproc in self.preprocessors:
+                data = preproc(data)
+
+        if (
+            keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
+        ) is not None:
+            return keys_result
+
+        success_dict: Dict[Hashable, Any] = {}
+        errs: Optional[List[Tuple[str, Serializable]]] = None
+        for key_, validator in self.keys:
+            if key_ in data:
+                if isinstance(validator, Validator):
+                    result = await validator.validate_async(data[key_])
+                else:
+                    # ignore because it's difficult to make `validate_async` 
+                    # apparent to KeyValidator...
+                    result = await validator.validate_async(    # type: ignore
+                        Just(data[key_])
+                    )
+
+            else:
+                if isinstance(validator, Validator):
+                    result = KEY_MISSING_ERR
+                else:
+                    result = Ok(nothing)
+
+            # (slightly) optimized; can be simplified if needed
+            if isinstance(result, Err):
+                err = (str(key_), result.val)
+                if errs is None:
+                    errs = [err]
+                else:
+                    errs.append(err)
+            elif errs is None:
+                success_dict[key_] = result.val
+
+        if errs and len(errs) > 0:
+            return Err(_tuples_to_json_dict(errs))
+        else:
+            if self.validate_object is not None:
+                return self.validate_object(success_dict)
+            elif self.validate_object_async is not None:
+                return await self.validate_object_async(success_dict)
+            else:
+                return Ok(success_dict)
 
 
 class DictValidatorAny(Validator[Any, Any, Serializable]):
@@ -538,7 +597,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 if isinstance(validator, Validator):
                     result = await validator.validate_async(data[key_])
                 else:
-                    # ignore because it's difficult to `validate_async` 
+                    # ignore because it's difficult to make `validate_async` 
                     # apparent to KeyValidator...
                     result = await validator.validate_async(    # type: ignore
                         Just(data[key_])

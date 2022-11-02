@@ -309,8 +309,20 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
 
 
 class DictValidator(Validator[Any, Ret, Serializable]):
-    __slots__ = ("keys", "into", "preprocessors", "validate_object")
-    __match_args__ = ("keys", "into", "preprocessors", "validate_object")
+    __slots__ = (
+        "keys",
+        "into",
+        "preprocessors",
+        "validate_object",
+        "validate_object_async",
+    )
+    __match_args__ = (
+        "keys",
+        "into",
+        "preprocessors",
+        "validate_object",
+        "validate_object_async",
+    )
 
     @overload
     def __init__(
@@ -321,6 +333,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             KeyValidator[T1],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -335,6 +350,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             KeyValidator[T2],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -350,6 +368,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             KeyValidator[T3],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -366,6 +387,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             KeyValidator[T4],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -383,6 +407,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             KeyValidator[T5],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -401,6 +428,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             KeyValidator[T6],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -420,6 +450,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             KeyValidator[T7],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -440,6 +473,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             KeyValidator[T8],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -461,6 +497,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             KeyValidator[T9],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -483,6 +522,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             KeyValidator[T10],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         ...  # pragma: no cover
@@ -565,12 +607,20 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             ],
         ],
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Result[Ret, Serializable]]]
+        ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
 
         self.into = into
         self.keys = keys
+        if validate_object is not None and validate_object_async is not None:
+            raise AssertionError(
+                "validate_object and validate_object_async cannot both be defined"
+            )
         self.validate_object = validate_object
+        self.validate_object_async = validate_object_async
         self.preprocessors = preprocessors
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
@@ -619,6 +669,55 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 return Ok(obj)
             else:
                 return self.validate_object(obj)
+
+    async def validate_async(self, data: Any) -> Result[Ret, Serializable]:
+        if not isinstance(data, dict):
+            return EXPECTED_DICT_ERR
+
+        if self.preprocessors is not None:
+            for preproc in self.preprocessors:
+                data = preproc(data)
+
+        if (
+            keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
+        ) is not None:
+            return keys_result
+
+        args = []
+        errs: Optional[List[Tuple[str, Serializable]]] = None
+        for key_, validator in self.keys:
+            if key_ in data:
+                if isinstance(validator, Validator):
+                    result = validator(data[key_])
+                else:
+                    result = validator(Just(data[key_]))
+            else:
+                if isinstance(validator, Validator):
+                    result = KEY_MISSING_ERR
+                else:
+                    result = Ok(nothing)  # type: ignore
+
+            # (slightly) optimized; can be simplified if needed
+            if isinstance(result, Err):
+                err = (str(key_), result.val)
+                if errs is None:
+                    errs = [err]
+                else:
+                    errs.append(err)
+            elif errs is None:
+                args.append(result.val)
+
+        if errs and len(errs) > 0:
+            return Err(_tuples_to_json_dict(errs))
+        else:
+            # we know this should be ret
+            obj = self.into(*args)  # type: ignore
+            if self.validate_object is not None:
+                return self.validate_object(obj)
+            elif self.validate_object_async is not None:
+                return await self.validate_object_async(obj)
+            else:
+                return Ok(obj)
 
 
 class DictValidatorAny(Validator[Any, Any, Serializable]):
@@ -735,7 +834,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 if isinstance(validator, Validator):
                     result = await validator.validate_async(data[key_])
                 else:
-                    # ignore because it's difficult to `validate_async`
+                    # ignore because it's difficult to make `validate_async`
                     # apparent to KeyValidator...
                     result = await validator.validate_async(  # type: ignore
                         Just(data[key_])
