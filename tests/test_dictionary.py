@@ -764,7 +764,7 @@ def _nobody_named_jones_has_brown_eyes_dict_any(
         return Ok(person)
 
 
-def test_dict_validator_unsafe() -> None:
+def test_dict_validator_any() -> None:
     validator = DictValidatorAny(
         keys=(
             ("first_name", StringValidator(preprocessors=[strip])),
@@ -822,3 +822,28 @@ def test_dict_validator_unsafe() -> None:
     )
 
     assert validator("") == Err({"__container__": ["expected a dictionary"]})
+
+
+def test_dict_validator_any_key_missing() -> None:
+    validator = DictValidatorAny(
+        keys=(
+            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
+            ("last_name", StringValidator()),
+        ),
+        validate_object=_nobody_named_jones_has_brown_eyes_dict_any,
+    )
+
+    assert validator({"first_name": " bob ", "last_name": "smith",}) == Ok(
+        {
+            "first_name": Just("bob"),
+            "last_name": "smith",
+        }
+    )
+
+    assert validator({"last_name": "smith"}) == Ok(
+        {"first_name": nothing, "last_name": "smith"}
+    )
+
+    assert validator({"first_name": 5}) == Err(
+        {"last_name": ["key missing"], "first_name": ["expected a string"]}
+    )
