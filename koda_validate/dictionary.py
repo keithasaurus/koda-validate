@@ -1,6 +1,7 @@
 from typing import (
     TYPE_CHECKING,
     Any,
+    Awaitable,
     Callable,
     Dict,
     Final,
@@ -25,8 +26,6 @@ from koda_validate.typedefs import (
     Serializable,
     Validator,
 )
-
-DictKey = Hashable
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
@@ -64,6 +63,16 @@ class KeyNotRequired(Generic[A]):
                 assert isinstance(maybe_val, Just)
             return self.validator(maybe_val.val).map(Just)
 
+    async def validate_async(
+        self, maybe_val: Maybe[Any]
+    ) -> Result[Maybe[A], Serializable]:
+        if maybe_val is nothing:
+            return Ok(maybe_val)
+        else:
+            if TYPE_CHECKING:  # pragma: no cover
+                assert isinstance(maybe_val, Just)
+            return (await self.validator.validate_async(maybe_val.val)).map(Just)
+
 
 KeyValidator = Tuple[
     Hashable,
@@ -71,6 +80,8 @@ KeyValidator = Tuple[
         Validator[Any, A, Serializable],
         # this is NOT a validator intentionally; for typing reasons
         # ONLY intended for using KeyNotRequired
+        # BUT, if we put KeyNotRequired here, mypy won't warn
+        # about `Maybe[...]` issues in the `into` target
         Callable[[Maybe[Any]], Result[A, Serializable]],
     ],
 ]
@@ -635,14 +646,27 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
 
     def __init__(
         self,
+        *,
         keys: Tuple[KeyValidator[Any], ...],
         validate_object: Optional[
-            Callable[[Dict[Hashable, Any]], Result[Dict[Hashable, Any], Serializable]]
+            Callable[[Dict[Hashable, Any]], Result[Dict[Hashable, Any], Serializable]],
+        ] = None,
+        validate_object_async: Optional[
+            Callable[
+                [Dict[Hashable, Any]],
+                Awaitable[Result[Dict[Hashable, Any], Serializable]],
+            ]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         self.keys: Tuple[KeyValidator[Any], ...] = keys
         self.validate_object = validate_object
+        self.validate_object_async = validate_object_async
+
+        if validate_object is not None and validate_object_async is not None:
+            raise AssertionError(
+                "validate_object and validate_object_async cannot both be defined"
+            )
         self.preprocessors = preprocessors
 
     def __call__(self, data: Any) -> Result[Dict[Hashable, Any], Serializable]:
@@ -689,4 +713,53 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
             if self.validate_object is None:
                 return Ok(success_dict)
             else:
+                return self.validate_object(success_dict)
+
+    async def validate_async(
+        self, data: Any
+    ) -> Result[Dict[Hashable, Any], Serializable]:
+        if not isinstance(data, dict):
+            return EXPECTED_DICT_ERR
+
+        if self.preprocessors is not None:
+            for preproc in self.preprocessors:
+                data = preproc(data)
+
+        if (
+            keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
+        ) is not None:
+            return keys_result
+
+        success_dict: Dict[Hashable, Any] = {}
+        errs: Optional[List[Tuple[str, Serializable]]] = None
+        for key_, validator in self.keys:
+            if key_ in data:
+                if isinstance(validator, Validator):
+                    result = await validator.validate_async(data[key_])
+                else:
+                    result = await validator.validate_async(Just(data[key_]))  # type: ignore
+
+            else:
+                if isinstance(validator, Validator):
+                    result = KEY_MISSING_ERR
+                else:
+                    result = Ok(nothing)
+
+            # (slightly) optimized; can be simplified if needed
+            if isinstance(result, Err):
+                err = (str(key_), result.val)
+                if errs is None:
+                    errs = [err]
+                else:
+                    errs.append(err)
+            elif errs is None:
+                success_dict[key_] = result.val
+
+        if errs and len(errs) > 0:
+            return Err(_tuples_to_json_dict(errs))
+        else:
+            if self.validate_object is None:
+                return Ok(success_dict)
+            else:
+                # // ahahaaa
                 return self.validate_object(success_dict)

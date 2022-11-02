@@ -36,7 +36,6 @@ from koda_validate.typedefs import (
     Validator,
 )
 
-DictKey = Hashable
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
