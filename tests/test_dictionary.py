@@ -746,7 +746,7 @@ def test_obj_decimal_keys() -> None:
 
 
 def test_dict_validator_unsafe_empty() -> None:
-    empty_dict_validator = DictValidatorAny()
+    empty_dict_validator = DictValidatorAny(keys=())
 
     assert empty_dict_validator({}).val == {}
 
@@ -766,20 +766,22 @@ def _nobody_named_jones_has_brown_eyes_dict_any(
 
 def test_dict_validator_unsafe() -> None:
     validator = DictValidatorAny(
-        ("first_name", StringValidator(preprocessors=[strip])),
-        ("last_name", StringValidator()),
-        ("age", IntValidator()),
-        ("eye color", StringValidator()),
-        ("can-fly", BoolValidator()),
-        ("number_of_fingers", FloatValidator()),
-        ("number of toes", FloatValidator()),
-        ("favorite_color", KeyNotRequired(StringValidator())),
-        ("requires_none", none_validator),
-        ("favorite_books", ListValidator(StringValidator())),
-        ("aaa", StringValidator()),
-        ("owbwohe", IntValidator()),
-        ("something else", FloatValidator()),
-        (12, BoolValidator()),
+        keys=(
+            ("first_name", StringValidator(preprocessors=[strip])),
+            ("last_name", StringValidator()),
+            ("age", IntValidator()),
+            ("eye color", StringValidator()),
+            ("can-fly", BoolValidator()),
+            ("number_of_fingers", FloatValidator()),
+            ("number of toes", FloatValidator()),
+            ("favorite_color", KeyNotRequired(StringValidator())),
+            ("requires_none", none_validator),
+            ("favorite_books", ListValidator(StringValidator())),
+            ("aaa", StringValidator()),
+            ("owbwohe", IntValidator()),
+            ("something else", FloatValidator()),
+            (12, BoolValidator()),
+        ),
         validate_object=_nobody_named_jones_has_brown_eyes_dict_any,
     )
 

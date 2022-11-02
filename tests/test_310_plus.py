@@ -123,9 +123,8 @@ def test_match_args() -> None:
         else:
             return Ok(p)
 
-    dvu_validator: DictValidatorAny = DictValidatorAny(
-        (str_0 := ("name", StringValidator())),
-        (int_0 := ("age", IntValidator())),
+    dvu_validator = DictValidatorAny(
+        keys=((str_0 := ("name", StringValidator())), (int_0 := ("age", IntValidator()))),
         validate_object=validate_person_dict_any,
     )
     match dvu_validator:

@@ -427,7 +427,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
 
     def __init__(
         self,
-        *keys: KeyValidator[Any],
+        keys: Tuple[KeyValidator[Any], ...],
         validate_object: Optional[
             Callable[[Dict[Hashable, Any]], Result[Dict[Hashable, Any], Serializable]]
         ] = None,
