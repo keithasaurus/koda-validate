@@ -129,12 +129,15 @@ def test_match_args() -> None:
         validate_object=validate_person_dict_any,
     )
     match dvu_validator:
-        case DictValidatorAny(fields, preprocessors_, validate_object):
+        case DictValidatorAny(
+            fields, preprocessors_, validate_object, validate_object_async
+        ):
             assert into == into_
             assert fields[0] is str_0
             assert fields[1] == int_0
             assert validate_object == validate_person_dict_any
             assert preprocessors_ is None
+            assert validate_object_async is None
 
         case _:
             assert False

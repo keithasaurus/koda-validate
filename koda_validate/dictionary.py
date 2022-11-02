@@ -641,8 +641,8 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     assistance.
     """
 
-    __slots__ = ("keys", "preprocessors", "validate_object")
-    __match_args__ = ("keys", "preprocessors", "validate_object")
+    __slots__ = ("keys", "preprocessors", "validate_object", "validate_object_async")
+    __match_args__ = ("keys", "preprocessors", "validate_object", "validate_object_async")
 
     def __init__(
         self,
@@ -758,8 +758,9 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         if errs and len(errs) > 0:
             return Err(_tuples_to_json_dict(errs))
         else:
-            if self.validate_object is None:
-                return Ok(success_dict)
-            else:
-                # // ahahaaa
+            if self.validate_object is not None:
                 return self.validate_object(success_dict)
+            elif self.validate_object_async is not None:
+                return await self.validate_object_async(success_dict)
+            else:
+                return Ok(success_dict)
