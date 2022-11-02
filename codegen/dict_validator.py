@@ -333,7 +333,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
 class DictValidator(
     Validator[Any, Ret, Serializable]
 ):
-    __slots__ = ("keys", "into", "preprocessors", "validate_object", "validate_object_async")
+    __slots__ = ("keys", "_key_set", "into", "preprocessors", "validate_object", "validate_object_async")
     __match_args__ = ("keys", "into", "preprocessors", "validate_object", "validate_object_async")
 
 """
@@ -375,7 +375,10 @@ class DictValidator(
 """
     ret += """
         self.into = into
-        self.keys = keys 
+        self.keys = keys
+         # so we don't need to calculate each time we validate
+        self._key_set = frozenset(k for k, _ in keys)
+ 
         if validate_object is not None and validate_object_async is not None:
             raise AssertionError(
                 "validate_object and validate_object_async cannot both be defined"
@@ -393,7 +396,7 @@ class DictValidator(
                 data = preproc(data)
         
         if (
-            keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
+            keys_result := _dict_without_extra_keys(self._key_set, data)
         ) is not None:
             return keys_result
             
@@ -440,7 +443,7 @@ class DictValidator(
                 data = preproc(data)
 
         if (
-            keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
+            keys_result := _dict_without_extra_keys(self._key_set, data)
         ) is not None:
             return keys_result
 
@@ -499,7 +502,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     assistance.
     \"""
 
-    __slots__ = ("keys", "preprocessors", "validate_object", "validate_object_async")
+    __slots__ = ("keys", "_key_set", "preprocessors", "validate_object", "validate_object_async")
     __match_args__ = ("keys", "preprocessors", "validate_object", "validate_object_async")
 
     def __init__(
@@ -518,6 +521,8 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         self.keys: Tuple[KeyValidator[Any], ...] = keys
+        # so we don't need to calculate each time we validate
+        self._key_set = frozenset(k for k, _ in keys)
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
@@ -537,7 +542,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
 
         
         if (
-            keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
+            keys_result := _dict_without_extra_keys(self._key_set, data)
         ) is not None:
             return keys_result
 
@@ -585,7 +590,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 data = preproc(data)
 
         if (
-            keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
+            keys_result := _dict_without_extra_keys(self._key_set, data)
         ) is not None:
             return keys_result
 
