@@ -10,6 +10,7 @@ from koda_validate import (
     Processor,
     Serializable,
 )
+from koda_validate.boolean import EXPECTED_BOOL_ERR
 
 
 def test_boolean() -> None:
@@ -53,3 +54,5 @@ async def test_boolean_validator_async() -> None:
     assert await BoolValidator(
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(False) == Ok(True)
+
+    assert await BoolValidator().validate_async("abc") == EXPECTED_BOOL_ERR
