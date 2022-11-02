@@ -745,7 +745,25 @@ def test_obj_decimal_keys() -> None:
     )
 
 
-def test_dict_validator_unsafe_empty() -> None:
+def test_dict_validator_preprocessors() -> None:
+    class RemoveKey(Processor[Dict[Any, Any]]):
+        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
+            if "a" in val:
+                del val["a"]
+            return val
+
+    @dataclass
+    class Person:
+        name: str
+
+    dv = DictValidator(
+        into=Person, keys=(("name", StringValidator()),), preprocessors=[RemoveKey()]
+    )
+
+    assert dv({"a": 123, "name": "bob"}) == Ok(Person("bob"))
+
+
+def test_dict_validator_any_empty() -> None:
     empty_dict_validator = DictValidatorAny(keys=())
 
     assert empty_dict_validator({}).val == {}
@@ -847,3 +865,17 @@ def test_dict_validator_any_key_missing() -> None:
     assert validator({"first_name": 5}) == Err(
         {"last_name": ["key missing"], "first_name": ["expected a string"]}
     )
+
+
+def test_dict_validator_any_preprocessors() -> None:
+    class RemoveKey(Processor[Dict[Any, Any]]):
+        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
+            if "a" in val:
+                del val["a"]
+            return val
+
+    dv = DictValidatorAny(
+        keys=(("name", StringValidator()),), preprocessors=[RemoveKey()]
+    )
+
+    assert dv({"a": 123, "name": "bob"}) == Ok({"name": "bob"})

@@ -104,13 +104,14 @@ def test_match_args() -> None:
         validate_object=validate_person,
     )
     match dv_validator:
-        case DictValidator(fields, into, validate_object):
+        case DictValidator(fields, into, preprocessors, validate_object):
             assert into == into_
             assert fields[0] == str_1
             assert fields[1][0] == "age"
             assert isinstance(fields[1][1], KeyNotRequired)
             assert fields[1][1].validator == int_1[1].validator
             assert validate_object == validate_person
+            assert preprocessors is None
 
         case _:
             assert False
@@ -128,11 +129,12 @@ def test_match_args() -> None:
         validate_object=validate_person_dict_any,
     )
     match dvu_validator:
-        case DictValidatorAny(fields, validate_object):
+        case DictValidatorAny(fields, preprocessors_, validate_object):
             assert into == into_
             assert fields[0] is str_0
             assert fields[1] == int_0
             assert validate_object == validate_person_dict_any
+            assert preprocessors_ is None
 
         case _:
             assert False

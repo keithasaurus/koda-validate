@@ -255,25 +255,25 @@ class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
 is_dict_validator = IsDictValidator()
 
 
-def _dict_without_extra_keys(keys: Set[Hashable], data: Any) -> Optional[Err[Serializable]]:
+def _dict_without_extra_keys(
+    keys: Set[Hashable], data: Dict[Any, Any]
+) -> Optional[Err[Serializable]]:
     \"""
     We're returning Optional here because it's faster than Ok/Err,
     and this is just a private function
     \"""
-    if isinstance(data, dict):
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in keys:
-                if len(keys) == 0:
-                    key_msg = "Expected empty dictionary"
-                else:
-                    key_msg = "Only expected " + ", ".join(
-                        sorted([repr(k) for k in keys])
-                    )
-                return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
-        return None
-    else:
-        return EXPECTED_DICT_ERR
+    # this seems to be faster than `for key_ in data.keys()`
+    for key_ in data:
+        if key_ not in keys:
+            if len(keys) == 0:
+                key_msg = "Expected empty dictionary"
+            else:
+                key_msg = "Only expected " + ", ".join(
+                    sorted([repr(k) for k in keys])
+                )
+            return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
+    return None
+
 
 
 class MinKeys(Predicate[Dict[Any, Any], Serializable]):
@@ -321,8 +321,8 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
 class DictValidator(
     Validator[Any, Ret, Serializable]
 ):
-    __slots__ = ("keys", "into", "validate_object")
-    __match_args__ = ("keys", "into", "validate_object")
+    __slots__ = ("keys", "into", "preprocessors", "validate_object")
+    __match_args__ = ("keys", "into", "preprocessors", "validate_object")
 
 """
     for i in range(num_keys):
@@ -336,14 +336,14 @@ class DictValidator(
         for j in range(i + 1):
             ret += f"                     {dict_validator_fields[j]},\n"
         ret += """                 ],
-                 validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
+                 validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+                 preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None
                  ) -> None: 
         ...  # pragma: no cover
 
 """
 
     dv_fields_2: str = ",\n".join([f"         {f}" for f in dict_validator_fields_final])
-    tuple_fields = ", ".join([f"field{i+1}" for i in range(num_keys)])
 
     ret += f"""
 
@@ -355,20 +355,29 @@ class DictValidator(
         keys: Union[
     {dv_fields_2},
         ],
-        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
+        validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None
     ) -> None:
 """
     ret += """
         self.into = into
         self.keys = keys 
         self.validate_object = validate_object
+        self.preprocessors = preprocessors
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
+        if not isinstance(data, dict):
+            return EXPECTED_DICT_ERR
+            
+        if self.preprocessors is not None:
+            for preproc in self.preprocessors:
+                data = preproc(data)
+        
         if (
             keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
         ) is not None:
             return keys_result
-
+            
         args = []
         errs: Optional[List[Tuple[str, Serializable]]] = None
         for key_, validator in self.keys:
@@ -422,8 +431,8 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     assistance.
     \"""
 
-    __slots__ = ("keys", "validate_object")
-    __match_args__ = ("keys", "validate_object")
+    __slots__ = ("keys", "preprocessors", "validate_object")
+    __match_args__ = ("keys", "preprocessors", "validate_object")
 
     def __init__(
         self,
@@ -431,11 +440,21 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         validate_object: Optional[
             Callable[[Dict[Hashable, Any]], Result[Dict[Hashable, Any], Serializable]]
         ] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None
     ) -> None:
         self.keys: Tuple[KeyValidator[Any], ...] = keys
         self.validate_object = validate_object
+        self.preprocessors = preprocessors
 
     def __call__(self, data: Any) -> Result[Dict[Hashable, Any], Serializable]:
+        if not isinstance(data, dict):
+            return EXPECTED_DICT_ERR
+            
+        if self.preprocessors is not None:
+            for preproc in self.preprocessors:
+                data = preproc(data)
+
+        
         if (
             keys_result := _dict_without_extra_keys({k for k, _ in self.keys}, data)
         ) is not None:
