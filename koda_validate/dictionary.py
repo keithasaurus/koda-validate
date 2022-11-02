@@ -305,7 +305,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
 
 
 class DictValidator(Validator[Any, Ret, Serializable]):
-    __slots__ = ("into", "keys", "validate_object")
+    __slots__ = ("keys", "into", "validate_object")
     __match_args__ = ("keys", "into", "validate_object")
 
     @overload
@@ -554,10 +554,6 @@ class DictValidator(Validator[Any, Ret, Serializable]):
     ) -> None:
 
         self.into = into
-        """
-        unfortunately, we have to have this be `Any` until
-        we're using variadic generics -- or we could generate lots of classes
-        """
         self.keys = keys
         self.validate_object = validate_object
 

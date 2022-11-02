@@ -14,6 +14,7 @@ def generate_code(num_keys: int) -> str:
     Callable,
     Dict,
     Final,
+    Generic,
     Hashable,
     List,
     Optional,
@@ -56,7 +57,12 @@ def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
 KEY_MISSING_ERR: Final[Err[Serializable]] = Err(["key missing"])
 
 
-class KeyNotRequired(Validator[Maybe[Any], Maybe[A], Serializable]):
+class KeyNotRequired(Generic[A]):
+    \"""
+    For complex type reasons in the KeyValidator defintion,
+    this does not subclass Validator (even though it probably should)
+    \"""
+
     def __init__(self, validator: Validator[Any, A, Serializable]):
         self.validator = validator
 
@@ -69,15 +75,14 @@ class KeyNotRequired(Validator[Maybe[Any], Maybe[A], Serializable]):
             return self.validator(maybe_val.val).map(Just)
 
 
-def key_not_required(
-    validator: Validator[Any, A, Serializable]
-) -> Tuple[Validator[Maybe[Any], Maybe[A], Serializable]]:
-    return (KeyNotRequired(validator),)
-
-
 KeyValidator = Tuple[
     Hashable,
-    Union[Validator[Any, A, Serializable], Tuple[Validator[Maybe[Any], A, Serializable]]],
+    Union[
+        Validator[Any, A, Serializable],
+        # this is NOT a validator intentionally; for typing reasons
+        # ONLY intended for using KeyNotRequired
+        Callable[[Maybe[Any]], Result[A, Serializable]]
+    ]
 ]
 
 """
@@ -316,8 +321,8 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
 class DictValidator(
     Validator[Any, Ret, Serializable]
 ):
-    __slots__ = ("into", "keys", "keys_flat", "validate_object")
-    __match_args__ = ("keys_flat", "into", "validate_object")
+    __slots__ = ("keys", "into", "validate_object")
+    __match_args__ = ("keys", "into", "validate_object")
 
 """
     for i in range(num_keys):
@@ -355,14 +360,7 @@ class DictValidator(
 """
     ret += """
         self.into = into
-        \"""
-        unfortunately, we have to have this be `Any` until
-        we're using variadic generics -- or we could generate lots of classes
-        \"""
-        self.keys = keys
-        self.keys_flat = [
-            ((k, v[0]) if isinstance(v, tuple) else (k, v)) for k, v in keys
-        ]
+        self.keys = keys 
         self.validate_object = validate_object
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
@@ -375,16 +373,16 @@ class DictValidator(
         errs: Optional[List[Tuple[str, Serializable]]] = None
         for key_, validator in self.keys:
             if key_ in data:
-                if isinstance(validator, tuple):
-                    result = validator[0](Just(data[key_]))
-                else:
+                if isinstance(validator, Validator):
                     result = validator(data[key_])
-            else:
-                if isinstance(validator, tuple):
-                    result = Ok(nothing)
                 else:
+                    result = validator(Just(data[key_]))
+            else:
+                if isinstance(validator, Validator):
                     result = KEY_MISSING_ERR
-
+                else:
+                    result = Ok(nothing)  # type: ignore
+            
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
                 err = (str(key_), result.val)
@@ -447,15 +445,16 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         errs: Optional[List[Tuple[str, Serializable]]] = None
         for key_, validator in self.keys:
             if key_ in data:
-                if isinstance(validator, tuple):
-                    result = validator[0](Just(data[key_]))
-                else:
+                if isinstance(validator, Validator):
                     result = validator(data[key_])
-            else:
-                if isinstance(validator, tuple):
-                    result = Ok(nothing)
                 else:
+                    result = validator(Just(data[key_]))
+
+            else:
+                if isinstance(validator, Validator):
                     result = KEY_MISSING_ERR
+                else:
+                    result = Ok(nothing)
 
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
