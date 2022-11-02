@@ -833,7 +833,7 @@ def test_dict_validator_any_key_missing() -> None:
         validate_object=_nobody_named_jones_has_brown_eyes_dict_any,
     )
 
-    assert validator({"first_name": " bob ", "last_name": "smith",}) == Ok(
+    assert validator({"first_name": " bob ", "last_name": "smith"}) == Ok(
         {
             "first_name": Just("bob"),
             "last_name": "smith",
