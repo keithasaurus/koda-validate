@@ -9,7 +9,6 @@ from typing import (
     Hashable,
     List,
     Optional,
-    Set,
     Tuple,
     TypeVar,
     Union,
@@ -262,24 +261,6 @@ class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
 
 
 is_dict_validator = IsDictValidator()
-
-
-def _dict_without_extra_keys(
-    keys: Set[Hashable], data: Dict[Any, Any]
-) -> Optional[Err[Serializable]]:
-    """
-    We're returning Optional here because it's faster than Ok/Err,
-    and this is just a private function
-    """
-    # this seems to be faster than `for key_ in data.keys()`
-    for key_ in data:
-        if key_ not in keys:
-            if len(keys) == 0:
-                key_msg = "Expected empty dictionary"
-            else:
-                key_msg = "Only expected " + ", ".join(sorted([repr(k) for k in keys]))
-            return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
-    return None
 
 
 class MinKeys(Predicate[Dict[Any, Any], Serializable]):
@@ -637,8 +618,16 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             for preproc in self.preprocessors:
                 data = preproc(data)
 
-        if (keys_result := _dict_without_extra_keys(self._key_set, data)) is not None:
-            return keys_result
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in self._key_set:
+                if len(self._key_set) == 0:
+                    key_msg = "Expected empty dictionary"
+                else:
+                    key_msg = "Only expected " + ", ".join(
+                        sorted([repr(k) for k in self._key_set])
+                    )
+                return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
 
         args = []
         errs: Optional[List[Tuple[str, Serializable]]] = None
@@ -682,8 +671,16 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             for preproc in self.preprocessors:
                 data = preproc(data)
 
-        if (keys_result := _dict_without_extra_keys(self._key_set, data)) is not None:
-            return keys_result
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in self._key_set:
+                if len(self._key_set) == 0:
+                    key_msg = "Expected empty dictionary"
+                else:
+                    key_msg = "Only expected " + ", ".join(
+                        sorted([repr(k) for k in self._key_set])
+                    )
+                return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
 
         args = []
         errs: Optional[List[Tuple[str, Serializable]]] = None
@@ -784,8 +781,16 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
             for preproc in self.preprocessors:
                 data = preproc(data)
 
-        if (keys_result := _dict_without_extra_keys(self._key_set, data)) is not None:
-            return keys_result
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in self._key_set:
+                if len(self._key_set) == 0:
+                    key_msg = "Expected empty dictionary"
+                else:
+                    key_msg = "Only expected " + ", ".join(
+                        sorted([repr(k) for k in self._key_set])
+                    )
+                return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
 
         success_dict: Dict[Hashable, Any] = {}
         errs: Optional[List[Tuple[str, Serializable]]] = None
@@ -830,8 +835,16 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
             for preproc in self.preprocessors:
                 data = preproc(data)
 
-        if (keys_result := _dict_without_extra_keys(self._key_set, data)) is not None:
-            return keys_result
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in self._key_set:
+                if len(self._key_set) == 0:
+                    key_msg = "Expected empty dictionary"
+                else:
+                    key_msg = "Only expected " + ", ".join(
+                        sorted([repr(k) for k in self._key_set])
+                    )
+                return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})
 
         success_dict: Dict[Hashable, Any] = {}
         errs: Optional[List[Tuple[str, Serializable]]] = None
