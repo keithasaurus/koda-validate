@@ -1,4 +1,4 @@
-from typing import Callable, Final, List, Optional, Tuple
+from typing import Callable, ClassVar, Final, List, Optional, Tuple
 
 from koda import Err, Ok, Result
 
@@ -128,3 +128,18 @@ SCALAR_SYNC_ASYNC_SLOTS_AND_MATCH_ARGS: Final[Tuple[str, ...]] = (
     "predicates_async",
     "preprocessors",
 )
+
+
+class _NotSet:
+    _instance: ClassVar[Optional["_NotSet"]] = None
+
+    def __new__(cls) -> "_NotSet":
+        """
+        Make a singleton, so we can do `is` checks if we want.
+        """
+        if cls._instance is None:
+            cls._instance = super(_NotSet, cls).__new__(cls)
+        return cls._instance
+
+
+_not_set = _NotSet()

@@ -6,13 +6,7 @@ DICT_KEYS_CHECK_CODE: str = """
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                if len(self._key_set) == 0:
-                    key_msg = "Expected empty dictionary"
-                else:
-                    key_msg = "Only expected " + ", ".join(
-                        sorted([repr(k) for k in self._key_set])
-                    )
-                return Err({OBJECT_ERRORS_FIELD: [f"Received unknown keys. {key_msg}."]})    
+                return self._unknown_keys_err 
 """
 
 
@@ -27,6 +21,7 @@ def generate_code(num_keys: int) -> str:
     Callable,
     Dict,
     Final,
+    FrozenSet,
     Generic,
     Hashable,
     List,
@@ -67,8 +62,8 @@ def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
     return dict(data)
 
 
-# extracted into constant to optimize
-KEY_MISSING_ERR: Final[Err[Serializable]] = Err(["key missing"])
+KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
+KEY_MISSING_ERR: Final[Err[Serializable]] = Err(KEY_MISSING_MSG)
 
 
 class KeyNotRequired(Generic[A]):
@@ -306,6 +301,20 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
     def err(self, val: Dict[Any, Any]) -> str:
         return f"maximum allowed properties is {self.size}"
 
+
+def _make_keys_err(keys: FrozenSet[Hashable]) -> Err[Serializable]:
+    return Err({
+        OBJECT_ERRORS_FIELD: [
+            "Received unknown keys. " + (
+                "Expected empty dictionary."
+                if len(keys) == 0
+                else "Only expected " + ", ".join(
+                    sorted([repr(k) for k in keys])
+                ) + "."
+            )
+        ]
+    })
+
 """
     for i in range(num_keys):
         key_type_vars = type_vars[: i + 1]
@@ -368,7 +377,10 @@ class DictValidator(
         self.into = into
         self.keys = keys
          # so we don't need to calculate each time we validate
-        self._key_set = frozenset(k for k, _ in keys)
+        _key_set = frozenset(k for k, _ in keys)
+        self._key_set = _key_set
+
+        self._unknown_keys_err = _make_keys_err(_key_set)
  
         if validate_object is not None and validate_object_async is not None:
             raise AssertionError(
@@ -389,26 +401,26 @@ class DictValidator(
         args = []
         errs: Optional[List[Tuple[str, Serializable]]] = None
         for key_, validator in self.keys:
+                    args = []
+        errs: List[Tuple[str, Serializable]] = []
+        for key_, validator in self.keys:
             if key_ in data:
                 if isinstance(validator, Validator):
                     result = validator(data[key_])
                 else:
                     result = validator(Just(data[key_]))
+
+                if isinstance(result, Err):
+                    errs.append((str(key_), result.val))
+                else:
+                    args.append(result.val)
+
             else:
                 if isinstance(validator, Validator):
-                    result = KEY_MISSING_ERR
+                    errs.append((str(key_), KEY_MISSING_MSG))
                 else:
-                    result = OK_NOTHING  # type: ignore
-            
-            # (slightly) optimized; can be simplified if needed
-            if isinstance(result, Err):
-                err = (str(key_), result.val)
-                if errs is None:
-                    errs = [err]
-                else:
-                    errs.append(err)
-            elif errs is None:
-                args.append(result.val)
+                    args.append(nothing)  # type: ignore
+
 
         if errs and len(errs) > 0:
             return Err(_tuples_to_json_dict(errs))
@@ -429,29 +441,25 @@ class DictValidator(
                 data = preproc(data)
 {DICT_KEYS_CHECK_CODE}
         args = []
-        errs: Optional[List[Tuple[str, Serializable]]] = None
+        errs: List[Tuple[str, Serializable]] = []
         for key_, validator in self.keys:
             if key_ in data:
                 if isinstance(validator, Validator):
                     result = await validator.validate_async(data[key_])
                 else:
                     result = await validator.validate_async(Just(data[key_]))  # type: ignore
+
+                # (slightly) optimized; can be simplified if needed
+                if isinstance(result, Err):
+                    errs.append((str(key_), result.val))
+                else:
+                    args.append(result.val)
             else:
                 if isinstance(validator, Validator):
-                    result = KEY_MISSING_ERR
+                    errs.append((str(key_), KEY_MISSING_MSG))
                 else:
-                    result = OK_NOTHING 
-
-            # (slightly) optimized; can be simplified if needed
-            if isinstance(result, Err):
-                err = (str(key_), result.val)
-                if errs is None:
-                    errs = [err]
-                else:
-                    errs.append(err)
-            elif errs is None:
-                args.append(result.val)
-
+                    args.append(nothing)
+        
         if errs and len(errs) > 0:
             return Err(_tuples_to_json_dict(errs))
         else:
@@ -503,7 +511,11 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     ) -> None:
         self.keys: Tuple[KeyValidator[Any], ...] = keys
         # so we don't need to calculate each time we validate
-        self._key_set = frozenset(k for k, _ in keys)
+        _key_set = frozenset(k for k, _ in keys)
+        self._key_set = _key_set
+
+        self._unknown_keys_err = _make_keys_err(_key_set)
+        
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
