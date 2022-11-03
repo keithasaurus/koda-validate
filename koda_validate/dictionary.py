@@ -645,9 +645,6 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 return self._unknown_keys_err
 
         args = []
-        errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.keys:
-            args = []
         errs: List[Tuple[str, Serializable]] = []
         for key_, validator in self.keys:
             if key_ in data:

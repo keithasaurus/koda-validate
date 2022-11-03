@@ -398,10 +398,8 @@ class DictValidator(
             for preproc in self.preprocessors:
                 data = preproc(data)
 {DICT_KEYS_CHECK_CODE}
+
         args = []
-        errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.keys:
-                    args = []
         errs: List[Tuple[str, Serializable]] = []
         for key_, validator in self.keys:
             if key_ in data:
