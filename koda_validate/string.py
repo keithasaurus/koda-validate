@@ -50,16 +50,20 @@ class StringValidator(Validator[Any, str, Serializable]):
 
 class RegexPredicate(Predicate[str, Serializable]):
     __slots__ = ("pattern",)
-    __match_args__ = ("pattern",)
+    __match_args__ = ("pattern", "_err")
 
     def __init__(self, pattern: Pattern[str]) -> None:
         self.pattern: Pattern[str] = pattern
+        self._err = rf"must match pattern {self.pattern.pattern}"
 
     def is_valid(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
 
     def err(self, val: str) -> str:
-        return rf"must match pattern {self.pattern.pattern}"
+        return self._err
+
+
+EXPECTED_EMAIL_ADDRESS: Final[str] = "expected a valid email address"
 
 
 class EmailPredicate(Predicate[str, Serializable]):
@@ -69,7 +73,7 @@ class EmailPredicate(Predicate[str, Serializable]):
         return re.match(self.pattern, val) is not None
 
     def err(self, val: str) -> str:
-        return "expected a valid email address"
+        return EXPECTED_EMAIL_ADDRESS
 
 
 BLANK_STRING_MSG: Final[str] = "cannot be blank"
@@ -88,30 +92,32 @@ not_blank = NotBlank()
 
 class MaxLength(Predicate[str, Serializable]):
     __match_args__ = ("length",)
-    __slots__ = ("length",)
+    __slots__ = ("length", "_err")
 
     def __init__(self, length: int):
         self.length = length
+        self._err = f"maximum allowed length is {self.length}"
 
     def is_valid(self, val: str) -> bool:
         return len(val) <= self.length
 
     def err(self, val: str) -> Serializable:
-        return f"maximum allowed length is {self.length}"
+        return self._err
 
 
 class MinLength(Predicate[str, Serializable]):
     __match_args__ = ("length",)
-    __slots__ = ("length",)
+    __slots__ = ("length", "_err")
 
     def __init__(self, length: int):
         self.length = length
+        self._err = f"minimum allowed length is {self.length}"
 
     def is_valid(self, val: str) -> bool:
         return len(val) >= self.length
 
     def err(self, val: str) -> str:
-        return f"minimum allowed length is {self.length}"
+        return self._err
 
 
 class Strip(Processor[str]):

@@ -50,17 +50,18 @@ class Choices(Predicate[EnumT, Serializable]):
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
-    __slots__ = ("choices",)
+    __slots__ = ("choices", "_err")
     __match_args__ = ("choices",)
 
     def __init__(self, choices: Set[EnumT]) -> None:
         self.choices: Set[EnumT] = choices
+        self._err = f"expected one of {sorted(self.choices)}"
 
     def is_valid(self, val: EnumT) -> bool:
         return val in self.choices
 
     def err(self, val: EnumT) -> Serializable:
-        return f"expected one of {sorted(self.choices)}"
+        return self._err
 
 
 Num = TypeVar("Num", int, float, Decimal)
@@ -70,12 +71,15 @@ class Min(Predicate[Num, Serializable]):
     __slots__ = (
         "minimum",
         "exclusive_minimum",
+        "_err",
     )
     __match_args__ = ("minimum", "exclusive_minimum")
 
     def __init__(self, minimum: Num, exclusive_minimum: bool = False) -> None:
         self.minimum: Num = minimum
         self.exclusive_minimum = exclusive_minimum
+        exclusive = " (exclusive)" if self.exclusive_minimum else ""
+        self._err = f"minimum allowed value{exclusive} is {self.minimum}"
 
     def is_valid(self, val: Num) -> bool:
         if self.exclusive_minimum:
@@ -84,20 +88,18 @@ class Min(Predicate[Num, Serializable]):
             return val >= self.minimum
 
     def err(self, val: Num) -> str:
-        exclusive = " (exclusive)" if self.exclusive_minimum else ""
-        return f"minimum allowed value{exclusive} is {self.minimum}"
+        return self._err
 
 
 class Max(Predicate[Num, Serializable]):
-    __slots__ = (
-        "maximum",
-        "exclusive_maximum",
-    )
+    __slots__ = ("maximum", "exclusive_maximum", "_err")
     __match_args__ = ("maximum", "exclusive_maximum")
 
     def __init__(self, maximum: Num, exclusive_maximum: bool = False) -> None:
         self.maximum: Num = maximum
         self.exclusive_maximum = exclusive_maximum
+        exclusive = " (exclusive)" if self.exclusive_maximum else ""
+        self._err = f"maximum allowed value{exclusive} is {self.maximum}"
 
     def is_valid(self, val: Num) -> bool:
         if self.exclusive_maximum:
@@ -106,8 +108,7 @@ class Max(Predicate[Num, Serializable]):
             return val <= self.maximum
 
     def err(self, val: Num) -> str:
-        exclusive = " (exclusive)" if self.exclusive_maximum else ""
-        return f"maximum allowed value{exclusive} is {self.maximum}"
+        return self._err
 
 
 class MultipleOf(Predicate[Num, Serializable]):

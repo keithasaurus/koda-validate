@@ -35,9 +35,9 @@ def _handle_scalar_processors_and_predicates(
         for proc in preprocessors:
             val = proc(val)
 
-    if len(predicates) > 0:
+    if len(predicates) != 0:
         errors = [result.val for pred in predicates if not (result := pred(val)).is_ok]
-        if len(errors) > 0:
+        if len(errors) != 0:
             return Err(errors)
         else:
             # has to be original val because there are no

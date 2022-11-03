@@ -306,8 +306,9 @@ def _make_keys_err(keys: FrozenSet[Hashable]) -> Err[Serializable]:
 
 class DictValidator(Validator[Any, Ret, Serializable]):
     __slots__ = (
-        "keys",
+        "_fast_keys",
         "_key_set",
+        "keys",
         "into",
         "preprocessors",
         "validate_object",
