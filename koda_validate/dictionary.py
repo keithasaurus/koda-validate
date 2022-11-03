@@ -687,14 +687,14 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         for key_, validator in self.keys:
             if key_ in data:
                 if isinstance(validator, Validator):
-                    result = validator(data[key_])
+                    result = await validator.validate_async(data[key_])
                 else:
-                    result = validator(Just(data[key_]))
+                    result = await validator.validate_async(Just(data[key_]))  # type: ignore
             else:
                 if isinstance(validator, Validator):
                     result = KEY_MISSING_ERR
                 else:
-                    result = OK_NOTHING  # type: ignore
+                    result = OK_NOTHING
 
             # (slightly) optimized; can be simplified if needed
             if isinstance(result, Err):
@@ -710,7 +710,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             return Err(_tuples_to_json_dict(errs))
         else:
             # we know this should be ret
-            obj = self.into(*args)  # type: ignore
+            obj = self.into(*args)
             if self.validate_object is not None:
                 return self.validate_object(obj)
             elif self.validate_object_async is not None:

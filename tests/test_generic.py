@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import pytest
 from koda import Err, Ok
 
 from koda_validate import Choices, ExactValidator, Max, Min, MultipleOf, strip
@@ -20,6 +21,36 @@ def test_exactly() -> None:
     assert ExactValidator(False)(False) == Ok(False)
     assert ExactValidator(True)(False) == Err(["expected exactly True (bool)"])
     assert ExactValidator(4)(4.0) == Err(["expected exactly 4 (int)"])
+
+
+@pytest.mark.asyncio
+async def test_exactly_async() -> None:
+    assert await ExactValidator(5).validate_async(5) == Ok(5)
+    assert await ExactValidator(5).validate_async(4) == Err(["expected exactly 5 (int)"])
+    assert await ExactValidator("ok").validate_async("ok") == Ok("ok")
+    assert await ExactValidator("ok", preprocessors=[strip]).validate_async(" ok ") == Ok(
+        "ok"
+    )
+    assert await ExactValidator("ok").validate_async("not ok") == Err(
+        ['expected exactly "ok" (str)']
+    )
+    assert await ExactValidator(Decimal("1.25")).validate_async(Decimal("1.25")) == Ok(
+        Decimal("1.25")
+    )
+    assert await ExactValidator(Decimal("1.1")).validate_async(Decimal("5")) == Err(
+        ["expected exactly 1.1 (Decimal)"]
+    )
+    assert await ExactValidator(4.4).validate_async("5.5") == Err(
+        ["expected exactly 4.4 (float)"]
+    )
+    assert await ExactValidator(True).validate_async(True) == Ok(True)
+    assert await ExactValidator(False).validate_async(False) == Ok(False)
+    assert await ExactValidator(True).validate_async(False) == Err(
+        ["expected exactly True (bool)"]
+    )
+    assert await ExactValidator(4).validate_async(4.0) == Err(
+        ["expected exactly 4 (int)"]
+    )
 
 
 def test_choices() -> None:

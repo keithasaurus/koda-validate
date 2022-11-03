@@ -18,11 +18,23 @@ class OptionalValidator(Validator[Any, Optional[A], Serializable]):
     def __init__(self, validator: Validator[Any, A, Serializable]) -> None:
         self.validator = validator
 
-    def __call__(self, val: Optional[Any]) -> Result[Optional[A], Serializable]:
+    def __call__(self, val: Any) -> Result[Optional[A], Serializable]:
         if val is None:
             return Ok(None)
         else:
             result: Result[A, Serializable] = self.validator(val)
+            if isinstance(result, Ok):
+                return Ok(result.val)
+            else:
+                return result.map_err(
+                    lambda errs: _variant_errors(["must be None"], errs)
+                )
+
+    async def validate_async(self, val: Any) -> Result[Optional[A], Serializable]:
+        if val is None:
+            return Ok(None)
+        else:
+            result: Result[A, Serializable] = await self.validator.validate_async(val)
             if isinstance(result, Ok):
                 return Ok(result.val)
             else:
@@ -40,6 +52,9 @@ class NoneValidator(Validator[Any, None, Serializable]):
             return Ok(val)
         else:
             return EXPECTED_NONE
+
+    async def validate_async(self, val: Any) -> Result[None, Serializable]:
+        return self(val)
 
 
 none_validator = NoneValidator()

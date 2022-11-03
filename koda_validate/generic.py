@@ -40,6 +40,9 @@ class Lazy(Validator[A, Ret, Serializable]):
     def __call__(self, data: A) -> Result[Ret, Serializable]:
         return self.validator()(data)
 
+    async def validate_async(self, data: A) -> Result[Ret, Serializable]:
+        return await self.validator().validate_async(data)
+
 
 class Choices(Predicate[EnumT, Serializable]):
     """
@@ -165,3 +168,6 @@ class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
             value_str = str(self.match)
 
         return Err([f"expected exactly {value_str} ({match_type.__name__})"])
+
+    async def validate_async(self, val: Any) -> Result[ExactMatchT, Serializable]:
+        return self(val)
