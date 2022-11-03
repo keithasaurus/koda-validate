@@ -1,26 +1,10 @@
 import asyncio
 from dataclasses import dataclass
-from typing import Any, List
 
 import pytest
-from koda import Err, Ok, Result
+from koda import Err, Ok
 
-from koda_validate.typedefs import PredicateAsync, ValidatorAsync
-
-
-@pytest.mark.asyncio
-async def test_async_validator_works_as_expected() -> None:
-    class ExampleStringValidator(ValidatorAsync[Any, str, List[str]]):
-        async def validate_async(self, val: Any) -> Result[str, List[str]]:
-            await asyncio.sleep(0.001)
-            if isinstance(val, str):
-                return Ok(val)
-            else:
-                return Err(["expected a string"])
-
-    obj = ExampleStringValidator()
-    assert await obj.validate_async("neat") == Ok("neat")
-    assert await obj.validate_async(5) == Err(["expected a string"])
+from koda_validate.typedefs import PredicateAsync
 
 
 @pytest.mark.asyncio

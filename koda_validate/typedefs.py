@@ -11,15 +11,8 @@ class Validator(Generic[A, B, FailT]):
     Essentially a `Callable[[A], Result[B, FailT]]`, but allows us to
     retain metadata from the validator (instead of hiding inside a closure). For
     instance, we can later access `5` from something like `MaxLength(5)`.
-
-    Not using protocol because we want it to be runtime checkable without
-    being implicit or a false positive.
-
-    Compatible with Async / but async behavior is _not_ customizable. That's
-    why we have ValidatorAsync. Any IO needs should probably go there!
     """
 
-    @abstractmethod
     def __call__(self, val: A) -> Result[B, FailT]:  # pragma: no cover
         raise NotImplementedError
 
@@ -27,16 +20,6 @@ class Validator(Generic[A, B, FailT]):
         """
         make it possible for all validators to be async-compatible
         """
-        raise NotImplementedError
-
-
-class ValidatorAsync(Generic[A, B, FailT]):
-    """
-    This is for async-only validation.
-    """
-
-    @abstractmethod
-    async def validate_async(self, val: A) -> Result[B, FailT]:
         raise NotImplementedError
 
 

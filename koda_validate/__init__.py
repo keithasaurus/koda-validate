@@ -53,7 +53,6 @@ __all__ = (
     "Tuple3Validator",
     # typedefs.py
     "Validator",
-    "ValidatorAsync",
     "Predicate",
     "PredicateAsync",
     "Serializable",
@@ -102,5 +101,4 @@ from koda_validate.typedefs import (
     Processor,
     Serializable,
     Validator,
-    ValidatorAsync,
 )
