@@ -96,8 +96,6 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             if self.preprocessors is not None:
                 for processor in self.preprocessors:
                     val = processor(val)
-            return_list: List[A] = []
-            errors: Dict[str, Serializable] = {}
 
             list_errors: List[Serializable] = []
             if self.predicates is not None:
@@ -107,18 +105,21 @@ class ListValidator(Validator[Any, List[A], Serializable]):
                     if isinstance(result, Err):
                         list_errors.append(result.val)
 
+            return_list: List[A] = []
+            errors: Dict[str, Serializable] = {}
             # Not running async validators! They shouldn't be set!
-            if len(list_errors) > 0:
+            if len(list_errors) != 0:
                 errors[OBJECT_ERRORS_FIELD] = list_errors
 
             for i, item in enumerate(val):
                 item_result = self.item_validator(item)
                 if isinstance(item_result, Ok):
-                    return_list.append(item_result.val)
+                    if len(errors) == 0:
+                        return_list.append(item_result.val)
                 else:
                     errors[str(i)] = item_result.val
 
-            if len(errors) > 0:
+            if len(errors) != 0:
                 return Err(errors)
             else:
                 return Ok(return_list)
