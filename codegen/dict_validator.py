@@ -445,7 +445,7 @@ class DictValidator(
                 if isinstance(validator, Validator):
                     result = await validator.validate_async(data[key_])
                 else:
-                    result = await validator.validate_async(Just(data[key_]))  # type: ignore
+                    result = await validator.validate_async(Just(data[key_]))  # type: ignore # noqa: E501
 
                 # (slightly) optimized; can be simplified if needed
                 if isinstance(result, Err):
