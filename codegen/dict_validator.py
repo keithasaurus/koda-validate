@@ -3,6 +3,13 @@ from typing import List
 from codegen.utils import add_type_vars, get_type_vars  # type: ignore
 
 DICT_KEYS_CHECK_CODE: str = """
+        if not isinstance(data, dict):
+            return EXPECTED_DICT_ERR
+            
+        if self.preprocessors is not None:
+            for preproc in self.preprocessors:
+                data = preproc(data)
+
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
@@ -379,6 +386,14 @@ class DictValidator(
          # so we don't need to calculate each time we validate
         _key_set = frozenset(k for k, _ in keys)
         self._key_set = _key_set
+        self._fast_keys = [
+            (key,
+             val,
+             not isinstance(val, KeyNotRequired),
+             str(key)
+             )
+            for key, val in keys
+        ]
 
         self._unknown_keys_err = _make_keys_err(_key_set)
  
@@ -391,36 +406,29 @@ class DictValidator(
         self.preprocessors = preprocessors
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
-            
-        if self.preprocessors is not None:
-            for preproc in self.preprocessors:
-                data = preproc(data)
 {DICT_KEYS_CHECK_CODE}
 
         args = []
         errs: List[Tuple[str, Serializable]] = []
-        for key_, validator in self.keys:
+        for key_, validator, key_required, str_key in self._fast_keys:
             if key_ in data:
-                if isinstance(validator, Validator):
+                if key_required:
                     result = validator(data[key_])
                 else:
                     result = validator(Just(data[key_]))
 
                 if isinstance(result, Err):
-                    errs.append((str(key_), result.val))
+                    errs.append((str_key, result.val))
                 else:
                     args.append(result.val)
 
             else:
-                if isinstance(validator, Validator):
-                    errs.append((str(key_), KEY_MISSING_MSG))
+                if key_required: 
+                    errs.append((str_key, KEY_MISSING_MSG))
                 else:
                     args.append(nothing)  # type: ignore
 
-
-        if errs and len(errs) > 0:
+        if len(errs) != 0:
             return Err(_tuples_to_json_dict(errs))
         else:
             # we know this should be ret
@@ -431,29 +439,23 @@ class DictValidator(
                 return self.validate_object(obj)
                  
     async def validate_async(self, data: Any) -> Result[Ret, Serializable]:
-        if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
-
-        if self.preprocessors is not None:
-            for preproc in self.preprocessors:
-                data = preproc(data)
 {DICT_KEYS_CHECK_CODE}
         args = []
         errs: List[Tuple[str, Serializable]] = []
-        for key_, validator in self.keys:
+        for key_, validator, key_required, str_key in self._fast_keys:
             if key_ in data:
-                if isinstance(validator, Validator):
+                if key_required:
                     result = await validator.validate_async(data[key_])
                 else:
                     result = await validator.validate_async(Just(data[key_]))  # type: ignore # noqa: E501
 
                 if isinstance(result, Err):
-                    errs.append((str(key_), result.val))
+                    errs.append((str_key, result.val))
                 else:
                     args.append(result.val)
             else:
-                if isinstance(validator, Validator):
-                    errs.append((str(key_), KEY_MISSING_MSG))
+                if key_required:
+                    errs.append((str_key, KEY_MISSING_MSG))
                 else:
                     args.append(nothing)
         
@@ -523,12 +525,6 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, data: Any) -> Result[Dict[Hashable, Any], Serializable]:
-        if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
-            
-        if self.preprocessors is not None:
-            for preproc in self.preprocessors:
-                data = preproc(data)
 {DICT_KEYS_CHECK_CODE} 
 """
     ret += (
@@ -569,12 +565,6 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     async def validate_async(
         self, data: Any
     ) -> Result[Dict[Hashable, Any], Serializable]:
-        if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
-
-        if self.preprocessors is not None:
-            for preproc in self.preprocessors:
-                data = preproc(data)
 """
         + DICT_KEYS_CHECK_CODE
         + """
