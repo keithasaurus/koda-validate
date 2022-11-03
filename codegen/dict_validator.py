@@ -445,7 +445,7 @@ class DictValidator(
         for key_, validator, key_required, str_key in self._fast_keys:
             if key_ in data:
                 if key_required:
-                    result = await validator.validate_async(data[key_])
+                    result = await validator.validate_async(data[key_])  # type: ignore
                 else:
                     result = await validator.validate_async(Just(data[key_]))  # type: ignore # noqa: E501
 
