@@ -651,22 +651,22 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         args = []
         errs: List[Tuple[str, Serializable]] = []
         for key_, validator, key_required, str_key in self._fast_keys:
-            if key_ in data:
-                if key_required:
-                    result = validator(data[key_])
-                else:
-                    result = validator(Just(data[key_]))
-
-                if isinstance(result, Err):
-                    errs.append((str_key, result.val))
-                else:
-                    args.append(result.val)
-
-            else:
+            try:
+                val_ = data[key_]
+            except KeyError:
                 if key_required:
                     errs.append((str_key, KEY_MISSING_MSG))
                 else:
                     args.append(nothing)  # type: ignore
+            else:
+                if key_required:
+                    result = validator(val_)
+                else:
+                    result = validator(Just(val_))
+                if isinstance(result, Err):
+                    errs.append((str_key, result.val))
+                else:
+                    args.append(result.val)
 
         if len(errs) != 0:
             return Err(_tuples_to_json_dict(errs))
