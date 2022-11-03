@@ -23,7 +23,7 @@ class OptionalValidator(Validator[Any, Optional[A], Serializable]):
             return Ok(None)
         else:
             result: Result[A, Serializable] = self.validator(val)
-            if isinstance(result, Ok):
+            if result.is_ok:
                 return Ok(result.val)
             else:
                 return result.map_err(
@@ -35,7 +35,7 @@ class OptionalValidator(Validator[Any, Optional[A], Serializable]):
             return Ok(None)
         else:
             result: Result[A, Serializable] = await self.validator.validate_async(val)
-            if isinstance(result, Ok):
+            if result.is_ok:
                 return Ok(result.val)
             else:
                 return result.map_err(

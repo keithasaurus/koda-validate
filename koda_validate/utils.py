@@ -17,8 +17,7 @@ def _flat_map_same_type_if_not_none(
     if fn is None:
         return r
     else:
-        # optimizing by not using flatmap
-        if isinstance(r, Err):
+        if not r.is_ok:
             return r
         else:
             return fn(r.val)
@@ -37,9 +36,7 @@ def _handle_scalar_processors_and_predicates(
             val = proc(val)
 
     if len(predicates) > 0:
-        errors = [
-            result.val for pred in predicates if isinstance(result := pred(val), Err)
-        ]
+        errors = [result.val for pred in predicates if not (result := pred(val)).is_ok]
         if len(errors) > 0:
             return Err(errors)
         else:
@@ -72,7 +69,7 @@ async def _handle_scalar_processors_and_predicates_async(
             [
                 result.val
                 for pred in predicates_async
-                if isinstance(result := await pred.validate_async(val), Err)
+                if not (result := await pred.validate_async(val)).is_ok
             ]
         )
     if len(errors) != 0:

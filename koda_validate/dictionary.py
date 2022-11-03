@@ -1,5 +1,4 @@
 from typing import (
-    TYPE_CHECKING,
     Any,
     Awaitable,
     Callable,
@@ -58,21 +57,17 @@ class KeyNotRequired(Generic[A]):
         self.validator = validator
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
-        if maybe_val is nothing:
+        if not maybe_val.is_just:
             return Ok(maybe_val)
         else:
-            if TYPE_CHECKING:  # pragma: no cover
-                assert isinstance(maybe_val, Just)
             return self.validator(maybe_val.val).map(Just)
 
     async def validate_async(
         self, maybe_val: Maybe[Any]
     ) -> Result[Maybe[A], Serializable]:
-        if maybe_val is nothing:
+        if not maybe_val.is_just:
             return Ok(maybe_val)
         else:
-            if TYPE_CHECKING:  # pragma: no cover
-                assert isinstance(maybe_val, Just)
             return (await self.validator.validate_async(maybe_val.val)).map(Just)
 
 
@@ -145,17 +140,17 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val_)
 
-                if isinstance(key_result, Ok) and isinstance(val_result, Ok):
+                if key_result.is_ok and val_result.is_ok:
                     return_dict[key_result.val] = val_result.val
                 else:
                     err_key = str(key)
-                    if isinstance(key_result, Err):
+                    if not key_result.is_ok:
                         errors[err_key] = {"key_error": key_result.val}
 
-                    if isinstance(val_result, Err):
+                    if not val_result.is_ok:
                         err_dict = {"value_error": val_result.val}
                         errs: Maybe[Serializable] = mapping_get(errors, err_key)
-                        if isinstance(errs, Just) and isinstance(errs.val, dict):
+                        if errs.is_just and isinstance(errs.val, dict):
                             errs.val.update(err_dict)
                         else:
                             errors[err_key] = err_dict
@@ -169,7 +164,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                     # an incorrect assumption; if so, some minor refactoring is probably
                     # necessary.
                     result = predicate(val)
-                    if isinstance(result, Err):
+                    if not result.is_ok:
                         dict_validator_errors.append(result.val)
 
             if len(dict_validator_errors) > 0:
@@ -199,17 +194,17 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                 key_result = await self.key_validator.validate_async(key)
                 val_result = await self.value_validator.validate_async(val_)
 
-                if isinstance(key_result, Ok) and isinstance(val_result, Ok):
+                if key_result.is_ok and val_result.is_ok:
                     return_dict[key_result.val] = val_result.val
                 else:
                     err_key = str(key)
-                    if isinstance(key_result, Err):
+                    if not key_result.is_ok:
                         errors[err_key] = {"key_error": key_result.val}
 
-                    if isinstance(val_result, Err):
+                    if not val_result.is_ok:
                         err_dict = {"value_error": val_result.val}
                         errs: Maybe[Serializable] = mapping_get(errors, err_key)
-                        if isinstance(errs, Just) and isinstance(errs.val, dict):
+                        if errs.is_just and isinstance(errs.val, dict):
                             errs.val.update(err_dict)
                         else:
                             errors[err_key] = err_dict
@@ -223,13 +218,13 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                     # an incorrect assumption; if so, some minor refactoring is probably
                     # necessary.
                     result = predicate(val)
-                    if isinstance(result, Err):
+                    if not result.is_ok:
                         dict_validator_errors.append(result.val)
 
             if self.predicates_async is not None:
                 for pred_async in self.predicates_async:
                     result = await pred_async.validate_async(val)
-                    if isinstance(result, Err):
+                    if not result.is_ok:
                         dict_validator_errors.append(result.val)
 
             if len(dict_validator_errors) > 0:
@@ -635,6 +630,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
+
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
 
@@ -656,7 +652,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 else:
                     result = validator(Just(data[key_]))
 
-                if isinstance(result, Err):
+                if not result.is_ok:
                     errs.append((str_key, result.val))
                 else:
                     args.append(result.val)
@@ -700,7 +696,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 else:
                     result = await validator.validate_async(Just(data[key_]))  # type: ignore # noqa: E501
 
-                if isinstance(result, Err):
+                if not result.is_ok:
                     errs.append((str_key, result.val))
                 else:
                     args.append(result.val)
@@ -811,7 +807,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                     result = OK_NOTHING
 
             # (slightly) optimized; can be simplified if needed
-            if isinstance(result, Err):
+            if not result.is_ok:
                 err = (str(key_), result.val)
                 if errs is None:
                     errs = [err]
@@ -864,7 +860,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                     result = OK_NOTHING
 
             # (slightly) optimized; can be simplified if needed
-            if isinstance(result, Err):
+            if not result.is_ok:
                 err = (str(key_), result.val)
                 if errs is None:
                     errs = [err]

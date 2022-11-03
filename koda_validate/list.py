@@ -97,7 +97,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
                 for processor in self.preprocessors:
                     val = processor(val)
 
-            errors: Dict[str, Serializable] = {}
+            errors: Optional[Dict[str, Serializable]] = None
             if self.predicates is not None:
                 list_errors: List[Serializable] = [
                     result.val
@@ -107,19 +107,22 @@ class ListValidator(Validator[Any, List[A], Serializable]):
 
                 # Not running async validators! They shouldn't be set!
                 if len(list_errors) != 0:
-                    errors[OBJECT_ERRORS_FIELD] = list_errors
+                    errors = {OBJECT_ERRORS_FIELD: list_errors}
 
             return_list: List[A] = []
 
             for i, item in enumerate(val):
                 item_result = self.item_validator(item)
-                if isinstance(item_result, Ok):
-                    if len(errors) == 0:
+                if item_result.is_ok:
+                    if not errors:
                         return_list.append(item_result.val)
                 else:
-                    errors[str(i)] = item_result.val
+                    if errors is None:
+                        errors = {str(i): item_result.val}
+                    else:
+                        errors[str(i)] = item_result.val
 
-            if len(errors) != 0:
+            if errors:
                 return Err(errors)
             else:
                 return Ok(return_list)
@@ -132,31 +135,34 @@ class ListValidator(Validator[Any, List[A], Serializable]):
                 for processor in self.preprocessors:
                     val = processor(val)
             return_list: List[A] = []
-            errors: Dict[str, Serializable] = {}
-
             list_errors: List[Serializable] = []
             if self.predicates is not None:
                 for pred in self.predicates:
-                    if isinstance(result := pred(val), Err):
+                    if not (result := pred(val)).is_ok:
                         list_errors.append(result.val)
 
             if self.predicates_async is not None:
                 for pred_async in self.predicates_async:
                     result = await pred_async.validate_async(val)
-                    if isinstance(result, Err):
+                    if not result.is_ok:
                         list_errors.append(result.val)
 
+            errors: Optional[Dict[str, Serializable]] = None
             if len(list_errors) > 0:
-                errors[OBJECT_ERRORS_FIELD] = list_errors
+                errors = {OBJECT_ERRORS_FIELD: list_errors}
 
             for i, item in enumerate(val):
                 item_result = await self.item_validator.validate_async(item)
                 if isinstance(item_result, Ok):
-                    return_list.append(item_result.val)
+                    if not errors:
+                        return_list.append(item_result.val)
                 else:
-                    errors[str(i)] = item_result.val
+                    if not errors:
+                        errors = {str(i): item_result.val}
+                    else:
+                        errors[str(i)] = item_result.val
 
-            if len(errors) > 0:
+            if errors:
                 return Err(errors)
             else:
                 return Ok(return_list)
