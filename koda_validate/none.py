@@ -6,6 +6,9 @@ from koda._generics import A
 from koda_validate.typedefs import Serializable, Validator
 from koda_validate.utils import _variant_errors
 
+OK_NONE: Final[Ok[None]] = Ok(None)
+OK_NONE_OPTIONAL: Final[Ok[Optional[Any]]] = Ok(None)
+
 
 class OptionalValidator(Validator[Any, Optional[A], Serializable]):
     """
@@ -20,7 +23,7 @@ class OptionalValidator(Validator[Any, Optional[A], Serializable]):
 
     def __call__(self, val: Any) -> Result[Optional[A], Serializable]:
         if val is None:
-            return Ok(None)
+            return OK_NONE_OPTIONAL
         else:
             result: Result[A, Serializable] = self.validator(val)
             if result.is_ok:
@@ -32,7 +35,7 @@ class OptionalValidator(Validator[Any, Optional[A], Serializable]):
 
     async def validate_async(self, val: Any) -> Result[Optional[A], Serializable]:
         if val is None:
-            return Ok(None)
+            return OK_NONE_OPTIONAL
         else:
             result: Result[A, Serializable] = await self.validator.validate_async(val)
             if result.is_ok:
@@ -49,7 +52,7 @@ EXPECTED_NONE: Final[Err[Serializable]] = Err(["expected None"])
 class NoneValidator(Validator[Any, None, Serializable]):
     def __call__(self, val: Any) -> Result[None, Serializable]:
         if val is None:
-            return Ok(val)
+            return OK_NONE
         else:
             return EXPECTED_NONE
 

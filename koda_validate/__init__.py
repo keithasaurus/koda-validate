@@ -46,8 +46,8 @@ __all__ = (
     "upper_case",
     "lower_case",
     # time.py
-    "DateValidator",
-    "DatetimeValidator",
+    "DateStringValidator",
+    "DatetimeStringValidator",
     # tuple.py
     "Tuple2Validator",
     "Tuple3Validator",
@@ -93,7 +93,7 @@ from koda_validate.string import (
     strip,
     upper_case,
 )
-from koda_validate.time import DatetimeValidator, DateValidator
+from koda_validate.time import DateStringValidator, DatetimeStringValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.typedefs import (
     Predicate,

@@ -100,7 +100,6 @@ async def test_validate_fake_db_async() -> None:
             hit.append("ok")
             # fake db call
             await asyncio.sleep(0.001)
-            print("HHEEERRE")
             return val == test_valid_username
 
         async def err_async(self, val: str) -> Serializable:

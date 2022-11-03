@@ -7,8 +7,8 @@ from koda import Err, Maybe, Ok, Result
 from koda_validate import (
     BoolValidator,
     Choices,
-    DatetimeValidator,
-    DateValidator,
+    DateStringValidator,
+    DatetimeStringValidator,
     DecimalValidator,
     ExactValidator,
     FloatValidator,
@@ -277,14 +277,14 @@ def test_match_args() -> None:
         case _:
             assert False
 
-    match DateValidator():
-        case DateValidator(pred_7):
+    match DateStringValidator():
+        case DateStringValidator(pred_7):
             assert pred_7 == ()
         case _:
             assert False
 
-    match DatetimeValidator():
-        case DatetimeValidator(pred_8):
+    match DatetimeStringValidator():
+        case DatetimeStringValidator(pred_8):
             assert pred_8 == ()
         case _:
             assert False
