@@ -23,6 +23,7 @@ pre-commit = "2.20.0"
 mypy = "0.982"
 pydantic = "1.10.2"
 pytest-asyncio = "0.20.1"
+voluptuous = "^0.13.1"
 
 
 

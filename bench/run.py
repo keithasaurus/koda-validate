@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Callable, Generic, List
+from typing import Callable, Generic, List, Optional
 
 from bench import (
     min_max,
@@ -19,6 +19,7 @@ class BenchCompare(Generic[A]):
     gen: Callable[[int], A]
     kv_run: Callable[[List[A]], None]
     pyd_run: Callable[[List[A]], None]
+    v_run: Optional[Callable[[List[A]], None]] = None
 
 
 benches = {
@@ -31,11 +32,13 @@ benches = {
         lambda i: {"val_1": i, "val_2": str(i)},
         two_keys_invalid_types.run_kv,
         two_keys_invalid_types.run_pyd,
+        two_keys_invalid_types.run_v,
     ),
     "two_keys_valid": BenchCompare(
         lambda i: {"val_1": str(i), "val_2": i},
         two_keys_valid.run_kv,
         two_keys_valid.run_pyd,
+        two_keys_valid.run_v,
     ),
     "nested_object_list": BenchCompare(
         nested_object_list.get_valid_data,
@@ -45,9 +48,11 @@ benches = {
     "string_valid": BenchCompare(
         validate_string.get_str, validate_string.run_kv, validate_string.run_pyd
     ),
-    "min_max_all_valid": BenchCompare(min_max.gen_valid, min_max.run_kv, min_max.run_pyd),
+    "min_max_all_valid": BenchCompare(
+        min_max.gen_valid, min_max.run_kv, min_max.run_pyd, min_max.run_v
+    ),
     "min_max_all_invalid": BenchCompare(
-        min_max.gen_invalid, min_max.run_kv, min_max.run_pyd
+        min_max.gen_invalid, min_max.run_kv, min_max.run_pyd, min_max.run_v
     ),
 }
 
@@ -101,4 +106,13 @@ if __name__ == "__main__":
             run_bench(
                 args.iterations, args.chunk_size, compare_bench.gen, compare_bench.pyd_run
             )
+            if compare_bench.v_run:
+                print("VOLUPTUOUS")
+                run_bench(
+                    args.iterations,
+                    args.chunk_size,
+                    compare_bench.gen,
+                    compare_bench.v_run,
+                )
+
             print(f"----- END {name} -----\n")

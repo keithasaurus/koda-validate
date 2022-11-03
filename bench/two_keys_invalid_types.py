@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any, List
 
 from pydantic import BaseModel
+from voluptuous import MultipleInvalid, Schema
 
 from koda_validate import DictValidator, IntValidator, StringValidator
 
@@ -30,3 +31,19 @@ class BasicString(BaseModel):
 def run_pyd(objs: List[Any]) -> None:
     for obj in objs:
         BasicString(**obj)
+
+
+v_schema = Schema(
+    {
+        "val_1": str,
+        "val_2": int,
+    }
+)
+
+
+def run_v(objs: List[Any]) -> None:
+    for obj in objs:
+        try:
+            v_schema(obj)
+        except MultipleInvalid:
+            pass

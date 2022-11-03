@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, ValidationError, conint, constr
+from voluptuous import All, Length, MultipleInvalid, Range, Schema
 
 from koda_validate import (
     DictValidator,
@@ -47,6 +48,22 @@ def run_pyd(objs: List[Any]) -> None:
         try:
             _ = ConstrainedModel(**obj)
         except ValidationError:
+            pass
+
+
+v_schema = Schema(
+    {
+        "val_1": All(str, Length(min=2, max=5)),
+        "val_2": All(int, Range(min=1, max=10)),
+    }
+)
+
+
+def run_v(objs: List[Any]) -> None:
+    for obj in objs:
+        try:
+            v_schema(obj)
+        except MultipleInvalid:
             pass
 
 
