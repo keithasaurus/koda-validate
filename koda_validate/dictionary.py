@@ -648,7 +648,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             if key_ not in self._key_set:
                 return self._unknown_keys_err
 
-        args = []
+        args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
         for key_, validator, key_required, str_key in self._fast_keys:
             try:
@@ -657,7 +657,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 if key_required:
                     errs.append((str_key, KEY_MISSING_MSG))
                 else:
-                    args.append(nothing)  # type: ignore
+                    args.append(nothing)
             else:
                 if key_required:
                     result = validator(val_)
@@ -672,7 +672,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             return Err(_tuples_to_json_dict(errs))
         else:
             # we know this should be ret
-            obj = self.into(*args)  # type: ignore
+            obj = self.into(*args)
             if self.validate_object is None:
                 return Ok(obj)
             else:
