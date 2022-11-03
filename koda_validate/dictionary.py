@@ -696,7 +696,6 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 else:
                     result = await validator.validate_async(Just(data[key_]))  # type: ignore # noqa: E501
 
-                # (slightly) optimized; can be simplified if needed
                 if isinstance(result, Err):
                     errs.append((str(key_), result.val))
                 else:
@@ -707,7 +706,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 else:
                     args.append(nothing)
 
-        if errs and len(errs) > 0:
+        if len(errs) != 0:
             return Err(_tuples_to_json_dict(errs))
         else:
             # we know this should be ret
