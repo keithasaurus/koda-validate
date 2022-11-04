@@ -105,9 +105,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             errors: Optional[Dict[str, Serializable]] = None
             if self.predicates:
                 list_errors: List[Serializable] = [
-                    result.val
-                    for pred in self.predicates
-                    if not (result := pred(val)).is_ok
+                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]
 
                 # Not running async validators! They shouldn't be set!
@@ -143,9 +141,9 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             return_list: List[A] = []
             list_errors: List[Serializable] = []
             if self.predicates:
-                for pred in self.predicates:
-                    if not (result := pred(val)).is_ok:
-                        list_errors.append(result.val)
+                list_errors.extend(
+                    [pred.err(val) for pred in self.predicates if not pred.is_valid(val)]
+                )
 
             if self.predicates_async is not None:
                 for pred_async in self.predicates_async:
