@@ -424,7 +424,7 @@ class DictValidator(
                     args.append(nothing)  # type: ignore
 
         if len(errs) != 0:
-            return Err(_tuples_to_json_dict(errs))
+            return Err(dict(errs))
         else:
             # we know this should be ret
             obj = self.into(*args)  # type: ignore
@@ -455,7 +455,7 @@ class DictValidator(
                     args.append(nothing)
         
         if len(errs) != 0:
-            return Err(_tuples_to_json_dict(errs))
+            return Err(dict(errs))
         else:
             # we know this should be ret
             obj = self.into(*args) 
@@ -550,7 +550,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 success_dict[key_] = result.val
 
         if errs and len(errs) > 0:
-            return Err(_tuples_to_json_dict(errs))
+            return Err(dict(errs))
         else:
             if self.validate_object is None:
                 return Ok(success_dict)
@@ -593,7 +593,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 success_dict[key_] = result.val
 
         if errs and len(errs) > 0:
-            return Err(_tuples_to_json_dict(errs))
+            return Err(dict(errs))
         else:
             if self.validate_object is not None:
                 return self.validate_object(success_dict)
