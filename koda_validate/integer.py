@@ -1,12 +1,8 @@
-from functools import partial
 from typing import Any, Final, List, Optional
 
 from koda import Err, Ok, Result
 
-from koda_validate._internals import (
-    _handle_scalar_predicates,
-    _handle_scalar_processors_and_predicates_async,
-)
+from koda_validate._internals import _handle_scalar_processors_and_predicates_async
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
@@ -21,7 +17,7 @@ EXPECTED_INTEGER_ERR: Final[Err[Serializable]] = Err(["expected an integer"])
 
 class IntValidator(Validator[Any, int, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
-    __slots__ = ("_fast_pred", "predicates", "predicates_async", "preprocessors")
+    __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
@@ -32,17 +28,25 @@ class IntValidator(Validator[Any, int, Serializable]):
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
-        self._fast_pred = (
-            partial(_handle_scalar_predicates, predicates) if self.predicates else Ok
-        )
 
     def __call__(self, val: Any) -> Result[int, Serializable]:
         if isinstance(val, int) and not isinstance(val, bool):
-            if self.preprocessors is not None:
+            if self.preprocessors:
                 for proc in self.preprocessors:
                     val = proc(val)
 
-            return self._fast_pred(val)  # type: ignore
+            if self.predicates:
+                errors = [
+                    result.val
+                    for pred in self.predicates
+                    if not (result := pred(val)).is_ok
+                ]
+                if errors:
+                    return Err(errors)
+                else:
+                    return Ok(val)
+            else:
+                return Ok(val)
 
         return EXPECTED_INTEGER_ERR
 

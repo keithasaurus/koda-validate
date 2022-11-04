@@ -15,16 +15,20 @@ from koda_validate.typedefs import (
 
 class MinItems(Predicate[List[Any], Serializable]):
     __match_args__ = ("length",)
-    __slots__ = ("length",)
+    __slots__ = (
+        "_err",
+        "length",
+    )
 
     def __init__(self, length: int) -> None:
         self.length = length
+        self._err = f"minimum allowed length is {self.length}"
 
     def is_valid(self, val: List[Any]) -> bool:
         return len(val) >= self.length
 
     def err(self, val: List[Any]) -> str:
-        return f"minimum allowed length is {self.length}"
+        return self._err
 
 
 class MaxItems(Predicate[List[Any], Serializable]):
@@ -33,12 +37,13 @@ class MaxItems(Predicate[List[Any], Serializable]):
 
     def __init__(self, length: int) -> None:
         self.length = length
+        self._err = f"maximum allowed length is {self.length}"
 
     def is_valid(self, val: List[Any]) -> bool:
         return len(val) <= self.length
 
     def err(self, val: List[Any]) -> str:
-        return f"maximum allowed length is {self.length}"
+        return self._err
 
 
 class UniqueItems(Predicate[List[Any], Serializable]):
@@ -93,16 +98,16 @@ class ListValidator(Validator[Any, List[A], Serializable]):
 
     def __call__(self, val: Any) -> Result[List[A], Serializable]:
         if isinstance(val, list):
-            if self.preprocessors is not None:
+            if self.preprocessors:
                 for processor in self.preprocessors:
                     val = processor(val)
 
             errors: Optional[Dict[str, Serializable]] = None
-            if self.predicates is not None:
+            if self.predicates:
                 list_errors: List[Serializable] = [
                     result.val
                     for pred in self.predicates
-                    if isinstance(result := pred(val), Err)
+                    if not (result := pred(val)).is_ok
                 ]
 
                 # Not running async validators! They shouldn't be set!
@@ -131,12 +136,13 @@ class ListValidator(Validator[Any, List[A], Serializable]):
 
     async def validate_async(self, val: Any) -> Result[List[A], Serializable]:
         if isinstance(val, list):
-            if self.preprocessors is not None:
+            if self.preprocessors:
                 for processor in self.preprocessors:
                     val = processor(val)
+
             return_list: List[A] = []
             list_errors: List[Serializable] = []
-            if self.predicates is not None:
+            if self.predicates:
                 for pred in self.predicates:
                     if not (result := pred(val)).is_ok:
                         list_errors.append(result.val)

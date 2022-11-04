@@ -50,9 +50,6 @@ def _handle_scalar_processors_and_predicates(
         if errors:
             return Err(errors)
         else:
-            # has to be original val because there are no
-            # errors, and predicates prevent there from being
-            # modification to the value
             return Ok(val)
     else:
         return Ok(val)
@@ -64,7 +61,7 @@ async def _handle_scalar_processors_and_predicates_async(
     predicates: Tuple[Predicate[A, Serializable], ...],
     predicates_async: Optional[List[PredicateAsync[A, Serializable]]],
 ) -> Result[A, Serializable]:
-    if preprocessors is not None:
+    if preprocessors:
         for proc in preprocessors:
             val = proc(val)
 
@@ -81,9 +78,6 @@ async def _handle_scalar_processors_and_predicates_async(
     if errors:
         return Err(errors)
     else:
-        # has to be original val because there are no
-        # errors, and predicates prevent there from being
-        # modification to the value
         return Ok(val)
 
 

@@ -155,7 +155,7 @@ class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
 
     def __call__(self, val: Any) -> Result[ExactMatchT, Serializable]:
         if (match_type := type(self.match)) == type(val):
-            if self.preprocessors is not None:
+            if self.preprocessors:
                 for preprocess in self.preprocessors:
                     val = preprocess(val)
 

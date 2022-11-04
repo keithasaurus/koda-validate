@@ -125,7 +125,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
 
     def __call__(self, val: Any) -> Result[Dict[T1, T2], Serializable]:
         if isinstance(val, dict):
-            if self.preprocessors is not None:
+            if self.preprocessors:
                 for preproc in self.preprocessors:
                     val = preproc(val)
 
@@ -151,7 +151,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                             errors[err_key] = err_dict
 
             dict_validator_errors: List[Serializable] = []
-            if self.predicates is not None:
+            if self.predicates:
                 for predicate in self.predicates:
                     # Note that the expectation here is that validators will likely
                     # be doing json like number of keys; they aren't expected
@@ -178,7 +178,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
 
     async def validate_async(self, val: Any) -> Result[Dict[T1, T2], Serializable]:
         if isinstance(val, dict):
-            if self.preprocessors is not None:
+            if self.preprocessors:
                 for preproc in self.preprocessors:
                     val = preproc(val)
 
@@ -205,7 +205,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                             errors[err_key] = err_dict
 
             dict_validator_errors: List[Serializable] = []
-            if self.predicates is not None:
+            if self.predicates:
                 for predicate in self.predicates:
                     # Note that the expectation here is that validators will likely
                     # be doing json like number of keys; they aren't expected
@@ -630,7 +630,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
 
-        if self.preprocessors is not None:
+        if self.preprocessors:
             for preproc in self.preprocessors:
                 data = preproc(data)
 
@@ -675,7 +675,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
 
-        if self.preprocessors is not None:
+        if self.preprocessors:
             for preproc in self.preprocessors:
                 data = preproc(data)
 
@@ -781,7 +781,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
 
-        if self.preprocessors is not None:
+        if self.preprocessors:
             for preproc in self.preprocessors:
                 data = preproc(data)
 
@@ -830,7 +830,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
 
-        if self.preprocessors is not None:
+        if self.preprocessors:
             for preproc in self.preprocessors:
                 data = preproc(data)
 
