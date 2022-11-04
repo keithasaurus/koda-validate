@@ -546,15 +546,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                     errs.append((str_key, result.val))
                 elif not errs:
                     success_dict[key_] = result.val
-
-        if errs and len(errs) > 0:
-            return Err(dict(errs))
-        else:
-            if self.validate_object is None:
-                return Ok(success_dict)
-            else:
-                return self.validate_object(success_dict)
-
+ 
         if errs:
             return Err(dict(errs))
         else:

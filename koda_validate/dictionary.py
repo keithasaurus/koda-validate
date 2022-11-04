@@ -816,14 +816,6 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 elif not errs:
                     success_dict[key_] = result.val
 
-        if errs and len(errs) > 0:
-            return Err(dict(errs))
-        else:
-            if self.validate_object is None:
-                return Ok(success_dict)
-            else:
-                return self.validate_object(success_dict)
-
         if errs:
             return Err(dict(errs))
         else:
@@ -859,10 +851,11 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 elif not errs:
                     success_dict[key_] = nothing
             else:
+
                 if key_required:
-                    result = await validator.validate_async(val)
+                    result = await validator.validate_async(val)  # type: ignore
                 else:
-                    result = await validator.validate_async(Just(val))
+                    result = await validator.validate_async(Just(val))  # type: ignore
 
                 if not result.is_ok:
                     errs.append((str_key, result.val))
