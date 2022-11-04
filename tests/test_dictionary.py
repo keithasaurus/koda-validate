@@ -23,6 +23,7 @@ from koda_validate import (
     none_validator,
     strip,
 )
+from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.dictionary import (
     EXPECTED_DICT_ERR,
     EXPECTED_MAP_ERR,
@@ -31,7 +32,6 @@ from koda_validate.dictionary import (
     KeyNotRequired,
     is_dict_validator,
 )
-from koda_validate.utils import OBJECT_ERRORS_FIELD
 
 
 class PersonLike(Protocol):

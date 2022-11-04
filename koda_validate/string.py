@@ -3,16 +3,16 @@ from typing import Any, Final, List, Optional, Pattern
 
 from koda import Err, Result
 
+from koda_validate._internals import (
+    _handle_scalar_processors_and_predicates,
+    _handle_scalar_processors_and_predicates_async,
+)
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
     Validator,
-)
-from koda_validate.utils import (
-    _handle_scalar_processors_and_predicates,
-    _handle_scalar_processors_and_predicates_async,
 )
 
 EXPECTED_STR_ERR: Final[Err[Serializable]] = Err(["expected a string"])

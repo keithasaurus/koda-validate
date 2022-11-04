@@ -3,7 +3,7 @@
 from typing import Tuple, Union, overload
 
 from koda_validate._generics import A, B, C
-from koda_validate.utils import _not_set, _NotSet
+from koda_validate._internals import _not_set, _NotSet
 
 _Settable = Union[A, _NotSet]
 
