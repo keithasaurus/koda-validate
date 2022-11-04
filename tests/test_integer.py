@@ -14,6 +14,11 @@ from koda_validate import (
 )
 
 
+class Add1Int(Processor[int]):
+    def __call__(self, val: int) -> int:
+        return val + 1
+
+
 def test_integer() -> None:
     assert IntValidator()("a string") == Err(["expected an integer"])
 
@@ -38,6 +43,12 @@ def test_integer() -> None:
     assert IntValidator(Min(2), Max(10), DivisibleBy2(),)(
         11
     ) == Err(["maximum allowed value is 10", "must be divisible by 2"])
+
+    assert IntValidator(Min(2), preprocessors=[Add1Int()])(1) == Ok(2)
+
+    assert IntValidator(Min(3), preprocessors=[Add1Int()])(1) == Err(
+        ["minimum allowed value is 3"]
+    )
 
 
 @pytest.mark.asyncio

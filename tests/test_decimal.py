@@ -14,6 +14,11 @@ from koda_validate import (
 )
 
 
+class Add1Decimal(Processor[Decimal]):
+    def __call__(self, val: Decimal) -> Decimal:
+        return val + 1
+
+
 def test_decimal() -> None:
     assert DecimalValidator()("a string") == Err(
         ["expected a Decimal, or a Decimal-compatible string or integer"]
@@ -28,6 +33,12 @@ def test_decimal() -> None:
     assert DecimalValidator()(5) == Ok(Decimal(5))
 
     assert DecimalValidator(Min(Decimal(4)), Max(Decimal("5.5")))(5) == Ok(Decimal(5))
+    assert DecimalValidator(Min(Decimal(4)), Max(Decimal("5.5")))(Decimal(1)) == Err(
+        ["minimum allowed value is 4"]
+    )
+    assert DecimalValidator(preprocessors=[Add1Decimal()])(Decimal("5.0")) == Ok(
+        Decimal("6.0")
+    )
 
 
 @pytest.mark.asyncio
@@ -39,10 +50,6 @@ async def test_decimal_async() -> None:
     assert await DecimalValidator().validate_async(5.5) == Err(
         ["expected a Decimal, or a Decimal-compatible string or integer"]
     )
-
-    class Add1Decimal(Processor[Decimal]):
-        def __call__(self, val: Decimal) -> Decimal:
-            return val + 1
 
     class LessThan4(PredicateAsync[Decimal, Serializable]):
         async def is_valid_async(self, val: Decimal) -> bool:

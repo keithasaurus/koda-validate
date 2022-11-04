@@ -8,6 +8,11 @@ from koda_validate.generic import Max, Min
 from koda_validate.typedefs import Predicate, PredicateAsync, Processor, Serializable
 
 
+class Add1Float(Processor[float]):
+    def __call__(self, val: float) -> float:
+        return val + 1.0
+
+
 def test_float() -> None:
     assert FloatValidator()("a string") == Err(["expected a float"])
 
@@ -38,13 +43,13 @@ def test_float() -> None:
         ["maximum allowed value is 4.0", "There should be a zero in the number"]
     )
 
+    assert FloatValidator(Min(2.5), preprocessors=[Add1Float()])(1.0) == Err(
+        ["minimum allowed value is 2.5"]
+    )
+
 
 @pytest.mark.asyncio
 async def test_float_async() -> None:
-    class Add1Float(Processor[float]):
-        def __call__(self, val: float) -> float:
-            return val + 1.0
-
     class LessThan4(PredicateAsync[float, Serializable]):
         async def is_valid_async(self, val: float) -> bool:
             await asyncio.sleep(0.001)

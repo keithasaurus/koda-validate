@@ -1,7 +1,7 @@
 import asyncio
 
 import pytest
-from koda import Err, Ok
+from koda import Err, Ok, Result
 
 from koda_validate import (
     BoolValidator,
@@ -11,6 +11,11 @@ from koda_validate import (
     Serializable,
 )
 from koda_validate.boolean import EXPECTED_BOOL_ERR
+
+
+class Flip(Processor[bool]):
+    def __call__(self, val: bool) -> bool:
+        return not val
 
 
 def test_boolean() -> None:
@@ -31,13 +36,22 @@ def test_boolean() -> None:
 
     assert BoolValidator()(1) == Err(["expected a boolean"])
 
+    class IsTrue(Predicate[bool, Serializable]):
+        def is_valid(self, val: bool) -> bool:
+            return val is True
+
+        def err(self, val: bool) -> Serializable:
+            return "should be True"
+
+    assert BoolValidator(IsTrue(), preprocessors=[Flip()])(False) == Ok(True)
+
+    assert BoolValidator(IsTrue(),)(
+        False
+    ) == Err(["should be True"])
+
 
 @pytest.mark.asyncio
 async def test_boolean_validator_async() -> None:
-    class Flip(Processor[bool]):
-        def __call__(self, val: bool) -> bool:
-            return not val
-
     class IsTrue(PredicateAsync[bool, Serializable]):
         async def is_valid_async(self, val: bool) -> bool:
             await asyncio.sleep(0.001)
