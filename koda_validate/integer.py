@@ -49,7 +49,7 @@ class IntValidator(Validator[Any, int, Serializable]):
         return EXPECTED_INTEGER_ERR
 
     async def validate_async(self, val: Any) -> Result[int, Serializable]:
-        if isinstance(val, int) and not isinstance(val, bool):
+        if type(val) is int:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )

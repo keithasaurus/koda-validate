@@ -125,7 +125,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
 
     def __call__(self, val: Any) -> Result[Dict[T1, T2], Serializable]:
         if isinstance(val, dict):
-            if self.preprocessors:
+            if self.preprocessors is not None:
                 for preproc in self.preprocessors:
                     val = preproc(val)
 
@@ -151,7 +151,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                             errors[err_key] = err_dict
 
             dict_validator_errors: List[Serializable] = []
-            if self.predicates:
+            if self.predicates is not None:
                 for predicate in self.predicates:
                     # Note that the expectation here is that validators will likely
                     # be doing json like number of keys; they aren't expected
@@ -162,7 +162,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                     if not result.is_ok:
                         dict_validator_errors.append(result.val)
 
-            if dict_validator_errors:
+            if len(dict_validator_errors) > 0:
                 # in case somehow there are already errors in this field
                 if OBJECT_ERRORS_FIELD in errors:
                     dict_validator_errors.append(errors[OBJECT_ERRORS_FIELD])
@@ -178,7 +178,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
 
     async def validate_async(self, val: Any) -> Result[Dict[T1, T2], Serializable]:
         if isinstance(val, dict):
-            if self.preprocessors:
+            if self.preprocessors is not None:
                 for preproc in self.preprocessors:
                     val = preproc(val)
 
@@ -205,7 +205,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                             errors[err_key] = err_dict
 
             dict_validator_errors: List[Serializable] = []
-            if self.predicates:
+            if self.predicates is not None:
                 for predicate in self.predicates:
                     # Note that the expectation here is that validators will likely
                     # be doing json like number of keys; they aren't expected
@@ -222,7 +222,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                     if not result.is_ok:
                         dict_validator_errors.append(result.val)
 
-            if dict_validator_errors:
+            if len(dict_validator_errors) > 0:
                 # in case somehow there are already errors in this field
                 if OBJECT_ERRORS_FIELD in errors:
                     dict_validator_errors.append(errors[OBJECT_ERRORS_FIELD])
@@ -630,7 +630,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
 
-        if self.preprocessors:
+        if self.preprocessors is not None:
             for preproc in self.preprocessors:
                 data = preproc(data)
 
@@ -675,7 +675,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
 
-        if self.preprocessors:
+        if self.preprocessors is not None:
             for preproc in self.preprocessors:
                 data = preproc(data)
 
@@ -739,6 +739,8 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     __slots__ = (
         "keys",
         "_key_set",
+        "_fast_keys",
+        "_unknown_keys_err",
         "preprocessors",
         "validate_object",
         "validate_object_async",
@@ -764,6 +766,9 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         # so we don't need to calculate each time we validate
         _key_set = frozenset(k for k, _ in keys)
         self._key_set = _key_set
+        self._fast_keys = [
+            (key, val, not isinstance(val, KeyNotRequired), str(key)) for key, val in keys
+        ]
 
         self._unknown_keys_err = _make_keys_err(_key_set)
 
@@ -781,7 +786,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
 
-        if self.preprocessors:
+        if self.preprocessors is not None:
             for preproc in self.preprocessors:
                 data = preproc(data)
 
@@ -791,31 +796,35 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
-        errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.keys:
-            if key_ in data:
-                if isinstance(validator, Validator):
-                    result = validator(data[key_])
-                else:
-                    result = validator(Just(data[key_]))
-
+        errs: List[Tuple[str, Serializable]] = []
+        for key_, validator, key_required, str_key in self._fast_keys:
+            try:
+                val = data[key_]
+            except KeyError:
+                if key_required:
+                    errs.append((str_key, KEY_MISSING_MSG))
+                elif not errs:
+                    success_dict[key_] = nothing
             else:
-                if isinstance(validator, Validator):
-                    result = KEY_MISSING_ERR
+                if key_required:
+                    result = validator(val)
                 else:
-                    result = OK_NOTHING
+                    result = validator(Just(val))
 
-            # (slightly) optimized; can be simplified if needed
-            if not result.is_ok:
-                err = (str(key_), result.val)
-                if errs is None:
-                    errs = [err]
-                else:
-                    errs.append(err)
-            elif errs is None:
-                success_dict[key_] = result.val
+                if not result.is_ok:
+                    errs.append((str_key, result.val))
+                elif not errs:
+                    success_dict[key_] = result.val
 
         if errs and len(errs) > 0:
+            return Err(dict(errs))
+        else:
+            if self.validate_object is None:
+                return Ok(success_dict)
+            else:
+                return self.validate_object(success_dict)
+
+        if errs:
             return Err(dict(errs))
         else:
             if self.validate_object is None:
@@ -830,7 +839,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
 
-        if self.preprocessors:
+        if self.preprocessors is not None:
             for preproc in self.preprocessors:
                 data = preproc(data)
 
@@ -840,35 +849,27 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
-        errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.keys:
-            if key_ in data:
-                if isinstance(validator, Validator):
-                    result = await validator.validate_async(data[key_])
-                else:
-                    # ignore because it's difficult to make `validate_async`
-                    # apparent to KeyValidator...
-                    result = await validator.validate_async(  # type: ignore
-                        Just(data[key_])
-                    )
-
+        errs: List[Tuple[str, Serializable]] = []
+        for key_, validator, key_required, str_key in self._fast_keys:
+            try:
+                val = data[key_]
+            except KeyError:
+                if key_required:
+                    errs.append((str_key, KEY_MISSING_MSG))
+                elif not errs:
+                    success_dict[key_] = nothing
             else:
-                if isinstance(validator, Validator):
-                    result = KEY_MISSING_ERR
+                if key_required:
+                    result = await validator.validate_async(val)
                 else:
-                    result = OK_NOTHING
+                    result = await validator.validate_async(Just(val))
 
-            # (slightly) optimized; can be simplified if needed
-            if not result.is_ok:
-                err = (str(key_), result.val)
-                if errs is None:
-                    errs = [err]
-                else:
-                    errs.append(err)
-            elif errs is None:
-                success_dict[key_] = result.val
+                if not result.is_ok:
+                    errs.append((str_key, result.val))
+                elif not errs:
+                    success_dict[key_] = result.val
 
-        if errs and len(errs) > 0:
+        if errs:
             return Err(dict(errs))
         else:
             if self.validate_object is not None:

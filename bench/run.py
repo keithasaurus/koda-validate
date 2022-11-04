@@ -40,11 +40,6 @@ benches = {
         two_keys_valid.run_pyd,
         two_keys_valid.run_v,
     ),
-    "nested_object_list": BenchCompare(
-        nested_object_list.get_valid_data,
-        nested_object_list.run_kv,
-        nested_object_list.run_pyd,
-    ),
     "string_valid": BenchCompare(
         string_valid.get_str, string_valid.run_kv, string_valid.run_pyd
     ),
@@ -53,6 +48,11 @@ benches = {
     ),
     "min_max_all_invalid": BenchCompare(
         min_max.gen_invalid, min_max.run_kv, min_max.run_pyd, min_max.run_v
+    ),
+    "nested_object_list": BenchCompare(
+        nested_object_list.get_valid_data,
+        nested_object_list.run_kv,
+        nested_object_list.run_pyd,
     ),
 }
 

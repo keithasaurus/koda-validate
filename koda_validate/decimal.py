@@ -55,7 +55,7 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
             return EXPECTED_DECIMAL_ERR
 
     async def validate_async(self, val: Any) -> Result[Decimal, Serializable]:
-        if isinstance(val, Decimal):
+        if type(val) is Decimal:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )

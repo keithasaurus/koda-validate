@@ -157,7 +157,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
 
             for i, item in enumerate(val):
                 item_result = await self.item_validator.validate_async(item)
-                if isinstance(item_result, Ok):
+                if item_result.is_ok:
                     if not errors:
                         return_list.append(item_result.val)
                 else:

@@ -48,7 +48,7 @@ class BoolValidator(Validator[Any, bool, Serializable]):
             return EXPECTED_BOOL_ERR
 
     async def validate_async(self, val: Any) -> Result[bool, Serializable]:
-        if isinstance(val, bool):
+        if type(val) is bool:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )

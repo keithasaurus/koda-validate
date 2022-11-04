@@ -483,7 +483,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     assistance.
     \"""
 
-    __slots__ = ("keys", "_key_set", "preprocessors", "validate_object", "validate_object_async")
+    __slots__ = ("keys", "_key_set", "_fast_keys", "_unknown_keys_err", "preprocessors", "validate_object", "validate_object_async")
     __match_args__ = ("keys", "preprocessors", "validate_object", "validate_object_async")
 
     def __init__(
@@ -505,6 +505,10 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         # so we don't need to calculate each time we validate
         _key_set = frozenset(k for k, _ in keys)
         self._key_set = _key_set
+        self._fast_keys = [
+            (key, val, not isinstance(val, KeyNotRequired), str(key)) for key, val in keys
+        ]
+
 
         self._unknown_keys_err = _make_keys_err(_key_set)
         
@@ -523,31 +527,35 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     ret += (
         """
         success_dict: Dict[Hashable, Any] = {}
-        errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.keys:
-            if key_ in data:
-                if isinstance(validator, Validator):
-                    result = validator(data[key_])
-                else:
-                    result = validator(Just(data[key_]))
-
+        errs: List[Tuple[str, Serializable]] = []
+        for key_, validator, key_required, str_key in self._fast_keys:
+            try:
+                val = data[key_]
+            except KeyError:
+                if key_required:
+                    errs.append((str_key, KEY_MISSING_MSG))
+                elif not errs:
+                    success_dict[key_] = nothing
             else:
-                if isinstance(validator, Validator):
-                    result = KEY_MISSING_ERR
+                if key_required:
+                    result = validator(val)
                 else:
-                    result = OK_NOTHING
+                    result = validator(Just(val))
 
-            # (slightly) optimized; can be simplified if needed
-            if not result.is_ok:
-                err = (str(key_), result.val)
-                if errs is None:
-                    errs = [err]
-                else:
-                    errs.append(err)
-            elif errs is None:
-                success_dict[key_] = result.val
+                if not result.is_ok:
+                    errs.append((str_key, result.val))
+                elif not errs:
+                    success_dict[key_] = result.val
 
         if errs and len(errs) > 0:
+            return Err(dict(errs))
+        else:
+            if self.validate_object is None:
+                return Ok(success_dict)
+            else:
+                return self.validate_object(success_dict)
+
+        if errs:
             return Err(dict(errs))
         else:
             if self.validate_object is None:
@@ -562,35 +570,27 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         + DICT_KEYS_CHECK_CODE
         + """
         success_dict: Dict[Hashable, Any] = {}
-        errs: Optional[List[Tuple[str, Serializable]]] = None
-        for key_, validator in self.keys:
-            if key_ in data:
-                if isinstance(validator, Validator):
-                    result = await validator.validate_async(data[key_])
-                else:
-                    # ignore because it's difficult to make `validate_async` 
-                    # apparent to KeyValidator...
-                    result = await validator.validate_async(    # type: ignore
-                        Just(data[key_])
-                    )
-
+        errs: List[Tuple[str, Serializable]] = []
+        for key_, validator, key_required, str_key in self._fast_keys:
+            try:
+                val = data[key_]
+            except KeyError:
+                if key_required:
+                    errs.append((str_key, KEY_MISSING_MSG))
+                elif not errs:
+                    success_dict[key_] = nothing
             else:
-                if isinstance(validator, Validator):
-                    result = KEY_MISSING_ERR
+                if key_required:
+                    result = await validator.validate_async(val)
                 else:
-                    result = OK_NOTHING
+                    result = await validator.validate_async(Just(val))
 
-            # (slightly) optimized; can be simplified if needed
-            if not result.is_ok:
-                err = (str(key_), result.val)
-                if errs is None:
-                    errs = [err]
-                else:
-                    errs.append(err)
-            elif errs is None:
-                success_dict[key_] = result.val
+                if not result.is_ok:
+                    errs.append((str_key, result.val))
+                elif not errs:
+                    success_dict[key_] = result.val
 
-        if errs and len(errs) > 0:
+        if errs:
             return Err(dict(errs))
         else:
             if self.validate_object is not None:
