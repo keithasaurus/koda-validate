@@ -1,10 +1,11 @@
 import re
+from functools import partial
 from typing import Any, Final, List, Optional, Pattern
 
-from koda import Err, Result
+from koda import Err, Ok, Result
 
 from koda_validate._internals import (
-    _handle_scalar_processors_and_predicates,
+    _handle_scalar_predicates,
     _handle_scalar_processors_and_predicates_async,
 )
 from koda_validate.typedefs import (
@@ -20,7 +21,7 @@ EXPECTED_STR_ERR: Final[Err[Serializable]] = Err(["expected a string"])
 
 class StringValidator(Validator[Any, str, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
-    __slots__ = ("predicates", "predicates_async", "preprocessors")
+    __slots__ = ("_fast_pred", "predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
@@ -31,16 +32,23 @@ class StringValidator(Validator[Any, str, Serializable]):
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
+        self._fast_pred = (
+            partial(_handle_scalar_predicates, predicates) if self.predicates else Ok
+        )
 
     def __call__(self, val: Any) -> Result[str, Serializable]:
         if isinstance(val, str):
-            return _handle_scalar_processors_and_predicates(
-                val, self.preprocessors, self.predicates
-            )
+            if self.preprocessors is not None:
+                for proc in self.preprocessors:
+                    val = proc(val)
+
+            return self._fast_pred(val)  # type: ignore
+
         return EXPECTED_STR_ERR
 
     async def validate_async(self, val: Any) -> Result[str, Serializable]:
         if isinstance(val, str):
+            # todo: make this faster, like sync?
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )

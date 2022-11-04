@@ -26,6 +26,16 @@ def _flat_map_same_type_if_not_none(
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 
+def _handle_scalar_predicates(
+    predicates: Tuple[Predicate[A, Serializable], ...], val: A
+) -> Result[A, Serializable]:
+    errors = [result.val for pred in predicates if not (result := pred(val)).is_ok]
+    if errors:
+        return Err(errors)
+    else:
+        return Ok(val)
+
+
 def _handle_scalar_processors_and_predicates(
     val: A,
     preprocessors: Optional[List[Processor[A]]],
@@ -58,7 +68,7 @@ async def _handle_scalar_processors_and_predicates_async(
         for proc in preprocessors:
             val = proc(val)
 
-    errors = [result.val for pred in predicates if isinstance(result := pred(val), Err)]
+    errors = [result.val for pred in predicates if not (result := pred(val)).is_ok]
 
     if predicates_async:
         errors.extend(
