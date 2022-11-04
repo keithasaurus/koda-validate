@@ -58,13 +58,9 @@ async def _handle_scalar_processors_and_predicates_async(
         for proc in preprocessors:
             val = proc(val)
 
-    errors = []
+    errors = [result.val for pred in predicates if isinstance(result := pred(val), Err)]
 
-    if predicates:
-        errors.extend(
-            [result.val for pred in predicates if isinstance(result := pred(val), Err)]
-        )
-    if predicates_async is not None:
+    if predicates_async:
         errors.extend(
             [
                 result.val
