@@ -17,7 +17,7 @@ EXPECTED_STR_ERR: Final[Err[Serializable]] = Err(["expected a string"])
 
 class StringValidator(Validator[Any, str, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
-    __slots__ = ("_has_preds", "predicates", "predicates_async", "preprocessors")
+    __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
@@ -26,7 +26,6 @@ class StringValidator(Validator[Any, str, Serializable]):
         preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
         self.predicates = predicates
-        self._has_preds = bool(predicates)
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
@@ -36,7 +35,7 @@ class StringValidator(Validator[Any, str, Serializable]):
                 for proc in self.preprocessors:
                     val = proc(val)
 
-            if self._has_preds:
+            if self.predicates:
                 errors = [
                     result.val
                     for pred in self.predicates
