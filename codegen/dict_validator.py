@@ -63,11 +63,6 @@ EXPECTED_MAP_ERR: Final[Err[Serializable]] = Err(
 
 OK_NOTHING: Final[Result[Maybe[Any], Any]] = Ok(nothing)
 
-
-def _tuples_to_json_dict(data: List[Tuple[str, Serializable]]) -> Serializable:
-    return dict(data)
-
-
 KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
 KEY_MISSING_ERR: Final[Err[Serializable]] = Err(KEY_MISSING_MSG)
 
@@ -403,31 +398,32 @@ class DictValidator(
     def __call__(self, data: Any) -> Result[Ret, Serializable]:
 {DICT_KEYS_CHECK_CODE}
 
-        args = []
+        args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
         for key_, validator, key_required, str_key in self._fast_keys:
-            if key_ in data:
-                if key_required:
-                    result = validator(data[key_])
+            try:
+                val = data[key_] 
+            except KeyError:
+                if key_required: 
+                    errs.append((str_key, KEY_MISSING_MSG))
                 else:
-                    result = validator(Just(data[key_]))
+                    args.append(nothing)
+            else:
+                if key_required:
+                    result = validator(val)
+                else:
+                    result = validator(Just(val))
 
                 if not result.is_ok:
                     errs.append((str_key, result.val))
                 else:
                     args.append(result.val)
 
-            else:
-                if key_required: 
-                    errs.append((str_key, KEY_MISSING_MSG))
-                else:
-                    args.append(nothing)  # type: ignore
-
         if len(errs) != 0:
             return Err(dict(errs))
         else:
             # we know this should be ret
-            obj = self.into(*args)  # type: ignore
+            obj = self.into(*args) 
             if self.validate_object is None:
                 return Ok(obj)
             else:
@@ -435,24 +431,26 @@ class DictValidator(
                  
     async def validate_async(self, data: Any) -> Result[Ret, Serializable]:
 {DICT_KEYS_CHECK_CODE}
-        args = []
+        args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
         for key_, validator, key_required, str_key in self._fast_keys:
-            if key_ in data:
+            try:
+                val = data[key_]
+            except KeyError:
                 if key_required:
-                    result = await validator.validate_async(data[key_])  # type: ignore
+                    errs.append((str_key, KEY_MISSING_MSG))
                 else:
-                    result = await validator.validate_async(Just(data[key_]))  # type: ignore # noqa: E501
+                    args.append(nothing)
+            else:
+                if key_required:
+                    result = await validator.validate_async(val)  # type: ignore
+                else:
+                    result = await validator.validate_async(Just(val))  # type: ignore # noqa: E501
 
                 if not result.is_ok:
                     errs.append((str_key, result.val))
                 else:
                     args.append(result.val)
-            else:
-                if key_required:
-                    errs.append((str_key, KEY_MISSING_MSG))
-                else:
-                    args.append(nothing)
         
         if len(errs) != 0:
             return Err(dict(errs))
