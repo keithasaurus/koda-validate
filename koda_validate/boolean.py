@@ -2,10 +2,7 @@ from typing import Any, Final, List, Optional
 
 from koda import Err, Ok, Result
 
-from koda_validate._internals import (
-    _handle_scalar_processors_and_predicates,
-    _handle_scalar_processors_and_predicates_async,
-)
+from koda_validate._internals import _handle_scalar_processors_and_predicates_async
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
@@ -39,9 +36,7 @@ class BoolValidator(Validator[Any, bool, Serializable]):
 
             if self.predicates:
                 errors = [
-                    result.val
-                    for pred in self.predicates
-                    if not (result := pred(val)).is_ok
+                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]
                 if errors:
                     return Err(errors)

@@ -37,9 +37,7 @@ class StringValidator(Validator[Any, str, Serializable]):
 
             if self.predicates:
                 errors = [
-                    result.val
-                    for pred in self.predicates
-                    if not (result := pred(val)).is_ok
+                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]
                 if errors:
                     return Err(errors)
