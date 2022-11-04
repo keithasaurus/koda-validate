@@ -30,7 +30,7 @@ class IntValidator(Validator[Any, int, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[int, Serializable]:
-        if isinstance(val, int) and not isinstance(val, bool):
+        if type(val) is int:
             if self.preprocessors:
                 for proc in self.preprocessors:
                     val = proc(val)

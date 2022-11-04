@@ -36,7 +36,7 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[Decimal, Serializable]:
-        if isinstance(val, Decimal):
+        if type(val) is Decimal:
             return _handle_scalar_processors_and_predicates(
                 val, self.preprocessors, self.predicates
             )

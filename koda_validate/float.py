@@ -29,7 +29,7 @@ class FloatValidator(Validator[Any, float, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[float, Serializable]:
-        if isinstance(val, float):
+        if type(val) is float:
             if self.preprocessors:
                 for proc in self.preprocessors:
                     val = proc(val)
@@ -50,7 +50,7 @@ class FloatValidator(Validator[Any, float, Serializable]):
         return EXPECTED_FLOAT_ERR
 
     async def validate_async(self, val: Any) -> Result[float, Serializable]:
-        if isinstance(val, float):
+        if type(val) is float:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )

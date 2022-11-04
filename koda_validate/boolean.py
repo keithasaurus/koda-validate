@@ -1,6 +1,6 @@
 from typing import Any, Final, List, Optional
 
-from koda import Err, Result
+from koda import Err, Ok, Result
 
 from koda_validate._internals import (
     _handle_scalar_processors_and_predicates,
@@ -32,10 +32,23 @@ class BoolValidator(Validator[Any, bool, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[bool, Serializable]:
-        if isinstance(val, bool):
-            return _handle_scalar_processors_and_predicates(
-                val, self.preprocessors, self.predicates
-            )
+        if type(val) is bool:
+            if self.preprocessors:
+                for proc in self.preprocessors:
+                    val = proc(val)
+
+            if self.predicates:
+                errors = [
+                    result.val
+                    for pred in self.predicates
+                    if not (result := pred(val)).is_ok
+                ]
+                if errors:
+                    return Err(errors)
+                else:
+                    return Ok(val)
+            else:
+                return Ok(val)
         else:
             return EXPECTED_BOOL_ERR
 

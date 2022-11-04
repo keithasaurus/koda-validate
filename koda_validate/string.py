@@ -17,7 +17,7 @@ EXPECTED_STR_ERR: Final[Err[Serializable]] = Err(["expected a string"])
 
 class StringValidator(Validator[Any, str, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
-    __slots__ = ("predicates", "predicates_async", "preprocessors")
+    __slots__ = ("_has_preds", "predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
@@ -26,16 +26,17 @@ class StringValidator(Validator[Any, str, Serializable]):
         preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
         self.predicates = predicates
+        self._has_preds = bool(predicates)
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Result[str, Serializable]:
-        if isinstance(val, str):
+        if type(val) is str:
             if self.preprocessors:
                 for proc in self.preprocessors:
                     val = proc(val)
 
-            if self.predicates:
+            if self._has_preds:
                 errors = [
                     result.val
                     for pred in self.predicates
@@ -51,7 +52,7 @@ class StringValidator(Validator[Any, str, Serializable]):
         return EXPECTED_STR_ERR
 
     async def validate_async(self, val: Any) -> Result[str, Serializable]:
-        if isinstance(val, str):
+        if type(val) is str:
             # todo: make this faster, like sync?
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async

@@ -7,9 +7,9 @@ from bench import (
     min_max,
     nested_object_list,
     one_key_invalid_types,
+    string_valid,
     two_keys_invalid_types,
     two_keys_valid,
-    validate_string,
 )
 from koda_validate._generics import A
 
@@ -46,7 +46,7 @@ benches = {
         nested_object_list.run_pyd,
     ),
     "string_valid": BenchCompare(
-        validate_string.get_str, validate_string.run_kv, validate_string.run_pyd
+        string_valid.get_str, string_valid.run_kv, string_valid.run_pyd
     ),
     "min_max_all_valid": BenchCompare(
         min_max.gen_valid, min_max.run_kv, min_max.run_pyd, min_max.run_v
