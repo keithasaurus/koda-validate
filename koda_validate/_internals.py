@@ -36,8 +36,7 @@ def _handle_scalar_processors_and_predicates(
             val = proc(val)
 
     if predicates:
-        errors = [pred.err(val) for pred in predicates if not pred.is_valid(val)]
-        if errors:
+        if errors := [pred.err(val) for pred in predicates if not pred.is_valid(val)]:
             return Err(errors)
         else:
             return Ok(val)

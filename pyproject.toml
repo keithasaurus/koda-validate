@@ -25,8 +25,6 @@ pydantic = "1.10.2"
 pytest-asyncio = "0.20.1"
 voluptuous = "^0.13.1"
 
-
-
 [tool.mypy]
 exclude = ["build", "bench"]
 allow_redefinition = false
@@ -37,7 +35,8 @@ disallow_subclassing_any = true
 disallow_untyped_calls = true
 disallow_untyped_decorators = true
 disallow_untyped_defs = true
-enable_recursive_aliases = true
+# we need to wait for this to be up-to-date
+#enable_recursive_aliases = true
 ignore_errors = false
 ignore_missing_imports = false
 local_partial_types = true

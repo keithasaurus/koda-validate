@@ -573,9 +573,9 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                     success_dict[key_] = nothing
             else:
                 if key_required:
-                    result = await validator.validate_async(val)
+                    result = await validator.validate_async(val)  # type: ignore
                 else:
-                    result = await validator.validate_async(Just(val))
+                    result = await validator.validate_async(Just(val))  # type: ignore
 
                 if not result.is_ok:
                     errs.append((str_key, result.val))
