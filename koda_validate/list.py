@@ -106,7 +106,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
                 ]
 
                 # Not running async validators! They shouldn't be set!
-                if len(list_errors) != 0:
+                if list_errors:
                     errors = {OBJECT_ERRORS_FIELD: list_errors}
 
             return_list: List[A] = []
@@ -148,7 +148,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
                         list_errors.append(result.val)
 
             errors: Optional[Dict[str, Serializable]] = None
-            if len(list_errors) > 0:
+            if list_errors:
                 errors = {OBJECT_ERRORS_FIELD: list_errors}
 
             for i, item in enumerate(val):

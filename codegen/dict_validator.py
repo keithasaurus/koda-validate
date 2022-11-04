@@ -419,7 +419,7 @@ class DictValidator(
                 else:
                     args.append(result.val)
 
-        if len(errs) != 0:
+        if errs:
             return Err(dict(errs))
         else:
             # we know this should be ret
@@ -452,7 +452,7 @@ class DictValidator(
                 else:
                     args.append(result.val)
         
-        if len(errs) != 0:
+        if errs:
             return Err(dict(errs))
         else:
             # we know this should be ret

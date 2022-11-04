@@ -35,9 +35,9 @@ def _handle_scalar_processors_and_predicates(
         for proc in preprocessors:
             val = proc(val)
 
-    if len(predicates) != 0:
+    if predicates:
         errors = [result.val for pred in predicates if not (result := pred(val)).is_ok]
-        if len(errors) != 0:
+        if errors:
             return Err(errors)
         else:
             # has to be original val because there are no
@@ -60,7 +60,7 @@ async def _handle_scalar_processors_and_predicates_async(
 
     errors = []
 
-    if len(predicates) != 0:
+    if predicates:
         errors.extend(
             [result.val for pred in predicates if isinstance(result := pred(val), Err)]
         )
@@ -72,7 +72,7 @@ async def _handle_scalar_processors_and_predicates_async(
                 if not (result := await pred.validate_async(val)).is_ok
             ]
         )
-    if len(errors) != 0:
+    if errors:
         return Err(errors)
     else:
         # has to be original val because there are no

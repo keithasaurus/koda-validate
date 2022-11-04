@@ -162,7 +162,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                     if not result.is_ok:
                         dict_validator_errors.append(result.val)
 
-            if len(dict_validator_errors) > 0:
+            if dict_validator_errors:
                 # in case somehow there are already errors in this field
                 if OBJECT_ERRORS_FIELD in errors:
                     dict_validator_errors.append(errors[OBJECT_ERRORS_FIELD])
@@ -222,7 +222,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                     if not result.is_ok:
                         dict_validator_errors.append(result.val)
 
-            if len(dict_validator_errors) > 0:
+            if dict_validator_errors:
                 # in case somehow there are already errors in this field
                 if OBJECT_ERRORS_FIELD in errors:
                     dict_validator_errors.append(errors[OBJECT_ERRORS_FIELD])
@@ -660,7 +660,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 else:
                     args.append(result.val)
 
-        if len(errs) != 0:
+        if errs:
             return Err(dict(errs))
         else:
             # we know this should be ret
@@ -705,7 +705,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 else:
                     args.append(result.val)
 
-        if len(errs) != 0:
+        if errs:
             return Err(dict(errs))
         else:
             # we know this should be ret
