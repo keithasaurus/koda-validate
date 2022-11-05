@@ -18,7 +18,7 @@ from typing import (
 from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 
 from koda_validate._generics import A
-from koda_validate._internals import ResultTuple, _ToTupleValidator
+from koda_validate._internals import _ToTupleValidator
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
@@ -28,8 +28,6 @@ from koda_validate.typedefs import (
 )
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
-
-EXPECTED_DICT_MSG: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
 
 EXPECTED_DICT_ERR: Final[Err[Serializable]] = Err(
     {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
@@ -307,7 +305,7 @@ def _make_keys_err(keys: FrozenSet[Hashable]) -> Err[Serializable]:
     )
 
 
-class DictValidator(_ToTupleValidator[Any, Ret, Serializable]):
+class DictValidator(Validator[Any, Ret, Serializable]):
     __slots__ = (
         "_fast_keys",
         "_key_set",
@@ -873,9 +871,10 @@ class DictValidator(_ToTupleValidator[Any, Ret, Serializable]):
         self.validate_object_async = validate_object_async
         self.preprocessors = preprocessors
 
-    def validate_to_tuple(self, data: Any) -> ResultTuple[Ret, Serializable]:
+    def __call__(self, data: Any) -> Result[Ret, Serializable]:
+
         if not isinstance(data, dict):
-            return False, EXPECTED_DICT_MSG
+            return EXPECTED_DICT_ERR
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -884,7 +883,7 @@ class DictValidator(_ToTupleValidator[Any, Ret, Serializable]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return False, ["unknown keys"]
+                return self._unknown_keys_err
 
         args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
@@ -914,17 +913,14 @@ class DictValidator(_ToTupleValidator[Any, Ret, Serializable]):
                     args.append(new_val)
 
         if errs:
-            return False, dict(errs)
+            return Err(dict(errs))
         else:
             # we know this should be ret
-            return True, self.into(*args)
-
-    def __call__(self, val: Any) -> Result[List[A], Serializable]:
-        result = super().__call__(val)
-        if self.validate_object is None:
-            return result
-        else:
-            return self.validate_object(result)
+            obj = self.into(*args)
+            if self.validate_object is None:
+                return Ok(obj)
+            else:
+                return self.validate_object(obj)
 
     async def validate_async(self, data: Any) -> Result[Ret, Serializable]:
 
@@ -942,24 +938,30 @@ class DictValidator(_ToTupleValidator[Any, Ret, Serializable]):
 
         args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
-        for key_, validator, key_required, str_key in self._fast_keys:
+        for key_, validator, validation_type, str_key in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
-                if key_required:
+                if validation_type == 1 or validation_type == 2:
                     errs.append((str_key, KEY_MISSING_MSG))
                 else:
                     args.append(nothing)
             else:
-                if key_required:
-                    result = await validator.validate_async(val)  # type: ignore
+                if validation_type == 1:
+                    success, new_val = await validator.validate_to_tuple_async(val)
+                elif validation_type == 2:
+                    result = validator(val)
+                    success, new_val = (result.is_ok, result.val)
+                elif validation_type == 3:
+                    success, new_val = await validator.validate_to_tuple_async(Just(val))
                 else:
-                    result = await validator.validate_async(Just(val))  # type: ignore # noqa: E501
+                    result = validator(Just(val))
+                    success, new_val = (result.is_ok, result.val)
 
-                if not result.is_ok:
-                    errs.append((str_key, result.val))
-                else:
-                    args.append(result.val)
+                if not success:
+                    errs.append((str_key, new_val))
+                elif not errs:
+                    args.append(new_val)
 
         if errs:
             return Err(dict(errs))

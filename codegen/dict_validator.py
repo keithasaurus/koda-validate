@@ -42,6 +42,7 @@ def generate_code(num_keys: int) -> str:
 from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 
 from koda_validate._generics import A
+from koda_validate._internals import _ToTupleValidator
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
@@ -377,12 +378,21 @@ class DictValidator(
         _key_set = frozenset(k for k, _ in keys)
         self._key_set = _key_set
         self._fast_keys = [
-            (key,
-             val,
-             not isinstance(val, KeyNotRequired),
-             str(key)
-             )
-            for key, val in keys
+            (
+                key,
+                validator,
+                # 1: _ToTupleValidator and key required
+                # 2: (basic) Validator and key required
+                # 3: _ToTupleValidator and key not required
+                # 4: (basic) Validator and key not required
+                (
+                    (1 if isinstance(validator, _ToTupleValidator) else 2)
+                    if not isinstance(validator, KeyNotRequired)
+                    else (3 if isinstance(validator.validator, _ToTupleValidator) else 4)
+                ),
+                str(key),
+            )
+            for key, validator in keys
         ]
 
         self._unknown_keys_err = _make_keys_err(_key_set)
@@ -400,24 +410,30 @@ class DictValidator(
 
         args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
-        for key_, validator, key_required, str_key in self._fast_keys:
+        for key_, validator, validation_type, str_key in self._fast_keys:
             try:
                 val = data[key_] 
             except KeyError:
-                if key_required: 
+                if validation_type == 1 or validation_type == 2:
                     errs.append((str_key, KEY_MISSING_MSG))
                 else:
                     args.append(nothing)
             else:
-                if key_required:
+                if validation_type == 1:
+                    success, new_val = validator.validate_to_tuple(val)
+                elif validation_type == 2:
                     result = validator(val)
+                    success, new_val = (result.is_ok, result.val)
+                elif validation_type == 3:
+                    success, new_val = validator.validate_to_tuple(Just(val))
                 else:
                     result = validator(Just(val))
+                    success, new_val = (result.is_ok, result.val)
 
-                if not result.is_ok:
-                    errs.append((str_key, result.val))
-                else:
-                    args.append(result.val)
+                if not success:
+                    errs.append((str_key, new_val))
+                elif not errs:
+                    args.append(new_val)
 
         if errs:
             return Err(dict(errs))
@@ -433,25 +449,31 @@ class DictValidator(
 {DICT_KEYS_CHECK_CODE}
         args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
-        for key_, validator, key_required, str_key in self._fast_keys:
+        for key_, validator, validation_type, str_key in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
-                if key_required:
+                if validation_type == 1 or validation_type == 2:
                     errs.append((str_key, KEY_MISSING_MSG))
                 else:
                     args.append(nothing)
             else:
-                if key_required:
-                    result = await validator.validate_async(val)  # type: ignore
+                if validation_type == 1:
+                    success, new_val = await validator.validate_to_tuple_async(val)
+                elif validation_type == 2:
+                    result = validator(val)
+                    success, new_val = (result.is_ok, result.val)
+                elif validation_type == 3:
+                    success, new_val = await validator.validate_to_tuple_async(Just(val))
                 else:
-                    result = await validator.validate_async(Just(val))  # type: ignore # noqa: E501
+                    result = validator(Just(val))
+                    success, new_val = (result.is_ok, result.val)
 
-                if not result.is_ok:
-                    errs.append((str_key, result.val))
-                else:
-                    args.append(result.val)
-        
+                if not success:
+                    errs.append((str_key, new_val))
+                elif not errs:
+                    args.append(new_val)
+                    
         if errs:
             return Err(dict(errs))
         else:
