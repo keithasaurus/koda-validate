@@ -18,7 +18,7 @@ from typing import (
 from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 
 from koda_validate._generics import A
-from koda_validate._internals import ResultTuple, _FastValidator
+from koda_validate._internals import ResultTuple, _ToTupleValidator
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
@@ -307,7 +307,7 @@ def _make_keys_err(keys: FrozenSet[Hashable]) -> Err[Serializable]:
     )
 
 
-class DictValidator(_FastValidator[Any, Ret, Serializable]):
+class DictValidator(_ToTupleValidator[Any, Ret, Serializable]):
     __slots__ = (
         "_fast_keys",
         "_key_set",
@@ -846,7 +846,21 @@ class DictValidator(_FastValidator[Any, Ret, Serializable]):
         _key_set = frozenset(k for k, _ in keys)
         self._key_set = _key_set
         self._fast_keys = [
-            (key, val, not isinstance(val, KeyNotRequired), str(key)) for key, val in keys
+            (
+                key,
+                validator,
+                # 1: _ToTupleValidator and key required
+                # 2: (basic) Validator and key required
+                # 3: _ToTupleValidator and key not required
+                # 4: (basic) Validator and key not required
+                (
+                    (1 if isinstance(validator, _ToTupleValidator) else 2)
+                    if not isinstance(validator, KeyNotRequired)
+                    else (3 if isinstance(validator.validator, _ToTupleValidator) else 4)
+                ),
+                str(key),
+            )
+            for key, validator in keys
         ]
 
         self._unknown_keys_err = _make_keys_err(_key_set)
@@ -874,32 +888,29 @@ class DictValidator(_FastValidator[Any, Ret, Serializable]):
 
         args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
-        for key_, validator, key_required, str_key in self._fast_keys:
+        for key_, validator, validation_type, str_key in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
-                if key_required:
+                if validation_type == 1 or validation_type == 2:
                     errs.append((str_key, KEY_MISSING_MSG))
                 else:
                     args.append(nothing)
             else:
-                if key_required:
-                    if isinstance(validator, _FastValidator):
-                        success, new_val = validator.validate_to_tuple(val)
-                    else:
-                        print(validator)
-                        result = validator(val)
-                        success, new_val = (result.is_ok, result.val)
+                if validation_type == 1:
+                    success, new_val = validator.validate_to_tuple(val)
+                elif validation_type == 2:
+                    result = validator(val)
+                    success, new_val = (result.is_ok, result.val)
+                elif validation_type == 3:
+                    success, new_val = validator.validate_to_tuple(Just(val))
                 else:
-                    if isinstance(validator, _FastValidator):
-                        success, new_val = validator.validate_to_tuple(Just(val))
-                    else:
-                        result = validator(Just(val))
-                        success, new_val = (result.is_ok, result.val)
+                    result = validator(Just(val))
+                    success, new_val = (result.is_ok, result.val)
 
                 if not success:
                     errs.append((str_key, new_val))
-                else:
+                elif not errs:
                     args.append(new_val)
 
         if errs:

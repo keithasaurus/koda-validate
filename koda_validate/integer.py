@@ -4,8 +4,8 @@ from koda import Err, Result
 
 from koda_validate._internals import (
     ResultTuple,
-    _FastValidator,
     _handle_scalar_processors_and_predicates_async,
+    _ToTupleValidator,
 )
 from koda_validate.typedefs import Predicate, PredicateAsync, Processor, Serializable
 
@@ -13,7 +13,7 @@ EXPECTED_INTEGER_MSG: Final[Serializable] = ["expected an integer"]
 EXPECTED_INTEGER_ERR: Final[Err[Serializable]] = Err(EXPECTED_INTEGER_MSG)
 
 
-class IntValidator(_FastValidator[Any, int, Serializable]):
+class IntValidator(_ToTupleValidator[Any, int, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 

@@ -94,7 +94,7 @@ _not_set = _NotSet()
 ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], FailT]]
 
 
-class _FastValidator(Validator[A, B, FailT]):
+class _ToTupleValidator(Validator[A, B, FailT]):
     """
     This validator exists for optimization. When we call
     nested validators it's much less computation to deal with simple

@@ -4,8 +4,8 @@ from koda import Err, Result
 
 from koda_validate._internals import (
     ResultTuple,
-    _FastValidator,
     _handle_scalar_processors_and_predicates_async,
+    _ToTupleValidator,
 )
 from koda_validate.typedefs import Predicate, PredicateAsync, Processor, Serializable
 
@@ -13,7 +13,7 @@ EXPECTED_FLOAT_MSG: Final[Serializable] = ["expected a float"]
 EXPECTED_FLOAT_ERR: Final[Err[Serializable]] = Err(EXPECTED_FLOAT_MSG)
 
 
-class FloatValidator(_FastValidator[Any, float, Serializable]):
+class FloatValidator(_ToTupleValidator[Any, float, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 

@@ -3,7 +3,7 @@ from typing import Any, Dict, Final, List, Optional, Set, Tuple, Type
 from koda import Err, Ok, Result
 from koda._generics import A
 
-from koda_validate._internals import OBJECT_ERRORS_FIELD, ResultTuple, _FastValidator
+from koda_validate._internals import OBJECT_ERRORS_FIELD, ResultTuple, _ToTupleValidator
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
@@ -78,7 +78,7 @@ EXPECTED_LIST_MSG: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a list
 EXPECTED_LIST_ERR: Final[Err[Serializable]] = Err(EXPECTED_LIST_MSG)
 
 
-class ListValidator(_FastValidator[Any, List[A], Serializable]):
+class ListValidator(_ToTupleValidator[Any, List[A], Serializable]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
     __slots__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
 
@@ -114,7 +114,7 @@ class ListValidator(_FastValidator[Any, List[A], Serializable]):
             return_list: List[A] = []
 
             for i, item in enumerate(val):
-                if isinstance(self.item_validator, _FastValidator):
+                if isinstance(self.item_validator, _ToTupleValidator):
                     is_valid, item_result = self.item_validator.validate_to_tuple(item)
                 else:
                     _result = self.item_validator(item)
