@@ -1,4 +1,4 @@
-from typing import Any, Final, List, Optional
+from typing import Any, Final, List, Optional, Tuple
 
 from koda import Err, Ok, Result
 
@@ -29,7 +29,7 @@ class IntValidator(Validator[Any, int, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[int, Serializable]:
+    def coerce_and_check(self, val: Any) -> Tuple[bool, int | Serializable]:
         if type(val) is int:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -39,13 +39,41 @@ class IntValidator(Validator[Any, int, Serializable]):
                 if errors := [
                     pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]:
-                    return Err(errors)
+                    return False, errors
                 else:
-                    return Ok(val)
+                    return True, val
             else:
-                return Ok(val)
+                return True, val
 
-        return EXPECTED_INTEGER_ERR
+        return False, ["expected an integer"]
+
+    def resp(self, valid: bool, val) -> Result[str, Serializable]:
+        if valid:
+            return Ok(val)
+        else:
+            return Err(val)
+
+    def __call__(self, val: Any) -> Result[str, Serializable]:
+        return self.resp(*self.coerce_and_check(val))
+
+    #
+    # def __call__(self, val: Any) -> Result[int, Serializable]:
+    #     if type(val) is int:
+    #         if self.preprocessors:
+    #             for proc in self.preprocessors:
+    #                 val = proc(val)
+    #
+    #         if self.predicates:
+    #             if errors := [
+    #                 pred.err(val) for pred in self.predicates if not pred.is_valid(val)
+    #             ]:
+    #                 return Err(errors)
+    #             else:
+    #                 return Ok(val)
+    #         else:
+    #             return Ok(val)
+    #
+    #     return EXPECTED_INTEGER_ERR
 
     async def validate_async(self, val: Any) -> Result[int, Serializable]:
         if type(val) is int:

@@ -856,10 +856,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         self.validate_object_async = validate_object_async
         self.preprocessors = preprocessors
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-
+    def coerce_and_check(self, data: Any) -> Tuple[bool, int | Serializable]:
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
+            return False, ["expected a dict"]
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -868,7 +867,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return self._unknown_keys_err
+                return False, ["unknown keys"]
 
         args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
@@ -882,24 +881,33 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                     args.append(nothing)
             else:
                 if key_required:
-                    result = validator(val)
+                    success, new_val = validator.coerce_and_check(val)
                 else:
-                    result = validator(Just(val))
+                    success, new_val = validator.coerce_and_check(Just(val))
 
-                if not result.is_ok:
-                    errs.append((str_key, result.val))
+                if not success:
+                    errs.append((str_key, new_val))
                 else:
-                    args.append(result.val)
+                    args.append(new_val)
 
         if errs:
-            return Err(dict(errs))
+            return False, dict(errs)
         else:
             # we know this should be ret
             obj = self.into(*args)
             if self.validate_object is None:
-                return Ok(obj)
+                return True, obj
             else:
                 return self.validate_object(obj)
+
+    def resp(self, valid: bool, val) -> Result[str, Serializable]:
+        if valid:
+            return Ok(val)
+        else:
+            return Err(val)
+
+    def __call__(self, val: Any) -> Result[List[A], Serializable]:
+        return self.resp(*self.coerce_and_check(val))
 
     async def validate_async(self, data: Any) -> Result[Ret, Serializable]:
 

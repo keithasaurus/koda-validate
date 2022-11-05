@@ -1,85 +1,140 @@
 # Koda Validate
 
-Typesafe, combinable validation. Python 3.8+
+Validate Anything. Faster!
 
-Koda Validate aims to make writing validators easier.
+Koda Validate is..,
+- type-driven (works with type hints)
+- easily inspected -- build API schemas from validators
+- fully asyncio-compatible
 
 ### Install
 pip
 ```bash
-pip install koda_validate
+pip install koda-validate
 ```
 Poetry
 ```bash
-poetry add koda_validate
+poetry add koda-validate
 ```
 
 ## The Basics
 
+#### Scalars
 ```python3
+from koda_validate import StringValidator
+
+string_validator = StringValidator()
+
+string_validator("hello world")
+# > Ok('hello world')
+
+string_validator(5)
+# > Err(['expected a string'])
+
+```
+
+#### Lists
+```python3
+from koda_validate import *
+
+validator = ListValidator(StringValidator())
+
+validator(["cool"])
+# > Ok(['cool'])
+
+validator([5])
+# > Err({'0': ['expected a string']}))
+```
+
+#### Dictionaries
+```python
 from dataclasses import dataclass
-from koda import Ok
+
 from koda_validate import *
 
 
 @dataclass
 class Person:
     name: str
-    age: int
+    hobbies: list[str]
 
 
-person_validator = dict_validator(
-    Person, 
-    key("name", StringValidator()),
-    key("age", IntValidator())
+person_validator = DictValidator(
+    keys=(
+        ("name", StringValidator()),
+        ("hobbies", ListValidator(StringValidator())),
+    ),
+    into=Person
 )
 
-result = person_validator({"name": "John Doe", "age": 30})
-if isinstance(result, Ok):
-    print(f"{result.val.name} is {result.val.age} years old")
-else:
-    print(result.val)
+print(person_validator({"name": "Bob",
+                        "hobbies": ["eating", "running"]}))
+# > Ok(Person(name='Bob', hobbies=['eating', 'running']))
 ```
 
-We could also nest `person_validator`, for instance, in a `ListValidator`:
+Here's what we've seen so far:
+- All validators we've created are simple `Callable`s that return an `Ok` instance when validation succeeds, or an `Err` instance when validation fails.
+- Nesting one validator within another is straightforward
+- `DictValidator` requires a separate target for its validated data; more on that here.
+
+It's worth noting that all this code is typesafe. And for similar 
+equivalent validations in Pydantic, Koda Validate can be up to 15x faster.
+
+# Async Validation
+All the built-in Validators in Koda are async compatible. 
 ```python
+import asyncio
+from koda_validate import *
+from koda import Ok
+
+short_string_validator = StringValidator(MaxLength(10))
+
+assert short_string_validator("sync") == Ok("sync")
+
+assert asyncio.run(short_string_validator.validate_async("async")) == Ok("async")
+```
+
+All `Validator`s in Koda Validate can be called directly for synchronous validation, or from the `validate_async` 
+method for async validation. The async example we saw isn't really helpful because we aren't 
+doing any IO.
+
+
+
+
+```python
+# Or maybe we need to validate groups of people...
 people_validator = ListValidator(person_validator)
-```
-...And nest that in a different validator (and so forth...):
-```python
 
-@dataclass
-class Group:
-    name: str
-    people: list[Person]
+print(people_validator([{"name": "Bob", "hobbies": ["eating", "running"], "nickname": "That Bob"},
+                        {"name": "Alice", "hobbies": ["piano", "cooking"], "nickname": "Alice at the Palace"}]))
 
+# > Ok([
+#     Person(name='Bob', nickname='That Bob', hobbies=['eating', 'running']),
+#     Person(name='Alice', nickname='Alice at the Palace', hobbies=['piano', 'cooking'])
+#   ])
 
-group_validator = dict_validator(
-    Group,
-    key("name", StringValidator()),
-    key("people", people_validator),
-)
+# or either?
+person_or_people_validator = OneOf2(person_validator, people_validator)
 
-data = {
-    "name": "Arrested Development Characters",
-    "people": [
-        {"name": "George Bluth", "age": 70},
-        {"name": "Michael Bluth", "age": 35}
-    ]
-}
+person_or_people_validator({"name": "Bob", "nickname": None, "hobbies": ["eating", "running"]})
+# > Ok(First(Person(name='Bob', nickname=None, hobbies=['eating', 'running'])))
 
-assert group_validator(data) == Ok(
-    Group(
-        name='Arrested Development Characters',
-        people=[
-            Person(name='George Bluth', age=70),
-            Person(name='Michael Bluth', age=35)
-        ]
-    )
-)
+print(person_or_people_validator(([
+    {"name": "Bob", "nickname": None, "hobbies": ["eating", "running"]},
+    {"name": "Alice", "nickname": None, "hobbies": ["piano", "cooking"]}])))
+# > Ok(Second([
+#     Person(name='Bob', nickname=None, hobbies=['eating', 'running']), 
+#     Person(name='Alice', nickname=None, hobbies=['piano', 'cooking'])
+#   ]))
+
 ```
 
-Let's look at the `dict_validator` a bit closer. Its first argument can be any `Callable` that accepts the values from 
+A few things to note:
+- All validators we've made are simple callables that either return and `Ok` or `Err` instance.
+- We can easily combine and re-use validators, by nesting one in another, for instance.
+
+
+Let's look at the `dict_validator` a bit closer. Its `into` argument can be any `Callable` that accepts the values from 
 each key below it -- in the same order they are defined (the names of the keys and the `Callable` arguments do not need 
 to match). For `person_validator`, we used a `Person` `dataclass`; for `Group`, we used a `Group` dataclass; but that 
 does not need to be the case. Because we can use any `Callable` with matching types, this would also be valid:

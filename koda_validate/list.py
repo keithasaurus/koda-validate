@@ -96,7 +96,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[List[A], Serializable]:
+    def coerce_and_check(self, val: Any) -> Tuple[bool, int | Serializable]:
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:
@@ -115,22 +115,31 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             return_list: List[A] = []
 
             for i, item in enumerate(val):
-                item_result = self.item_validator(item)
-                if item_result.is_ok:
+                is_valid, item_result = self.item_validator.coerce_and_check(item)
+                if is_valid:
                     if not errors:
-                        return_list.append(item_result.val)
+                        return_list.append(item_result)
                 else:
                     if errors is None:
-                        errors = {str(i): item_result.val}
+                        errors = {str(i): item_result}
                     else:
-                        errors[str(i)] = item_result.val
+                        errors[str(i)] = item_result
 
             if errors:
-                return Err(errors)
+                return False, errors
             else:
-                return Ok(return_list)
+                return True, return_list
         else:
-            return EXPECTED_LIST_ERR
+            return False, "expected a list"
+
+    def resp(self, valid: bool, val) -> Result[str, Serializable]:
+        if valid:
+            return Ok(val)
+        else:
+            return Err(val)
+
+    def __call__(self, val: Any) -> Result[List[A], Serializable]:
+        return self.resp(*self.coerce_and_check(val))
 
     async def validate_async(self, val: Any) -> Result[List[A], Serializable]:
         if isinstance(val, list):

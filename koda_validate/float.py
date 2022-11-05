@@ -1,4 +1,4 @@
-from typing import Any, Final, List, Optional
+from typing import Any, Final, List, Optional, Tuple
 
 from koda import Err, Ok, Result
 
@@ -28,7 +28,7 @@ class FloatValidator(Validator[Any, float, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[float, Serializable]:
+    def coerce_and_check(self, val: Any) -> Tuple[bool, int | Serializable]:
         if type(val) is float:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -38,13 +38,22 @@ class FloatValidator(Validator[Any, float, Serializable]):
                 if errors := [
                     pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]:
-                    return Err(errors)
+                    return False, errors
                 else:
-                    return Ok(val)
+                    return True, val
             else:
-                return Ok(val)
+                return True, val
 
-        return EXPECTED_FLOAT_ERR
+        return False, ["expected a float"]
+
+    def resp(self, valid: bool, val) -> Result[str, Serializable]:
+        if valid:
+            return Ok(val)
+        else:
+            return Err(val)
+
+    def __call__(self, val: Any) -> Result[str, Serializable]:
+        return self.resp(*self.coerce_and_check(val))
 
     async def validate_async(self, val: Any) -> Result[float, Serializable]:
         if type(val) is float:
