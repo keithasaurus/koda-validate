@@ -29,7 +29,7 @@ class StringValidator(Validator[Any, str, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def coerce_and_check(self, val: Any) -> Tuple[bool, str | Serializable]:
+    def coerce_and_check(self, val: Any) -> Tuple[bool, str]:
         if type(val) is str:
             if self.preprocessors:
                 for proc in self.preprocessors:

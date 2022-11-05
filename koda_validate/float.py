@@ -28,7 +28,7 @@ class FloatValidator(Validator[Any, float, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def coerce_and_check(self, val: Any) -> Tuple[bool, int | Serializable]:
+    def coerce_and_check(self, val: Any) -> Tuple[bool, int]:
         if type(val) is float:
             if self.preprocessors:
                 for proc in self.preprocessors:

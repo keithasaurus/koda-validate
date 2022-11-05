@@ -856,7 +856,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         self.validate_object_async = validate_object_async
         self.preprocessors = preprocessors
 
-    def coerce_and_check(self, data: Any) -> Tuple[bool, int | Serializable]:
+    def coerce_and_check(self, data: Any) -> Tuple[bool, int]:
         if not isinstance(data, dict):
             return False, ["expected a dict"]
 

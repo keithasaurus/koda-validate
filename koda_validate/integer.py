@@ -29,7 +29,7 @@ class IntValidator(Validator[Any, int, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def coerce_and_check(self, val: Any) -> Tuple[bool, int | Serializable]:
+    def coerce_and_check(self, val: Any) -> Tuple[bool, int]:
         if type(val) is int:
             if self.preprocessors:
                 for proc in self.preprocessors:

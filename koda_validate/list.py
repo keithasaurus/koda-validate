@@ -96,7 +96,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def coerce_and_check(self, val: Any) -> Tuple[bool, int | Serializable]:
+    def coerce_and_check(self, val: Any) -> Tuple[bool, int]:
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:
