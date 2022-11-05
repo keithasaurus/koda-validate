@@ -18,6 +18,7 @@ from typing import (
 from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 
 from koda_validate._generics import A
+from koda_validate._internals import ResultTuple, _FastValidator
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
@@ -27,6 +28,8 @@ from koda_validate.typedefs import (
 )
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
+
+EXPECTED_DICT_MSG: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
 
 EXPECTED_DICT_ERR: Final[Err[Serializable]] = Err(
     {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
@@ -304,7 +307,7 @@ def _make_keys_err(keys: FrozenSet[Hashable]) -> Err[Serializable]:
     )
 
 
-class DictValidator(Validator[Any, Ret, Serializable]):
+class DictValidator(_FastValidator[Any, Ret, Serializable]):
     __slots__ = (
         "_fast_keys",
         "_key_set",
@@ -856,9 +859,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         self.validate_object_async = validate_object_async
         self.preprocessors = preprocessors
 
-    def coerce_and_check(self, data: Any) -> Tuple[bool, int]:
+    def validate_to_tuple(self, data: Any) -> ResultTuple[Ret, Serializable]:
         if not isinstance(data, dict):
-            return False, ["expected a dict"]
+            return False, EXPECTED_DICT_MSG
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -881,9 +884,19 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                     args.append(nothing)
             else:
                 if key_required:
-                    success, new_val = validator.coerce_and_check(val)
+                    if isinstance(validator, _FastValidator):
+                        success, new_val = validator.validate_to_tuple(val)
+                    else:
+                        print(validator)
+                        breakpoint()
+                        result = validator(val)
+                        success, new_val = (result.is_ok, result.val)
                 else:
-                    success, new_val = validator.coerce_and_check(Just(val))
+                    if isinstance(validator, _FastValidator):
+                        success, new_val = validator.validate_to_tuple(Just(val))
+                    else:
+                        result = validator(Just(val))
+                        success, new_val = (result.is_ok, result.val)
 
                 if not success:
                     errs.append((str_key, new_val))
@@ -894,20 +907,14 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             return False, dict(errs)
         else:
             # we know this should be ret
-            obj = self.into(*args)
-            if self.validate_object is None:
-                return True, obj
-            else:
-                return self.validate_object(obj)
-
-    def resp(self, valid: bool, val) -> Result[str, Serializable]:
-        if valid:
-            return Ok(val)
-        else:
-            return Err(val)
+            return True, self.into(*args)
 
     def __call__(self, val: Any) -> Result[List[A], Serializable]:
-        return self.resp(*self.coerce_and_check(val))
+        result = super().__call__(val)
+        if self.validate_object is None:
+            return result
+        else:
+            return self.validate_object(result)
 
     async def validate_async(self, data: Any) -> Result[Ret, Serializable]:
 

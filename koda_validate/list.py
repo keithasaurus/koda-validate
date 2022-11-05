@@ -3,7 +3,7 @@ from typing import Any, Dict, Final, List, Optional, Set, Tuple, Type
 from koda import Err, Ok, Result
 from koda._generics import A
 
-from koda_validate._internals import OBJECT_ERRORS_FIELD
+from koda_validate._internals import OBJECT_ERRORS_FIELD, ResultTuple, _FastValidator
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
@@ -74,12 +74,11 @@ class UniqueItems(Predicate[List[Any], Serializable]):
 
 unique_items = UniqueItems()
 
-EXPECTED_LIST_ERR: Final[Err[Serializable]] = Err(
-    {OBJECT_ERRORS_FIELD: ["expected a list"]}
-)
+EXPECTED_LIST_MSG: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a list"]}
+EXPECTED_LIST_ERR: Final[Err[Serializable]] = Err(EXPECTED_LIST_MSG)
 
 
-class ListValidator(Validator[Any, List[A], Serializable]):
+class ListValidator(_FastValidator[Any, List[A], Serializable]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
     __slots__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
 
@@ -96,7 +95,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def coerce_and_check(self, val: Any) -> Tuple[bool, int]:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[List[A], Serializable]:
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:
@@ -115,7 +114,11 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             return_list: List[A] = []
 
             for i, item in enumerate(val):
-                is_valid, item_result = self.item_validator.coerce_and_check(item)
+                if isinstance(self.item_validator, _FastValidator):
+                    is_valid, item_result = self.item_validator.validate_to_tuple(item)
+                else:
+                    _result = self.item_validator(item)
+                    is_valid, item_result = (_result.is_ok, _result.val)
                 if is_valid:
                     if not errors:
                         return_list.append(item_result)
@@ -130,16 +133,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             else:
                 return True, return_list
         else:
-            return False, "expected a list"
-
-    def resp(self, valid: bool, val) -> Result[str, Serializable]:
-        if valid:
-            return Ok(val)
-        else:
-            return Err(val)
-
-    def __call__(self, val: Any) -> Result[List[A], Serializable]:
-        return self.resp(*self.coerce_and_check(val))
+            return False, EXPECTED_LIST_MSG
 
     async def validate_async(self, val: Any) -> Result[List[A], Serializable]:
         if isinstance(val, list):

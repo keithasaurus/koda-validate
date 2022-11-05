@@ -1,9 +1,16 @@
-from typing import Callable, ClassVar, Final, List, Optional, Tuple
+from typing import Callable, ClassVar, Final, List, Literal, Optional, Tuple, Union
 
 from koda import Err, Ok, Result
+from koda._generics import B
 
 from koda_validate._generics import A, FailT
-from koda_validate.typedefs import Predicate, PredicateAsync, Processor, Serializable
+from koda_validate.typedefs import (
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+    Validator,
+)
 
 
 def _variant_errors(*variants: Serializable) -> Serializable:
@@ -83,3 +90,35 @@ class _NotSet:
 
 
 _not_set = _NotSet()
+
+ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], FailT]]
+
+
+class _FastValidator(Validator[A, B, FailT]):
+    """
+    This validator exists for optimization. When we call
+    nested validators it's much less computation to deal with simple
+    tuples and bools, instead of Ok and Err instances.
+
+    This class may go away!
+    """
+
+    def validate_to_tuple(self, val: A) -> ResultTuple[A, FailT]:
+        raise NotImplementedError
+
+    def __call__(self, val: A) -> Result[A, FailT]:
+        valid, result_val = self.validate_to_tuple(val)
+        if valid:
+            return Ok(result_val)
+        else:
+            return Err(result_val)
+
+    async def validate_to_tuple_async(self, val: A) -> ResultTuple[A, FailT]:
+        raise NotImplementedError
+
+    async def validate_async(self, val: A) -> Result[A, FailT]:
+        valid, result_val = await self.validate_to_tuple_async(val)
+        if valid:
+            return Ok(result_val)
+        else:
+            return Err(result_val)
