@@ -888,7 +888,6 @@ class DictValidator(_FastValidator[Any, Ret, Serializable]):
                         success, new_val = validator.validate_to_tuple(val)
                     else:
                         print(validator)
-                        breakpoint()
                         result = validator(val)
                         success, new_val = (result.is_ok, result.val)
                 else:
