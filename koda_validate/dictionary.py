@@ -843,6 +843,10 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         # so we don't need to calculate each time we validate
         _key_set = frozenset(k for k, _ in keys)
         self._key_set = _key_set
+        self._required_tuple_keys = []
+        self._required_normal_keys = []
+        self._non_required_tuple_keys = []
+        self._non_required_slow_keys = []
         self._fast_keys = [
             (
                 key,
@@ -887,21 +891,22 @@ class DictValidator(Validator[Any, Ret, Serializable]):
 
         args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
+        # there is likely opportunity to significantly optimize this
         for key_, validator, validation_type, str_key in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
-                if validation_type == 1 or validation_type == 2:
+                if validation_type is 1 or validation_type is 2:
                     errs.append((str_key, KEY_MISSING_MSG))
                 else:
                     args.append(nothing)
             else:
-                if validation_type == 1:
+                if validation_type is 1:
                     success, new_val = validator.validate_to_tuple(val)
-                elif validation_type == 2:
+                elif validation_type is 2:
                     result = validator(val)
                     success, new_val = (result.is_ok, result.val)
-                elif validation_type == 3:
+                elif validation_type is 3:
                     success, new_val = validator.validate_to_tuple(Just(val))
                 else:
                     result = validator(Just(val))
