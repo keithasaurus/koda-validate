@@ -1,9 +1,9 @@
 from typing import Any, List
 
-from koda import Ok
 from pydantic import BaseModel, ValidationError, constr
 
 from koda_validate import StringValidator
+from koda_validate.typedefs import Ok
 
 string_validator = StringValidator()
 

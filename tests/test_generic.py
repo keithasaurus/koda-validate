@@ -1,9 +1,9 @@
 from decimal import Decimal
 
 import pytest
-from koda import Err, Ok
 
 from koda_validate import Choices, ExactValidator, Max, Min, MultipleOf, strip
+from koda_validate.typedefs import Err, Ok
 
 
 def test_exactly() -> None:

@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Any, Dict, Hashable, List, Protocol
 
 import pytest
-from koda import Err, Just, Maybe, Ok, Result, nothing
+from koda import Just, Maybe, nothing
 
 from koda_validate import (
     BoolValidator,
@@ -32,6 +32,7 @@ from koda_validate.dictionary import (
     KeyNotRequired,
     is_dict_validator,
 )
+from koda_validate.typedefs import Err, Ok, Result
 
 
 class PersonLike(Protocol):

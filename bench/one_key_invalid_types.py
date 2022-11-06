@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import Any, List
 
-from koda import Ok
 from pydantic import BaseModel, ValidationError, constr
 
 from koda_validate import DictValidator, StringValidator
+from koda_validate.typedefs import Ok
 
 
 @dataclass

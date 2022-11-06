@@ -2,7 +2,6 @@ import asyncio
 from typing import Any, List
 
 import pytest
-from koda import Err, Ok
 
 from koda_validate import (
     IntValidator,
@@ -14,6 +13,7 @@ from koda_validate import (
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Min
 from koda_validate.list import ListValidator, MaxItems, MinItems, unique_items
+from koda_validate.typedefs import Err, Ok
 
 
 def test_list_validator() -> None:

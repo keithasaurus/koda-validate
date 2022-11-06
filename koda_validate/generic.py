@@ -3,11 +3,19 @@ from decimal import Decimal
 from typing import Any, List, Optional, Set, TypeVar
 from uuid import UUID
 
-from koda import Err, Ok, Result, Thunk
+from koda import Thunk
 from koda._generics import A
 
 from koda_validate._generics import Ret
-from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
+from koda_validate.typedefs import (
+    Err,
+    Ok,
+    Predicate,
+    Processor,
+    Result,
+    Serializable,
+    Validator,
+)
 
 EnumT = TypeVar("EnumT", str, int)
 

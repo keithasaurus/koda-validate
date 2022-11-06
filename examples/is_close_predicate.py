@@ -1,9 +1,8 @@
 import math
 from dataclasses import dataclass
 
-from koda import Err, Ok
-
 from koda_validate import FloatValidator, Predicate, Serializable
+from koda_validate.typedefs import Err, Ok
 
 
 @dataclass

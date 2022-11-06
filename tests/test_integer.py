@@ -1,7 +1,6 @@
 import asyncio
 
 import pytest
-from koda import Err, Ok
 
 from koda_validate import (
     IntValidator,
@@ -12,6 +11,7 @@ from koda_validate import (
     Processor,
     Serializable,
 )
+from koda_validate.typedefs import Err, Ok
 
 
 class Add1Int(Processor[int]):

@@ -1,9 +1,9 @@
 from datetime import date, datetime
 
 import pytest
-from koda import Err, Ok
 
 from koda_validate import DateStringValidator, DatetimeStringValidator
+from koda_validate.typedefs import Err, Ok
 
 
 def test_date_validator() -> None:

@@ -1,11 +1,17 @@
 import asyncio
 
 import pytest
-from koda import Err, Ok
 
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Max, Min
-from koda_validate.typedefs import Predicate, PredicateAsync, Processor, Serializable
+from koda_validate.typedefs import (
+    Err,
+    Ok,
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+)
 
 
 class Add1Float(Processor[float]):

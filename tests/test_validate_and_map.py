@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 
-from koda import Err, Ok
-
 from koda_validate._validate_and_map import validate_and_map
+from koda_validate.typedefs import Err, Ok
 
 
 def test_map_1() -> None:

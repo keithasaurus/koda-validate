@@ -1,8 +1,7 @@
 from typing import Any, Optional
 
-from koda import Ok
-
 from koda_validate import IntValidator, Lazy, OptionalValidator, Tuple2Validator
+from koda_validate.typedefs import Ok
 
 # if enable_recursive_aliases = true in mypy
 # NonEmptyList = tuple[int, Optional["NonEmptyList"]]

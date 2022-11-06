@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 
 import pytest
-from koda import Just, Maybe, Ok, nothing
+from koda import Just, Maybe, nothing
 
 from koda_validate import IntValidator, Lazy
 from koda_validate.dictionary import DictValidator, KeyNotRequired
+from koda_validate.typedefs import Ok
 
 
 def test_lazy() -> None:

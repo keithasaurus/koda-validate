@@ -1,13 +1,14 @@
 from typing import Any, Dict, Final, List, Optional, Set, Tuple, Type
 
-from koda import Err, Ok, Result
-from koda._generics import A
-
+from koda_validate._generics import A
 from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.typedefs import (
+    Err,
+    Ok,
     Predicate,
     PredicateAsync,
     Processor,
+    Result,
     Serializable,
     Validator,
 )

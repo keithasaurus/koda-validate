@@ -6,13 +6,11 @@ under the hood, if needed)
 
 from typing import Any, Callable, Dict, Final, Optional, Tuple
 
-from koda import Err, Result
-
 from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
 from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate._validate_and_map import validate_and_map
-from koda_validate.typedefs import Serializable, Validator
+from koda_validate.typedefs import Err, Result, Serializable, Validator
 
 
 def _tuple_to_dict_errors(errs: Tuple[Serializable, ...]) -> Dict[str, Serializable]:

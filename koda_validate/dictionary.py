@@ -15,13 +15,16 @@ from typing import (
     overload,
 )
 
-from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
+from koda import Just, Maybe, mapping_get, nothing
 
 from koda_validate._generics import A
 from koda_validate.typedefs import (
+    Err,
+    Ok,
     Predicate,
     PredicateAsync,
     Processor,
+    Result,
     Serializable,
     Validator,
 )

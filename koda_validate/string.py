@@ -1,13 +1,14 @@
 import re
 from typing import Any, Final, List, Optional, Pattern
 
-from koda import Err, Ok, Result
-
 from koda_validate._internals import _handle_scalar_processors_and_predicates_async
 from koda_validate.typedefs import (
+    Err,
+    Ok,
     Predicate,
     PredicateAsync,
     Processor,
+    Result,
     Serializable,
     Validator,
 )

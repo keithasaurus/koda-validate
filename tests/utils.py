@@ -1,6 +1,6 @@
 from typing import Any
 
-from koda import Err, Result
+from koda_validate.typedefs import Err, Result
 
 
 def assert_same_error_type_with_same_message(

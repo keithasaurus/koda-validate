@@ -1,6 +1,5 @@
-from koda import Err, Ok
-
 from koda_validate import ExactValidator, MinLength, StringValidator
+from koda_validate.typedefs import Err, Ok
 
 min_length_3_validator = StringValidator(MinLength(4))
 assert min_length_3_validator("good") == Ok("good")

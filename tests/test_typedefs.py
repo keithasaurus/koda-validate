@@ -2,9 +2,8 @@ import asyncio
 from dataclasses import dataclass
 
 import pytest
-from koda import Err, Ok
 
-from koda_validate.typedefs import PredicateAsync
+from koda_validate.typedefs import Err, Ok, PredicateAsync
 
 
 @pytest.mark.asyncio

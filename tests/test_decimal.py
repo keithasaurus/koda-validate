@@ -2,7 +2,6 @@ import asyncio
 from decimal import Decimal
 
 import pytest
-from koda import Err, Ok
 
 from koda_validate import (
     DecimalValidator,
@@ -12,6 +11,7 @@ from koda_validate import (
     Processor,
     Serializable,
 )
+from koda_validate.typedefs import Err, Ok
 
 
 class Add1Decimal(Processor[Decimal]):

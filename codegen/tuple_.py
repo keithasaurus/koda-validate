@@ -20,7 +20,7 @@ def generate_code(num_keys: int) -> str:
     overload,
 )
 
-from koda import Err, Ok, Result
+from koda_validate.typedefs import Err, Ok, Result
 
 from koda_validate._generics import A
 from koda_validate.typedefs import Serializable, Validator

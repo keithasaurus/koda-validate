@@ -1,7 +1,6 @@
 import asyncio
 
 import pytest
-from koda import Err, Ok, Result
 
 from koda_validate import (
     BoolValidator,
@@ -11,6 +10,7 @@ from koda_validate import (
     Serializable,
 )
 from koda_validate.boolean import EXPECTED_BOOL_ERR
+from koda_validate.typedefs import Err, Ok, Result
 
 
 class Flip(Processor[bool]):

@@ -1,10 +1,9 @@
 from typing import Any, Final, Optional
 
-from koda import Err, Ok, Result
 from koda._generics import A
 
 from koda_validate._internals import _variant_errors
-from koda_validate.typedefs import Serializable, Validator
+from koda_validate.typedefs import Err, Ok, Result, Serializable, Validator
 
 OK_NONE: Final[Ok[None]] = Ok(None)
 OK_NONE_OPTIONAL: Final[Ok[Optional[Any]]] = Ok(None)

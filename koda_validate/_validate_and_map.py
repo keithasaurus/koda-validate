@@ -3,9 +3,8 @@
 from functools import partial
 from typing import Callable, Optional, Tuple, TypeVar, Union, cast, overload
 
-from koda import Err, Ok, Result
-
 from koda_validate._internals import _flat_map_same_type_if_not_none
+from koda_validate.typedefs import Err, Ok, Result
 
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")

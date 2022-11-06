@@ -1,7 +1,6 @@
 # from typing import Any
 #
-# from koda import Err, Ok, Result
-#
+# from koda_validate.typedefs import Err, Ok, Result#
 # from koda_validate import Predicate, Serializable, Validator
 # from koda_validate.utils import accum_errors
 #

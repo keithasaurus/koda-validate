@@ -1,8 +1,8 @@
 import pytest
-from koda import Err, Ok
 
 from koda_validate import OptionalValidator, StringValidator
 from koda_validate.none import none_validator
+from koda_validate.typedefs import Err, Ok
 
 
 def test_none() -> None:

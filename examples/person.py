@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 
-from koda import Ok
-
 from koda_validate import *
+from koda_validate.typedefs import Ok
 
 
 @dataclass

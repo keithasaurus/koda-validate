@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
-from koda import Ok
 from pydantic import BaseModel
 
 from koda_validate import (
@@ -11,6 +10,7 @@ from koda_validate import (
     ListValidator,
     StringValidator,
 )
+from koda_validate.typedefs import Ok
 
 
 @dataclass

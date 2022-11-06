@@ -1,10 +1,10 @@
 from typing import Tuple
 
 import pytest
-from koda import Err, Ok, Result
 
 from koda_validate import BoolValidator, IntValidator, Serializable, StringValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
+from koda_validate.typedefs import Err, Ok, Result
 
 
 def test_tuple2() -> None:

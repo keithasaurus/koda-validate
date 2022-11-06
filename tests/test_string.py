@@ -2,7 +2,6 @@ import asyncio
 import re
 
 import pytest
-from koda import Err, Ok
 
 from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate, Serializable
 from koda_validate.string import (
@@ -16,6 +15,7 @@ from koda_validate.string import (
     strip,
     upper_case,
 )
+from koda_validate.typedefs import Err, Ok
 
 
 def test_strip() -> None:
