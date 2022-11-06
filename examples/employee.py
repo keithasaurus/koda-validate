@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from koda_validate import *
-from koda_validate.typedefs import Err, Ok, Result
+from koda_validate.typedefs import Invalid, Valid, Validated
 
 
 @dataclass
@@ -10,14 +10,14 @@ class Employee:
     name: str
 
 
-def no_dwight_regional_manager(employee: Employee) -> Result[Employee, Serializable]:
+def no_dwight_regional_manager(employee: Employee) -> Validated[Employee, Serializable]:
     if (
         "schrute" in employee.name.lower()
         and employee.title.lower() == "assistant regional manager"
     ):
-        return Err("Assistant TO THE Regional Manager!")
+        return Invalid("Assistant TO THE Regional Manager!")
     else:
-        return Ok(employee)
+        return Valid(employee)
 
 
 employee_validator = DictValidator(
@@ -37,4 +37,4 @@ assert employee_validator(
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     }
-) == Err("Assistant TO THE Regional Manager!")
+) == Invalid("Assistant TO THE Regional Manager!")

@@ -8,12 +8,12 @@ from koda._generics import A
 
 from koda_validate._generics import Ret
 from koda_validate.typedefs import (
-    Err,
-    Ok,
+    Invalid,
     Predicate,
     Processor,
-    Result,
     Serializable,
+    Valid,
+    Validated,
     Validator,
 )
 
@@ -45,10 +45,10 @@ class Lazy(Validator[A, Ret, Serializable]):
         self.validator = validator
         self.recurrent = recurrent
 
-    def __call__(self, data: A) -> Result[Ret, Serializable]:
+    def __call__(self, data: A) -> Validated[Ret, Serializable]:
         return self.validator()(data)
 
-    async def validate_async(self, data: A) -> Result[Ret, Serializable]:
+    async def validate_async(self, data: A) -> Validated[Ret, Serializable]:
         return await self.validator().validate_async(data)
 
 
@@ -161,14 +161,14 @@ class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
         self.match: ExactMatchT = match
         self.preprocessors: Optional[List[Processor[ExactMatchT]]] = preprocessors
 
-    def __call__(self, val: Any) -> Result[ExactMatchT, Serializable]:
+    def __call__(self, val: Any) -> Validated[ExactMatchT, Serializable]:
         if (match_type := type(self.match)) == type(val):
             if self.preprocessors:
                 for preprocess in self.preprocessors:
                     val = preprocess(val)
 
             if self.match == val:
-                return Ok(val)
+                return Valid(val)
 
         # ok, we've failed
         if isinstance(self.match, str):
@@ -176,7 +176,7 @@ class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
         else:
             value_str = str(self.match)
 
-        return Err([f"expected exactly {value_str} ({match_type.__name__})"])
+        return Invalid([f"expected exactly {value_str} ({match_type.__name__})"])
 
-    async def validate_async(self, val: Any) -> Result[ExactMatchT, Serializable]:
+    async def validate_async(self, val: Any) -> Validated[ExactMatchT, Serializable]:
         return self(val)

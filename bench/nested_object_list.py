@@ -10,7 +10,7 @@ from koda_validate import (
     ListValidator,
     StringValidator,
 )
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 
 
 @dataclass
@@ -85,7 +85,7 @@ def get_valid_data(i: int) -> Dict[str, Any]:
 
 def run_kv(objs: List[Any]) -> None:
     for obj in objs:
-        assert isinstance(k_validator(obj), Ok)
+        assert isinstance(k_validator(obj), Valid)
 
 
 def run_pyd(objs: List[Any]) -> None:

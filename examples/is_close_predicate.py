@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass
 
 from koda_validate import FloatValidator, Predicate, Serializable
-from koda_validate.typedefs import Err, Ok
+from koda_validate.typedefs import Invalid, Valid
 
 
 @dataclass
@@ -20,5 +20,5 @@ class IsClose(Predicate[float, Serializable]):
 # let's use it
 close_to_validator = FloatValidator(IsClose(0.05, 0.02))
 a = 0.06
-assert close_to_validator(a) == Ok(a)
-assert close_to_validator(0.01) == Err(["expected a value within 0.02 of 0.05"])
+assert close_to_validator(a) == Valid(a)
+assert close_to_validator(0.01) == Invalid(["expected a value within 0.02 of 0.05"])

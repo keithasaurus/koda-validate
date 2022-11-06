@@ -4,7 +4,7 @@ from functools import partial
 from typing import Callable, Optional, Tuple, TypeVar, Union, cast, overload
 
 from koda_validate._internals import _flat_map_same_type_if_not_none
-from koda_validate.typedefs import Err, Ok, Result
+from koda_validate.typedefs import Invalid, Valid, Validated
 
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
@@ -31,59 +31,59 @@ FailT = TypeVar("FailT")
 
 
 def _validate1_helper(
-    state: Result[Callable[[T1], Ret], Tuple[FailT, ...]], r: Result[T1, FailT]
-) -> Result[Ret, Tuple[FailT, ...]]:
-    if isinstance(r, Err):
-        if isinstance(state, Err):
-            return Err(state.val + (r.val,))
+    state: Validated[Callable[[T1], Ret], Tuple[FailT, ...]], r: Validated[T1, FailT]
+) -> Validated[Ret, Tuple[FailT, ...]]:
+    if isinstance(r, Invalid):
+        if isinstance(state, Invalid):
+            return Invalid(state.val + (r.val,))
         else:
-            return Err((r.val,))
+            return Invalid((r.val,))
     else:
-        if isinstance(state, Err):
+        if isinstance(state, Invalid):
             return state
         else:
-            return Ok(state.val(r.val))
+            return Valid(state.val(r.val))
 
 
 def _validate2_helper(
-    state: Result[Callable[[T1, T2], Ret], Tuple[FailT, ...]],
-    r1: Result[T1, FailT],
-    r2: Result[T2, FailT],
-) -> Result[Ret, Tuple[FailT, ...]]:
-    if isinstance(r1, Err):
-        if isinstance(state, Err):
-            next_state: Result[Callable[[T2], Ret], Tuple[FailT, ...]] = Err(
+    state: Validated[Callable[[T1, T2], Ret], Tuple[FailT, ...]],
+    r1: Validated[T1, FailT],
+    r2: Validated[T2, FailT],
+) -> Validated[Ret, Tuple[FailT, ...]]:
+    if isinstance(r1, Invalid):
+        if isinstance(state, Invalid):
+            next_state: Validated[Callable[[T2], Ret], Tuple[FailT, ...]] = Invalid(
                 state.val + (r1.val,)
             )
         else:
-            next_state = Err((r1.val,))
+            next_state = Invalid((r1.val,))
     else:
-        if isinstance(state, Err):
+        if isinstance(state, Invalid):
             next_state = state
         else:
-            next_state = Ok(partial(state.val, r1.val))
+            next_state = Valid(partial(state.val, r1.val))
 
     return _validate1_helper(next_state, r2)
 
 
 def _validate3_helper(
-    state: Result[Callable[[T1, T2, T3], Ret], Tuple[FailT, ...]],
-    r1: Result[T1, FailT],
-    r2: Result[T2, FailT],
-    r3: Result[T3, FailT],
-) -> Result[Ret, Tuple[FailT, ...]]:
-    if isinstance(r1, Err):
-        if isinstance(state, Err):
-            next_state: Result[Callable[[T2, T3], Ret], Tuple[FailT, ...]] = Err(
+    state: Validated[Callable[[T1, T2, T3], Ret], Tuple[FailT, ...]],
+    r1: Validated[T1, FailT],
+    r2: Validated[T2, FailT],
+    r3: Validated[T3, FailT],
+) -> Validated[Ret, Tuple[FailT, ...]]:
+    if isinstance(r1, Invalid):
+        if isinstance(state, Invalid):
+            next_state: Validated[Callable[[T2, T3], Ret], Tuple[FailT, ...]] = Invalid(
                 state.val + (r1.val,)
             )
         else:
-            next_state = Err((r1.val,))
+            next_state = Invalid((r1.val,))
     else:
-        if isinstance(state, Err):
+        if isinstance(state, Invalid):
             next_state = state
         else:
-            next_state = Ok(partial(state.val, r1.val))
+            next_state = Valid(partial(state.val, r1.val))
 
     return _validate2_helper(next_state, r2, r3)
 
@@ -93,11 +93,11 @@ def _tupled(a: T1) -> Tuple[T1, ...]:
 
 
 def tupled_err_func(
-    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]]
-) -> Callable[[Ret], Result[Ret, Tuple[FailT, ...]]]:
-    def inner(obj: Ret) -> Result[Ret, Tuple[FailT, ...]]:
+    validate_object: Optional[Callable[[Ret], Validated[Ret, FailT]]]
+) -> Callable[[Ret], Validated[Ret, Tuple[FailT, ...]]]:
+    def inner(obj: Ret) -> Validated[Ret, Tuple[FailT, ...]]:
         if validate_object is None:
-            return Ok(obj)
+            return Valid(obj)
         else:
             return validate_object(obj).map_err(_tupled)
 
@@ -107,33 +107,33 @@ def tupled_err_func(
 @overload
 def validate_and_map(
     into: Callable[[T1], Ret],
-    r1: Result[T1, FailT],
+    r1: Validated[T1, FailT],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
-) -> Result[Ret, Tuple[FailT, ...]]:
+    validate_object: Optional[Callable[[Ret], Validated[Ret, FailT]]] = None,
+) -> Validated[Ret, Tuple[FailT, ...]]:
     ...
 
 
 @overload
 def validate_and_map(
     into: Callable[[T1, T2], Ret],
-    r1: Result[T1, FailT],
-    r2: Result[T2, FailT],
+    r1: Validated[T1, FailT],
+    r2: Validated[T2, FailT],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
-) -> Result[Ret, Tuple[FailT, ...]]:
+    validate_object: Optional[Callable[[Ret], Validated[Ret, FailT]]] = None,
+) -> Validated[Ret, Tuple[FailT, ...]]:
     ...
 
 
 @overload
 def validate_and_map(
     into: Callable[[T1, T2, T3], Ret],
-    r1: Result[T1, FailT],
-    r2: Result[T2, FailT],
-    r3: Result[T3, FailT],
+    r1: Validated[T1, FailT],
+    r2: Validated[T2, FailT],
+    r3: Validated[T3, FailT],
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
-) -> Result[Ret, Tuple[FailT, ...]]:
+    validate_object: Optional[Callable[[Ret], Validated[Ret, FailT]]] = None,
+) -> Validated[Ret, Tuple[FailT, ...]]:
     ...
 
 
@@ -143,28 +143,28 @@ def validate_and_map(
         Callable[[T1, T2], Ret],
         Callable[[T1, T2, T3], Ret],
     ],
-    r1: Result[T1, FailT],
-    r2: Optional[Result[T2, FailT]] = None,
-    r3: Optional[Result[T3, FailT]] = None,
+    r1: Validated[T1, FailT],
+    r2: Optional[Validated[T2, FailT]] = None,
+    r3: Optional[Validated[T3, FailT]] = None,
     *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, FailT]]] = None,
-) -> Result[Ret, Tuple[FailT, ...]]:
+    validate_object: Optional[Callable[[Ret], Validated[Ret, FailT]]] = None,
+) -> Validated[Ret, Tuple[FailT, ...]]:
     if r2 is None:
 
         return _flat_map_same_type_if_not_none(
             tupled_err_func(validate_object),
-            _validate1_helper(Ok(cast(Callable[[T1], Ret], into)), r1),
+            _validate1_helper(Valid(cast(Callable[[T1], Ret], into)), r1),
         )
     elif r3 is None:
 
         return _flat_map_same_type_if_not_none(
             tupled_err_func(validate_object),
-            _validate2_helper(Ok(cast(Callable[[T1, T2], Ret], into)), r1, r2),
+            _validate2_helper(Valid(cast(Callable[[T1, T2], Ret], into)), r1, r2),
         )
 
     else:
 
         return _flat_map_same_type_if_not_none(
             tupled_err_func(validate_object),
-            _validate3_helper(Ok(cast(Callable[[T1, T2, T3], Ret], into)), r1, r2, r3),
+            _validate3_helper(Valid(cast(Callable[[T1, T2, T3], Ret], into)), r1, r2, r3),
         )

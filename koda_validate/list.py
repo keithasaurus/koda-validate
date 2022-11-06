@@ -3,13 +3,13 @@ from typing import Any, Dict, Final, List, Optional, Set, Tuple, Type
 from koda_validate._generics import A
 from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.typedefs import (
-    Err,
-    Ok,
+    Invalid,
     Predicate,
     PredicateAsync,
     Processor,
-    Result,
     Serializable,
+    Valid,
+    Validated,
     Validator,
 )
 
@@ -75,7 +75,7 @@ class UniqueItems(Predicate[List[Any], Serializable]):
 
 unique_items = UniqueItems()
 
-EXPECTED_LIST_ERR: Final[Err[Serializable]] = Err(
+EXPECTED_LIST_ERR: Final[Invalid[Serializable]] = Invalid(
     {OBJECT_ERRORS_FIELD: ["expected a list"]}
 )
 
@@ -97,7 +97,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[List[A], Serializable]:
+    def __call__(self, val: Any) -> Validated[List[A], Serializable]:
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:
@@ -127,13 +127,13 @@ class ListValidator(Validator[Any, List[A], Serializable]):
                         errors[str(i)] = item_result.val
 
             if errors:
-                return Err(errors)
+                return Invalid(errors)
             else:
-                return Ok(return_list)
+                return Valid(return_list)
         else:
             return EXPECTED_LIST_ERR
 
-    async def validate_async(self, val: Any) -> Result[List[A], Serializable]:
+    async def validate_async(self, val: Any) -> Validated[List[A], Serializable]:
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:
@@ -168,8 +168,8 @@ class ListValidator(Validator[Any, List[A], Serializable]):
                         errors[str(i)] = item_result.val
 
             if errors:
-                return Err(errors)
+                return Invalid(errors)
             else:
-                return Ok(return_list)
+                return Valid(return_list)
         else:
             return EXPECTED_LIST_ERR

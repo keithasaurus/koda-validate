@@ -2,17 +2,17 @@ from typing import Any, Final, List, Optional
 
 from koda_validate._internals import _handle_scalar_processors_and_predicates_async
 from koda_validate.typedefs import (
-    Err,
-    Ok,
+    Invalid,
     Predicate,
     PredicateAsync,
     Processor,
-    Result,
     Serializable,
+    Valid,
+    Validated,
     Validator,
 )
 
-EXPECTED_FLOAT_ERR: Final[Err[Serializable]] = Err(["expected a float"])
+EXPECTED_FLOAT_ERR: Final[Invalid[Serializable]] = Invalid(["expected a float"])
 
 
 class FloatValidator(Validator[Any, float, Serializable]):
@@ -29,7 +29,7 @@ class FloatValidator(Validator[Any, float, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[float, Serializable]:
+    def __call__(self, val: Any) -> Validated[float, Serializable]:
         if type(val) is float:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -39,15 +39,15 @@ class FloatValidator(Validator[Any, float, Serializable]):
                 if errors := [
                     pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]:
-                    return Err(errors)
+                    return Invalid(errors)
                 else:
-                    return Ok(val)
+                    return Valid(val)
             else:
-                return Ok(val)
+                return Valid(val)
 
         return EXPECTED_FLOAT_ERR
 
-    async def validate_async(self, val: Any) -> Result[float, Serializable]:
+    async def validate_async(self, val: Any) -> Validated[float, Serializable]:
         if type(val) is float:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async

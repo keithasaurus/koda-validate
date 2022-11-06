@@ -6,20 +6,20 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_async,
 )
 from koda_validate.typedefs import (
-    Err,
+    Invalid,
     Predicate,
     PredicateAsync,
     Processor,
-    Result,
     Serializable,
+    Validated,
     Validator,
 )
 
-EXPECTED_DATE_ERR: Final[Err[Serializable]] = Err(
+EXPECTED_DATE_ERR: Final[Invalid[Serializable]] = Invalid(
     ["expected date formatted as yyyy-mm-dd"]
 )
 
-EXPECTED_ISO_DATESTRING: Final[Err[Serializable]] = Err(
+EXPECTED_ISO_DATESTRING: Final[Invalid[Serializable]] = Invalid(
     ["expected iso8601-formatted string"]
 )
 
@@ -42,7 +42,7 @@ class DateStringValidator(Validator[Any, date, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[date, Serializable]:
+    def __call__(self, val: Any) -> Validated[date, Serializable]:
         try:
             val = date.fromisoformat(val)
         except (ValueError, TypeError):
@@ -52,7 +52,7 @@ class DateStringValidator(Validator[Any, date, Serializable]):
                 val, self.preprocessors, self.predicates
             )
 
-    async def validate_async(self, val: Any) -> Result[date, Serializable]:
+    async def validate_async(self, val: Any) -> Validated[date, Serializable]:
         try:
             val = date.fromisoformat(val)
         except (ValueError, TypeError):
@@ -77,7 +77,7 @@ class DatetimeStringValidator(Validator[Any, datetime, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[datetime, Serializable]:
+    def __call__(self, val: Any) -> Validated[datetime, Serializable]:
         try:
             # note isoparse from dateutil is more flexible if we want
             # to add the dependency at some point
@@ -89,7 +89,7 @@ class DatetimeStringValidator(Validator[Any, datetime, Serializable]):
                 val_, self.preprocessors, self.predicates
             )
 
-    async def validate_async(self, val: Any) -> Result[datetime, Serializable]:
+    async def validate_async(self, val: Any) -> Validated[datetime, Serializable]:
         try:
             # note isoparse from dateutil is more flexible if we want
             # to add the dependency at some point

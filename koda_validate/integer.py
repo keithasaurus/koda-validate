@@ -2,18 +2,18 @@ from typing import Any, Final, List, Optional
 
 from koda_validate._internals import _handle_scalar_processors_and_predicates_async
 from koda_validate.typedefs import (
-    Err,
-    Ok,
+    Invalid,
     Predicate,
     PredicateAsync,
     Processor,
-    Result,
     Serializable,
+    Valid,
+    Validated,
     Validator,
 )
 
 # extracted for optimization
-EXPECTED_INTEGER_ERR: Final[Err[Serializable]] = Err(["expected an integer"])
+EXPECTED_INTEGER_ERR: Final[Invalid[Serializable]] = Invalid(["expected an integer"])
 
 
 class IntValidator(Validator[Any, int, Serializable]):
@@ -30,7 +30,7 @@ class IntValidator(Validator[Any, int, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[int, Serializable]:
+    def __call__(self, val: Any) -> Validated[int, Serializable]:
         if type(val) is int:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -40,15 +40,15 @@ class IntValidator(Validator[Any, int, Serializable]):
                 if errors := [
                     pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]:
-                    return Err(errors)
+                    return Invalid(errors)
                 else:
-                    return Ok(val)
+                    return Valid(val)
             else:
-                return Ok(val)
+                return Valid(val)
 
         return EXPECTED_INTEGER_ERR
 
-    async def validate_async(self, val: Any) -> Result[int, Serializable]:
+    async def validate_async(self, val: Any) -> Validated[int, Serializable]:
         if type(val) is int:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async

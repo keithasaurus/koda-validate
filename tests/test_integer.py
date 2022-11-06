@@ -11,7 +11,7 @@ from koda_validate import (
     Processor,
     Serializable,
 )
-from koda_validate.typedefs import Err, Ok
+from koda_validate.typedefs import Invalid, Valid
 
 
 class Add1Int(Processor[int]):
@@ -20,18 +20,18 @@ class Add1Int(Processor[int]):
 
 
 def test_integer() -> None:
-    assert IntValidator()("a string") == Err(["expected an integer"])
+    assert IntValidator()("a string") == Invalid(["expected an integer"])
 
-    assert IntValidator()(5) == Ok(5)
+    assert IntValidator()(5) == Valid(5)
 
-    assert IntValidator()(True) == Err(["expected an integer"]), (
+    assert IntValidator()(True) == Invalid(["expected an integer"]), (
         "even though `bool`s are subclasses of ints in python, we wouldn't "
         "want to validate incoming data as ints if they are bools"
     )
 
-    assert IntValidator()("5") == Err(["expected an integer"])
+    assert IntValidator()("5") == Invalid(["expected an integer"])
 
-    assert IntValidator()(5.0) == Err(["expected an integer"])
+    assert IntValidator()(5.0) == Invalid(["expected an integer"])
 
     class DivisibleBy2(Predicate[int, Serializable]):
         def is_valid(self, val: int) -> bool:
@@ -42,11 +42,11 @@ def test_integer() -> None:
 
     assert IntValidator(Min(2), Max(10), DivisibleBy2(),)(
         11
-    ) == Err(["maximum allowed value is 10", "must be divisible by 2"])
+    ) == Invalid(["maximum allowed value is 10", "must be divisible by 2"])
 
-    assert IntValidator(Min(2), preprocessors=[Add1Int()])(1) == Ok(2)
+    assert IntValidator(Min(2), preprocessors=[Add1Int()])(1) == Valid(2)
 
-    assert IntValidator(Min(3), preprocessors=[Add1Int()])(1) == Err(
+    assert IntValidator(Min(3), preprocessors=[Add1Int()])(1) == Invalid(
         ["minimum allowed value is 3"]
     )
 
@@ -68,7 +68,7 @@ async def test_float_async() -> None:
     result = await IntValidator(
         preprocessors=[Add1Int()], predicates_async=[LessThan4()]
     ).validate_async(3)
-    assert result == Err(["not less than 4!"])
+    assert result == Invalid(["not less than 4!"])
     assert await IntValidator(
         preprocessors=[Add1Int()], predicates_async=[LessThan4()]
-    ).validate_async(2) == Ok(3)
+    ).validate_async(2) == Valid(3)

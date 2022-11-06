@@ -3,14 +3,14 @@ from typing import Any, List
 from pydantic import BaseModel, ValidationError, constr
 
 from koda_validate import StringValidator
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 
 string_validator = StringValidator()
 
 
 def run_kv(objs: List[Any]) -> None:
     for obj in objs:
-        if isinstance(result := string_validator(obj), Ok):
+        if isinstance(result := string_validator(obj), Valid):
             _ = result.val
         else:
             _ = result.val

@@ -10,7 +10,7 @@ from koda_validate import (
     Serializable,
 )
 from koda_validate.boolean import EXPECTED_BOOL_ERR
-from koda_validate.typedefs import Err, Ok, Result
+from koda_validate.typedefs import Invalid, Valid, Validated
 
 
 class Flip(Processor[bool]):
@@ -19,11 +19,11 @@ class Flip(Processor[bool]):
 
 
 def test_boolean() -> None:
-    assert BoolValidator()("a string") == Err(["expected a boolean"])
+    assert BoolValidator()("a string") == Invalid(["expected a boolean"])
 
-    assert BoolValidator()(True) == Ok(True)
+    assert BoolValidator()(True) == Valid(True)
 
-    assert BoolValidator()(False) == Ok(False)
+    assert BoolValidator()(False) == Valid(False)
 
     class RequireTrue(Predicate[bool, Serializable]):
         def is_valid(self, val: bool) -> bool:
@@ -32,9 +32,9 @@ def test_boolean() -> None:
         def err(self, val: bool) -> Serializable:
             return "must be true"
 
-    assert BoolValidator(RequireTrue())(False) == Err(["must be true"])
+    assert BoolValidator(RequireTrue())(False) == Invalid(["must be true"])
 
-    assert BoolValidator()(1) == Err(["expected a boolean"])
+    assert BoolValidator()(1) == Invalid(["expected a boolean"])
 
     class IsTrue(Predicate[bool, Serializable]):
         def is_valid(self, val: bool) -> bool:
@@ -43,11 +43,11 @@ def test_boolean() -> None:
         def err(self, val: bool) -> Serializable:
             return "should be True"
 
-    assert BoolValidator(IsTrue(), preprocessors=[Flip()])(False) == Ok(True)
+    assert BoolValidator(IsTrue(), preprocessors=[Flip()])(False) == Valid(True)
 
     assert BoolValidator(IsTrue(),)(
         False
-    ) == Err(["should be True"])
+    ) == Invalid(["should be True"])
 
 
 @pytest.mark.asyncio
@@ -64,9 +64,9 @@ async def test_boolean_validator_async() -> None:
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(True)
 
-    assert result == Err(["not True"])
+    assert result == Invalid(["not True"])
     assert await BoolValidator(
         preprocessors=[Flip()], predicates_async=[IsTrue()]
-    ).validate_async(False) == Ok(True)
+    ).validate_async(False) == Valid(True)
 
     assert await BoolValidator().validate_async("abc") == EXPECTED_BOOL_ERR

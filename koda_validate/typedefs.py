@@ -16,7 +16,7 @@ from typing import (
 from koda_validate._generics import A, B, FailT
 
 
-class Ok(Generic[A]):
+class Valid(Generic[A]):
     __match_args__ = ("val",)
     __slots__ = ("val",)
 
@@ -26,34 +26,36 @@ class Ok(Generic[A]):
         self.val: A = val
 
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Ok) and other.val == self.val
+        return isinstance(other, Valid) and other.val == self.val
 
     def __repr__(self) -> str:
         return f"Ok({repr(self.val)})"
 
-    def apply(self, container: "Result[Callable[[A], B], FailT]") -> "Result[B, FailT]":
-        if isinstance(container, Ok):
-            return Ok(container.val(self.val))
+    def apply(
+        self, container: "Validated[Callable[[A], B], FailT]"
+    ) -> "Validated[B, FailT]":
+        if isinstance(container, Valid):
+            return Valid(container.val(self.val))
         else:
             return container
 
     def get_or_else(self, _: A) -> A:
         return self.val
 
-    def flat_map(self, fn: Callable[[A], "Result[B, FailT]"]) -> "Result[B, FailT]":
+    def flat_map(self, fn: Callable[[A], "Validated[B, FailT]"]) -> "Validated[B, FailT]":
         return fn(self.val)
 
-    def flat_map_err(self, fn: Callable[[Any], "Result[A, B]"]) -> "Result[A, B]":
+    def flat_map_err(self, fn: Callable[[Any], "Validated[A, B]"]) -> "Validated[A, B]":
         return self
 
-    def map(self, fn: Callable[[A], B]) -> "Result[B, FailT]":
-        return Ok(fn(self.val))
+    def map(self, fn: Callable[[A], B]) -> "Validated[B, FailT]":
+        return Valid(fn(self.val))
 
-    def map_err(self, fn: Callable[[Any], "B"]) -> "Result[A, B]":
+    def map_err(self, fn: Callable[[Any], "B"]) -> "Validated[A, B]":
         return self
 
-    def swap(self) -> "Result[FailT, A]":
-        return Err(self.val)
+    def swap(self) -> "Validated[FailT, A]":
+        return Invalid(self.val)
 
     @property
     def to_optional(self) -> Optional[A]:
@@ -69,7 +71,7 @@ class Ok(Generic[A]):
         return Just(self.val)
 
 
-class Err(Generic[FailT]):
+class Invalid(Generic[FailT]):
     __match_args__ = ("val",)
     __slots__ = ("val",)
 
@@ -79,31 +81,33 @@ class Err(Generic[FailT]):
         self.val: FailT = val
 
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Err) and other.val == self.val
+        return isinstance(other, Invalid) and other.val == self.val
 
     def __repr__(self) -> str:
         return f"Err({repr(self.val)})"
 
-    def apply(self, _: "Result[Callable[[Any], B], FailT]") -> "Result[B, FailT]":
+    def apply(self, _: "Validated[Callable[[Any], B], FailT]") -> "Validated[B, FailT]":
         return self
 
     def get_or_else(self, fallback: A) -> A:
         return fallback
 
-    def map(self, _: Callable[[Any], B]) -> "Result[B, FailT]":
+    def map(self, _: Callable[[Any], B]) -> "Validated[B, FailT]":
         return self
 
-    def flat_map(self, _: Callable[[Any], "Result[B, FailT]"]) -> "Result[B, FailT]":
+    def flat_map(
+        self, _: Callable[[Any], "Validated[B, FailT]"]
+    ) -> "Validated[B, FailT]":
         return self
 
-    def flat_map_err(self, fn: Callable[[FailT], "Result[A, B]"]) -> "Result[A, B]":
+    def flat_map_err(self, fn: Callable[[FailT], "Validated[A, B]"]) -> "Validated[A, B]":
         return fn(self.val)
 
-    def map_err(self, fn: Callable[[FailT], B]) -> "Result[A, B]":
-        return Err(fn(self.val))
+    def map_err(self, fn: Callable[[FailT], B]) -> "Validated[A, B]":
+        return Invalid(fn(self.val))
 
-    def swap(self) -> "Result[FailT, A]":
-        return Ok(self.val)
+    def swap(self) -> "Validated[FailT, A]":
+        return Valid(self.val)
 
     @property
     def to_optional(self) -> Optional[Any]:
@@ -116,7 +120,7 @@ class Err(Generic[FailT]):
         return nothing
 
 
-Result = Union[Ok[A], Err[FailT]]
+Validated = Union[Valid[A], Invalid[FailT]]
 
 
 class Validator(Generic[A, B, FailT]):
@@ -126,10 +130,10 @@ class Validator(Generic[A, B, FailT]):
     instance, we can later access `5` from something like `MaxLength(5)`.
     """
 
-    def __call__(self, val: A) -> Result[B, FailT]:  # pragma: no cover
+    def __call__(self, val: A) -> Validated[B, FailT]:  # pragma: no cover
         raise NotImplementedError
 
-    async def validate_async(self, val: A) -> Result[B, FailT]:  # pragma: no cover
+    async def validate_async(self, val: A) -> Validated[B, FailT]:  # pragma: no cover
         """
         make it possible for all validators to be async-compatible
         """
@@ -156,11 +160,11 @@ class Predicate(Generic[A, FailT]):
         raise NotImplementedError
 
     @final
-    def __call__(self, val: A) -> Result[A, FailT]:
+    def __call__(self, val: A) -> Validated[A, FailT]:
         if self.is_valid(val) is True:
-            return Ok(val)
+            return Valid(val)
         else:
-            return Err(self.err(val))
+            return Invalid(self.err(val))
 
 
 class PredicateAsync(Generic[A, FailT]):
@@ -177,11 +181,11 @@ class PredicateAsync(Generic[A, FailT]):
         raise NotImplementedError
 
     @final
-    async def validate_async(self, val: A) -> Result[A, FailT]:
+    async def validate_async(self, val: A) -> Validated[A, FailT]:
         if await self.is_valid_async(val) is True:
-            return Ok(val)
+            return Valid(val)
         else:
-            return Err(await self.err_async(val))
+            return Invalid(await self.err_async(val))
 
 
 # When mypy enables recursive types by default

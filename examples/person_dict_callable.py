@@ -1,5 +1,5 @@
 from koda_validate import *
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 
 
 def reverse_person_args_tuple(a: str, b: int) -> tuple[int, str]:
@@ -11,4 +11,4 @@ person_validator_2 = DictValidator(
     keys=(("name", StringValidator(MinLength(1))), ("age", IntValidator(Min(0)))),
 )
 
-assert person_validator_2({"name": "John Doe", "age": 30}) == Ok((30, "John Doe"))
+assert person_validator_2({"name": "John Doe", "age": 30}) == Valid((30, "John Doe"))

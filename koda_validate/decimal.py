@@ -7,16 +7,16 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_async,
 )
 from koda_validate.typedefs import (
-    Err,
+    Invalid,
     Predicate,
     PredicateAsync,
     Processor,
-    Result,
     Serializable,
+    Validated,
     Validator,
 )
 
-EXPECTED_DECIMAL_ERR: Final[Err[Serializable]] = Err(
+EXPECTED_DECIMAL_ERR: Final[Invalid[Serializable]] = Invalid(
     ["expected a Decimal, or a Decimal-compatible string or integer"]
 )
 
@@ -35,7 +35,7 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[Decimal, Serializable]:
+    def __call__(self, val: Any) -> Validated[Decimal, Serializable]:
         if type(val) is Decimal:
             return _handle_scalar_processors_and_predicates(
                 val, self.preprocessors, self.predicates
@@ -54,7 +54,7 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
         else:
             return EXPECTED_DECIMAL_ERR
 
-    async def validate_async(self, val: Any) -> Result[Decimal, Serializable]:
+    async def validate_async(self, val: Any) -> Validated[Decimal, Serializable]:
         if type(val) is Decimal:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async

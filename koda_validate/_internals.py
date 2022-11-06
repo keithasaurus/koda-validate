@@ -2,13 +2,13 @@ from typing import Callable, ClassVar, Final, List, Optional, Tuple
 
 from koda_validate._generics import A, FailT
 from koda_validate.typedefs import (
-    Err,
-    Ok,
+    Invalid,
     Predicate,
     PredicateAsync,
     Processor,
-    Result,
     Serializable,
+    Valid,
+    Validated,
 )
 
 
@@ -17,9 +17,9 @@ def _variant_errors(*variants: Serializable) -> Serializable:
 
 
 def _flat_map_same_type_if_not_none(
-    fn: Optional[Callable[[A], Result[A, FailT]]],
-    r: Result[A, FailT],
-) -> Result[A, FailT]:
+    fn: Optional[Callable[[A], Validated[A, FailT]]],
+    r: Validated[A, FailT],
+) -> Validated[A, FailT]:
     if fn is None:
         return r
     else:
@@ -36,18 +36,18 @@ def _handle_scalar_processors_and_predicates(
     val: A,
     preprocessors: Optional[List[Processor[A]]],
     predicates: Tuple[Predicate[A, Serializable], ...],
-) -> Result[A, Serializable]:
+) -> Validated[A, Serializable]:
     if preprocessors is not None:
         for proc in preprocessors:
             val = proc(val)
 
     if predicates:
         if errors := [pred.err(val) for pred in predicates if not pred.is_valid(val)]:
-            return Err(errors)
+            return Invalid(errors)
         else:
-            return Ok(val)
+            return Valid(val)
     else:
-        return Ok(val)
+        return Valid(val)
 
 
 async def _handle_scalar_processors_and_predicates_async(
@@ -55,7 +55,7 @@ async def _handle_scalar_processors_and_predicates_async(
     preprocessors: Optional[List[Processor[A]]],
     predicates: Tuple[Predicate[A, Serializable], ...],
     predicates_async: Optional[List[PredicateAsync[A, Serializable]]],
-) -> Result[A, Serializable]:
+) -> Validated[A, Serializable]:
     if preprocessors:
         for proc in preprocessors:
             val = proc(val)
@@ -71,9 +71,9 @@ async def _handle_scalar_processors_and_predicates_async(
             ]
         )
     if errors:
-        return Err(errors)
+        return Invalid(errors)
     else:
-        return Ok(val)
+        return Valid(val)
 
 
 class _NotSet:

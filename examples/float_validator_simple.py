@@ -1,17 +1,17 @@
 from typing import Any
 
-from koda_validate.typedefs import Err, Ok, Result, Serializable, Validator
+from koda_validate.typedefs import Invalid, Serializable, Valid, Validated, Validator
 
 
 class SimpleFloatValidator(Validator[Any, float, Serializable]):
-    def __call__(self, val: Any) -> Result[float, Serializable]:
+    def __call__(self, val: Any) -> Validated[float, Serializable]:
         if isinstance(val, float):
-            return Ok(val)
+            return Valid(val)
         else:
-            return Err("expected a float")
+            return Invalid("expected a float")
 
 
 float_validator = SimpleFloatValidator()
 float_val = 5.5
-assert float_validator(float_val) == Ok(float_val)
-assert float_validator(5) == Err("expected a float")
+assert float_validator(float_val) == Valid(float_val)
+assert float_validator(5) == Invalid("expected a float")

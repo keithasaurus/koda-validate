@@ -18,27 +18,27 @@ poetry add koda_validate
 
 ```python3
 from dataclasses import dataclass
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 from koda_validate import *
 
 
 @dataclass
 class Person:
-    name: str
-    age: int
+  name: str
+  age: int
 
 
 person_validator = dict_validator(
-    Person, 
-    key("name", StringValidator()),
-    key("age", IntValidator())
+  Person,
+  key("name", StringValidator()),
+  key("age", IntValidator())
 )
 
 result = person_validator({"name": "John Doe", "age": 30})
-if isinstance(result, Ok):
-    print(f"{result.val.name} is {result.val.age} years old")
+if isinstance(result, Valid):
+  print(f"{result.val.name} is {result.val.age} years old")
 else:
-    print(result.val)
+  print(result.val)
 ```
 
 We could also nest `person_validator`, for instance, in a `ListValidator`:
@@ -83,21 +83,23 @@ Let's look at the `dict_validator` a bit closer. Its first argument can be any `
 each key below it -- in the same order they are defined (the names of the keys and the `Callable` arguments do not need 
 to match). For `person_validator`, we used a `Person` `dataclass`; for `Group`, we used a `Group` dataclass; but that 
 does not need to be the case. Because we can use any `Callable` with matching types, this would also be valid:
+
 ```python
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 from koda_validate import *
 
 
 def reverse_person_args_tuple(a: str, b: int) -> tuple[int, str]:
-    return b, a
+  return b, a
+
 
 person_validator_2 = DictValidator(
-    reverse_person_args_tuple,
-    ("name", StringValidator()),
-    ("age", IntValidator()),
+  reverse_person_args_tuple,
+  ("name", StringValidator()),
+  ("age", IntValidator()),
 )
 
-assert person_validator_2({"name": "John Doe", "age": 30}) == Ok((30, "John Doe"))
+assert person_validator_2({"name": "John Doe", "age": 30}) == Valid((30, "John Doe"))
 
 ```
 As you see, we have some flexibility in defining what we want to get back from a validated `dict_validator`. 
@@ -111,42 +113,41 @@ Let's use some more features.
 
 ```python
 from dataclasses import dataclass
-from koda_validate.typedefs import Err, Ok, Result
+from koda_validate.typedefs import Invalid, Valid, Validated
 from koda_validate import *
 
 
 @dataclass
 class Employee:
-    title: str
-    name: str
+  title: str
+  name: str
 
 
-def no_dwight_regional_manager(employee: Employee) -> Result[Employee, Serializable]:
-    if (
-        "schrute" in employee.name.lower()
-        and employee.title.lower() == "assistant regional manager"
-    ):
-        return Err("Assistant TO THE Regional Manager!")
-    else:
-        return Ok(employee)
+def no_dwight_regional_manager(employee: Employee) -> Validated[Employee, Serializable]:
+  if (
+          "schrute" in employee.name.lower()
+          and employee.title.lower() == "assistant regional manager"
+  ):
+    return Invalid("Assistant TO THE Regional Manager!")
+  else:
+    return Valid(employee)
 
 
 employee_validator = dict_validator(
-    Employee,
-    key("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),
-    key("name", StringValidator(not_blank, preprocessors=[strip])),
-    # After we've validated individual fields, we may want to validate them as a whole
-    validate_object=no_dwight_regional_manager,
+  Employee,
+  key("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),
+  key("name", StringValidator(not_blank, preprocessors=[strip])),
+  # After we've validated individual fields, we may want to validate them as a whole
+  validate_object=no_dwight_regional_manager,
 )
-
 
 # The fields are valid but the object as a whole is not.
 assert employee_validator(
-    {
-        "title": "Assistant Regional Manager",
-        "name": "Dwight Schrute",
-    }
-) == Err("Assistant TO THE Regional Manager!")
+  {
+    "title": "Assistant Regional Manager",
+    "name": "Dwight Schrute",
+  }
+) == Invalid("Assistant TO THE Regional Manager!")
 
 ```
 Things to note about `employee_validator`:
@@ -164,17 +165,17 @@ We're are spending a lot of time discussing validating collections, but Koda Val
 values.
 
 ```python
-from koda_validate.typedefs import Err, Ok
+from koda_validate.typedefs import Invalid, Valid
 from koda_validate import ExactValidator, MinLength, StringValidator
 
 min_length_3_validator = StringValidator(MinLength(4))
-assert min_length_3_validator("good") == Ok("good")
-assert min_length_3_validator("bad") == Err(["minimum allowed length is 4"])
+assert min_length_3_validator("good") == Valid("good")
+assert min_length_3_validator("bad") == Invalid(["minimum allowed length is 4"])
 
 exactly_5_validator = ExactValidator(5)
 
-assert exactly_5_validator(5) == Ok(5)
-assert exactly_5_validator("hmm") == Err(["expected exactly 5 (int)"])
+assert exactly_5_validator(5) == Valid(5)
+assert exactly_5_validator("hmm") == Invalid(["expected exactly 5 (int)"])
 
 ```
 Koda Validate is intended to be extendable enough to validate any type of data.
@@ -264,22 +265,22 @@ write a simple `Validator` for `float`s here:
 
 ```python
 from typing import Any
-from koda_validate.typedefs import Err, Ok, Result
+from koda_validate.typedefs import Invalid, Valid, Validated
 from koda_validate.typedefs import Serializable, Validator
 
 
 class SimpleFloatValidator(Validator[Any, float, Serializable]):
-    def __call__(self, val: Any) -> Result[float, Serializable]:
-        if isinstance(val, float):
-            return Ok(val)
-        else:
-            return Err("expected a float")
+  def __call__(self, val: Any) -> Validated[float, Serializable]:
+    if isinstance(val, float):
+      return Valid(val)
+    else:
+      return Invalid("expected a float")
 
 
 float_validator = SimpleFloatValidator()
 float_val = 5.5
-assert float_validator(float_val) == Ok(float_val)
-assert float_validator(5) == Err("expected a float")
+assert float_validator(float_val) == Valid(float_val)
+assert float_validator(5) == Invalid("expected a float")
 ```
 
 What is this doing? 
@@ -315,27 +316,27 @@ example, this is how you might write and use a `Predicate` for approximate `floa
 ```python
 import math
 from dataclasses import dataclass
-from koda_validate.typedefs import Err, Ok
+from koda_validate.typedefs import Invalid, Valid
 from koda_validate import FloatValidator, Serializable, Predicate
 
 
 @dataclass
 class IsClose(Predicate[float, Serializable]):
-    compare_to: float
-    tolerance: float
+  compare_to: float
+  tolerance: float
 
-    def is_valid(self, val: float) -> bool:
-        return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
+  def is_valid(self, val: float) -> bool:
+    return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
 
-    def err(self, val: float) -> Serializable:
-        return f"expected a value within {self.tolerance} of {self.compare_to}"
+  def err(self, val: float) -> Serializable:
+    return f"expected a value within {self.tolerance} of {self.compare_to}"
 
 
 # let's use it
 close_to_validator = FloatValidator(IsClose(0.05, 0.02))
 a = 0.06
-assert close_to_validator(a) == Ok(a)
-assert close_to_validator(0.01) == Err(["expected a value within 0.02 of 0.05"])
+assert close_to_validator(a) == Valid(a)
+assert close_to_validator(0.01) == Invalid(["expected a value within 0.02 of 0.05"])
 
 ```
 
@@ -416,16 +417,17 @@ assert string_or_list_string_validator(["list", "of", "strings"]) == Ok(
 #### Tuple2Validator / Tuple3Validator
 
 These `Validator`s work on `tuple`s as you might expect:
+
 ```python
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 from koda_validate import IntValidator, StringValidator, Tuple2Validator
 
 string_int_validator = Tuple2Validator(StringValidator(), IntValidator())
 
-assert string_int_validator(("ok", 100)) == Ok(("ok", 100))
+assert string_int_validator(("ok", 100)) == Valid(("ok", 100))
 
 # also ok with lists
-assert string_int_validator(["ok", 100]) == Ok(("ok", 100))
+assert string_int_validator(["ok", 100]) == Valid(("ok", 100))
 
 ```
 
@@ -437,23 +439,23 @@ kind of non-empty list.
 
 ```python
 from typing import Optional
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 from koda_validate import IntValidator, Lazy, OptionalValidator, Tuple2Validator
 
 NonEmptyList = tuple[int, Optional["NonEmptyList"]]
 
 
 def recur_non_empty_list() -> Tuple2Validator[int, Optional[NonEmptyList]]:
-    return non_empty_list_validator
+  return non_empty_list_validator
 
 
 non_empty_list_validator = Tuple2Validator(
-    IntValidator(),
-    OptionalValidator(Lazy(recur_non_empty_list)),
+  IntValidator(),
+  OptionalValidator(Lazy(recur_non_empty_list)),
 )
 
-assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Ok(
-    (1, (1, (2, (3, (5, None)))))
+assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Valid(
+  (1, (1, (2, (3, (5, None)))))
 )
 
 ```
@@ -465,13 +467,13 @@ assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Ok(
 need to be concerned about individual keys or values:
 
 ```python
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 from koda_validate import IntValidator, MapValidator, StringValidator
 
 str_to_int_validator = MapValidator(StringValidator(), IntValidator())
 
-assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Ok(
-    {"a": 1, "b": 25, "xyz": 900}
+assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
+  {"a": 1, "b": 25, "xyz": 900}
 )
 
 ```
@@ -481,13 +483,13 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Ok(
 `OptionalValidator` is very simple. It validates a value is either `None` or passes another validator's rules.
 
 ```python
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 from koda_validate import IntValidator, OptionalValidator
 
 optional_int_validator = OptionalValidator(IntValidator())
 
-assert optional_int_validator(5) == Ok(5)
-assert optional_int_validator(None) == Ok(None)
+assert optional_int_validator(5) == Valid(5)
+assert optional_int_validator(None) == Valid(None)
 
 ```
 

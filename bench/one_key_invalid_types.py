@@ -4,7 +4,7 @@ from typing import Any, List
 from pydantic import BaseModel, ValidationError, constr
 
 from koda_validate import DictValidator, StringValidator
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 
 
 @dataclass
@@ -17,7 +17,7 @@ string_validator = DictValidator(into=SimpleStr, keys=(("val_1", StringValidator
 
 def run_kv(objs: Any) -> None:
     for obj in objs:
-        if isinstance(result := string_validator(obj), Ok):
+        if isinstance(result := string_validator(obj), Valid):
             _ = result.val
         else:
             _ = result.val

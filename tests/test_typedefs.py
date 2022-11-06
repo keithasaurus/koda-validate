@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from koda_validate.typedefs import Err, Ok, PredicateAsync
+from koda_validate.typedefs import Invalid, PredicateAsync, Valid
 
 
 @pytest.mark.asyncio
@@ -20,5 +20,5 @@ async def test_async_predicate_works_as_expected() -> None:
             return f"did not start with {self.prefix}"
 
     obj = ExampleStartsWithPredicate("abc")
-    assert await obj.validate_async("def") == Err("did not start with abc")
-    assert await obj.validate_async("abc123") == Ok("abc123")
+    assert await obj.validate_async("def") == Invalid("did not start with abc")
+    assert await obj.validate_async("abc123") == Valid("abc123")

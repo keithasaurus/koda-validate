@@ -15,7 +15,7 @@ from koda_validate.string import (
     strip,
     upper_case,
 )
-from koda_validate.typedefs import Err, Ok
+from koda_validate.typedefs import Invalid, Valid
 
 
 def test_strip() -> None:
@@ -32,61 +32,61 @@ def test_lower_case() -> None:
 
 
 def test_string_validator() -> None:
-    assert StringValidator()(False) == Err(["expected a string"])
+    assert StringValidator()(False) == Invalid(["expected a string"])
 
-    assert StringValidator()("abc") == Ok("abc")
+    assert StringValidator()("abc") == Valid("abc")
 
-    assert StringValidator(MaxLength(3))("something") == Err(
+    assert StringValidator(MaxLength(3))("something") == Invalid(
         ["maximum allowed length is 3"]
     )
 
     min_len_3_not_blank_validator = StringValidator(MinLength(3), NotBlank())
 
-    assert min_len_3_not_blank_validator("") == Err(
+    assert min_len_3_not_blank_validator("") == Invalid(
         ["minimum allowed length is 3", "cannot be blank"]
     )
 
-    assert min_len_3_not_blank_validator("   ") == Err(["cannot be blank"])
+    assert min_len_3_not_blank_validator("   ") == Invalid(["cannot be blank"])
 
-    assert min_len_3_not_blank_validator("something") == Ok("something")
+    assert min_len_3_not_blank_validator("something") == Valid("something")
 
-    assert StringValidator(not_blank, preprocessors=[strip])(" strip me! ") == Ok(
+    assert StringValidator(not_blank, preprocessors=[strip])(" strip me! ") == Valid(
         "strip me!"
     )
 
 
 def test_max_string_length() -> None:
-    assert MaxLength(0)("") == Ok("")
+    assert MaxLength(0)("") == Valid("")
 
-    assert MaxLength(5)("abc") == Ok("abc")
+    assert MaxLength(5)("abc") == Valid("abc")
 
-    assert MaxLength(5)("something") == Err("maximum allowed length is 5")
+    assert MaxLength(5)("something") == Invalid("maximum allowed length is 5")
 
 
 def test_min_string_length() -> None:
-    assert MinLength(0)("") == Ok("")
+    assert MinLength(0)("") == Valid("")
 
-    assert MinLength(3)("abc") == Ok("abc")
+    assert MinLength(3)("abc") == Valid("abc")
 
-    assert MinLength(3)("zz") == Err("minimum allowed length is 3")
+    assert MinLength(3)("zz") == Invalid("minimum allowed length is 3")
 
 
 def test_regex_validator() -> None:
-    assert RegexPredicate(re.compile(r".+"))("something") == Ok("something")
-    assert RegexPredicate(re.compile(r".+"))("") == Err("must match pattern .+")
+    assert RegexPredicate(re.compile(r".+"))("something") == Valid("something")
+    assert RegexPredicate(re.compile(r".+"))("") == Invalid("must match pattern .+")
 
 
 def test_not_blank() -> None:
-    assert NotBlank()("a") == Ok("a")
-    assert NotBlank()("") == Err(BLANK_STRING_MSG)
-    assert NotBlank()(" ") == Err(BLANK_STRING_MSG)
-    assert NotBlank()("\t") == Err(BLANK_STRING_MSG)
-    assert NotBlank()("\n") == Err(BLANK_STRING_MSG)
+    assert NotBlank()("a") == Valid("a")
+    assert NotBlank()("") == Invalid(BLANK_STRING_MSG)
+    assert NotBlank()(" ") == Invalid(BLANK_STRING_MSG)
+    assert NotBlank()("\t") == Invalid(BLANK_STRING_MSG)
+    assert NotBlank()("\n") == Invalid(BLANK_STRING_MSG)
 
 
 def test_email() -> None:
-    assert EmailPredicate()("notanemail") == Err("expected a valid email address")
-    assert EmailPredicate()("a@b.com") == Ok("a@b.com")
+    assert EmailPredicate()("notanemail") == Invalid("expected a valid email address")
+    assert EmailPredicate()("a@b.com") == Valid("a@b.com")
 
 
 @pytest.mark.asyncio
@@ -109,5 +109,5 @@ async def test_validate_fake_db_async() -> None:
         "bad username"
     )
     assert hit == ["ok"]
-    assert result == Err(["not in db!"])
-    assert await StringValidator().validate_async(5) == Err(["expected a string"])
+    assert result == Invalid(["not in db!"])
+    assert await StringValidator().validate_async(5) == Invalid(["expected a string"])

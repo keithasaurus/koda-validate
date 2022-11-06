@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from koda_validate import *
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 
 
 @dataclass
@@ -19,7 +19,7 @@ person_validator = DictValidator(
 )
 
 result = person_validator({"name": "John Doe", "age": 30})
-if isinstance(result, Ok):
+if isinstance(result, Valid):
     print(f"{result.val.name} is {result.val.age} years old")
 else:
     print(result.val)
@@ -46,7 +46,7 @@ data = {
     "people": [{"name": "George Bluth", "age": 70}, {"name": "Michael Bluth", "age": 35}],
 }
 
-assert group_validator(data) == Ok(
+assert group_validator(data) == Valid(
     Group(
         name="Arrested Development Characters",
         people=[

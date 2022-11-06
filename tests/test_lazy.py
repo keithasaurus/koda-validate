@@ -5,7 +5,7 @@ from koda import Just, Maybe, nothing
 
 from koda_validate import IntValidator, Lazy
 from koda_validate.dictionary import DictValidator, KeyNotRequired
-from koda_validate.typedefs import Ok
+from koda_validate.typedefs import Valid
 
 
 def test_lazy() -> None:
@@ -22,7 +22,7 @@ def test_lazy() -> None:
         keys=(("val", IntValidator()), ("next", KeyNotRequired(Lazy(recur_tnel)))),
     )
 
-    assert nel_validator({"val": 5, "next": {"val": 6, "next": {"val": 7}}}) == Ok(
+    assert nel_validator({"val": 5, "next": {"val": 6, "next": {"val": 7}}}) == Valid(
         TestNonEmptyList(5, Just(TestNonEmptyList(6, Just(TestNonEmptyList(7, nothing)))))
     )
 
@@ -44,6 +44,6 @@ async def test_lazy_async() -> None:
 
     assert await nel_validator.validate_async(
         {"val": 5, "next": {"val": 6, "next": {"val": 7}}}
-    ) == Ok(
+    ) == Valid(
         TestNonEmptyList(5, Just(TestNonEmptyList(6, Just(TestNonEmptyList(7, nothing)))))
     )
