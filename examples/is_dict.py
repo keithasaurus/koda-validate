@@ -1,5 +1,5 @@
 from koda_validate.dictionary import is_dict_validator
-from koda_validate.typedefs import Invalid, Valid
+from koda_validate.validated import Invalid, Valid
 
 assert is_dict_validator({}) == Valid({})
 assert is_dict_validator(None) == Invalid({"__container__": ["expected a dictionary"]})

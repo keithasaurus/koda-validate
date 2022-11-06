@@ -3,7 +3,7 @@ from typing import Any, List
 from pydantic import BaseModel, ValidationError, constr
 
 from koda_validate import StringValidator
-from koda_validate.typedefs import Valid
+from koda_validate.base import Valid
 
 string_validator = StringValidator()
 

@@ -1,15 +1,8 @@
 from typing import Callable, ClassVar, Final, List, Optional, Tuple
 
 from koda_validate._generics import A, FailT
-from koda_validate.typedefs import (
-    Invalid,
-    Predicate,
-    PredicateAsync,
-    Processor,
-    Serializable,
-    Valid,
-    Validated,
-)
+from koda_validate.base import Predicate, PredicateAsync, Processor, Serializable
+from koda_validate.validated import Invalid, Valid, Validated
 
 
 def _variant_errors(*variants: Serializable) -> Serializable:

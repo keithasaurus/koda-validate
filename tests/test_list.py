@@ -13,7 +13,7 @@ from koda_validate import (
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Min
 from koda_validate.list import ListValidator, MaxItems, MinItems, unique_items
-from koda_validate.typedefs import Invalid, Valid
+from koda_validate.validated import Invalid, Valid
 
 
 def test_list_validator() -> None:

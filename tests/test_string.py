@@ -15,7 +15,7 @@ from koda_validate.string import (
     strip,
     upper_case,
 )
-from koda_validate.typedefs import Invalid, Valid
+from koda_validate.validated import Invalid, Valid
 
 
 def test_strip() -> None:

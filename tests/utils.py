@@ -1,6 +1,6 @@
 from typing import Any
 
-from koda_validate.typedefs import Invalid, Validated
+from koda_validate.validated import Invalid, Validated
 
 
 def assert_same_error_type_with_same_message(

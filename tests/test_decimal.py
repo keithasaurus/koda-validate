@@ -11,7 +11,7 @@ from koda_validate import (
     Processor,
     Serializable,
 )
-from koda_validate.typedefs import Invalid, Valid
+from koda_validate.validated import Invalid, Valid
 
 
 class Add1Decimal(Processor[Decimal]):

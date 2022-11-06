@@ -6,15 +6,14 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates,
     _handle_scalar_processors_and_predicates_async,
 )
-from koda_validate.typedefs import (
-    Invalid,
+from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
-    Validated,
     Validator,
 )
+from koda_validate.validated import Invalid, Validated
 
 EXPECTED_DECIMAL_ERR: Final[Invalid[Serializable]] = Invalid(
     ["expected a Decimal, or a Decimal-compatible string or integer"]

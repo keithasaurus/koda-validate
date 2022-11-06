@@ -2,16 +2,14 @@ from typing import Any, Dict, Final, List, Optional, Set, Tuple, Type
 
 from koda_validate._generics import A
 from koda_validate._internals import OBJECT_ERRORS_FIELD
-from koda_validate.typedefs import (
-    Invalid,
+from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
-    Valid,
-    Validated,
     Validator,
 )
+from koda_validate.validated import Invalid, Valid, Validated
 
 
 class MinItems(Predicate[List[Any], Serializable]):

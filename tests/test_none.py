@@ -2,7 +2,7 @@ import pytest
 
 from koda_validate import OptionalValidator, StringValidator
 from koda_validate.none import none_validator
-from koda_validate.typedefs import Invalid, Valid
+from koda_validate.validated import Invalid, Valid
 
 
 def test_none() -> None:

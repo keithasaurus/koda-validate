@@ -2,16 +2,14 @@ import re
 from typing import Any, Final, List, Optional, Pattern
 
 from koda_validate._internals import _handle_scalar_processors_and_predicates_async
-from koda_validate.typedefs import (
-    Invalid,
+from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
-    Valid,
-    Validated,
     Validator,
 )
+from koda_validate.validated import Invalid, Valid, Validated
 
 EXPECTED_STR_ERR: Final[Invalid[Serializable]] = Invalid(["expected a string"])
 

@@ -7,15 +7,8 @@ from koda import Thunk
 from koda._generics import A
 
 from koda_validate._generics import Ret
-from koda_validate.typedefs import (
-    Invalid,
-    Predicate,
-    Processor,
-    Serializable,
-    Valid,
-    Validated,
-    Validator,
-)
+from koda_validate.base import Predicate, Processor, Serializable, Validator
+from koda_validate.validated import Invalid, Valid, Validated
 
 EnumT = TypeVar("EnumT", str, int)
 

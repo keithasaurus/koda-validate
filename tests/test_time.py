@@ -3,7 +3,7 @@ from datetime import date, datetime
 import pytest
 
 from koda_validate import DateStringValidator, DatetimeStringValidator
-from koda_validate.typedefs import Invalid, Valid
+from koda_validate.validated import Invalid, Valid
 
 
 def test_date_validator() -> None:

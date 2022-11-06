@@ -3,7 +3,8 @@ from typing import Any, Final, Optional
 from koda._generics import A
 
 from koda_validate._internals import _variant_errors
-from koda_validate.typedefs import Invalid, Serializable, Valid, Validated, Validator
+from koda_validate.base import Serializable, Validator
+from koda_validate.validated import Invalid, Valid, Validated
 
 OK_NONE: Final[Valid[None]] = Valid(None)
 OK_NONE_OPTIONAL: Final[Valid[Optional[Any]]] = Valid(None)

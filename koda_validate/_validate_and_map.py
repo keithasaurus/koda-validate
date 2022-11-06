@@ -4,7 +4,7 @@ from functools import partial
 from typing import Callable, Optional, Tuple, TypeVar, Union, cast, overload
 
 from koda_validate._internals import _flat_map_same_type_if_not_none
-from koda_validate.typedefs import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Valid, Validated
 
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")

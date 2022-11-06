@@ -18,7 +18,7 @@ poetry add koda_validate
 
 ```python3
 from dataclasses import dataclass
-from koda_validate.typedefs import Valid
+from koda_validate.validated import Valid
 from koda_validate import *
 
 
@@ -85,7 +85,7 @@ to match). For `person_validator`, we used a `Person` `dataclass`; for `Group`, 
 does not need to be the case. Because we can use any `Callable` with matching types, this would also be valid:
 
 ```python
-from koda_validate.typedefs import Valid
+from koda_validate.base import Valid
 from koda_validate import *
 
 
@@ -113,7 +113,8 @@ Let's use some more features.
 
 ```python
 from dataclasses import dataclass
-from koda_validate.typedefs import Invalid, Valid, Validated
+from koda_validate.base import Valid
+from koda_validate.validated import Invalid, Validated
 from koda_validate import *
 
 
@@ -165,7 +166,8 @@ We're are spending a lot of time discussing validating collections, but Koda Val
 values.
 
 ```python
-from koda_validate.typedefs import Invalid, Valid
+from koda_validate.base import Valid
+from koda_validate.validated import Invalid
 from koda_validate import ExactValidator, MinLength, StringValidator
 
 min_length_3_validator = StringValidator(MinLength(4))
@@ -265,8 +267,9 @@ write a simple `Validator` for `float`s here:
 
 ```python
 from typing import Any
-from koda_validate.typedefs import Invalid, Valid, Validated
-from koda_validate.typedefs import Serializable, Validator
+from koda_validate.base import Valid
+from koda_validate.validated import Invalid, Validated
+from koda_validate.base import Serializable, Validator
 
 
 class SimpleFloatValidator(Validator[Any, float, Serializable]):
@@ -316,7 +319,8 @@ example, this is how you might write and use a `Predicate` for approximate `floa
 ```python
 import math
 from dataclasses import dataclass
-from koda_validate.typedefs import Invalid, Valid
+from koda_validate.base import Valid
+from koda_validate.validated import Invalid
 from koda_validate import FloatValidator, Serializable, Predicate
 
 
@@ -419,7 +423,7 @@ assert string_or_list_string_validator(["list", "of", "strings"]) == Ok(
 These `Validator`s work on `tuple`s as you might expect:
 
 ```python
-from koda_validate.typedefs import Valid
+from koda_validate.base import Valid
 from koda_validate import IntValidator, StringValidator, Tuple2Validator
 
 string_int_validator = Tuple2Validator(StringValidator(), IntValidator())
@@ -439,7 +443,7 @@ kind of non-empty list.
 
 ```python
 from typing import Optional
-from koda_validate.typedefs import Valid
+from koda_validate.base import Valid
 from koda_validate import IntValidator, Lazy, OptionalValidator, Tuple2Validator
 
 NonEmptyList = tuple[int, Optional["NonEmptyList"]]
@@ -467,7 +471,7 @@ assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Valid(
 need to be concerned about individual keys or values:
 
 ```python
-from koda_validate.typedefs import Valid
+from koda_validate.base import Valid
 from koda_validate import IntValidator, MapValidator, StringValidator
 
 str_to_int_validator = MapValidator(StringValidator(), IntValidator())
@@ -483,7 +487,7 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
 `OptionalValidator` is very simple. It validates a value is either `None` or passes another validator's rules.
 
 ```python
-from koda_validate.typedefs import Valid
+from koda_validate.base import Valid
 from koda_validate import IntValidator, OptionalValidator
 
 optional_int_validator = OptionalValidator(IntValidator())

@@ -10,7 +10,7 @@ from koda_validate import (
     Serializable,
 )
 from koda_validate.boolean import EXPECTED_BOOL_ERR
-from koda_validate.typedefs import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Valid
 
 
 class Flip(Processor[bool]):

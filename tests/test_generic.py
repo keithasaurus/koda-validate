@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from koda_validate import Choices, ExactValidator, Max, Min, MultipleOf, strip
-from koda_validate.typedefs import Invalid, Valid
+from koda_validate.validated import Invalid, Valid
 
 
 def test_exactly() -> None:

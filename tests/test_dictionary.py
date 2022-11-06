@@ -32,7 +32,7 @@ from koda_validate.dictionary import (
     KeyNotRequired,
     is_dict_validator,
 )
-from koda_validate.typedefs import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Valid, Validated
 
 
 class PersonLike(Protocol):

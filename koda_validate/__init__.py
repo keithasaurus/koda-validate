@@ -59,6 +59,13 @@ __all__ = (
     "Processor",
 )
 
+from koda_validate.base import (
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+    Validator,
+)
 from koda_validate.boolean import BoolValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
@@ -95,10 +102,3 @@ from koda_validate.string import (
 )
 from koda_validate.time import DateStringValidator, DatetimeStringValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
-from koda_validate.typedefs import (
-    Predicate,
-    PredicateAsync,
-    Processor,
-    Serializable,
-    Validator,
-)

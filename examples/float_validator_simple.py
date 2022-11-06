@@ -1,6 +1,7 @@
 from typing import Any
 
-from koda_validate.typedefs import Invalid, Serializable, Valid, Validated, Validator
+from koda_validate.base import Serializable, Validator
+from koda_validate.validated import Invalid, Valid, Validated
 
 
 class SimpleFloatValidator(Validator[Any, float, Serializable]):

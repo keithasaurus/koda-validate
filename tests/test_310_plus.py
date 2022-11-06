@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Dict, Hashable
 
-from koda import Err, Maybe, Ok, Result
+from koda import Maybe
 
 from koda_validate import (
     BoolValidator,
@@ -41,7 +41,7 @@ from koda_validate.dictionary import (
     is_dict_validator,
 )
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
-from koda_validate.typedefs import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Valid, Validated
 
 
 def test_match_args() -> None:

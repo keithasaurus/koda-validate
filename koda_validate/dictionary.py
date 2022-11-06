@@ -18,16 +18,14 @@ from typing import (
 from koda import Just, Maybe, mapping_get, nothing
 
 from koda_validate._generics import A
-from koda_validate.typedefs import (
-    Invalid,
+from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
-    Valid,
-    Validated,
     Validator,
 )
+from koda_validate.validated import Invalid, Valid, Validated
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 

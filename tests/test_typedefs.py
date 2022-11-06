@@ -3,7 +3,8 @@ from dataclasses import dataclass
 
 import pytest
 
-from koda_validate.typedefs import Invalid, PredicateAsync, Valid
+from koda_validate.base import PredicateAsync
+from koda_validate.validated import Invalid, Valid
 
 
 @pytest.mark.asyncio

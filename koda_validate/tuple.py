@@ -10,7 +10,8 @@ from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
 from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate._validate_and_map import validate_and_map
-from koda_validate.typedefs import Invalid, Serializable, Validated, Validator
+from koda_validate.base import Serializable, Validator
+from koda_validate.validated import Invalid, Validated
 
 
 def _tuple_to_dict_errors(errs: Tuple[Serializable, ...]) -> Dict[str, Serializable]:

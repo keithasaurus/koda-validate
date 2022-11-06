@@ -4,7 +4,7 @@ import pytest
 
 from koda_validate import BoolValidator, IntValidator, Serializable, StringValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
-from koda_validate.typedefs import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Valid, Validated
 
 
 def test_tuple2() -> None:
