@@ -7,7 +7,6 @@ from typing import (
     Generic,
     List,
     Literal,
-    Optional,
     Tuple,
     Union,
     final,
@@ -29,18 +28,7 @@ class Valid(Generic[A]):
         return isinstance(other, Valid) and other.val == self.val
 
     def __repr__(self) -> str:
-        return f"Ok({repr(self.val)})"
-
-    def apply(
-        self, container: "Validated[Callable[[A], B], FailT]"
-    ) -> "Validated[B, FailT]":
-        if isinstance(container, Valid):
-            return Valid(container.val(self.val))
-        else:
-            return container
-
-    def get_or_else(self, _: A) -> A:
-        return self.val
+        return f"Valid({repr(self.val)})"
 
     def flat_map(self, fn: Callable[[A], "Validated[B, FailT]"]) -> "Validated[B, FailT]":
         return fn(self.val)
@@ -53,22 +41,6 @@ class Valid(Generic[A]):
 
     def map_err(self, fn: Callable[[Any], "B"]) -> "Validated[A, B]":
         return self
-
-    def swap(self) -> "Validated[FailT, A]":
-        return Invalid(self.val)
-
-    @property
-    def to_optional(self) -> Optional[A]:
-        """
-        Note that `Ok[None]` will return None!
-        """
-        return self.val
-
-    @property
-    def to_maybe(self) -> "Maybe[A]":
-        from koda.maybe import Just
-
-        return Just(self.val)
 
 
 class Invalid(Generic[FailT]):
@@ -84,7 +56,7 @@ class Invalid(Generic[FailT]):
         return isinstance(other, Invalid) and other.val == self.val
 
     def __repr__(self) -> str:
-        return f"Err({repr(self.val)})"
+        return f"Invalid({repr(self.val)})"
 
     def apply(self, _: "Validated[Callable[[Any], B], FailT]") -> "Validated[B, FailT]":
         return self
@@ -105,19 +77,6 @@ class Invalid(Generic[FailT]):
 
     def map_err(self, fn: Callable[[FailT], B]) -> "Validated[A, B]":
         return Invalid(fn(self.val))
-
-    def swap(self) -> "Validated[FailT, A]":
-        return Valid(self.val)
-
-    @property
-    def to_optional(self) -> Optional[Any]:
-        return None
-
-    @property
-    def to_maybe(self) -> "Maybe[Any]":
-        from koda.maybe import nothing
-
-        return nothing
 
 
 Validated = Union[Valid[A], Invalid[FailT]]
