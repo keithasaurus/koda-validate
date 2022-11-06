@@ -8,30 +8,31 @@ from typing import (
     Generic,
     Hashable,
     List,
+    Literal,
     Optional,
     Tuple,
     TypeVar,
     Union,
+    cast,
     overload,
 )
 
 from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 
 from koda_validate._generics import A
-from koda_validate._internals import _ToTupleValidator
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
     Validator,
+    _ResultTuple,
+    _ToTupleValidator,
 )
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
-EXPECTED_DICT_ERR: Final[Err[Serializable]] = Err(
-    {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
-)
+EXPECTED_DICT_ERR: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
 
 EXPECTED_MAP_ERR: Final[Err[Serializable]] = Err(
     {OBJECT_ERRORS_FIELD: ["expected a map"]}
@@ -53,18 +54,12 @@ class KeyNotRequired(Generic[A]):
         self.validator = validator
 
     def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
-        if not maybe_val.is_just:
-            return Ok(maybe_val)
-        else:
-            return self.validator(maybe_val.val).map(Just)
+        """
+        This method only exists so mypy understands it's type signature
+        This behavior is expected to be handled by `DictValidator`s
+        """
 
-    async def validate_async(
-        self, maybe_val: Maybe[Any]
-    ) -> Result[Maybe[A], Serializable]:
-        if not maybe_val.is_just:
-            return Ok(maybe_val)
-        else:
-            return (await self.validator.validate_async(maybe_val.val)).map(Just)
+        return cast(Result[Maybe[A], Serializable], None)
 
 
 KeyValidator = Tuple[
@@ -243,18 +238,17 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
             return EXPECTED_MAP_ERR
 
 
-class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
-    def __call__(self, val: Any) -> Result[Dict[Any, Any], Serializable]:
+class IsDictValidator(_ToTupleValidator[Any, Dict[Any, Any], Serializable]):
+    def validate_to_tuple(self, val: Any) -> _ResultTuple[Dict[Any, Any], Serializable]:
         if isinstance(val, dict):
-            return Ok(val)
+            return True, val
         else:
-            return EXPECTED_DICT_ERR
+            return False, EXPECTED_DICT_ERR
 
-    async def validate_async(self, val: Any) -> Result[Dict[Any, Any], Serializable]:
-        if isinstance(val, dict):
-            return Ok(val)
-        else:
-            return EXPECTED_DICT_ERR
+    async def validate_to_tuple_async(
+        self, val: Any
+    ) -> _ResultTuple[Dict[Any, Any], Serializable]:
+        return self.validate_to_tuple(val)
 
 
 is_dict_validator = IsDictValidator()
@@ -288,24 +282,20 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _make_keys_err(keys: FrozenSet[Hashable]) -> Err[Serializable]:
-    return Err(
-        {
-            OBJECT_ERRORS_FIELD: [
-                "Received unknown keys. "
-                + (
-                    "Expected empty dictionary."
-                    if len(keys) == 0
-                    else "Only expected "
-                    + ", ".join(sorted([repr(k) for k in keys]))
-                    + "."
-                )
-            ]
-        }
-    )
+def _make_keys_err(keys: FrozenSet[Hashable]) -> Tuple[Literal[False], Serializable]:
+    return False, {
+        OBJECT_ERRORS_FIELD: [
+            "Received unknown keys. "
+            + (
+                "Expected empty dictionary."
+                if len(keys) == 0
+                else "Only expected " + ", ".join(sorted([repr(k) for k in keys])) + "."
+            )
+        ]
+    }
 
 
-class DictValidator(Validator[Any, Ret, Serializable]):
+class DictValidator(_ToTupleValidator[Any, Ret, Serializable]):
     __slots__ = (
         "_fast_keys",
         "_key_set",
@@ -875,10 +865,9 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         self.validate_object_async = validate_object_async
         self.preprocessors = preprocessors
 
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-
+    def validate_to_tuple(self, data: Any) -> _ResultTuple[Ret, Serializable]:
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
+            return False, EXPECTED_DICT_ERR
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -896,21 +885,29 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             try:
                 val = data[key_]
             except KeyError:
-                if validation_type is 1 or validation_type is 2:
+                if validation_type == 1 or validation_type == 2:
                     errs.append((str_key, KEY_MISSING_MSG))
                 else:
                     args.append(nothing)
             else:
-                if validation_type is 1:
+                # 1: _ToTupleValidator and key required
+                if validation_type == 1:
                     success, new_val = validator.validate_to_tuple(val)
-                elif validation_type is 2:
+                # 2: (basic) Validator and key required
+                elif validation_type == 2:
                     result = validator(val)
                     success, new_val = (result.is_ok, result.val)
-                elif validation_type is 3:
-                    success, new_val = validator.validate_to_tuple(Just(val))
+                # 3: _ToTupleValidator and key not required
+                elif validation_type == 3:
+                    success, new_val = validator.validator.validate_to_tuple(val)
+                    if success:
+                        new_val = Just(new_val)
+                # 4: (basic) Validator and key not required
                 else:
-                    result = validator(Just(val))
+                    result = validator.validator(val)
                     success, new_val = (result.is_ok, result.val)
+                    if success:
+                        new_val = Just(new_val)
 
                 if not success:
                     errs.append((str_key, new_val))
@@ -918,19 +915,22 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                     args.append(new_val)
 
         if errs:
-            return Err(dict(errs))
+            return False, dict(errs)
         else:
             # we know this should be ret
             obj = self.into(*args)
             if self.validate_object is None:
-                return Ok(obj)
+                return True, obj
             else:
-                return self.validate_object(obj)
+                result = self.validate_object(obj)
+                if result.is_ok:
+                    return True, result.val
+                else:
+                    return False, result.val
 
-    async def validate_async(self, data: Any) -> Result[Ret, Serializable]:
-
+    async def validate_to_tuple_async(self, data: Any) -> _ResultTuple[Ret, Serializable]:
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
+            return False, EXPECTED_DICT_ERR
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -955,13 +955,19 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 if validation_type == 1:
                     success, new_val = await validator.validate_to_tuple_async(val)
                 elif validation_type == 2:
-                    result = validator(val)
+                    result = await validator.validate_async(val)
                     success, new_val = (result.is_ok, result.val)
                 elif validation_type == 3:
-                    success, new_val = await validator.validate_to_tuple_async(Just(val))
+                    success, new_val = await validator.validator.validate_to_tuple_async(
+                        val
+                    )
+                    if success:
+                        new_val = Just(new_val)
                 else:
-                    result = validator(Just(val))
+                    result = await validator.validator.validate_async(val)
                     success, new_val = (result.is_ok, result.val)
+                    if success:
+                        new_val = Just(new_val)
 
                 if not success:
                     errs.append((str_key, new_val))
@@ -969,16 +975,23 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                     args.append(new_val)
 
         if errs:
-            return Err(dict(errs))
+            return False, dict(errs)
         else:
-            # we know this should be ret
             obj = self.into(*args)
             if self.validate_object is not None:
-                return self.validate_object(obj)
+                result = self.validate_object(obj)
+                if result.is_ok:
+                    return True, result.val
+                else:
+                    return False, result.val
             elif self.validate_object_async is not None:
-                return await self.validate_object_async(obj)
+                result = await self.validate_object_async(obj)
+                if result.is_ok:
+                    return True, result.val
+                else:
+                    return False, result.val
             else:
-                return Ok(obj)
+                return True, obj
 
 
 class DictValidatorAny(Validator[Any, Any, Serializable]):
@@ -1045,9 +1058,8 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, data: Any) -> Result[Dict[Hashable, Any], Serializable]:
-
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
+            return Err(EXPECTED_DICT_ERR)
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -1056,7 +1068,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return self._unknown_keys_err
+                return Err(self._unknown_keys_err[1])
 
         success_dict: Dict[Hashable, Any] = {}
         errs: List[Tuple[str, Serializable]] = []
@@ -1072,7 +1084,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 if key_required:
                     result = validator(val)
                 else:
-                    result = validator(Just(val))
+                    result = validator.validator(val).map(Just)
 
                 if not result.is_ok:
                     errs.append((str_key, result.val))
@@ -1092,7 +1104,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     ) -> Result[Dict[Hashable, Any], Serializable]:
 
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
+            return Err(EXPECTED_DICT_ERR)
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -1101,7 +1113,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return self._unknown_keys_err
+                return Err(self._unknown_keys_err[1])
 
         success_dict: Dict[Hashable, Any] = {}
         errs: List[Tuple[str, Serializable]] = []
@@ -1117,7 +1129,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 if key_required:
                     result = await validator.validate_async(val)  # type: ignore
                 else:
-                    result = await validator.validate_async(Just(val))  # type: ignore
+                    result = (await validator.validator.validate_async(val)).map(Just)  # type: ignore
 
                 if not result.is_ok:
                     errs.append((str_key, result.val))

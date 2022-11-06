@@ -2,12 +2,15 @@ from typing import Any, Final, List, Optional
 
 from koda import Err, Result
 
-from koda_validate._internals import (
-    ResultTuple,
-    _handle_scalar_processors_and_predicates_async,
+from koda_validate._internals import _handle_scalar_processors_and_predicates_async
+from koda_validate.typedefs import (
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+    _ResultTuple,
     _ToTupleValidator,
 )
-from koda_validate.typedefs import Predicate, PredicateAsync, Processor, Serializable
 
 EXPECTED_FLOAT_MSG: Final[Serializable] = ["expected a float"]
 EXPECTED_FLOAT_ERR: Final[Err[Serializable]] = Err(EXPECTED_FLOAT_MSG)
@@ -27,7 +30,7 @@ class FloatValidator(_ToTupleValidator[Any, float, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[int, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTuple[int, Serializable]:
         if type(val) is float:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -45,10 +48,12 @@ class FloatValidator(_ToTupleValidator[Any, float, Serializable]):
 
         return False, EXPECTED_FLOAT_MSG
 
-    async def validate_async(self, val: Any) -> Result[float, Serializable]:
+    async def validate_to_tuple_async(
+        self, val: Any
+    ) -> _ResultTuple[float, Serializable]:
         if type(val) is float:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:
-            return EXPECTED_FLOAT_ERR
+            return False, EXPECTED_FLOAT_MSG

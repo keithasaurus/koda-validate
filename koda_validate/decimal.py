@@ -2,7 +2,7 @@ import decimal
 from decimal import Decimal as Decimal
 from typing import Any, Final, List, Optional
 
-from koda import Err, Result
+from koda import Err
 
 from koda_validate._internals import (
     _handle_scalar_processors_and_predicates,
@@ -13,15 +13,17 @@ from koda_validate.typedefs import (
     PredicateAsync,
     Processor,
     Serializable,
-    Validator,
+    _ResultTuple,
+    _ToTupleValidator,
 )
 
-EXPECTED_DECIMAL_ERR: Final[Err[Serializable]] = Err(
-    ["expected a Decimal, or a Decimal-compatible string or integer"]
-)
+EXPECTED_DECIMAL_MSG: Final[Serializable] = [
+    "expected a Decimal, or a Decimal-compatible string or integer"
+]
+EXPECTED_DECIMAL_ERR: Final[Err[Serializable]] = Err(EXPECTED_DECIMAL_MSG)
 
 
-class DecimalValidator(Validator[Any, Decimal, Serializable]):
+class DecimalValidator(_ToTupleValidator[Any, Decimal, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
@@ -35,7 +37,7 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[Decimal, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTuple[Decimal, Serializable]:
         if type(val) is Decimal:
             return _handle_scalar_processors_and_predicates(
                 val, self.preprocessors, self.predicates
@@ -45,16 +47,18 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
             try:
                 dec = Decimal(val)
             except decimal.InvalidOperation:
-                return EXPECTED_DECIMAL_ERR
+                return False, EXPECTED_DECIMAL_MSG
             else:
                 return _handle_scalar_processors_and_predicates(
                     dec, self.preprocessors, self.predicates
                 )
 
         else:
-            return EXPECTED_DECIMAL_ERR
+            return False, EXPECTED_DECIMAL_MSG
 
-    async def validate_async(self, val: Any) -> Result[Decimal, Serializable]:
+    async def validate_to_tuple_async(
+        self, val: Any
+    ) -> _ResultTuple[Decimal, Serializable]:
         if type(val) is Decimal:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
@@ -64,11 +68,11 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
             try:
                 dec = Decimal(val)
             except decimal.InvalidOperation:
-                return EXPECTED_DECIMAL_ERR
+                return False, EXPECTED_DECIMAL_MSG
             else:
                 return await _handle_scalar_processors_and_predicates_async(
                     dec, self.preprocessors, self.predicates, self.predicates_async
                 )
 
         else:
-            return EXPECTED_DECIMAL_ERR
+            return False, EXPECTED_DECIMAL_MSG

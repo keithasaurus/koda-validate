@@ -1,7 +1,6 @@
-from typing import Callable, ClassVar, Final, List, Literal, Optional, Tuple, Union
+from typing import Callable, ClassVar, Final, List, Optional, Tuple
 
-from koda import Err, Ok, Result
-from koda._generics import B
+from koda import Result
 
 from koda_validate._generics import A, FailT
 from koda_validate.typedefs import (
@@ -9,7 +8,7 @@ from koda_validate.typedefs import (
     PredicateAsync,
     Processor,
     Serializable,
-    Validator,
+    _ResultTuple,
 )
 
 
@@ -37,18 +36,18 @@ def _handle_scalar_processors_and_predicates(
     val: A,
     preprocessors: Optional[List[Processor[A]]],
     predicates: Tuple[Predicate[A, Serializable], ...],
-) -> Result[A, Serializable]:
+) -> _ResultTuple[A, Serializable]:
     if preprocessors is not None:
         for proc in preprocessors:
             val = proc(val)
 
     if predicates:
         if errors := [pred.err(val) for pred in predicates if not pred.is_valid(val)]:
-            return Err(errors)
+            return False, errors
         else:
-            return Ok(val)
+            return True, val
     else:
-        return Ok(val)
+        return True, val
 
 
 async def _handle_scalar_processors_and_predicates_async(
@@ -56,7 +55,7 @@ async def _handle_scalar_processors_and_predicates_async(
     preprocessors: Optional[List[Processor[A]]],
     predicates: Tuple[Predicate[A, Serializable], ...],
     predicates_async: Optional[List[PredicateAsync[A, Serializable]]],
-) -> Result[A, Serializable]:
+) -> _ResultTuple[A, Serializable]:
     if preprocessors:
         for proc in preprocessors:
             val = proc(val)
@@ -72,9 +71,9 @@ async def _handle_scalar_processors_and_predicates_async(
             ]
         )
     if errors:
-        return Err(errors)
+        return False, errors
     else:
-        return Ok(val)
+        return True, val
 
 
 class _NotSet:
@@ -90,35 +89,3 @@ class _NotSet:
 
 
 _not_set = _NotSet()
-
-ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], FailT]]
-
-
-class _ToTupleValidator(Validator[A, B, FailT]):
-    """
-    This validator exists for optimization. When we call
-    nested validators it's much less computation to deal with simple
-    tuples and bools, instead of Ok and Err instances.
-
-    This class may go away!
-    """
-
-    def validate_to_tuple(self, val: A) -> ResultTuple[A, FailT]:
-        raise NotImplementedError
-
-    def __call__(self, val: A) -> Result[A, FailT]:
-        valid, result_val = self.validate_to_tuple(val)
-        if valid:
-            return Ok(result_val)
-        else:
-            return Err(result_val)
-
-    async def validate_to_tuple_async(self, val: A) -> ResultTuple[A, FailT]:
-        raise NotImplementedError
-
-    async def validate_async(self, val: A) -> Result[A, FailT]:
-        valid, result_val = await self.validate_to_tuple_async(val)
-        if valid:
-            return Ok(result_val)
-        else:
-            return Err(result_val)

@@ -1,7 +1,7 @@
 import asyncio
 
 import pytest
-from koda import Err, Ok, Result
+from koda import Err, Ok
 
 from koda_validate import (
     BoolValidator,
@@ -69,4 +69,4 @@ async def test_boolean_validator_async() -> None:
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(False) == Ok(True)
 
-    assert await BoolValidator().validate_async("abc") == EXPECTED_BOOL_ERR
+    assert await BoolValidator().validate_async("abc") == Err(EXPECTED_BOOL_ERR)

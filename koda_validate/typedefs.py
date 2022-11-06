@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Dict, Generic, List, Tuple, Union, final
+from typing import Any, Dict, Generic, List, Literal, Tuple, Union, final
 
 from koda import Err, Ok, Result
 
@@ -95,3 +95,36 @@ class Processor(Generic[A]):
     @abstractmethod
     def __call__(self, val: A) -> A:  # pragma: no cover
         raise NotImplementedError
+
+
+_ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], FailT]]
+
+
+class _ToTupleValidator(Validator[A, B, FailT]):
+    """
+    This validator exists for optimization. When we call
+    nested validators it's much less computation to deal with simple
+    tuples and bools, instead of Ok and Err instances.
+
+    This class may go away!
+    """
+
+    def validate_to_tuple(self, val: A) -> _ResultTuple[A, FailT]:
+        raise NotImplementedError
+
+    def __call__(self, val: A) -> Result[A, FailT]:
+        valid, result_val = self.validate_to_tuple(val)
+        if valid:
+            return Ok(result_val)
+        else:
+            return Err(result_val)
+
+    async def validate_to_tuple_async(self, val: A) -> _ResultTuple[A, FailT]:
+        raise NotImplementedError
+
+    async def validate_async(self, val: A) -> Result[A, FailT]:
+        valid, result_val = await self.validate_to_tuple_async(val)
+        if valid:
+            return Ok(result_val)
+        else:
+            return Err(result_val)

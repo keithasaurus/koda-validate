@@ -3,17 +3,15 @@ from typing import Any, Final, List, Optional, Pattern
 
 from koda import Err, Result
 
-from koda_validate._internals import (
-    ResultTuple,
-    _handle_scalar_processors_and_predicates_async,
-    _ToTupleValidator,
-)
+from koda_validate._internals import _handle_scalar_processors_and_predicates_async
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
     Validator,
+    _ResultTuple,
+    _ToTupleValidator,
 )
 
 EXPECTED_STR_MSG: Final[Serializable] = ["expected a string"]
@@ -34,7 +32,7 @@ class StringValidator(_ToTupleValidator[Any, str, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[str, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTuple[str, Serializable]:
         if type(val) is str:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -52,14 +50,14 @@ class StringValidator(_ToTupleValidator[Any, str, Serializable]):
 
         return False, EXPECTED_STR_MSG
 
-    async def validate_async(self, val: Any) -> Result[str, Serializable]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTuple[str, Serializable]:
         if type(val) is str:
             # todo: make this faster, like sync?
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:
-            return EXPECTED_STR_ERR
+            return False, EXPECTED_STR_MSG
 
 
 class RegexPredicate(Predicate[str, Serializable]):

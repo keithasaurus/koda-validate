@@ -3,13 +3,15 @@ from typing import Any, Dict, Final, List, Optional, Set, Tuple, Type
 from koda import Err, Ok, Result
 from koda._generics import A
 
-from koda_validate._internals import OBJECT_ERRORS_FIELD, ResultTuple, _ToTupleValidator
+from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
     Validator,
+    _ResultTuple,
+    _ToTupleValidator,
 )
 
 
@@ -95,7 +97,7 @@ class ListValidator(_ToTupleValidator[Any, List[A], Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[List[A], Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTuple[List[A], Serializable]:
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:

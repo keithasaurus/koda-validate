@@ -13,18 +13,16 @@ from koda_validate.typedefs import (
     Processor,
     Serializable,
     Validator,
+    _ResultTuple,
+    _ToTupleValidator,
 )
 
-EXPECTED_DATE_ERR: Final[Err[Serializable]] = Err(
-    ["expected date formatted as yyyy-mm-dd"]
-)
+EXPECTED_DATE_ERR: Final[Serializable] = ["expected date formatted as yyyy-mm-dd"]
 
-EXPECTED_ISO_DATESTRING: Final[Err[Serializable]] = Err(
-    ["expected iso8601-formatted string"]
-)
+EXPECTED_ISO_DATESTRING: Final[Serializable] = ["expected iso8601-formatted string"]
 
 
-class DateStringValidator(Validator[Any, date, Serializable]):
+class DateStringValidator(_ToTupleValidator[Any, date, Serializable]):
     """
     Expects dates to be yyyy-mm-dd
     """
@@ -42,28 +40,28 @@ class DateStringValidator(Validator[Any, date, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[date, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTuple[date, Serializable]:
         try:
             val = date.fromisoformat(val)
         except (ValueError, TypeError):
-            return EXPECTED_DATE_ERR
+            return False, EXPECTED_DATE_ERR
         else:
             return _handle_scalar_processors_and_predicates(
                 val, self.preprocessors, self.predicates
             )
 
-    async def validate_async(self, val: Any) -> Result[date, Serializable]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTuple[date, Serializable]:
         try:
             val = date.fromisoformat(val)
         except (ValueError, TypeError):
-            return EXPECTED_DATE_ERR
+            return False, EXPECTED_DATE_ERR
         else:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
 
 
-class DatetimeStringValidator(Validator[Any, datetime, Serializable]):
+class DatetimeStringValidator(_ToTupleValidator[Any, datetime, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
@@ -77,25 +75,27 @@ class DatetimeStringValidator(Validator[Any, datetime, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[datetime, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTuple[datetime, Serializable]:
         try:
             # note isoparse from dateutil is more flexible if we want
             # to add the dependency at some point
             val_ = datetime.fromisoformat(val)
         except (ValueError, TypeError):
-            return EXPECTED_ISO_DATESTRING
+            return False, EXPECTED_ISO_DATESTRING
         else:
             return _handle_scalar_processors_and_predicates(
                 val_, self.preprocessors, self.predicates
             )
 
-    async def validate_async(self, val: Any) -> Result[datetime, Serializable]:
+    async def validate_to_tuple_async(
+        self, val: Any
+    ) -> _ResultTuple[datetime, Serializable]:
         try:
             # note isoparse from dateutil is more flexible if we want
             # to add the dependency at some point
             val_ = datetime.fromisoformat(val)
         except (ValueError, TypeError):
-            return EXPECTED_ISO_DATESTRING
+            return False, EXPECTED_ISO_DATESTRING
         else:
             return await _handle_scalar_processors_and_predicates_async(
                 val_, self.preprocessors, self.predicates, self.predicates_async

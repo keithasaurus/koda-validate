@@ -9,12 +9,14 @@ from koda_validate.typedefs import (
     Processor,
     Serializable,
     Validator,
+    _ResultTuple,
+    _ToTupleValidator,
 )
 
-EXPECTED_BOOL_ERR: Final[Err[Serializable]] = Err(["expected a boolean"])
+EXPECTED_BOOL_ERR: Final[Serializable] = ["expected a boolean"]
 
 
-class BoolValidator(Validator[Any, bool, Serializable]):
+class BoolValidator(_ToTupleValidator[Any, bool, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
@@ -28,7 +30,7 @@ class BoolValidator(Validator[Any, bool, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[bool, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTuple[bool, Serializable]:
         if type(val) is bool:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -38,18 +40,18 @@ class BoolValidator(Validator[Any, bool, Serializable]):
                 if errors := [
                     pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]:
-                    return Err(errors)
+                    return False, errors
                 else:
-                    return Ok(val)
+                    return True, val
             else:
-                return Ok(val)
+                return True, val
         else:
-            return EXPECTED_BOOL_ERR
+            return False, EXPECTED_BOOL_ERR
 
-    async def validate_async(self, val: Any) -> Result[bool, Serializable]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTuple[bool, Serializable]:
         if type(val) is bool:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:
-            return EXPECTED_BOOL_ERR
+            return False, EXPECTED_BOOL_ERR

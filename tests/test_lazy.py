@@ -21,7 +21,8 @@ def test_lazy() -> None:
         keys=(("val", IntValidator()), ("next", KeyNotRequired(Lazy(recur_tnel)))),
     )
 
-    assert nel_validator({"val": 5, "next": {"val": 6, "next": {"val": 7}}}) == Ok(
+    result = nel_validator({"val": 5, "next": {"val": 6, "next": {"val": 7}}})
+    assert result == Ok(
         TestNonEmptyList(5, Just(TestNonEmptyList(6, Just(TestNonEmptyList(7, nothing)))))
     )
 
