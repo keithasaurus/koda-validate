@@ -13,13 +13,13 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    cast,
     overload,
 )
 
 from koda import Err, Just, Maybe, Ok, Result, mapping_get, nothing
 
 from koda_validate._generics import A
+from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.typedefs import (
     Predicate,
     PredicateAsync,
@@ -30,9 +30,8 @@ from koda_validate.typedefs import (
     _ToTupleValidator,
 )
 
-OBJECT_ERRORS_FIELD: Final[str] = "__container__"
-
-EXPECTED_DICT_ERR: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
+EXPECTED_DICT_MSG: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
+EXPECTED_DICT_ERR: Final[Tuple[Literal[False], Serializable]] = False, EXPECTED_DICT_MSG
 
 EXPECTED_MAP_ERR: Final[Err[Serializable]] = Err(
     {OBJECT_ERRORS_FIELD: ["expected a map"]}
@@ -243,7 +242,7 @@ class IsDictValidator(_ToTupleValidator[Any, Dict[Any, Any], Serializable]):
         if isinstance(val, dict):
             return True, val
         else:
-            return False, EXPECTED_DICT_ERR
+            return EXPECTED_DICT_ERR
 
     async def validate_to_tuple_async(
         self, val: Any
@@ -282,8 +281,8 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _make_keys_err(keys: FrozenSet[Hashable]) -> Tuple[Literal[False], Serializable]:
-    return False, {
+def _make_keys_err(keys: FrozenSet[Hashable]) -> Serializable:
+    return {
         OBJECT_ERRORS_FIELD: [
             "Received unknown keys. "
             + (
@@ -830,13 +829,17 @@ class DictValidator(_ToTupleValidator[Any, Ret, Serializable]):
 
         self.into = into
         self.keys = keys
+        if validate_object is not None and validate_object_async is not None:
+            raise AssertionError(
+                "validate_object and validate_object_async cannot both be defined"
+            )
+        self.validate_object = validate_object
+        self.validate_object_async = validate_object_async
+        self.preprocessors = preprocessors
+
         # so we don't need to calculate each time we validate
         _key_set = frozenset(k for k, _ in keys)
         self._key_set = _key_set
-        self._required_tuple_keys = []
-        self._required_normal_keys = []
-        self._non_required_tuple_keys = []
-        self._non_required_slow_keys = []
         self._fast_keys = [
             (
                 key,
@@ -855,19 +858,11 @@ class DictValidator(_ToTupleValidator[Any, Ret, Serializable]):
             for key, validator in keys
         ]
 
-        self._unknown_keys_err = _make_keys_err(_key_set)
-
-        if validate_object is not None and validate_object_async is not None:
-            raise AssertionError(
-                "validate_object and validate_object_async cannot both be defined"
-            )
-        self.validate_object = validate_object
-        self.validate_object_async = validate_object_async
-        self.preprocessors = preprocessors
+        self._unknown_keys_err = False, _make_keys_err(_key_set)
 
     def validate_to_tuple(self, data: Any) -> _ResultTuple[Ret, Serializable]:
         if not isinstance(data, dict):
-            return False, EXPECTED_DICT_ERR
+            return EXPECTED_DICT_ERR
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -930,7 +925,7 @@ class DictValidator(_ToTupleValidator[Any, Ret, Serializable]):
 
     async def validate_to_tuple_async(self, data: Any) -> _ResultTuple[Ret, Serializable]:
         if not isinstance(data, dict):
-            return False, EXPECTED_DICT_ERR
+            return EXPECTED_DICT_ERR
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -1039,15 +1034,6 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         self.keys: Tuple[KeyValidator[Any], ...] = keys
-        # so we don't need to calculate each time we validate
-        _key_set = frozenset(k for k, _ in keys)
-        self._key_set = _key_set
-        self._fast_keys = [
-            (key, val, not isinstance(val, KeyNotRequired), str(key)) for key, val in keys
-        ]
-
-        self._unknown_keys_err = _make_keys_err(_key_set)
-
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
@@ -1057,9 +1043,18 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
             )
         self.preprocessors = preprocessors
 
+        # so we don't need to calculate each time we validate
+        _key_set = frozenset(k for k, _ in keys)
+        self._key_set = _key_set
+        self._fast_keys = [
+            (key, val, not isinstance(val, KeyNotRequired), str(key)) for key, val in keys
+        ]
+
+        self._unknown_keys_err = Err(_make_keys_err(_key_set))
+
     def __call__(self, data: Any) -> Result[Dict[Hashable, Any], Serializable]:
         if not isinstance(data, dict):
-            return Err(EXPECTED_DICT_ERR)
+            return Err(EXPECTED_DICT_MSG)
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -1068,7 +1063,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return Err(self._unknown_keys_err[1])
+                return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
         errs: List[Tuple[str, Serializable]] = []
@@ -1102,9 +1097,8 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
     async def validate_async(
         self, data: Any
     ) -> Result[Dict[Hashable, Any], Serializable]:
-
         if not isinstance(data, dict):
-            return Err(EXPECTED_DICT_ERR)
+            return Err(EXPECTED_DICT_MSG)
 
         if self.preprocessors is not None:
             for preproc in self.preprocessors:
@@ -1113,7 +1107,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return Err(self._unknown_keys_err[1])
+                return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
         errs: List[Tuple[str, Serializable]] = []

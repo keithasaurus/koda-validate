@@ -1,6 +1,5 @@
-from typing import Any, Dict, Final, List, Optional, Set, Tuple, Type
+from typing import Any, Dict, Final, List, Literal, Optional, Set, Tuple, Type
 
-from koda import Err, Ok, Result
 from koda._generics import A
 
 from koda_validate._internals import OBJECT_ERRORS_FIELD
@@ -76,8 +75,9 @@ class UniqueItems(Predicate[List[Any], Serializable]):
 
 unique_items = UniqueItems()
 
-EXPECTED_LIST_MSG: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a list"]}
-EXPECTED_LIST_ERR: Final[Err[Serializable]] = Err(EXPECTED_LIST_MSG)
+EXPECTED_LIST_ERR: Final[Tuple[Literal[False], Serializable]] = False, {
+    OBJECT_ERRORS_FIELD: ["expected a list"]
+}
 
 
 class ListValidator(_ToTupleValidator[Any, List[A], Serializable]):
@@ -135,9 +135,11 @@ class ListValidator(_ToTupleValidator[Any, List[A], Serializable]):
             else:
                 return True, return_list
         else:
-            return False, EXPECTED_LIST_MSG
+            return EXPECTED_LIST_ERR
 
-    async def validate_async(self, val: Any) -> Result[List[A], Serializable]:
+    async def validate_to_tuple_async(
+        self, val: Any
+    ) -> _ResultTuple[List[A], Serializable]:
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:
@@ -172,8 +174,8 @@ class ListValidator(_ToTupleValidator[Any, List[A], Serializable]):
                         errors[str(i)] = item_result.val
 
             if errors:
-                return Err(errors)
+                return False, errors
             else:
-                return Ok(return_list)
+                return True, return_list
         else:
             return EXPECTED_LIST_ERR

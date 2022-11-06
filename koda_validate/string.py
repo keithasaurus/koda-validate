@@ -1,7 +1,5 @@
 import re
-from typing import Any, Final, List, Optional, Pattern
-
-from koda import Err, Result
+from typing import Any, Final, List, Optional, Pattern, Tuple
 
 from koda_validate._internals import _handle_scalar_processors_and_predicates_async
 from koda_validate.typedefs import (
@@ -9,13 +7,11 @@ from koda_validate.typedefs import (
     PredicateAsync,
     Processor,
     Serializable,
-    Validator,
     _ResultTuple,
     _ToTupleValidator,
 )
 
-EXPECTED_STR_MSG: Final[Serializable] = ["expected a string"]
-EXPECTED_STR_ERR: Final[Err[Serializable]] = Err(EXPECTED_STR_MSG)
+EXPECTED_STR_ERR: Final[Tuple[bool, Serializable]] = False, ["expected a string"]
 
 
 class StringValidator(_ToTupleValidator[Any, str, Serializable]):
@@ -48,7 +44,7 @@ class StringValidator(_ToTupleValidator[Any, str, Serializable]):
             else:
                 return True, val
 
-        return False, EXPECTED_STR_MSG
+        return EXPECTED_STR_ERR
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTuple[str, Serializable]:
         if type(val) is str:
@@ -57,7 +53,7 @@ class StringValidator(_ToTupleValidator[Any, str, Serializable]):
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:
-            return False, EXPECTED_STR_MSG
+            return EXPECTED_STR_ERR
 
 
 class RegexPredicate(Predicate[str, Serializable]):

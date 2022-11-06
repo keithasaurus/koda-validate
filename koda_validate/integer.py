@@ -1,6 +1,4 @@
-from typing import Any, Final, List, Optional
-
-from koda import Err
+from typing import Any, Final, List, Literal, Optional, Tuple
 
 from koda_validate._internals import _handle_scalar_processors_and_predicates_async
 from koda_validate.typedefs import (
@@ -12,8 +10,9 @@ from koda_validate.typedefs import (
     _ToTupleValidator,
 )
 
-EXPECTED_INTEGER_MSG: Final[Serializable] = ["expected an integer"]
-EXPECTED_INTEGER_ERR: Final[Err[Serializable]] = Err(EXPECTED_INTEGER_MSG)
+EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
+    "expected an integer"
+]
 
 
 class IntValidator(_ToTupleValidator[Any, int, Serializable]):
@@ -46,7 +45,7 @@ class IntValidator(_ToTupleValidator[Any, int, Serializable]):
             else:
                 return True, val
 
-        return False, EXPECTED_INTEGER_MSG
+        return EXPECTED_INTEGER_ERR
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTuple[int, Serializable]:
         if type(val) is int:
@@ -54,4 +53,4 @@ class IntValidator(_ToTupleValidator[Any, int, Serializable]):
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:
-            return False, EXPECTED_INTEGER_MSG
+            return EXPECTED_INTEGER_ERR

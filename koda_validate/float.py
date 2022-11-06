@@ -1,6 +1,4 @@
-from typing import Any, Final, List, Optional
-
-from koda import Err, Result
+from typing import Any, Final, List, Literal, Optional, Tuple
 
 from koda_validate._internals import _handle_scalar_processors_and_predicates_async
 from koda_validate.typedefs import (
@@ -12,8 +10,9 @@ from koda_validate.typedefs import (
     _ToTupleValidator,
 )
 
-EXPECTED_FLOAT_MSG: Final[Serializable] = ["expected a float"]
-EXPECTED_FLOAT_ERR: Final[Err[Serializable]] = Err(EXPECTED_FLOAT_MSG)
+EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
+    "expected a float"
+]
 
 
 class FloatValidator(_ToTupleValidator[Any, float, Serializable]):
@@ -46,7 +45,7 @@ class FloatValidator(_ToTupleValidator[Any, float, Serializable]):
             else:
                 return True, val
 
-        return False, EXPECTED_FLOAT_MSG
+        return EXPECTED_FLOAT_ERR
 
     async def validate_to_tuple_async(
         self, val: Any
@@ -56,4 +55,4 @@ class FloatValidator(_ToTupleValidator[Any, float, Serializable]):
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:
-            return False, EXPECTED_FLOAT_MSG
+            return EXPECTED_FLOAT_ERR

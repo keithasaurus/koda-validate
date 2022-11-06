@@ -25,7 +25,7 @@ from koda_validate import (
 )
 from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.dictionary import (
-    EXPECTED_DICT_ERR,
+    EXPECTED_DICT_MSG,
     EXPECTED_MAP_ERR,
     DictValidator,
     DictValidatorAny,
@@ -54,7 +54,8 @@ def test_is_dict() -> None:
 
 @pytest.mark.asyncio
 async def test_is_dict_async() -> None:
-    assert await is_dict_validator.validate_async({}) == Ok({})
+    result = is_dict_validator.validate_async({})
+    assert await result == Ok({})
     assert await is_dict_validator.validate_async(None) == Err(
         {"__container__": ["expected a dictionary"]}
     )
@@ -895,7 +896,7 @@ async def test_validate_dictionary_any_async() -> None:
         validate_object=_nobody_named_jones_has_first_name_alice_dict,
     )
 
-    assert await validator.validate_async(None) == Err(EXPECTED_DICT_ERR)
+    assert await validator.validate_async(None) == Err(EXPECTED_DICT_MSG)
 
     assert await validator.validate_async(
         {"first_name": " bob ", "last_name": "smith"}
@@ -1111,7 +1112,7 @@ async def test_validate_dictionary_async() -> None:
         ),
     )
 
-    assert await validator.validate_async(None) == Err(EXPECTED_DICT_ERR)
+    assert await validator.validate_async(None) == Err(EXPECTED_DICT_MSG)
 
     assert await validator.validate_async(
         {"first_name": " bob ", "last_name": "smith"}
