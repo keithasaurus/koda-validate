@@ -25,7 +25,7 @@ class OptionalValidator(Validator[Any, Optional[A], Serializable]):
             return OK_NONE_OPTIONAL
         else:
             result: Validated[A, Serializable] = self.validator(val)
-            if result.is_ok:
+            if result.is_valid:
                 return Valid(result.val)
             else:
                 return result.map_err(
@@ -37,7 +37,7 @@ class OptionalValidator(Validator[Any, Optional[A], Serializable]):
             return OK_NONE_OPTIONAL
         else:
             result: Validated[A, Serializable] = await self.validator.validate_async(val)
-            if result.is_ok:
+            if result.is_valid:
                 return Valid(result.val)
             else:
                 return result.map_err(

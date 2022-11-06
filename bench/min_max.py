@@ -32,7 +32,7 @@ simple_str_validator = DictValidator(
 
 def run_kv(objs: List[Any]) -> None:
     for obj in objs:
-        if (result := simple_str_validator(obj)).is_ok:
+        if (result := simple_str_validator(obj)).is_valid:
             _ = result.val
         else:
             pass

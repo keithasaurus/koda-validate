@@ -117,7 +117,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
 
             for i, item in enumerate(val):
                 item_result = self.item_validator(item)
-                if item_result.is_ok:
+                if item_result.is_valid:
                     if not errors:
                         return_list.append(item_result.val)
                 else:
@@ -149,7 +149,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             if self.predicates_async is not None:
                 for pred_async in self.predicates_async:
                     result = await pred_async.validate_async(val)
-                    if not result.is_ok:
+                    if not result.is_valid:
                         list_errors.append(result.val)
 
             errors: Optional[Dict[str, Serializable]] = None
@@ -158,7 +158,7 @@ class ListValidator(Validator[Any, List[A], Serializable]):
 
             for i, item in enumerate(val):
                 item_result = await self.item_validator.validate_async(item)
-                if item_result.is_ok:
+                if item_result.is_valid:
                     if not errors:
                         return_list.append(item_result.val)
                 else:

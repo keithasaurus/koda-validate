@@ -53,7 +53,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
                 self.slot2_validator(data[1]),
             )
 
-            if not result.is_ok:
+            if not result.is_valid:
                 return result.map_err(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
@@ -71,7 +71,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
                 await self.slot2_validator.validate_async(data[1]),
             )
 
-            if not result.is_ok:
+            if not result.is_valid:
                 return result.map_err(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
@@ -117,7 +117,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
                 self.slot3_validator(data[2]),
             )
 
-            if not result.is_ok:
+            if not result.is_valid:
                 return result.map_err(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
@@ -138,7 +138,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
                 await self.slot3_validator.validate_async(data[2]),
             )
 
-            if not result.is_ok:
+            if not result.is_valid:
                 return result.map_err(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:

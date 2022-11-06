@@ -23,7 +23,7 @@ def _flat_map_same_type_if_not_none(
     if fn is None:
         return r
     else:
-        if not r.is_ok:
+        if not r.is_valid:
             return r
         else:
             return fn(r.val)

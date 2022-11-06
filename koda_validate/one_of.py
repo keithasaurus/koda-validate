@@ -19,10 +19,10 @@ class OneOf2(Validator[Any, Either[A, B], Serializable]):
         self.variant_2 = variant_2
 
     def __call__(self, val: Any) -> Validated[Either[A, B], Serializable]:
-        if (v1_result := self.variant_1(val)).is_ok:
+        if (v1_result := self.variant_1(val)).is_valid:
             return Valid(First(v1_result.val))
         else:
-            if (v2_result := self.variant_2(val)).is_ok:
+            if (v2_result := self.variant_2(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
                 return Invalid(
@@ -33,10 +33,10 @@ class OneOf2(Validator[Any, Either[A, B], Serializable]):
                 )
 
     async def validate_async(self, val: Any) -> Validated[Either[A, B], Serializable]:
-        if (v1_result := await self.variant_1.validate_async(val)).is_ok:
+        if (v1_result := await self.variant_1.validate_async(val)).is_valid:
             return Valid(First(v1_result.val))
         else:
-            if (v2_result := await self.variant_2.validate_async(val)).is_ok:
+            if (v2_result := await self.variant_2.validate_async(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
                 return Invalid(
@@ -62,13 +62,13 @@ class OneOf3(Validator[Any, Either3[A, B, C], Serializable]):
         self.variant_3 = variant_3
 
     def __call__(self, val: Any) -> Validated[Either3[A, B, C], Serializable]:
-        if (v1_result := self.variant_1(val)).is_ok:
+        if (v1_result := self.variant_1(val)).is_valid:
             return Valid(First(v1_result.val))
         else:
-            if (v2_result := self.variant_2(val)).is_ok:
+            if (v2_result := self.variant_2(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                if (v3_result := self.variant_3(val)).is_ok:
+                if (v3_result := self.variant_3(val)).is_valid:
                     return Valid(Third(v3_result.val))
                 else:
                     return Invalid(
@@ -80,13 +80,13 @@ class OneOf3(Validator[Any, Either3[A, B, C], Serializable]):
                     )
 
     async def validate_async(self, val: Any) -> Validated[Either3[A, B, C], Serializable]:
-        if (v1_result := self.variant_1(val)).is_ok:
+        if (v1_result := self.variant_1(val)).is_valid:
             return Valid(First(v1_result.val))
         else:
-            if (v2_result := self.variant_2(val)).is_ok:
+            if (v2_result := self.variant_2(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                if (v3_result := self.variant_3(val)).is_ok:
+                if (v3_result := self.variant_3(val)).is_valid:
                     return Valid(Third(v3_result.val))
                 else:
                     return Invalid(

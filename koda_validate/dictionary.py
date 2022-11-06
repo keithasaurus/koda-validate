@@ -135,14 +135,14 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val_)
 
-                if key_result.is_ok and val_result.is_ok:
+                if key_result.is_valid and val_result.is_valid:
                     return_dict[key_result.val] = val_result.val
                 else:
                     err_key = str(key)
-                    if not key_result.is_ok:
+                    if not key_result.is_valid:
                         errors[err_key] = {"key_error": key_result.val}
 
-                    if not val_result.is_ok:
+                    if not val_result.is_valid:
                         err_dict = {"value_error": val_result.val}
                         errs: Maybe[Serializable] = mapping_get(errors, err_key)
                         if errs.is_just and isinstance(errs.val, dict):
@@ -159,7 +159,7 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                     # an incorrect assumption; if so, some minor refactoring is probably
                     # necessary.
                     result = predicate(val)
-                    if not result.is_ok:
+                    if not result.is_valid:
                         dict_validator_errors.append(result.val)
 
             if len(dict_validator_errors) > 0:
@@ -189,14 +189,14 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                 key_result = await self.key_validator.validate_async(key)
                 val_result = await self.value_validator.validate_async(val_)
 
-                if key_result.is_ok and val_result.is_ok:
+                if key_result.is_valid and val_result.is_valid:
                     return_dict[key_result.val] = val_result.val
                 else:
                     err_key = str(key)
-                    if not key_result.is_ok:
+                    if not key_result.is_valid:
                         errors[err_key] = {"key_error": key_result.val}
 
-                    if not val_result.is_ok:
+                    if not val_result.is_valid:
                         err_dict = {"value_error": val_result.val}
                         errs: Maybe[Serializable] = mapping_get(errors, err_key)
                         if errs.is_just and isinstance(errs.val, dict):
@@ -213,13 +213,13 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                     # an incorrect assumption; if so, some minor refactoring is probably
                     # necessary.
                     result = predicate(val)
-                    if not result.is_ok:
+                    if not result.is_valid:
                         dict_validator_errors.append(result.val)
 
             if self.predicates_async is not None:
                 for pred_async in self.predicates_async:
                     result = await pred_async.validate_async(val)
-                    if not result.is_ok:
+                    if not result.is_valid:
                         dict_validator_errors.append(result.val)
 
             if len(dict_validator_errors) > 0:
@@ -877,7 +877,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             else:
                 result = validator(val)
 
-                if not result.is_ok:
+                if not result.is_valid:
                     errs.append((str_key, result.val))
                 else:
                     args.append(result.val)
@@ -919,7 +919,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
             else:
                 result = await validator.validate_async(val)  # type: ignore
 
-                if not result.is_ok:
+                if not result.is_valid:
                     errs.append((str_key, result.val))
                 else:
                     args.append(result.val)
@@ -1027,7 +1027,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
             else:
                 result = validator(val)
 
-                if not result.is_ok:
+                if not result.is_valid:
                     errs.append((str_key, result.val))
                 elif not errs:
                     success_dict[key_] = result.val
@@ -1069,7 +1069,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
             else:
                 result = await validator.validate_async(val)  # type: ignore
 
-                if not result.is_ok:
+                if not result.is_valid:
                     errs.append((str_key, result.val))
                 elif not errs:
                     success_dict[key_] = result.val

@@ -21,7 +21,7 @@ class Valid(Generic[A]):
     __match_args__ = ("val",)
     __slots__ = ("val",)
 
-    is_ok: ClassVar[Literal[True]] = True
+    is_valid: ClassVar[Literal[True]] = True
 
     def __init__(self, val: A) -> None:
         self.val: A = val
@@ -53,7 +53,7 @@ class Invalid(Generic[FailT]):
     __match_args__ = ("val",)
     __slots__ = ("val",)
 
-    is_ok: ClassVar[Literal[False]] = False
+    is_valid: ClassVar[Literal[False]] = False
 
     def __init__(self, val: FailT) -> None:
         self.val: FailT = val
