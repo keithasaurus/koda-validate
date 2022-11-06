@@ -12,6 +12,8 @@ from typing import (
     final,
 )
 
+from koda import Ok, Result
+
 from koda_validate._generics import A, B, FailT
 
 
@@ -41,6 +43,10 @@ class Valid(Generic[A]):
 
     def map_err(self, fn: Callable[[Any], "B"]) -> "Validated[A, B]":
         return self
+
+    @property
+    def as_result(self) -> Result[A, Any]:
+        return Ok(self.val)
 
 
 class Invalid(Generic[FailT]):
@@ -77,6 +83,10 @@ class Invalid(Generic[FailT]):
 
     def map_err(self, fn: Callable[[FailT], B]) -> "Validated[A, B]":
         return Invalid(fn(self.val))
+
+    @property
+    def as_result(self) -> Result[Any, FailT]:
+        return Ok(self.val)
 
 
 Validated = Union[Valid[A], Invalid[FailT]]

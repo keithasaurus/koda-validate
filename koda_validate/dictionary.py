@@ -54,19 +54,11 @@ class KeyNotRequired(Generic[A]):
     def __init__(self, validator: Validator[Any, A, Serializable]):
         self.validator = validator
 
-    def __call__(self, maybe_val: Maybe[Any]) -> Validated[Maybe[A], Serializable]:
-        if not maybe_val.is_just:
-            return Valid(maybe_val)
-        else:
-            return self.validator(maybe_val.val).map(Just)
+    def __call__(self, val: Any) -> Validated[Maybe[A], Serializable]:
+        return self.validator(val).map(Just)
 
-    async def validate_async(
-        self, maybe_val: Maybe[Any]
-    ) -> Validated[Maybe[A], Serializable]:
-        if not maybe_val.is_just:
-            return Valid(maybe_val)
-        else:
-            return (await self.validator.validate_async(maybe_val.val)).map(Just)
+    async def validate_async(self, val: Any) -> Validated[Maybe[A], Serializable]:
+        return (await self.validator.validate_async(val)).map(Just)
 
 
 KeyValidator = Tuple[
@@ -860,7 +852,6 @@ class DictValidator(Validator[Any, Ret, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, data: Any) -> Validated[Ret, Serializable]:
-
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
 
@@ -884,10 +875,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 else:
                     args.append(nothing)
             else:
-                if key_required:
-                    result = validator(val)
-                else:
-                    result = validator(Just(val))
+                result = validator(val)
 
                 if not result.is_ok:
                     errs.append((str_key, result.val))
@@ -929,10 +917,7 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 else:
                     args.append(nothing)
             else:
-                if key_required:
-                    result = await validator.validate_async(val)  # type: ignore
-                else:
-                    result = await validator.validate_async(Just(val))  # type: ignore # noqa: E501
+                result = await validator.validate_async(val)  # type: ignore
 
                 if not result.is_ok:
                     errs.append((str_key, result.val))
@@ -1040,10 +1025,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 elif not errs:
                     success_dict[key_] = nothing
             else:
-                if key_required:
-                    result = validator(val)
-                else:
-                    result = validator(Just(val))
+                result = validator(val)
 
                 if not result.is_ok:
                     errs.append((str_key, result.val))
@@ -1085,10 +1067,7 @@ class DictValidatorAny(Validator[Any, Any, Serializable]):
                 elif not errs:
                     success_dict[key_] = nothing
             else:
-                if key_required:
-                    result = await validator.validate_async(val)  # type: ignore
-                else:
-                    result = await validator.validate_async(Just(val))  # type: ignore
+                result = await validator.validate_async(val)  # type: ignore
 
                 if not result.is_ok:
                     errs.append((str_key, result.val))
