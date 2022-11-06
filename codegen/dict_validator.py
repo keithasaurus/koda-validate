@@ -253,7 +253,7 @@ class IsDictValidator(_ToTupleValidator[Any, Dict[Any, Any], Serializable]):
             return EXPECTED_DICT_ERR
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTuple[Dict[Any, Any], Serializable]:
-        return self(val) 
+        return self.validate_to_tuple(val) 
 
 
 is_dict_validator = IsDictValidator()
