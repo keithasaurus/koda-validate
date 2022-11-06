@@ -82,7 +82,13 @@ EXPECTED_LIST_ERR: Final[Tuple[Literal[False], Serializable]] = False, {
 
 class ListValidator(_ToTupleValidator[Any, List[A], Serializable]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
-    __slots__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
+    __slots__ = (
+        "_item_validator_is_tuple",
+        "item_validator",
+        "predicates",
+        "predicates_async",
+        "preprocessors",
+    )
 
     def __init__(
         self,
@@ -96,6 +102,8 @@ class ListValidator(_ToTupleValidator[Any, List[A], Serializable]):
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
+
+        self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
 
     def validate_to_tuple(self, val: Any) -> _ResultTuple[List[A], Serializable]:
         if isinstance(val, list):
@@ -116,7 +124,7 @@ class ListValidator(_ToTupleValidator[Any, List[A], Serializable]):
             return_list: List[A] = []
 
             for i, item in enumerate(val):
-                if isinstance(self.item_validator, _ToTupleValidator):
+                if self._item_validator_is_tuple:
                     is_valid, item_result = self.item_validator.validate_to_tuple(item)
                 else:
                     _result = self.item_validator(item)
