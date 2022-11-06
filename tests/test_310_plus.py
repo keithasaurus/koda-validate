@@ -41,6 +41,7 @@ from koda_validate.dictionary import (
     is_dict_validator,
 )
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
+from koda_validate.typedefs import Invalid, Valid, Validated
 
 
 def test_match_args() -> None:
@@ -89,11 +90,11 @@ def test_match_args() -> None:
         name: str
         age: Maybe[int]
 
-    def validate_person(p: Person) -> Result[Person, Serializable]:
+    def validate_person(p: Person) -> Validated[Person, Serializable]:
         if len(p.name) > p.age.get_or_else(100):
-            return Err(["your name cannot be longer than your age"])
+            return Invalid(["your name cannot be longer than your age"])
         else:
-            return Ok(p)
+            return Valid(p)
 
     dv_validator: DictValidator[Person] = DictValidator(
         into=(into_ := Person),
@@ -118,11 +119,11 @@ def test_match_args() -> None:
 
     def validate_person_dict_any(
         p: Dict[Hashable, Any]
-    ) -> Result[Dict[Hashable, Any], Serializable]:
+    ) -> Validated[Dict[Hashable, Any], Serializable]:
         if len(p["name"]) > p["age"]:
-            return Err(["your name cannot be longer than your name"])
+            return Invalid(["your name cannot be longer than your name"])
         else:
-            return Ok(p)
+            return Valid(p)
 
     dvu_validator = DictValidatorAny(
         keys=((str_0 := ("name", StringValidator())), (int_0 := ("age", IntValidator()))),
