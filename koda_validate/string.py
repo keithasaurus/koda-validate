@@ -1,20 +1,28 @@
 import re
-from typing import Any, Final, List, Optional, Pattern
+from typing import Any, Final, List, Literal, Optional, Pattern, Tuple
 
-from koda_validate._internals import _handle_scalar_processors_and_predicates_async
+from koda_validate._generics import B, FailT
+from koda_validate._internals import (
+    _handle_scalar_processors_and_predicates_async,
+    _handle_scalar_processors_and_predicates_async_tuple,
+)
 from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
     Validator,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
 )
-from koda_validate.validated import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Validated
 
-EXPECTED_STR_ERR: Final[Invalid[Serializable]] = Invalid(["expected a string"])
+EXPECTED_STR_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
+    "expected a string"
+]
 
 
-class StringValidator(Validator[Any, str, Serializable]):
+class StringValidator(_ToTupleValidatorUnsafe[Any, str, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
@@ -28,7 +36,7 @@ class StringValidator(Validator[Any, str, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[str, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is str:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -38,18 +46,17 @@ class StringValidator(Validator[Any, str, Serializable]):
                 if errors := [
                     pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]:
-                    return Invalid(errors)
+                    return False, errors
                 else:
-                    return Valid(val)
+                    return True, val
             else:
-                return Valid(val)
+                return True, val
 
         return EXPECTED_STR_ERR
 
-    async def validate_async(self, val: Any) -> Validated[str, Serializable]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is str:
-            # todo: make this faster, like sync?
-            return await _handle_scalar_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async_tuple(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:

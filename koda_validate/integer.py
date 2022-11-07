@@ -1,20 +1,24 @@
-from typing import Any, Final, List, Optional
+from typing import Any, Final, List, Literal, Optional, Tuple
 
-from koda_validate._internals import _handle_scalar_processors_and_predicates_async
+from koda_validate._internals import (
+    _handle_scalar_processors_and_predicates_async,
+    _handle_scalar_processors_and_predicates_async_tuple,
+)
 from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
-    Validator,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
 )
-from koda_validate.validated import Invalid, Valid, Validated
 
-# extracted for optimization
-EXPECTED_INTEGER_ERR: Final[Invalid[Serializable]] = Invalid(["expected an integer"])
+EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
+    "expected an integer"
+]
 
 
-class IntValidator(Validator[Any, int, Serializable]):
+class IntValidator(_ToTupleValidatorUnsafe[Any, int, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
@@ -28,7 +32,7 @@ class IntValidator(Validator[Any, int, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[int, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is int:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -38,17 +42,17 @@ class IntValidator(Validator[Any, int, Serializable]):
                 if errors := [
                     pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]:
-                    return Invalid(errors)
+                    return False, errors
                 else:
-                    return Valid(val)
+                    return True, val
             else:
-                return Valid(val)
+                return True, val
 
         return EXPECTED_INTEGER_ERR
 
-    async def validate_async(self, val: Any) -> Validated[int, Serializable]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is int:
-            return await _handle_scalar_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async_tuple(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:

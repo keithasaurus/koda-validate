@@ -1,6 +1,7 @@
-from typing import Any, Dict, Final, List, Optional, Set, Tuple, Type
+from typing import Any, Dict, Final, List, Literal, Optional, Set, Tuple, Type
 
-from koda_validate._generics import A
+from koda._generics import A
+
 from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.base import (
     Predicate,
@@ -8,8 +9,9 @@ from koda_validate.base import (
     Processor,
     Serializable,
     Validator,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
 )
-from koda_validate.validated import Invalid, Valid, Validated
 
 
 class MinItems(Predicate[List[Any], Serializable]):
@@ -73,14 +75,20 @@ class UniqueItems(Predicate[List[Any], Serializable]):
 
 unique_items = UniqueItems()
 
-EXPECTED_LIST_ERR: Final[Invalid[Serializable]] = Invalid(
-    {OBJECT_ERRORS_FIELD: ["expected a list"]}
-)
+EXPECTED_LIST_ERR: Final[Tuple[Literal[False], Serializable]] = False, {
+    OBJECT_ERRORS_FIELD: ["expected a list"]
+}
 
 
-class ListValidator(Validator[Any, List[A], Serializable]):
+class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
-    __slots__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
+    __slots__ = (
+        "_item_validator_is_tuple",
+        "item_validator",
+        "predicates",
+        "predicates_async",
+        "preprocessors",
+    )
 
     def __init__(
         self,
@@ -95,7 +103,11 @@ class ListValidator(Validator[Any, List[A], Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[List[A], Serializable]:
+        self._item_validator_is_tuple = isinstance(
+            item_validator, _ToTupleValidatorUnsafe
+        )
+
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:
@@ -114,24 +126,28 @@ class ListValidator(Validator[Any, List[A], Serializable]):
             return_list: List[A] = []
 
             for i, item in enumerate(val):
-                item_result = self.item_validator(item)
-                if item_result.is_valid:
+                if self._item_validator_is_tuple:
+                    is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore
+                else:
+                    _result = self.item_validator(item)
+                    is_valid, item_result = (_result.is_valid, _result.val)
+                if is_valid:
                     if not errors:
-                        return_list.append(item_result.val)
+                        return_list.append(item_result)
                 else:
                     if errors is None:
-                        errors = {str(i): item_result.val}
+                        errors = {str(i): item_result}
                     else:
-                        errors[str(i)] = item_result.val
+                        errors[str(i)] = item_result
 
             if errors:
-                return Invalid(errors)
+                return False, errors
             else:
-                return Valid(return_list)
+                return True, return_list
         else:
             return EXPECTED_LIST_ERR
 
-    async def validate_async(self, val: Any) -> Validated[List[A], Serializable]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:
@@ -166,8 +182,8 @@ class ListValidator(Validator[Any, List[A], Serializable]):
                         errors[str(i)] = item_result.val
 
             if errors:
-                return Invalid(errors)
+                return False, errors
             else:
-                return Valid(return_list)
+                return True, return_list
         else:
             return EXPECTED_LIST_ERR

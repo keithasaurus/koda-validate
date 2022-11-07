@@ -1,7 +1,13 @@
 from typing import Callable, ClassVar, Final, List, Optional, Tuple
 
 from koda_validate._generics import A, FailT
-from koda_validate.base import Predicate, PredicateAsync, Processor, Serializable
+from koda_validate.base import (
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+    _ResultTupleUnsafe,
+)
 from koda_validate.validated import Invalid, Valid, Validated
 
 
@@ -67,6 +73,32 @@ async def _handle_scalar_processors_and_predicates_async(
         return Invalid(errors)
     else:
         return Valid(val)
+
+
+async def _handle_scalar_processors_and_predicates_async_tuple(
+    val: A,
+    preprocessors: Optional[List[Processor[A]]],
+    predicates: Tuple[Predicate[A, Serializable], ...],
+    predicates_async: Optional[List[PredicateAsync[A, Serializable]]],
+) -> _ResultTupleUnsafe:
+    if preprocessors:
+        for proc in preprocessors:
+            val = proc(val)
+
+    errors = [pred.err(val) for pred in predicates if not pred.is_valid(val)]
+
+    if predicates_async:
+        errors.extend(
+            [
+                await pred.err_async(val)
+                for pred in predicates_async
+                if not await pred.is_valid_async(val)
+            ]
+        )
+    if errors:
+        return False, errors
+    else:
+        return True, val
 
 
 class _NotSet:

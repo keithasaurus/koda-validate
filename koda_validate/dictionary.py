@@ -24,6 +24,7 @@ from koda_validate.base import (
     Processor,
     Serializable,
     Validator,
+    _ToTupleValidatorUnsafe,
 )
 from koda_validate.validated import Invalid, Valid, Validated
 
@@ -643,12 +644,18 @@ class DictValidator(Validator[Any, Ret, Serializable]):
                 else:
                     args.append(nothing)
             else:
-                result = validator(val)
-
-                if not result.is_valid:
-                    errs.append((str_key, result.val))
+                if isinstance(validator, _ToTupleValidatorUnsafe):
+                    success, new_val = validator.validate_to_tuple(val)
                 else:
-                    args.append(result.val)
+                    success, new_val = (
+                        (True, result_.val)
+                        if (result_ := validator(val)).is_valid
+                        else (False, result_.val)
+                    )
+                if not success:
+                    errs.append((str_key, new_val))
+                elif not errs:
+                    args.append(new_val)
 
         if errs:
             return Invalid(dict(errs))

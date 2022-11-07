@@ -94,3 +94,41 @@ class Processor(Generic[A]):
     @abstractmethod
     def __call__(self, val: A) -> A:  # pragma: no cover
         raise NotImplementedError
+
+
+# should look like this, but mypy doesn't understand it as of 0.982
+# _ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], FailT]]
+_ResultTupleUnsafe = Tuple[bool, Any]
+
+
+class _ToTupleValidatorUnsafe(Validator[A, B, FailT]):
+    """
+    This `Validator` subclass exists for optimization. When we call
+    nested validators it's much less computation to deal with simple
+    tuples and bools, instead of Valid and Invalid instances.
+    This class may go away!
+
+    DO NOT USE THIS UNLESS YOU:
+    - ARE OK WITH THIS DISAPPEARING IN A FUTURE RELEASE
+    - ARE GOING TO TEST YOUR CODE EXTENSIVELY
+    """
+
+    def validate_to_tuple(self, val: A) -> _ResultTupleUnsafe:
+        raise NotImplementedError
+
+    def __call__(self, val: A) -> Validated[B, FailT]:
+        valid, result_val = self.validate_to_tuple(val)
+        if valid:
+            return Valid(result_val)
+        else:
+            return Invalid(result_val)
+
+    async def validate_to_tuple_async(self, val: A) -> _ResultTupleUnsafe:
+        raise NotImplementedError
+
+    async def validate_async(self, val: A) -> Validated[B, FailT]:
+        valid, result_val = await self.validate_to_tuple_async(val)
+        if valid:
+            return Valid(result_val)
+        else:
+            return Invalid(result_val)

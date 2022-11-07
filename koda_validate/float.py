@@ -1,19 +1,24 @@
-from typing import Any, Final, List, Optional
+from typing import Any, Final, List, Literal, Optional, Tuple
 
-from koda_validate._internals import _handle_scalar_processors_and_predicates_async
+from koda_validate._internals import (
+    _handle_scalar_processors_and_predicates_async,
+    _handle_scalar_processors_and_predicates_async_tuple,
+)
 from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
-    Validator,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
 )
-from koda_validate.validated import Invalid, Valid, Validated
 
-EXPECTED_FLOAT_ERR: Final[Invalid[Serializable]] = Invalid(["expected a float"])
+EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
+    "expected a float"
+]
 
 
-class FloatValidator(Validator[Any, float, Serializable]):
+class FloatValidator(_ToTupleValidatorUnsafe[Any, float, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
@@ -27,7 +32,7 @@ class FloatValidator(Validator[Any, float, Serializable]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[float, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is float:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -37,17 +42,17 @@ class FloatValidator(Validator[Any, float, Serializable]):
                 if errors := [
                     pred.err(val) for pred in self.predicates if not pred.is_valid(val)
                 ]:
-                    return Invalid(errors)
+                    return False, errors
                 else:
-                    return Valid(val)
+                    return True, val
             else:
-                return Valid(val)
+                return True, val
 
         return EXPECTED_FLOAT_ERR
 
-    async def validate_async(self, val: Any) -> Validated[float, Serializable]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is float:
-            return await _handle_scalar_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async_tuple(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:
