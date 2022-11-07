@@ -127,7 +127,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
 
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
-                    is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore
+                    is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501
                 else:
                     _result = self.item_validator(item)
                     is_valid, item_result = (_result.is_valid, _result.val)

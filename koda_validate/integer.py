@@ -1,9 +1,6 @@
 from typing import Any, Final, List, Literal, Optional, Tuple
 
-from koda_validate._internals import (
-    _handle_scalar_processors_and_predicates_async,
-    _handle_scalar_processors_and_predicates_async_tuple,
-)
+from koda_validate._internals import _handle_scalar_processors_and_predicates_async_tuple
 from koda_validate.base import (
     Predicate,
     PredicateAsync,

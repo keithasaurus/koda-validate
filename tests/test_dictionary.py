@@ -25,7 +25,6 @@ from koda_validate import (
 )
 from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.dictionary import (
-    EXPECTED_DICT_ERR,
     EXPECTED_MAP_ERR,
     DictValidator,
     DictValidatorAny,
@@ -900,7 +899,9 @@ async def test_validate_dictionary_any_async() -> None:
         validate_object=_nobody_named_jones_has_first_name_alice_dict,
     )
 
-    assert await validator.validate_async(None) == EXPECTED_DICT_ERR
+    assert await validator.validate_async(None) == Invalid(
+        {"__container__": ["expected a dictionary"]}
+    )
 
     assert await validator.validate_async(
         {"first_name": " bob ", "last_name": "smith"}
@@ -1116,7 +1117,9 @@ async def test_validate_dictionary_async() -> None:
         ),
     )
 
-    assert await validator.validate_async(None) == EXPECTED_DICT_ERR
+    assert await validator.validate_async(None) == Invalid(
+        {"__container__": ["expected a dictionary"]}
+    )
 
     assert await validator.validate_async(
         {"first_name": " bob ", "last_name": "smith"}
