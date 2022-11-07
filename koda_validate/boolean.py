@@ -1,6 +1,9 @@
 from typing import Any, Final, List, Optional
 
-from koda_validate._internals import _handle_scalar_processors_and_predicates_async
+from koda_validate._internals import (
+    _async_predicates_warning,
+    _handle_scalar_processors_and_predicates_async,
+)
 from koda_validate.base import (
     Predicate,
     PredicateAsync,
@@ -28,6 +31,9 @@ class BoolValidator(Validator[Any, bool, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Validated[bool, Serializable]:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
         if type(val) is bool:
             if self.preprocessors:
                 for proc in self.preprocessors:

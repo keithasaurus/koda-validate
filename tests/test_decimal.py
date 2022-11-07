@@ -11,6 +11,7 @@ from koda_validate import (
     Processor,
     Serializable,
 )
+from koda_validate._generics import A
 from koda_validate.validated import Invalid, Valid
 
 
@@ -74,3 +75,17 @@ async def test_decimal_async() -> None:
     assert await DecimalValidator(
         preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
     ).validate_async(Decimal("3.75")) == Invalid(["not less than 4!"])
+
+
+def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
+    class AsyncWait(PredicateAsync[A, Serializable]):
+        async def is_valid_async(self, val: A) -> bool:
+            await asyncio.sleep(0.001)
+            return True
+
+        async def err_async(self, val: A) -> Serializable:
+            return "should always succeed??"
+
+    dec_validator = DecimalValidator(predicates_async=[AsyncWait()])
+    with pytest.raises(AssertionError):
+        dec_validator("whatever")

@@ -1,6 +1,7 @@
 import asyncio
 
 import pytest
+from koda._generics import A
 
 from koda_validate import (
     IntValidator,
@@ -72,3 +73,17 @@ async def test_float_async() -> None:
     assert await IntValidator(
         preprocessors=[Add1Int()], predicates_async=[LessThan4()]
     ).validate_async(2) == Valid(3)
+
+
+def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
+    class AsyncWait(PredicateAsync[A, Serializable]):
+        async def is_valid_async(self, val: A) -> bool:
+            await asyncio.sleep(0.001)
+            return True
+
+        async def err_async(self, val: A) -> Serializable:
+            return "should always succeed??"
+
+    int_validator = IntValidator(predicates_async=[AsyncWait()])
+    with pytest.raises(AssertionError):
+        int_validator(5)

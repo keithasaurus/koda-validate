@@ -15,7 +15,7 @@ Koda Validate is:
   - [Validators](#validator)
   - [Predicates](#predicates)
   - [Processors](#processors)
-- Asyncio
+- [Async Validation](#async-validation)
 - Extension
   - Validators
   - Predicates
@@ -194,12 +194,14 @@ it was checked against the `MaxLength(3)` `Predicate`.
 
 Processors are very simple to write -- see [Extension](#extension) for more details.
 
-# Async Validation
-All the built-in Validators in Koda are async compatible. 
+## Async Validation
+Because Koda Validate is based on simple principles, it's relatively straightforward to make it compatible with `asyncio`.
+All the built-in Validators in Koda are async compatible -- all you need to do is used the `.validate_async` method instead of 
+calling the validator directly. 
 ```python
 import asyncio
 from koda_validate import *
-from koda import Ok
+
 
 short_string_validator = StringValidator(MaxLength(10))
 
@@ -208,11 +210,35 @@ assert short_string_validator("sync") == Valid("sync")
 assert asyncio.run(short_string_validator.validate_async("async")) == Valid("async")
 ```
 
-All `Validator`s in Koda Validate can be called directly for synchronous validation, or from the `validate_async` 
-method for async validation. The async example we saw isn't really helpful because we aren't 
-doing any IO.
+This example isn't particularly helpful because we aren't doing any asynchronous IO. It would be much more 
+useful if we were doing something like querying a database:
+```python
+import asyncio
+from koda_validate import *
 
 
+class IsActiveUsername(PredicateAsync[str, Serializable]):
+    async def is_valid_async(self, val: str) -> bool:
+        # add some latency to pretend we're calling the db
+        await asyncio.sleep(.01)
+
+        return val in {"michael", "gob", "lindsay", "buster"}
+
+    async def err_async(self, val: str) -> Serializable:
+        return "invalid username"
+
+
+username_validator = StringValidator(MinLength(1),
+                                     MaxLength(100),
+                                     predicates_async=[IsActiveUsername()])
+
+assert asyncio.run(username_validator.validate_async("michael")) == Valid("michael")
+assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(["invalid username"])
+
+```
+In this example we are calling the database to verify a user name. A few things worth pointing out:
+`PredicateAsync`s are specified separately from `Predicates`. If you try to run this validator in synchronous mode, it 
+will raise an `Exception`. 
 
 
 ```python

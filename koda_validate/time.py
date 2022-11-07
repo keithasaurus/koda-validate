@@ -2,6 +2,7 @@ from datetime import date, datetime
 from typing import Any, Final, List, Optional
 
 from koda_validate._internals import (
+    _async_predicates_warning,
     _handle_scalar_processors_and_predicates,
     _handle_scalar_processors_and_predicates_async,
 )
@@ -42,6 +43,9 @@ class DateStringValidator(Validator[Any, date, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Validated[date, Serializable]:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
         try:
             val = date.fromisoformat(val)
         except (ValueError, TypeError):
@@ -77,6 +81,9 @@ class DatetimeStringValidator(Validator[Any, datetime, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Validated[datetime, Serializable]:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
         try:
             # note isoparse from dateutil is more flexible if we want
             # to add the dependency at some point

@@ -134,6 +134,9 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Validated[Dict[T1, T2], Serializable]:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
         if isinstance(val, dict):
             if self.preprocessors is not None:
                 for preproc in self.preprocessors:

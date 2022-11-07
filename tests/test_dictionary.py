@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
+from re import A
 from typing import Any, Dict, Hashable, List, Protocol
 
 import pytest
@@ -17,6 +18,7 @@ from koda_validate import (
     Min,
     MinKeys,
     Predicate,
+    PredicateAsync,
     Processor,
     Serializable,
     StringValidator,
@@ -215,6 +217,22 @@ async def test_map_validator_async() -> None:
     )
 
     assert map_validator_preprocessor({}) == Valid({"newkey": 123})
+
+
+def test_map_validator_sync_call_with_async_predicates_raises_assertion_error() -> None:
+    class AsyncWait(PredicateAsync[A, Serializable]):
+        async def is_valid_async(self, val: A) -> bool:
+            await asyncio.sleep(0.001)
+            return True
+
+        async def err_async(self, val: A) -> Serializable:
+            return "should always succeed??"
+
+    map_validator = MapValidator(
+        StringValidator(), StringValidator(), predicates_async=[AsyncWait()]
+    )
+    with pytest.raises(AssertionError):
+        map_validator([])
 
 
 def test_max_keys() -> None:

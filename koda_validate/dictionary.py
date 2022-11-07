@@ -20,7 +20,7 @@ from typing import (
 from koda import Just, Maybe, mapping_get, nothing
 
 from koda_validate._generics import A
-from koda_validate._internals import OBJECT_ERRORS_FIELD
+from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
     Predicate,
     PredicateAsync,
@@ -119,6 +119,9 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Validated[Dict[T1, T2], Serializable]:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
         if isinstance(val, dict):
             if self.preprocessors is not None:
                 for preproc in self.preprocessors:

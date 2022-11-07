@@ -4,6 +4,7 @@ import re
 import pytest
 
 from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate, Serializable
+from koda_validate._generics import A
 from koda_validate.string import (
     BLANK_STRING_MSG,
     MaxLength,
@@ -111,3 +112,17 @@ async def test_validate_fake_db_async() -> None:
     assert hit == ["ok"]
     assert result == Invalid(["not in db!"])
     assert await StringValidator().validate_async(5) == Invalid(["expected a string"])
+
+
+def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
+    class AsyncWait(PredicateAsync[A, Serializable]):
+        async def is_valid_async(self, val: A) -> bool:
+            await asyncio.sleep(0.001)
+            return True
+
+        async def err_async(self, val: A) -> Serializable:
+            return "should always succeed??"
+
+    str_validator = StringValidator(predicates_async=[AsyncWait()])
+    with pytest.raises(AssertionError):
+        str_validator(5)

@@ -1,6 +1,9 @@
 from typing import Any, Final, List, Literal, Optional, Tuple
 
-from koda_validate._internals import _handle_scalar_processors_and_predicates_async_tuple
+from koda_validate._internals import (
+    _async_predicates_warning,
+    _handle_scalar_processors_and_predicates_async_tuple,
+)
 from koda_validate.base import (
     Predicate,
     PredicateAsync,
@@ -30,6 +33,9 @@ class IntValidator(_ToTupleValidatorUnsafe[Any, int, Serializable]):
         self.preprocessors = preprocessors
 
     def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
         if type(val) is int:
             if self.preprocessors:
                 for proc in self.preprocessors:

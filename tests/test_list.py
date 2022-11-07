@@ -2,6 +2,7 @@ import asyncio
 from typing import Any, List
 
 import pytest
+from koda._generics import A
 
 from koda_validate import (
     IntValidator,
@@ -149,3 +150,17 @@ def test_unique_items() -> None:
     assert unique_items([1, [], []]) == unique_fail
     assert unique_items([[], [1], [2]]) == Valid([[], [1], [2]])
     assert unique_items([{"something": {"a": 1}}, {"something": {"a": 1}}]) == unique_fail
+
+
+def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
+    class AsyncWait(PredicateAsync[A, Serializable]):
+        async def is_valid_async(self, val: A) -> bool:
+            await asyncio.sleep(0.001)
+            return True
+
+        async def err_async(self, val: A) -> Serializable:
+            return "should always succeed??"
+
+    list_validator = ListValidator(StringValidator(), predicates_async=[AsyncWait()])
+    with pytest.raises(AssertionError):
+        list_validator([])

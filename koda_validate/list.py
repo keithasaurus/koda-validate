@@ -2,7 +2,7 @@ from typing import Any, Dict, Final, List, Literal, Optional, Set, Tuple, Type
 
 from koda._generics import A
 
-from koda_validate._internals import OBJECT_ERRORS_FIELD
+from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
     Predicate,
     PredicateAsync,
@@ -108,6 +108,9 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
         )
 
     def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:

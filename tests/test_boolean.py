@@ -9,6 +9,7 @@ from koda_validate import (
     Processor,
     Serializable,
 )
+from koda_validate._generics import A
 from koda_validate.boolean import EXPECTED_BOOL_ERR
 from koda_validate.validated import Invalid, Valid
 
@@ -70,3 +71,17 @@ async def test_boolean_validator_async() -> None:
     ).validate_async(False) == Valid(True)
 
     assert await BoolValidator().validate_async("abc") == EXPECTED_BOOL_ERR
+
+
+def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
+    class AsyncWait(PredicateAsync[A, Serializable]):
+        async def is_valid_async(self, val: A) -> bool:
+            await asyncio.sleep(0.001)
+            return True
+
+        async def err_async(self, val: A) -> Serializable:
+            return "should always succeed??"
+
+    bool_validator = BoolValidator(predicates_async=[AsyncWait()])
+    with pytest.raises(AssertionError):
+        bool_validator(True)

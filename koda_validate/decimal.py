@@ -3,6 +3,7 @@ from decimal import Decimal as Decimal
 from typing import Any, Final, List, Optional
 
 from koda_validate._internals import (
+    _async_predicates_warning,
     _handle_scalar_processors_and_predicates,
     _handle_scalar_processors_and_predicates_async,
 )
@@ -35,6 +36,9 @@ class DecimalValidator(Validator[Any, Decimal, Serializable]):
         self.preprocessors = preprocessors
 
     def __call__(self, val: Any) -> Validated[Decimal, Serializable]:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
         if type(val) is Decimal:
             return _handle_scalar_processors_and_predicates(
                 val, self.preprocessors, self.predicates
