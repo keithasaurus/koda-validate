@@ -54,7 +54,7 @@ neighborhood_validator = RecordValidator(
     keys=(("name", StringValidator(not_blank)), ("city", city_validator)),
 )
 
-# Invalidors are nested in predictable manner
+# Errors are nested in predictable manner
 assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Invalid(
     {"city": {"name": ["key missing"]}}
 )

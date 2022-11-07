@@ -738,14 +738,14 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
 
 class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
     """
-    This differs from DictValidator in a few ways:
+    This differs from RecordValidator in a few ways:
     - if valid, it returns a dict; it does not allow another target to be specified
     - it does not narrow the types of keys / values. It always returns
     `Dict[Hashable, Any]`
     - it allows for any number of `KeyValidator`s
 
     This class exists for two reasons:
-    - because the overloads we use to define `DictValidator` get very slow
+    - because the overloads we use to define `RecordValidator` get very slow
     for type checkers beyond a certain point, sa we have a max number of
     type-checkable keys
     - if you don't care about the types in the target object
