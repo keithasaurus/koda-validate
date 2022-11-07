@@ -170,7 +170,7 @@ assert int_validator(23) == Invalid([
   "must be a multiple of 4"
 ])
 ```
-Here we have 3 predicates, but we could easily have dozens. Note that the errors from all invalid
+Here we have 3 `Predicate`s, but we could easily have dozens. Note that the errors from all invalid
 predicates are returned. This is possible because we know that the value should be consistent from one predicate to the next.
 
 `Predicate`s are easy to write -- take a look at [Extension](#extension) for more details.
@@ -194,10 +194,156 @@ it was checked against the `MaxLength(3)` `Predicate`.
 
 Processors are very simple to write -- see [Extension](#extension) for more details.
 
+## Extension
+Koda Validate aims to provide enough tools to handle most common validation needs; for the cases it doesn't
+cover, it aims to allow easy extension. Again, because Koda Validate is built on simple principles, it should be able
+to validate practically any kind of data using Koda Validate's base types.
+
+
+```python
+from typing import Any
+from koda_validate import * 
+
+
+class SimpleFloatValidator(Validator[Any, float, Serializable]):
+    def __call__(self, val: Any) -> Validated[float, Serializable]:
+        if isinstance(val, float):
+            return Valid(val)
+        else:
+            return Invalid("expected a float")
+
+
+float_validator = SimpleFloatValidator()
+
+test_val = 5.5
+
+assert float_validator(test_val) == Valid(test_val)
+
+assert float_validator(5) == Invalid("expected a float")
+```
+
+What is this doing? 
+- extending `Validator`, using the following types:
+  - `Any`: any type of input can be passed in to be validated
+  - `float`: if the data is valid, a value of type `Valid[float]` will be returned 
+  - `Serializable`: if it's invalid, a value of type `Invalid[Serializable]` will be returned
+- the `__call__` method performs any kind of validation needed, so long as the input and output type signatures -- as determined by the `Validator` type parameters - are abided
+
+We accept `Any` because the type of input may be unknown before submitting to the `Validator`. After our 
+validation in `SimpleFloatValidator` succeeds, we know the type must be `float`. Note that we could have coerced the value
+to a `float` instead of checking its type -- that is 100% OK to do. For simplicity's sake, this validator does not coerce.
+
+This is all well and good, but we'll probably want to be able to validate against values of the floats, such as min, 
+max, or rough equality checks. For this we use `Predicate`s. For exmaple, if we wanted to allow a single predicate in 
+our `SimpleFloatValidator` we could do it like this:
+
+```python
+from dataclasses import dataclass
+from typing import Any, Optional
+from koda_validate import *
+
+@dataclass
+class SimpleFloatValidator2(Validator[Any, float, Serializable]):
+    predicate: Optional[Predicate[float, Serializable]] = None
+
+    def __call__(self, val: Any) -> Validated[float, Serializable]:
+        if isinstance(val, float):
+            if self.predicate:
+                return self.predicate(val)
+            else:
+                return Valid(val)
+        else:
+            return Invalid(["expected a float"])
+
+```
+Here we allow for a single predicate to be specified. If it is specified, we'll check it _after_ we've verified the type of the value.
+
+`Predicate`s are meant to validate the _value_ of a known type -- as opposed to validating at the type-level (that's what the `Validator` does). 
+For example, this is how you might write and use a `Predicate` to validate a range of values:
+
+```python
+# (continuing from previous example)
+
+@dataclass
+class Range(Predicate[float, Serializable]):
+    minimum: float
+    maximum: float
+
+    def is_valid(self, val: float) -> bool:
+        return self.minimum <= val <= self.maximum
+
+    def err(self, val: float) -> Serializable:
+        return f"expected a value in the range of {self.minimum} and {self.maximum}"
+
+
+range_validator = SimpleFloatValidator2(Range(0.5, 1.0))
+test_val = 0.7
+
+assert range_validator(test_val) == Valid(test_val)
+
+assert range_validator(0.01) == Invalid(["expected a value in the range of 0.5 and 1.0"])
+
+```
+
+Notice that in `Predicate`s we define `is_valid` and `err` methods, while in `Validator`s we define the 
+entire `__call__` method. This is because the base `Predicate` class is constructed in such a way that we limit how 
+much it can actually do -- we don't want it to be able to alter the value being validated.
+
+Finally, let's add a `Processor`. For whatever reason, we want to preprocess our `float`s by converting them to their
+absolute value.
+
+```python
+# (continuing from previous example)
+
+@dataclass
+class SimpleFloatValidator3(Validator[Any, float, Serializable]):
+    predicate: Optional[Predicate[float, Serializable]] = None
+    preprocessor: Optional[Processor[float]] = None
+
+    def __call__(self, val: Any) -> Validated[float, Serializable]:
+        if isinstance(val, float):
+            if self.preprocessor:
+                val = self.preprocessor(val)
+
+            if self.predicate:
+                return self.predicate(val)
+            else:
+                return Valid(val)
+        else:
+            return Invalid(["expected a float"])
+
+
+class AbsValue(Processor[float]):
+    def __call__(self, val: float) -> float:
+        return abs(val)
+
+
+range_validator_2 = SimpleFloatValidator3(
+    predicate=Range(0.5, 1.0),
+    preprocessor=AbsValue()
+)
+
+test_val = -0.7
+
+assert range_validator_2(test_val) == Valid(abs(test_val))
+
+assert range_validator_2(-0.01) == Invalid('expected a value in the range of 0.5 and 1.0')
+```
+Note that we pre-process _before_ the predicates are run. This is the general approach Koda Validate takes on built-in 
+validators. More specifically, the built in validators consider there to be a pipeline of actions taken within a validator:
+`type-check/coerce -> preprocess -> validate predicates`, where it can fail at either the first or last stage.
+
+Note that what we've written are a number of classes that conform to some type constraints. It's worth remembering that
+there's nothing enforcing the particular arrangement of logic we have in our `SimpleFloatValidator`. If you want to have a 
+post-processing step, you can. If you want to validate an iso8601 string is a datetime, and then convert that to an unix 
+epoch timestamp, and provide pre-processing, post-processing and predicates for all those steps, you can. It's important 
+to remember that our `Validator`, `Predicate`, and `Processor` objects are little more than functions with accessible metadata. 
+You can do whatever you want with them.
+
 ## Async Validation
 Because Koda Validate is based on simple principles, it's relatively straightforward to make it compatible with `asyncio`.
-All the built-in Validators in Koda are async compatible -- all you need to do is used the `.validate_async` method instead of 
-calling the validator directly. 
+All the built-in `Validator`s in Koda are asyncio-compatible -- all you need to do is call a `Validator` in this form 
+`await validator.validate_async("abc")`, instead of `validator("abc")`. 
 ```python
 import asyncio
 from koda_validate import *
@@ -207,6 +353,7 @@ short_string_validator = StringValidator(MaxLength(10))
 
 assert short_string_validator("sync") == Valid("sync")
 
+# we're not in an async context, so we can't use `await` here
 assert asyncio.run(short_string_validator.validate_async("async")) == Valid("async")
 ```
 
@@ -234,11 +381,11 @@ username_validator = StringValidator(MinLength(1),
 
 assert asyncio.run(username_validator.validate_async("michael")) == Valid("michael")
 assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(["invalid username"])
-
 ```
-In this example we are calling the database to verify a user name. A few things worth pointing out:
-`PredicateAsync`s are specified separately from `Predicates`. If you try to run this validator in synchronous mode, it 
-will raise an `Exception`. 
+In this example we are calling the database to verify a username. A few things worth pointing out:
+`PredicateAsync`s are specified in `predicates_async` -- separately from `Predicates`. We do this to be explicit, we 
+don't want to be confused about whether a validator requires asyncio. (If you try to run this validator in synchronous mode, it 
+will raise an `AssertionError` -- instead make sure you call it like `await username_validator.validate_async("buster")`.)
 
 
 ```python

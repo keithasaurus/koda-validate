@@ -12,6 +12,9 @@ class SimpleFloatValidator(Validator[Any, float, Serializable]):
 
 
 float_validator = SimpleFloatValidator()
-float_val = 5.5
-assert float_validator(float_val) == Valid(float_val)
+
+test_val = 5.5
+
+assert float_validator(test_val) == Valid(test_val)
+
 assert float_validator(5) == Invalid("expected a float")
