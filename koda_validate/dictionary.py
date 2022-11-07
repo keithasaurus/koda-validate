@@ -103,17 +103,17 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
 
     def __init__(
         self,
-        key_validator: Validator[Any, T1, Serializable],
-        value_validator: Validator[Any, T2, Serializable],
         *,
+        key: Validator[Any, T1, Serializable],
+        value: Validator[Any, T2, Serializable],
         predicates: Optional[List[Predicate[Dict[T1, T2], Serializable]]] = None,
         predicates_async: Optional[
             List[PredicateAsync[Dict[T1, T2], Serializable]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
-        self.key_validator = key_validator
-        self.value_validator = value_validator
+        self.key_validator = key
+        self.value_validator = value
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors

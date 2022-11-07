@@ -68,97 +68,22 @@ async def test_is_dict_async() -> None:
 
 
 def test_map_validator() -> None:
-    assert MapValidator(StringValidator(), FloatValidator())(None) == EXPECTED_MAP_ERR
-
-    assert MapValidator(StringValidator(), StringValidator())(5) == Invalid(
-        {"__container__": ["expected a map"]}
-    )
-
-    assert MapValidator(StringValidator(), StringValidator())({}) == Valid({})
-
-    assert MapValidator(StringValidator(), IntValidator())({"a": 5, "b": 22}) == Valid(
-        {"a": 5, "b": 22}
-    )
-
-    assert MapValidator(StringValidator(), IntValidator())({5: None}) == Invalid(
-        {
-            "5": {
-                "key_error": ["expected a string"],
-                "value_error": ["expected an integer"],
-            }
-        }
-    )
-
-    @dataclass(frozen=True)
-    class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
-        max: int
-
-        def is_valid(self, val: Dict[Any, Any]) -> bool:
-            return len(val) <= self.max
-
-        def err(self, val: Dict[Any, Any]) -> Serializable:
-            return f"max {self.max} key(s) allowed"
-
-    complex_validator = MapValidator(
-        StringValidator(MaxLength(4)), IntValidator(Min(5)), predicates=[MaxKeys(1)]
-    )
-    assert complex_validator({"key1": 10, "key1a": 2},) == Invalid(
-        {
-            "key1a": {
-                "value_error": ["minimum allowed value is 5"],
-                "key_error": ["maximum allowed length is 4"],
-            },
-            "__container__": ["max 1 key(s) allowed"],
-        }
-    )
-
-    assert complex_validator({"a": 100}) == Valid({"a": 100})
-
-    # we need to make sure that errors are not lost even if there are key naming
-    # collisions with the object field
-    assert MapValidator(StringValidator(), IntValidator(), predicates=[MaxKeys(1)])(
-        {OBJECT_ERRORS_FIELD: "not an int", "b": 1}
-    ) == Invalid(
-        {
-            OBJECT_ERRORS_FIELD: [
-                "max 1 key(s) allowed",
-                {"value_error": ["expected an integer"]},
-            ]
-        }
-    )
-
-    class AddVal(Processor[Dict[Any, Any]]):
-        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
-            val["newkey"] = 123
-            return val
-
-    map_validator_preprocessor = MapValidator(
-        StringValidator(), IntValidator(), preprocessors=[AddVal()]
-    )
-
-    assert map_validator_preprocessor({}) == Valid({"newkey": 123})
-
-
-@pytest.mark.asyncio
-async def test_map_validator_async() -> None:
     assert (
-        await MapValidator(StringValidator(), FloatValidator()).validate_async(None)
+        MapValidator(key=StringValidator(), value=FloatValidator())(None)
         == EXPECTED_MAP_ERR
     )
 
-    assert await MapValidator(StringValidator(), StringValidator()).validate_async(
-        5
-    ) == Invalid({"__container__": ["expected a map"]})
+    assert MapValidator(key=StringValidator(), value=StringValidator())(5) == Invalid(
+        {"__container__": ["expected a map"]}
+    )
 
-    assert await MapValidator(StringValidator(), StringValidator()).validate_async(
-        {}
-    ) == Valid({})
+    assert MapValidator(key=StringValidator(), value=StringValidator())({}) == Valid({})
 
-    assert await MapValidator(StringValidator(), IntValidator()).validate_async(
+    assert MapValidator(key=StringValidator(), value=IntValidator())(
         {"a": 5, "b": 22}
     ) == Valid({"a": 5, "b": 22})
 
-    assert await MapValidator(StringValidator(), IntValidator()).validate_async(
+    assert MapValidator(key=StringValidator(), value=IntValidator())(
         {5: None}
     ) == Invalid(
         {
@@ -180,7 +105,93 @@ async def test_map_validator_async() -> None:
             return f"max {self.max} key(s) allowed"
 
     complex_validator = MapValidator(
-        StringValidator(MaxLength(4)), IntValidator(Min(5)), predicates=[MaxKeys(1)]
+        key=StringValidator(MaxLength(4)),
+        value=IntValidator(Min(5)),
+        predicates=[MaxKeys(1)],
+    )
+    assert complex_validator({"key1": 10, "key1a": 2},) == Invalid(
+        {
+            "key1a": {
+                "value_error": ["minimum allowed value is 5"],
+                "key_error": ["maximum allowed length is 4"],
+            },
+            "__container__": ["max 1 key(s) allowed"],
+        }
+    )
+
+    assert complex_validator({"a": 100}) == Valid({"a": 100})
+
+    # we need to make sure that errors are not lost even if there are key naming
+    # collisions with the object field
+    assert MapValidator(
+        key=StringValidator(), value=IntValidator(), predicates=[MaxKeys(1)]
+    )({OBJECT_ERRORS_FIELD: "not an int", "b": 1}) == Invalid(
+        {
+            OBJECT_ERRORS_FIELD: [
+                "max 1 key(s) allowed",
+                {"value_error": ["expected an integer"]},
+            ]
+        }
+    )
+
+    class AddVal(Processor[Dict[Any, Any]]):
+        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
+            val["newkey"] = 123
+            return val
+
+    map_validator_preprocessor = MapValidator(
+        key=StringValidator(), value=IntValidator(), preprocessors=[AddVal()]
+    )
+
+    assert map_validator_preprocessor({}) == Valid({"newkey": 123})
+
+
+@pytest.mark.asyncio
+async def test_map_validator_async() -> None:
+    assert (
+        await MapValidator(key=StringValidator(), value=FloatValidator()).validate_async(
+            None
+        )
+        == EXPECTED_MAP_ERR
+    )
+
+    assert await MapValidator(
+        key=StringValidator(), value=StringValidator()
+    ).validate_async(5) == Invalid({"__container__": ["expected a map"]})
+
+    assert await MapValidator(
+        key=StringValidator(), value=StringValidator()
+    ).validate_async({}) == Valid({})
+
+    assert await MapValidator(key=StringValidator(), value=IntValidator()).validate_async(
+        {"a": 5, "b": 22}
+    ) == Valid({"a": 5, "b": 22})
+
+    assert await MapValidator(key=StringValidator(), value=IntValidator()).validate_async(
+        {5: None}
+    ) == Invalid(
+        {
+            "5": {
+                "key_error": ["expected a string"],
+                "value_error": ["expected an integer"],
+            }
+        }
+    )
+
+    @dataclass(frozen=True)
+    class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
+        max: int
+
+        def is_valid(self, val: Dict[Any, Any]) -> bool:
+            return len(val) <= self.max
+
+        def err(self, val: Dict[Any, Any]) -> Serializable:
+            return f"max {self.max} key(s) allowed"
+
+    complex_validator = MapValidator(
+        key=StringValidator(MaxLength(4)),
+        value=IntValidator(Min(5)),
+        predicates=[MaxKeys(1)],
     )
     assert await complex_validator.validate_async({"key1": 10, "key1a": 2}) == Invalid(
         {
@@ -196,9 +207,9 @@ async def test_map_validator_async() -> None:
 
     # we need to make sure that errors are not lost even if there are key naming
     # collisions with the object field
-    assert MapValidator(StringValidator(), IntValidator(), predicates=[MaxKeys(1)])(
-        {OBJECT_ERRORS_FIELD: "not an int", "b": 1}
-    ) == Invalid(
+    assert MapValidator(
+        key=StringValidator(), value=IntValidator(), predicates=[MaxKeys(1)]
+    )({OBJECT_ERRORS_FIELD: "not an int", "b": 1}) == Invalid(
         {
             OBJECT_ERRORS_FIELD: [
                 "max 1 key(s) allowed",
@@ -213,7 +224,7 @@ async def test_map_validator_async() -> None:
             return val
 
     map_validator_preprocessor = MapValidator(
-        StringValidator(), IntValidator(), preprocessors=[AddVal()]
+        key=StringValidator(), value=IntValidator(), preprocessors=[AddVal()]
     )
 
     assert map_validator_preprocessor({}) == Valid({"newkey": 123})
@@ -229,7 +240,7 @@ def test_map_validator_sync_call_with_async_predicates_raises_assertion_error() 
             return "should always succeed??"
 
     map_validator = MapValidator(
-        StringValidator(), StringValidator(), predicates_async=[AsyncWait()]
+        key=StringValidator(), value=StringValidator(), predicates_async=[AsyncWait()]
     )
     with pytest.raises(AssertionError):
         map_validator([])

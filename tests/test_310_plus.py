@@ -57,7 +57,7 @@ def test_match_args() -> None:
         case _:
             assert False
 
-    match MapValidator((str_ := StringValidator()), (int_ := IntValidator())):
+    match MapValidator(key=(str_ := StringValidator()), value=(int_ := IntValidator())):
         case MapValidator(
             string_validator, int_validator, predicates_map, preds_async_2, process_2
         ):
