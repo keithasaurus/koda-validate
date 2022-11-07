@@ -19,7 +19,7 @@ def no_dwight_regional_manager(employee: Employee) -> Validated[Employee, Serial
         return Valid(employee)
 
 
-employee_validator = DictValidator(
+employee_validator = RecordValidator(
     into=Employee,
     keys=(
         ("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),

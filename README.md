@@ -15,27 +15,15 @@ Koda Validate is:
   - [Validators](#validator)
   - [Predicates](#predicates)
   - [Processors](#processors)
+- [Extension](#extension)
+  - [Validators](#validators)
+  - [Predicates](#predicates)
+  - [Processors](#processors)
+- [Validation Errors](#validation-errors)
 - [Async Validation](#async-validation)
-- Extension
-  - Validators
-  - Predicates
-  - Processors
-- Tour 
-  - StringValidator
-  - IntValidator
-  - FloatValidator
-  - NoneValidator
-  - DecimalValidator
-  - OptionalValidator
-  - ListValidator
-  - DictValidator
-  - DictValidatorAny
-  - MapValidator
-  - is_dict_validator 
-  - OneOf2/OneOf3
-  - Tuple2/Tuple3
-- Limitations
-- How does this compare to pydantic?
+- [Using Metadata](#using-metadata)
+- [Tour](#tour)
+- [Comparison to Pydantic](#comparison-to-pydantic)
 
 
 ### Installation
@@ -78,6 +66,7 @@ validator([5])
 ```
 
 #### Dictionaries
+
 ```python
 from dataclasses import dataclass
 
@@ -86,16 +75,16 @@ from koda_validate import *
 
 @dataclass
 class Person:
-    name: str
-    hobbies: list[str]
+  name: str
+  hobbies: list[str]
 
 
-person_validator = DictValidator(
-    keys=(
-        ("name", StringValidator()),
-        ("hobbies", ListValidator(StringValidator())),
-    ),
-    into=Person
+person_validator = RecordValidator(
+  keys=(
+    ("name", StringValidator()),
+    ("hobbies", ListValidator(StringValidator())),
+  ),
+  into=Person
 )
 
 print(person_validator({"name": "Bob",
@@ -106,7 +95,7 @@ print(person_validator({"name": "Bob",
 Here's what we've seen so far:
 - All validators we've created are simple `Callable`s that return an `Ok` instance when validation succeeds, or an `Invalid` instance when validation fails.
 - Nesting one validator within another is straightforward
-- `DictValidator` requires a separate target for its validated data; more on that here.
+- `RecordValidator` requires a separate target for its validated data; more on that here.
 
 It's worth noting that all this code is typesafe. And for similar 
 equivalent validations in Pydantic, Koda Validate can be up to 15x faster.
@@ -230,8 +219,8 @@ What is this doing?
 - the `__call__` method performs any kind of validation needed, so long as the input and output type signatures -- as determined by the `Validator` type parameters - are abided
 
 We accept `Any` because the type of input may be unknown before submitting to the `Validator`. After our 
-validation in `SimpleFloatValidator` succeeds, we know the type must be `float`. Note that we could have coerced the value
-to a `float` instead of checking its type -- that is 100% OK to do. For simplicity's sake, this validator does not coerce.
+validation in `SimpleFloatValidator` succeeds, we know the type must be `float`. (Note that we could have coerced the value
+to a `float` instead of checking its type -- that is 100% OK to do. For simplicity's sake, this validator does not coerce.)
 
 This is all well and good, but we'll probably want to be able to validate against values of the floats, such as min, 
 max, or rough equality checks. For this we use `Predicate`s. For exmaple, if we wanted to allow a single predicate in 
@@ -330,15 +319,96 @@ assert range_validator_2(test_val) == Valid(abs(test_val))
 assert range_validator_2(-0.01) == Invalid('expected a value in the range of 0.5 and 1.0')
 ```
 Note that we pre-process _before_ the predicates are run. This is the general approach Koda Validate takes on built-in 
-validators. More specifically, the built in validators consider there to be a pipeline of actions taken within a validator:
-`type-check/coerce -> preprocess -> validate predicates`, where it can fail at either the first or last stage.
+validators. More specifically, the built in validators consider there to be a pipeline of actions taken within a `Validator`:
+`type-check/coerce -> preprocess -> validate predicates`, where it can fail validation at either the first or last stage.
 
-Note that what we've written are a number of classes that conform to some type constraints. It's worth remembering that
+Note that what we've written are a number of classes that simply conform to some type constraints. It's worth remembering that
 there's nothing enforcing the particular arrangement of logic we have in our `SimpleFloatValidator`. If you want to have a 
 post-processing step, you can. If you want to validate an iso8601 string is a datetime, and then convert that to an unix 
 epoch timestamp, and provide pre-processing, post-processing and predicates for all those steps, you can. It's important 
-to remember that our `Validator`, `Predicate`, and `Processor` objects are little more than functions with accessible metadata. 
-You can do whatever you want with them.
+to remember that our `Validator`, `Predicate` (and `PredicateAsync` -- see [Async Validation](#async-validation)), and `Processor` 
+objects are little more than functions with accessible metadata. You can do whatever you want with them.
+
+## Validation Errors
+
+In Koda Validate errors are returned as data as part of normal control flow. The contents of all returned `Invalid`s 
+from built-in validators in Koda Validate are JSON/YAML serializable. (However, should you build your own custom 
+validators, there is no contract enforcing that constraint.) Here are a few examples of the kinds of errors you can 
+expect to see out of the box.
+
+```python
+from dataclasses import dataclass
+
+from koda import Maybe
+
+from koda_validate import *
+
+# Wrong type
+assert StringValidator()(None) == Invalid(["expected a string"])
+
+# All failing `Predicate`s are reported (not just the first)
+str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
+assert str_choice_validator("") == Invalid(
+    ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
+)
+
+
+@dataclass
+class City:
+    name: str
+    region: Maybe[str]
+
+
+city_validator = RecordValidator(
+    into=City,
+    keys=(
+        ("name", StringValidator(not_blank)),
+        ("region", KeyNotRequired(StringValidator(not_blank))),
+    ),
+)
+
+# We use the key "__container__" for object-level errors
+assert city_validator(None) == Invalid({"__container__": ["expected a dictionary"]})
+
+# Missing keys are errors
+print(city_validator({}))
+assert city_validator({}) == Invalid({"name": ["key missing"]})
+
+# Extra keys are also errors
+assert city_validator(
+    {"region": "California", "population": 510, "country": "USA"}
+) == Invalid(
+    {"__container__": ["Received unknown keys. Only expected 'name', 'region'."]}
+)
+
+
+@dataclass
+class Neighborhood:
+    name: str
+    city: City
+
+
+neighborhood_validator = RecordValidator(
+    into=Neighborhood,
+    keys=(("name", StringValidator(not_blank)), ("city", city_validator)),
+)
+
+# Invalidors are nested in predictable manner
+assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Invalid(
+    {"city": {"name": ["key missing"]}}
+)
+
+```
+If you have any concerns about being able to handle specific types of key or object requirements, please see some of 
+the documentation on specific validators below:
+- [RecordValidator](#recordvalidator)
+- [DictValidatorAny](#dictvalidatorany)
+- [OneOf2 / OneOf3](#oneof2--oneof3)
+- [MapValidator](#mapvalidator)
+- [OptionalValidator](#optionalvalidator)
+- [is_dict_validator](#is_dict_validator)
+- [Lazy](#lazy)
+
 
 ## Async Validation
 Because Koda Validate is based on simple principles, it's relatively straightforward to make it compatible with `asyncio`.
@@ -380,323 +450,82 @@ username_validator = StringValidator(MinLength(1),
                                      predicates_async=[IsActiveUsername()])
 
 assert asyncio.run(username_validator.validate_async("michael")) == Valid("michael")
+
 assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(["invalid username"])
+
+# calling in sync mode raises an AssertionError
+username_validator("tobias")
 ```
 In this example we are calling the database to verify a username. A few things worth pointing out:
 `PredicateAsync`s are specified in `predicates_async` -- separately from `Predicates`. We do this to be explicit, we 
 don't want to be confused about whether a validator requires asyncio. (If you try to run this validator in synchronous mode, it 
 will raise an `AssertionError` -- instead make sure you call it like `await username_validator.validate_async("buster")`.)
 
-
+Of course you can nest async `Validator`s, and use the same `.validate_async` method.
 ```python
-# Or maybe we need to validate groups of people...
-people_validator = ListValidator(person_validator)
+# continued from previous example
 
-print(people_validator([{"name": "Bob", "hobbies": ["eating", "running"], "nickname": "That Bob"},
-                        {"name": "Alice", "hobbies": ["piano", "cooking"], "nickname": "Alice at the Palace"}]))
+username_list_validator = ListValidator(username_validator)
 
-# > Valid([
-#     Person(name='Bob', nickname='That Bob', hobbies=['eating', 'running']),
-#     Person(name='Alice', nickname='Alice at the Palace', hobbies=['piano', 'cooking'])
-#   ])
-
-# or either?
-person_or_people_validator = OneOf2(person_validator, people_validator)
-
-person_or_people_validator({"name": "Bob", "nickname": None, "hobbies": ["eating", "running"]})
-# > Valid(First(Person(name='Bob', nickname=None, hobbies=['eating', 'running'])))
-
-print(person_or_people_validator(([
-    {"name": "Bob", "nickname": None, "hobbies": ["eating", "running"]},
-    {"name": "Alice", "nickname": None, "hobbies": ["piano", "cooking"]}])))
-# > Valid(Second([
-#     Person(name='Bob', nickname=None, hobbies=['eating', 'running']), 
-#     Person(name='Alice', nickname=None, hobbies=['piano', 'cooking'])
-#   ]))
+assert asyncio.run(username_list_validator.validate_async(["michael", "gob", "lindsay", "buster"])) == Valid([
+  "michael", "gob", "lindsay", "buster"
+])
 
 ```
+You can run async validation on nested lists, dictionaries, tuples, strings, etc. All `Validator`s built into to Koda Validate
+understand this form. 
 
-A few things to note:
-- All validators we've made are simple callables that either return and `Ok` or `Invalid` instance.
-- We can easily combine and re-use validators, by nesting one in another, for instance.
+It's worth noting that Koda Validate makes no assumptions about running async `Validator`s or `PredicateAsync`s concurrently; it is expected that that is
+handled by the surrounding context. That is to say, async validators will not block when performing IO, as is normal, but if you had, say, 10 async 
+predicates, they would not be run in parallel by default. This is simply because that is too much of an assumption for this library to make (we don't 
+want to accidentally send N simultaneous requests to some other service without the intent being explicitly defined). If you'd like to have `Validator`s 
+or `Predicate`s run in parallel _within_ the validation step, all you should need to do is a write a simple wrapper class based on either `Validator` 
+or `Predicate`, implementing whatever concurrency needs you have.
 
-
-Let's look at the `dict_validator` a bit closer. Its `into` argument can be any `Callable` that accepts the values from 
-each key below it -- in the same order they are defined (the names of the keys and the `Callable` arguments do not need 
-to match). For `person_validator`, we used a `Person` `dataclass`; for `Group`, we used a `Group` dataclass; but that 
-does not need to be the case. Because we can use any `Callable` with matching types, this would also be valid:
+For custom `Validator`s, all you need to do is implement the `validate_async` method on a `Validator` class. There is no
+separate async-only `Validator` class. This is becuase we might want to re-use synchronous validators in either synchronous
+or asynchronous contexts. Here's an example of making a `SimpleFloatValidator` async-compatible:
 ```python
-from koda import Ok
-from koda_validate import *
-
-
-def reverse_person_args_tuple(a: str, b: int) -> tuple[int, str]:
-    return b, a
-
-person_validator_2 = dict_validator(
-    reverse_person_args_tuple,
-    key("name", StringValidator()),
-    key("age", IntValidator()),
-)
-
-assert person_validator_2({"name": "John Doe", "age": 30}) == Valid((30, "John Doe"))
-
-```
-As you see, we have some flexibility in defining what we want to get back from a validated `dict_validator`. 
-
-Another thing to note is that, so far, the results are all wrapped in an `Ok` class. The other possibility -- when 
-validation fails -- is that an `Invalid` instance is returned, with whatever message or object a given validator returns. 
-We do not raise exceptions to express validation failure in Koda Validate. Instead, validation is treated as part of 
-normal control flow.
-
-Let's use some more features.
-
-```python
-from dataclasses import dataclass
-from koda import Invalid, Ok, Result
-from koda_validate import *
-
-
-@dataclass
-class Employee:
-    title: str
-    name: str
-
-
-def no_dwight_regional_manager(employee: Employee) -> Result[Employee, Serializable]:
-    if (
-        "schrute" in employee.name.lower()
-        and employee.title.lower() == "assistant regional manager"
-    ):
-        return Invalid("Assistant TO THE Regional Manager!")
-    else:
-        return Valid(employee)
-
-
-employee_validator = dict_validator(
-    Employee,
-    key("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),
-    key("name", StringValidator(not_blank, preprocessors=[strip])),
-    # After we've validated individual fields, we may want to validate them as a whole
-    validate_object=no_dwight_regional_manager,
-)
-
-
-# The fields are valid but the object as a whole is not.
-assert employee_validator(
-    {
-        "title": "Assistant Regional Manager",
-        "name": "Dwight Schrute",
-    }
-) == Invalid("Assistant TO THE Regional Manager!")
-
-```
-Things to note about `employee_validator`:
-- we can add additional checks -- `Predicate`s -- to validators (e.g. `not_blank`, `MaxLength`, etc.)
-- we can pre-process strings for formatting (after the type is determined, but before `Predicate` validators are run)
-- we have two stages of validation on dictionaries: first the keys, then the entire object, via `validate_object`
-- apparently we have a problem with someone named Dwight Schrute giving himself the wrong title
-
-
-Note that everything we've seen is typesafe according to mypy -- with strict settings, and without any plugins.
-
-### The (More) Basics
-
-We're are spending a lot of time discussing validating collections, but Koda Validate works just as well on simple 
-values.
-
-```python
-from koda import Invalid, Ok
-from koda_validate import ExactValidator, MinLength, StringValidator
-
-min_length_3_validator = StringValidator(MinLength(4))
-assert min_length_3_validator("good") == Valid("good")
-assert min_length_3_validator("bad") == Invalid(["minimum allowed length is 4"])
-
-exactly_5_validator = ExactValidator(5)
-
-assert exactly_5_validator(5) == Valid(5)
-assert exactly_5_validator("hmm") == Invalid(["expected exactly 5 (int)"])
-
-```
-Koda Validate is intended to be extendable enough to validate any type of data.
-
-## Validation Invalidors
-
-As mentioned above, errors are returned as data as part of normal control flow. The contents of all returned `Invalid`s 
-from built-in validators in Koda Validate are JSON/YAML serializable. (However, should you build your own custom 
-validators, there is no contract enforcing that constraint.) Here are a few examples of the kinds of errors you can 
-expect to see out of the box.
-
-```python
-from dataclasses import dataclass
-from koda import Invalid, Maybe
-from koda_validate import *
-
-# Wrong type
-assert StringValidator()(None) == Invalid(["expected a string"])
-
-# All failing `Predicate`s are reported (not just the first)
-str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
-assert str_choice_validator("") == Invalid(
-    ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
-)
-
-
-@dataclass
-class City:
-    name: str
-    region: Maybe[str]
-
-
-city_validator = dict_validator(
-    City,
-    key("name", StringValidator(not_blank)),
-    maybe_key("region", StringValidator(not_blank)),
-)
-
-# We use the key "__container__" for object-level errors
-assert city_validator(None) == Invalid({"__container__": ["expected a dictionary"]})
-
-# Missing keys are errors
-assert city_validator({}) == Invalid({"name": ["key missing"]})
-
-# Extra keys are also errors
-assert city_validator(
-    {"region": "California", "population": 510, "country": "USA"}
-) == Invalid({"__container__": ["Received unknown keys. Only expected ['name', 'region']"]})
-
-
-@dataclass
-class Neighborhood:
-    name: str
-    city: City
-
-
-neighborhood_validator = dict_validator(
-    Neighborhood, key("name", StringValidator(not_blank)), key("city", city_validator)
-)
-
-# Invalidors are nested in predictable manner
-assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Invalid(
-    {"city": {"name": ["key missing"]}}
-)
-
-```
-If you have any concerns about being able to handle specific types of key or object requirements, please see some of 
-the other validators and helpers below:
-- [OneOf2 / OneOf3](#oneof2--oneof3)
-- [MapValidator](#mapvalidator)
-- [OptionalValidator](#optionalvalidator)
-- [maybe_key](#maybe_key)
-- [is_dict_validator](#is_dict_validator)
-- [Lazy](#lazy)
-
-
-## Validators, Predicates, and Extension
-Koda Validate's intention is to cover the bulk of common use cases with its built-in tools. However, it is also meant 
-to provide a straightforward way to build for custom validation use-cases. Here we'll provide a quick overview of how 
-custom validation logic can be implemented.
-
-There are two kinds of `Callable`s used for validation in Koda Validate: `Validator`s and `Predicate`s. `Validator`s 
-can take an input of one type and produce a valid result of another type. (While a `Validator` has the capability to 
-alter a value and/or type, whether it does is entirely dependent on the given `Validator`s requirements.) Most commonly 
-`Validator`s accept type `Any` and validate that it conforms to some type or data shape. As an example, we'll 
-write a simple `Validator` for `float`s here:
-
-```python
+import asyncio
 from typing import Any
-from koda import Invalid, Ok, Result
-from koda_validate.typedefs import Serializable, Validator
+
+from koda_validate import *
 
 
 class SimpleFloatValidator(Validator[Any, float, Serializable]):
-    def __call__(self, val: Any) -> Result[float, Serializable]:
+    def __call__(self, val: Any) -> Validated[float, Serializable]:
         if isinstance(val, float):
             return Valid(val)
         else:
             return Invalid("expected a float")
 
+    # this validator doesn't do any IO, so we can just use the `__call__` method
+    async def validate_async(self, val: Any) -> Validated[float, Serializable]:
+        return self(val)
+
 
 float_validator = SimpleFloatValidator()
-float_val = 5.5
-assert float_validator(float_val) == Valid(float_val)
-assert float_validator(5) == Invalid("expected a float")
-```
 
-What is this doing? 
-- extending `Validator`, using the following types:
-  - `Any`: any type of input can be passed in
-  - `float`: if the data is valid, a value of type `Ok[float]` will be returned 
-  - `Serializable`: if it's invalid, a value of type `Invalid[Serializable]` will be returned
-- the `__call__` method performs any kind of validation needed, so long as the input and output type signatures -- as determined by the `Validator` type parameters - are abided
+test_val = 5.5
 
-We accept `Any` because the type of input may be unknown before submitting to the `Validator`. After our 
-validation in `SimpleFloatValidator` succeeds, we know the type must be `float`.   
+assert asyncio.run(float_validator.validate_async(test_val)) == Valid(test_val)
 
-This is all well and good, but we'll probably want to be able to validate against values of the floats, such as min, 
-max, or rough equality checks. For this we use `Predicate`s. This is what the `FloatValidator` in Koda Validate looks 
-like:
-
-```python
-class FloatValidator(Validator[Any, float, Serializable]):
-    def __init__(self, *predicates: Predicate[float, Serializable]) -> None:
-        self.predicates = predicates
-
-    def __call__(self, val: Any) -> Result[float, Serializable]:
-        if isinstance(val, float):
-            return accum_errors_serializable(val, self.predicates)
-        else:
-            return Invalid(["expected a float"])
+assert asyncio.run(float_validator.validate_async(5)) == Invalid("expected a float")
 
 ```
 
-`Predicate`s are meant to validate the _value_ of a known type -- as opposed to validating at the type-level. For 
-example, this is how you might write and use a `Predicate` for approximate `float` equality:
+If your `Validator` only makes sense in an async context, then you probably don't want to implement the `__call__` method. 
+Instead, you'd probably always want to make sure that validator is always called by `await`-ing the `.validate_async` method. 
 
-```python
-import math
-from dataclasses import dataclass
-from koda import Invalid, Ok
-from koda_validate import FloatValidator, Serializable, Predicate
-
-
-@dataclass
-class IsClose(Predicate[float, Serializable]):
-    compare_to: float
-    tolerance: float
-
-    def is_valid(self, val: float) -> bool:
-        return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
-
-    def err(self, val: float) -> Serializable:
-        return f"expected a value within {self.tolerance} of {self.compare_to}"
-
-
-# let's use it
-close_to_validator = FloatValidator(IsClose(0.05, 0.02))
-a = 0.06
-assert close_to_validator(a) == Valid(a)
-assert close_to_validator(0.01) == Invalid(["expected a value within 0.02 of 0.05"])
-
-```
-
-Notice that in `Predicate`s we define `is_valid` and `err` methods, while in `Validator`s we define the 
-entire `__call__` method. This is because the base `Predicate` class is constructed in such a way that we limit how 
-much it can actually do -- we don't want it to be able to alter the value being validated. This turns out to be useful 
-because it allows us to proceed sequentially through an arbitrary amount of `Predicate`s of the same type in a given 
-`Validator`. Only because of this property can we be confident in our ability to return all `Predicate` errors for a 
-given `Validator` -- instead of having to exit at the first failure.
-
-## Metadata
-Previously we said an aim of Koda Validate is to allow reuse of validator metadata. Principally this 
+## Using Metadata
+One of Koda Validate's design objectives is to allow reuse of validator metadata. Principally this 
 is useful in generating descriptions of the validator's constraints -- one example could be generating
 an OpenAPI (or other) schema. Here we'll do something simpler and use validator metadata to build a function which can 
 return plaintext descriptions of validators:
 
 ```python3
 from typing import Any
-from koda_validate import MaxLength, MinLength, Predicate, StringValidator, Validator
+from koda_validate import * 
 
 
 def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]) -> str:
@@ -713,7 +542,7 @@ def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]
             return f"maximum length {length}"
         # ...etc
         case _:
-            raise TypeInvalidor(f"unhandled validator type. got {type(validator)}")
+            raise TypeError(f"unhandled validator type. got {type(validator)}")
 
 
 print(describe_validator(StringValidator()))
@@ -733,10 +562,250 @@ core, they are also classes that can easily be inspected. (This ease of inspecti
 classes in Koda Validate.) Interpreters are the recommended way to re-use validator metadata for 
 non-validation purposes.
 
-## Other Noteworthy Validators and Utilities 
+
+## Tour
+Here are some noteworthy aspects of Koda Validate explained in more detail.
+
+### RecordValidator
+`RecordValidator` is a flexible way to validate a dictionary into some other form (or back into a dictionary, if needed). It
+is primarily for record-like dictionaries ([MapValidator](#mapvalidator) is recommended for map-like dictionaries).
+
+```python
+from dataclasses import dataclass
+from koda import Maybe, Just
+from koda_validate import *
 
 
-#### OneOf2 / OneOf3
+@dataclass
+class Person:
+  name: str
+  age: Maybe[int]
+
+
+person_validator = RecordValidator(
+  into=Person,
+  keys=(
+    ("full name", StringValidator()),
+    ("age", KeyNotRequired(IntValidator())),
+  ),
+)
+
+# use `isinstance` in python 3.8 or 3.8
+match person_validator({"full name": "John Doe", "age": 30}):
+    case Valid(person):
+        match person.age:
+            case Just(age):
+                age_message = f"{age} years old"
+            case nothing:
+                age_message = "ageless"
+        print(f"{person.name} is {age_message}")
+    case Invalid(errs):
+        print(errs)
+```
+What do we see here?
+- `RecordValidator` is fundamentally de-coupled from it's target -- in this case `Person`. It can target any
+`Callable` that accepts the validated values from the keys, in order (the names of the keys do not matter to the target). Often 
+it will make sense to target some kind of `dataclass` or `NamedTuple` that conforms to the needed 
+args. 
+- `KeyNotRequired` results in a `Maybe` value. In the example above it, age was returned as `Just(30)` because
+the key was present. If the key was not present, the validation could still have succeded, but the value for age
+would be `nothing`
+- We have a key for `"full name"` -- keys are not bound to any kind of special form.
+
+`RecordValidator` is extremely flexible because it can handle any kind of valid key, whether it is required or not. So,
+you can validate _weird_ data like this:
+```python
+from typing import List
+from dataclasses import dataclass
+from koda import Maybe, Just
+from koda_validate import *
+
+
+@dataclass
+class Person:
+    name: str
+    age: Maybe[int]
+    hobbies: List[str]
+
+
+person_validator = RecordValidator(
+    into=Person,
+    keys=(
+        (1, StringValidator()),
+        (False, KeyNotRequired(IntValidator())),
+        (("abc", 123), ListValidator(StringValidator()))
+    ),
+)
+
+# use `isinstance` in python 3.8 or 3.8
+assert person_validator({
+    1: "John Doe",
+    False: 30,
+    ("abc", 123): ["reading", "cooking"]
+}) == Valid(Person(
+    "John Doe",
+    Just(30),
+    ["reading", "cooking"]
+))
+```
+In the opinion of this library, yes, data that uses strings, bools, and tuples interchangeably as keys are _weird_. But we still
+validate it :)
+
+In the RecordValidator, you can also validate the entire object after keys are validated:
+```python
+from dataclasses import dataclass
+
+from koda_validate import *
+
+
+@dataclass
+class Employee:
+    title: str
+    name: str
+
+
+def no_dwight_regional_manager(employee: Employee) -> Validated[Employee, Serializable]:
+    if (
+        "schrute" in employee.name.lower()
+        and employee.title.lower() == "assistant regional manager"
+    ):
+        return Invalid("Assistant TO THE Regional Manager!")
+    else:
+        return Valid(employee)
+
+
+employee_validator = RecordValidator(
+    into=Employee,
+    keys=(
+        ("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),
+        ("name", StringValidator(not_blank, preprocessors=[strip])),
+    ),
+    # After we've validated individual fields, we may want to validate them as a whole
+    validate_object=no_dwight_regional_manager,
+)
+
+
+# The fields are valid but the object as a whole is not.
+assert employee_validator(
+    {
+        "title": "Assistant Regional Manager",
+        "name": "Dwight Schrute",
+    }
+) == Invalid("Assistant TO THE Regional Manager!")
+
+```
+In this case the values of individual keys were valid, but the object as a whole was not. It's worth noting you can specify
+`validate_object_async` instead if you need to use asyncio in your validation. Remember, you must use the `.validate_async`
+method when doing any kind of async validation.
+
+#### Limitations
+RecordValidator is currently limited to at-most 10 keys. This is simply because mypy gets slower and slower
+when typechecking against the `@overload`s for RecordValidator's `__init__` method. This may change soon. In the meantime,
+if you have 10+ fields on a record like object, you may be able to use `DictValidatorAny`, `MapValidator`, or, in some cases,
+`OneOf2`/`OneOf3` in combination with `RecordValidator`. There is also the possibility to generate the code into your project
+if you want more keys:
+
+```bash
+# allow up to 30 keys
+python /path/to/koda-validate/codegen/generate.py /your/target/directory --num-keys 30
+```
+Then _you_ can deal with really slow mypy checks :).  
+
+### DictValidatorAny
+`DictValidatorAny` is very similar to `RecordValidator`, with several key differences:
+- It does not narrow the types on either the key or the value. If valid, the type of returned data will be `Dict[Hashable, Any]`.
+- It can allow for arbitrary amounts of keys
+- It passes along the keys, so the validated object may appear quite similar to the input. It will always be a new dictionary and it is legal for values to change.
+
+This is an equivalent example to the last `RecordValidator` example above. 
+
+```python
+from typing import Dict, Hashable, Any
+
+from koda_validate import *
+
+
+def no_dwight_regional_manager(employee: Dict[Hashable, Any]) -> Validated[Dict[Hashable, Any], Serializable]:
+    if (
+            "schrute" in employee["name"].lower()
+            and employee["title"].lower() == "assistant regional manager"
+    ):
+        return Invalid("Assistant TO THE Regional Manager!")
+    else:
+        return Valid(employee)
+
+
+employee_validator = DictValidatorAny(
+    keys=(
+        ("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),
+        ("name", StringValidator(not_blank, preprocessors=[strip])),
+    ),
+    # After we've validated individual fields, we may want to validate them as a whole
+    validate_object=no_dwight_regional_manager,
+)
+
+assert employee_validator(
+    {"name": "Jim Halpert",
+     "title": "Sales Representative"}
+) == Valid(
+    {"name": "Jim Halpert",
+     "title": "Sales Representative"}
+)
+
+assert employee_validator(
+    {
+        "title": "Assistant Regional Manager",
+        "name": "Dwight Schrute",
+    }
+) == Invalid("Assistant TO THE Regional Manager!")
+```
+
+#### ListValidator
+`ListValidator` validates whether some iterable is a list, predicates about the list itself (number of items, etc), and accepts
+a validator for the item value.
+
+```python
+from koda_validate import *
+
+binary_list_validator = ListValidator(
+    IntValidator(Choices({0, 1})),
+    predicates=[MinItems(2)]
+)
+
+assert binary_list_validator([1, 0, 0, 1, 0]) == Valid([1, 0, 0, 1, 0])
+
+assert binary_list_validator([1]) == Invalid({'__container__': ['minimum allowed length is 2']})
+
+assert binary_list_validator([0, 1.0, "0"]) == Invalid({'1': ['expected an integer'], '2': ['expected an integer']})
+```
+In case you're looking at the last example and wondering why the indexes `'1'` and `'2'` are strings, it's because all 
+built-in validators in Koda Validate return JSON serializable data. In JSON, keys in objects are only allowed to 
+be strings.  
+
+
+### MapValidator
+
+`MapValidator` allows us to validate dictionaries that are mappings of one type to another type, where we don't
+need to be concerned about individual keys or values:
+
+```python
+from koda_validate import *
+
+str_to_int_validator = MapValidator(key=StringValidator(),
+                                    value=IntValidator())
+
+assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
+    {"a": 1, "b": 25, "xyz": 900}
+)
+
+assert str_to_int_validator({3.14: "pi!"}) == Invalid({
+    '3.14': {'key_error': ['expected a string'],
+             'value_error': ['expected an integer']}
+})
+```
+
+
+### OneOf2 / OneOf3
 
 OneOfN validators are useful when you may have multiple valid shapes of data.
 ```python
@@ -755,12 +824,11 @@ assert string_or_list_string_validator(["list", "of", "strings"]) == Valid(
 ```
 
 
-#### Tuple2Validator / Tuple3Validator
+### Tuple2Validator / Tuple3Validator
 
 These `Validator`s work on `tuple`s as you might expect:
 ```python
-from koda import Ok
-from koda_validate import IntValidator, StringValidator, Tuple2Validator
+from koda_validate import * 
 
 string_int_validator = Tuple2Validator(StringValidator(), IntValidator())
 
@@ -772,17 +840,19 @@ assert string_int_validator(["ok", 100]) == Valid(("ok", 100))
 ```
 
 
-#### Lazy
+### Lazy
 `Lazy`'s main purpose is to allow for the use of recursion in validation. An example use case of this might be replies
 in a comment thread. This can be done with mutually recursive functions. For simplicity, here's an example of parsing a 
 kind of non-empty list.
 
 ```python
-from typing import Optional
-from koda import Ok
-from koda_validate import IntValidator, Lazy, OptionalValidator, Tuple2Validator
+from typing import Any, Optional
 
-NonEmptyList = tuple[int, Optional["NonEmptyList"]]
+from koda_validate import *
+
+# if enable_recursive_aliases = true in mypy
+# NonEmptyList = tuple[int, Optional["NonEmptyList"]]
+NonEmptyList = tuple[int, Optional[Any]]
 
 
 def recur_non_empty_list() -> Tuple2Validator[int, Optional[NonEmptyList]]:
@@ -801,108 +871,51 @@ assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Valid(
 ```
 
 
-#### MapValidator
-
-`MapValidator` allows us to validate dictionaries that are mappings of one type to another type, where we don't
-need to be concerned about individual keys or values:
-
-```python
-from koda import Ok
-from koda_validate import IntValidator, MapValidator, StringValidator
-
-str_to_int_validator = MapValidator(StringValidator(), IntValidator())
-
-assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
-    {"a": 1, "b": 25, "xyz": 900}
-)
-
-```
-
-#### OptionalValidator
+### OptionalValidator
 
 `OptionalValidator` is very simple. It validates a value is either `None` or passes another validator's rules.
 
 ```python
-from koda import Ok
-from koda_validate import IntValidator, OptionalValidator
+from koda_validate import *
 
 optional_int_validator = OptionalValidator(IntValidator())
 
 assert optional_int_validator(5) == Valid(5)
 assert optional_int_validator(None) == Valid(None)
-
 ```
 
-#### maybe_key
-`maybe_key` allows for a key to be missing from a dictionary
-
-```python
-from dataclasses import dataclass
-from koda import Just, Maybe, Ok, nothing
-from koda_validate import IntValidator, StringValidator, dict_validator, key, maybe_key
-
-
-@dataclass
-class Person:
-    name: str
-    age: Maybe[int]
-
-
-person_validator = dict_validator(
-    Person, key("name", StringValidator()), maybe_key("age", IntValidator())
-)
-assert person_validator({"name": "Bob"}) == Valid(Person("Bob", nothing))
-assert person_validator({"name": "Bob", "age": 42}) == Valid(Person("Bob", Just(42)))
-
-```
-
-#### is_dict_validator
+### is_dict_validator
 
 A very simple validator that only validates that and object is a dict. It doesn't do any validation against keys or
 values.
 
 ```python
-from koda import Ok, Invalid
-from koda_validate.dictionary import is_dict_validator
+from koda_validate import *
 
 assert is_dict_validator({}) == Valid({})
 assert is_dict_validator(None) == Invalid({"__container__": ["expected a dictionary"]})
-assert is_dict_validator({"a": 1, "b": 2, 5: "xyz"}) == Valid(
-    {"a": 1, "b": 2, 5: "xyz"}
-)
+assert is_dict_validator({"a": 1, "b": 2, 5: "xyz"}) == Valid({"a": 1, "b": 2, 5: "xyz"})
 
 ```
 
-## Limitations
-
-#### `dict_validator` has a max keys limit
-
-By default `dict_validator` can have a maximum of 20 keys. You can change this by generating code
-and storing it in your project:
-```bash
-# allow up to 30 keys
-python /path/to/koda-validate/codegen/generate.py /your/target/directory --num-keys 30
-```
-This limitation exists because computation starts to get expensive for type checkers above a certain level, and 
-it's not common to have that many keys in a dict.
-
-
-#### `dict_validator` types may be hard to read / slow for your editor or type-checker
-
-`dict_validator` is a convenience function that delegates to different `Validator`s depending 
-on the number of keys -- for example, `Dict2KeysValidator`, `Dict3KeysValidator`, etc. These
-numbered validators are limited to a specific number of keys and can be used to mitigate
-such issues.
-
-
-#### `dict_validator`'s keys only allow for strings
-
-This should be resolved in a later release.
-
-
-#### Your Imagination
-:sparkles:
-
+## Comparison to Pydantic
+First of all, Pydantic is a great library that has had a lot of success. The author of this library has used it in several
+projects, and it mostly just works. Koda Validate is not so much a response to Pydantic as much as it is an attempt to "get
+validation right" -- or at least to get the fundamental ideas correct (some ergonomics can surely be improved). Nonetheless, 
+since this is one of the most common questions, here are a number of differences:
+- Koda Validate is fundamentally more flexible in its possibilities than Pydantic. Because the core of Koda Validate
+is little more than a simple function definition, it can, in theory, be used to validate anything, using a consistent form for invocation.
+- Koda Validate seems to be faster. In common synchronous use cases covered in the `bench` folder (validating objects, 
+list of objects, simple scalars), Koda Validate is roughly 2.5x - 12x faster. You will see differences on different versions of Python
+(Python3.8 tends to show the least difference; Python 3.11 the most) and different systems, but in all benchmark tests this library
+currently uses Koda Validate is faster. Please feel free to run the benchmarks on your system `python -m bench.run`, and feel free to contact the 
+maintainer if you think there might be better cases to benchmark. The libraries are 
+not exactly equivalent, and there is no fully apples-to-apples comparison.
+- Koda Validate is fully async-compatible. If Koda Validate enables a change in your use case from sync to async, it's 
+entirely possible you could see multiple orders of magnitude improvement in throughput.
+- Koda Validate is intended to have inspectable validators, so you can produce things like API schemas from it.
+- Koda Validate is pure Python. There is the possibility of compiling parts of Koda Validate in things like
+Cython, Rust, or mypyc for performance increases, but the Jury (of one) is out on that at the moment. 
 
 ### Something's Missing Or Wrong 
 Open an [issue on GitHub](https://github.com/keithasaurus/koda-validate/issues) please!

@@ -5,7 +5,7 @@ def reverse_person_args_tuple(a: str, b: int) -> tuple[int, str]:
     return b, a
 
 
-person_validator_2 = DictValidator(
+person_validator_2 = RecordValidator(
     into=reverse_person_args_tuple,
     keys=(("name", StringValidator(MinLength(1))), ("age", IntValidator(Min(0)))),
 )

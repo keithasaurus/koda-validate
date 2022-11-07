@@ -28,9 +28,9 @@ from koda_validate._generics import A
 from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.dictionary import (
     EXPECTED_MAP_ERR,
-    DictValidator,
     DictValidatorAny,
     KeyNotRequired,
+    RecordValidator,
     is_dict_validator,
 )
 from koda_validate.validated import Invalid, Valid, Validated
@@ -267,7 +267,7 @@ def test_obj_1() -> None:
     class Person:
         name: str
 
-    validator = DictValidator(into=Person, keys=(("name", StringValidator()),))
+    validator = RecordValidator(into=Person, keys=(("name", StringValidator()),))
 
     assert validator("not a dict") == Invalid(
         {"__container__": ["expected a dictionary"]}
@@ -290,7 +290,7 @@ def test_obj_2() -> None:
         name: str
         age: Maybe[int]
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(("name", StringValidator()), ("age", KeyNotRequired(IntValidator()))),
     )
@@ -320,7 +320,7 @@ def test_obj_3() -> None:
         last_name: str
         age: int
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", StringValidator()),
@@ -353,7 +353,7 @@ def test_obj_4() -> None:
         age: int
         eye_color: str
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", StringValidator()),
@@ -383,7 +383,7 @@ def test_obj_4_mix_and_match_key_types() -> None:
         age: int
         eye_color: str
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", StringValidator()),
@@ -423,7 +423,7 @@ def test_obj_5() -> None:
         eye_color: str
         can_fly: bool
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", StringValidator()),
@@ -468,7 +468,7 @@ def test_obj_6() -> None:
         can_fly: bool
         fingers: float
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", StringValidator()),
@@ -505,7 +505,7 @@ def test_obj_7() -> None:
         fingers: float
         toes: float
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", StringValidator()),
@@ -545,7 +545,7 @@ def test_obj_8() -> None:
         toes: float
         favorite_color: Maybe[str]
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", StringValidator()),
@@ -614,7 +614,7 @@ def test_obj_9() -> None:
         favorite_color: Maybe[str]
         requires_none: None
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", StringValidator()),
@@ -661,7 +661,7 @@ def test_obj_10() -> None:
         requires_none: None
         something_else: List[str]
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", StringValidator()),
@@ -723,7 +723,7 @@ def test_obj_int_keys() -> None:
         assert p.name == test_name
         return Valid(p)
 
-    dv = DictValidator(
+    dv = RecordValidator(
         into=Person,
         keys=(
             (22, StringValidator()),
@@ -748,7 +748,7 @@ def test_obj_tuple_str_keys() -> None:
         assert p.name == test_name
         return Valid(p)
 
-    dv = DictValidator(
+    dv = RecordValidator(
         into=Person,
         keys=((("ok",), StringValidator()), (("neat", "cool"), IntValidator())),
         validate_object=asserted_ok,
@@ -772,7 +772,7 @@ def test_obj_decimal_keys() -> None:
         assert p.name == test_name
         return Valid(p)
 
-    dv = DictValidator(
+    dv = RecordValidator(
         into=Person,
         keys=((Decimal(22), StringValidator()), (Decimal("1.111"), IntValidator())),
         validate_object=asserted_ok,
@@ -793,7 +793,7 @@ def test_dict_validator_preprocessors() -> None:
     class Person:
         name: str
 
-    dv = DictValidator(
+    dv = RecordValidator(
         into=Person, keys=(("name", StringValidator()),), preprocessors=[RemoveKey()]
     )
 
@@ -1067,7 +1067,7 @@ def test_dict_validator_cannot_have_validate_object_and_validate_object_async() 
         return _nobody_named_jones_is_100(obj)
 
     with pytest.raises(AssertionError):
-        DictValidator(
+        RecordValidator(
             into=Person,
             keys=(
                 ("first_name", StringValidator(preprocessors=[strip])),
@@ -1097,7 +1097,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
         await asyncio.sleep(0.001)
         return _nobody_named_jones_is_100(obj)
 
-    validator_sync = DictValidator(
+    validator_sync = RecordValidator(
         into=Person,
         keys=(
             ("name", StringValidator(preprocessors=[strip])),
@@ -1111,7 +1111,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
         "Cannot be jones and 100"
     )
 
-    validator_async = DictValidator(
+    validator_async = RecordValidator(
         into=Person,
         keys=(
             ("name", StringValidator(preprocessors=[strip])),
@@ -1138,7 +1138,7 @@ async def test_validate_dictionary_async() -> None:
         first_name: Maybe[str]
         last_name: str
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
@@ -1184,7 +1184,7 @@ async def test_dict_validator_async_processor() -> None:
         first_name: Maybe[str]
         last_name: str
 
-    validator = DictValidator(
+    validator = RecordValidator(
         into=Person,
         keys=(
             ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),

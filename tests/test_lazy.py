@@ -4,7 +4,7 @@ import pytest
 from koda import Just, Maybe, nothing
 
 from koda_validate import IntValidator, Lazy
-from koda_validate.dictionary import DictValidator, KeyNotRequired
+from koda_validate.dictionary import KeyNotRequired, RecordValidator
 from koda_validate.validated import Valid
 
 
@@ -14,10 +14,10 @@ def test_lazy() -> None:
         val: int
         next: Maybe["TestNonEmptyList"]  # noqa: F821
 
-    def recur_tnel() -> DictValidator[TestNonEmptyList]:
+    def recur_tnel() -> RecordValidator[TestNonEmptyList]:
         return nel_validator
 
-    nel_validator: DictValidator[TestNonEmptyList] = DictValidator(
+    nel_validator: RecordValidator[TestNonEmptyList] = RecordValidator(
         into=TestNonEmptyList,
         keys=(("val", IntValidator()), ("next", KeyNotRequired(Lazy(recur_tnel)))),
     )
@@ -34,10 +34,10 @@ async def test_lazy_async() -> None:
         val: int
         next: Maybe["TestNonEmptyList"]  # noqa: F821
 
-    def recur_tnel() -> DictValidator[TestNonEmptyList]:
+    def recur_tnel() -> RecordValidator[TestNonEmptyList]:
         return nel_validator
 
-    nel_validator: DictValidator[TestNonEmptyList] = DictValidator(
+    nel_validator: RecordValidator[TestNonEmptyList] = RecordValidator(
         into=TestNonEmptyList,
         keys=(("val", IntValidator()), ("next", KeyNotRequired(Lazy(recur_tnel)))),
     )

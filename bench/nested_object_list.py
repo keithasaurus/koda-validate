@@ -4,10 +4,10 @@ from typing import Any, Dict, List
 from pydantic import BaseModel
 
 from koda_validate import (
-    DictValidator,
     FloatValidator,
     IntValidator,
     ListValidator,
+    RecordValidator,
     StringValidator,
 )
 from koda_validate.validated import Valid
@@ -28,7 +28,7 @@ class Person:
     hobbies: List[Hobby]
 
 
-k_validator = DictValidator(
+k_validator = RecordValidator(
     into=Person,
     keys=(
         ("name", StringValidator()),
@@ -36,7 +36,7 @@ k_validator = DictValidator(
         (
             "hobbies",
             ListValidator(
-                DictValidator(
+                RecordValidator(
                     into=Hobby,
                     keys=(
                         ("name", StringValidator()),

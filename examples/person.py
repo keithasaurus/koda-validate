@@ -9,7 +9,7 @@ class Person:
     age: int
 
 
-person_validator = DictValidator(
+person_validator = RecordValidator(
     into=Person,
     keys=(
         ("name", StringValidator()),
@@ -32,7 +32,7 @@ class Group:
     people: list[Person]
 
 
-group_validator = DictValidator(
+group_validator = RecordValidator(
     into=Group,
     keys=(
         ("name", StringValidator()),

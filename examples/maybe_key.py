@@ -11,7 +11,7 @@ class Person:
     age: Maybe[int]
 
 
-person_validator = DictValidator(
+person_validator = RecordValidator(
     into=Person,
     keys=(("name", StringValidator()), ("age", KeyNotRequired(IntValidator()))),
 )

@@ -22,3 +22,16 @@ assert asyncio.run(username_validator.validate_async("michael")) == Valid("micha
 assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(
     ["invalid username"]
 )
+
+# calling in sync mode raises an AssertionError!
+try:
+    username_validator("tobias")
+except AssertionError as e:
+    print(e)
+
+
+username_list_validator = ListValidator(username_validator)
+
+assert asyncio.run(
+    username_list_validator.validate_async(["michael", "gob", "lindsay", "buster"])
+) == Valid(["michael", "gob", "lindsay", "buster"])

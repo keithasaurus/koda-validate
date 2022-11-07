@@ -119,6 +119,6 @@ _not_set = _NotSet()
 def _async_predicates_warning(cls: Type[Any]) -> NoReturn:
     raise AssertionError(
         f"{cls.__name__} cannot run `predicates_async` in synchronous calls. "
-        f"Please remove the items in `predicates_async`, or call the `.validate_async` "
-        f"method instead."
+        f"Please `await` the `.validate_async` method instead; or remove the "
+        f"items in `predicates_async`."
     )

@@ -290,7 +290,7 @@ def _make_keys_err(keys: FrozenSet[Hashable]) -> Serializable:
     }
 
 
-class DictValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
+class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
     __slots__ = (
         "_fast_keys",
         "_key_set",

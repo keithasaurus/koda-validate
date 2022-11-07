@@ -4,7 +4,7 @@ from typing import Any, List
 from pydantic import BaseModel
 from voluptuous import MultipleInvalid, Schema
 
-from koda_validate import DictValidator, IntValidator, StringValidator
+from koda_validate import IntValidator, RecordValidator, StringValidator
 
 
 @dataclass
@@ -13,7 +13,7 @@ class SimpleStr:
     val_2: int
 
 
-string_validator = DictValidator(
+string_validator = RecordValidator(
     into=SimpleStr, keys=(("val_1", StringValidator()), ("val_2", IntValidator()))
 )
 

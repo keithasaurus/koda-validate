@@ -320,7 +320,7 @@ def _make_keys_err(keys: FrozenSet[Hashable]) -> Serializable:
         )
 
     ret += """
-class DictValidator(
+class RecordValidator(
     _ToTupleValidatorUnsafe[Any, Ret, Serializable]
 ):
     __slots__ = ("_fast_keys", "_key_set", "keys", "into", "preprocessors", "validate_object", "validate_object_async")

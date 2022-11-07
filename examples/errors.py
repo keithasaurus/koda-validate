@@ -20,7 +20,7 @@ class City:
     region: Maybe[str]
 
 
-city_validator = DictValidator(
+city_validator = RecordValidator(
     into=City,
     keys=(
         ("name", StringValidator(not_blank)),
@@ -49,7 +49,7 @@ class Neighborhood:
     city: City
 
 
-neighborhood_validator = DictValidator(
+neighborhood_validator = RecordValidator(
     into=Neighborhood,
     keys=(("name", StringValidator(not_blank)), ("city", city_validator)),
 )

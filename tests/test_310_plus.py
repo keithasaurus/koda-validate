@@ -33,11 +33,11 @@ from koda_validate import (
     strip,
 )
 from koda_validate.dictionary import (
-    DictValidator,
     DictValidatorAny,
     KeyNotRequired,
     MaxKeys,
     MinKeys,
+    RecordValidator,
     is_dict_validator,
 )
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
@@ -96,7 +96,7 @@ def test_match_args() -> None:
         else:
             return Valid(p)
 
-    dv_validator: DictValidator[Person] = DictValidator(
+    dv_validator: RecordValidator[Person] = RecordValidator(
         into=(into_ := Person),
         keys=(
             (str_1 := ("name", StringValidator())),
@@ -105,7 +105,7 @@ def test_match_args() -> None:
         validate_object=validate_person,
     )
     match dv_validator:
-        case DictValidator(fields, into, preprocessors, validate_object):
+        case RecordValidator(fields, into, preprocessors, validate_object):
             assert into == into_
             assert fields[0] == str_1
             assert fields[1][0] == "age"
@@ -149,10 +149,10 @@ def test_match_args() -> None:
         case _:
             assert False
 
-    def lazy_dv_validator() -> DictValidator[Person]:
+    def lazy_dv_validator() -> RecordValidator[Person]:
         return dv_validator_2
 
-    dv_validator_2: DictValidator[Person] = DictValidator(
+    dv_validator_2: RecordValidator[Person] = RecordValidator(
         into=Person,
         keys=(
             ("name", StringValidator()),
