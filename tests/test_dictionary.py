@@ -1,7 +1,6 @@
 import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
-from re import A
 from typing import Any, Dict, Hashable, List, Protocol
 
 import pytest
@@ -25,6 +24,7 @@ from koda_validate import (
     none_validator,
     strip,
 )
+from koda_validate._generics import A
 from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.dictionary import (
     EXPECTED_MAP_ERR,
