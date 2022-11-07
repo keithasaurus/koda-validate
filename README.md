@@ -898,6 +898,15 @@ assert is_dict_validator({"a": 1, "b": 2, 5: "xyz"}) == Valid({"a": 1, "b": 2, 5
 
 ```
 
+### AnyValidator
+Will always return `Valid` with the given value:
+```python
+from koda_validate import *
+
+assert any_validator(123) == Valid(123)
+assert any_validator("abc") == Valid("abc")
+```
+
 ## Comparison to Pydantic
 First of all, Pydantic is a great library that has had a lot of success. The author of this library has used it in several
 projects, and it mostly just works. Koda Validate is not so much a response to Pydantic as much as it is an attempt to "get

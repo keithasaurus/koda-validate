@@ -27,6 +27,8 @@ __all__ = (
     "Max",
     "MultipleOf",
     "ExactValidator",
+    "any_validator",
+    "AnyValidator",
     # integer.py
     "IntValidator",
     # list.py
@@ -85,7 +87,16 @@ from koda_validate.dictionary import (
     is_dict_validator,
 )
 from koda_validate.float import FloatValidator
-from koda_validate.generic import Choices, ExactValidator, Lazy, Max, Min, MultipleOf
+from koda_validate.generic import (
+    AnyValidator,
+    Choices,
+    ExactValidator,
+    Lazy,
+    Max,
+    Min,
+    MultipleOf,
+    any_validator,
+)
 from koda_validate.integer import IntValidator
 from koda_validate.list import (
     ListValidator,
