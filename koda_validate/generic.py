@@ -7,7 +7,14 @@ from koda import Thunk
 from koda._generics import A
 
 from koda_validate._generics import Ret
-from koda_validate.base import Predicate, Processor, Serializable, Validator
+from koda_validate.base import (
+    Predicate,
+    Processor,
+    Serializable,
+    Validator,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
+)
 from koda_validate.validated import Invalid, Valid, Validated
 
 EnumT = TypeVar("EnumT", str, int)
@@ -173,3 +180,16 @@ class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
 
     async def validate_async(self, val: Any) -> Validated[ExactMatchT, Serializable]:
         return self(val)
+
+
+class AnyValidator(_ToTupleValidatorUnsafe[A, A, Serializable]):
+    __match_args__ = ()
+
+    def validate_to_tuple(self, val: A) -> _ResultTupleUnsafe:
+        return True, val
+
+    async def validate_to_tuple_async(self, val: A) -> _ResultTupleUnsafe:
+        return True, val
+
+
+any_validator: _ToTupleValidatorUnsafe[Any, Any, Serializable] = AnyValidator()

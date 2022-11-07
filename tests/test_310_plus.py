@@ -40,6 +40,7 @@ from koda_validate.dictionary import (
     RecordValidator,
     is_dict_validator,
 )
+from koda_validate.generic import AnyValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.validated import Invalid, Valid, Validated
 
@@ -308,5 +309,11 @@ def test_match_args() -> None:
             assert vldtr_1 is s_9
             assert vldtr_2 is i_9
             assert vldtr_3 is f_9
+        case _:
+            assert False
+
+    match AnyValidator():
+        case AnyValidator():
+            assert True
         case _:
             assert False
