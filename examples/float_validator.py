@@ -1,6 +1,6 @@
 # from typing import Any
 #
-# from koda_validate.typedefs import Err, Ok, Result#
+# from koda_validate.typedefs import Invalid, Valid, Result#
 # from koda_validate import Predicate, Serializable, Validator
 # from koda_validate.utils import accum_errors
 #
@@ -14,6 +14,6 @@
 #             if len(self.predicates) > 0:
 #                 return accum_errors(val, self.predicates)
 #             else:
-#                 return Ok(val)
+#                 return Valid(val)
 #         else:
-#             return Err(["expected a float"])
+#             return Invalid(["expected a float"])

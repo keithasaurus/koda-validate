@@ -1,5 +1,4 @@
-from koda_validate import IntValidator, MapValidator, StringValidator
-from koda_validate.validated import Valid
+from koda_validate import *
 
 str_to_int_validator = MapValidator(StringValidator(), IntValidator())
 

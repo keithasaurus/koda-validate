@@ -1,4 +1,10 @@
 __all__ = (
+    # base.py
+    "Validator",
+    "Predicate",
+    "PredicateAsync",
+    "Serializable",
+    "Processor",
     # boolean.py
     "BoolValidator",
     # decimal.py
@@ -6,6 +12,7 @@ __all__ = (
     # dictionary.py
     "KeyNotRequired",
     "MapValidator",
+    "is_dict_validator",
     "IsDictValidator",
     "MinKeys",
     "MaxKeys",
@@ -51,12 +58,10 @@ __all__ = (
     # tuple.py
     "Tuple2Validator",
     "Tuple3Validator",
-    # typedefs.py
-    "Validator",
-    "Predicate",
-    "PredicateAsync",
-    "Serializable",
-    "Processor",
+    # validated
+    "Validated",
+    "Valid",
+    "Invalid",
 )
 
 from koda_validate.base import (
@@ -75,6 +80,7 @@ from koda_validate.dictionary import (
     MapValidator,
     MaxKeys,
     MinKeys,
+    is_dict_validator,
 )
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Choices, ExactValidator, Lazy, Max, Min, MultipleOf
@@ -102,3 +108,4 @@ from koda_validate.string import (
 )
 from koda_validate.time import DateStringValidator, DatetimeStringValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
+from koda_validate.validated import Invalid, Valid, Validated

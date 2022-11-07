@@ -1,5 +1,4 @@
-from koda_validate import IntValidator, StringValidator, Tuple2Validator
-from koda_validate.validated import Valid
+from koda_validate import IntValidator, StringValidator, Tuple2Validator, Valid
 
 string_int_validator = Tuple2Validator(StringValidator(), IntValidator())
 

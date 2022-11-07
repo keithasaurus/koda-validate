@@ -1,5 +1,4 @@
-from koda_validate import IntValidator, OptionalValidator
-from koda_validate.validated import Valid
+from koda_validate import *
 
 optional_int_validator = OptionalValidator(IntValidator())
 
