@@ -45,6 +45,51 @@ def test_tuple2() -> None:
     assert a1_validator(["b", 2]) == Valid(("b", 2))
 
 
+@pytest.mark.asyncio
+async def test_tuple2_async() -> None:
+    assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
+        {}
+    ) == Invalid({"__container__": ["expected list or tuple of length 2"]})
+
+    assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
+        []
+    ) == Invalid({"__container__": ["expected list or tuple of length 2"]})
+
+    assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
+        ["a", 1]
+    ) == Valid(("a", 1))
+    assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
+        ("a", 1)
+    ) == Valid(("a", 1))
+
+    assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
+        [1, "a"]
+    ) == Invalid({"0": ["expected a string"], "1": ["expected an integer"]})
+
+    def must_be_a_if_integer_is_1(
+        ab: Tuple[str, int]
+    ) -> Validated[Tuple[str, int], Serializable]:
+        if ab[1] == 1:
+            if ab[0] == "a":
+                return Valid(ab)
+            else:
+                return Invalid({"__container__": ["must be a if int is 1"]})
+        else:
+            return Valid(ab)
+
+    a1_validator = Tuple2Validator(
+        StringValidator(),
+        IntValidator(),
+        must_be_a_if_integer_is_1,
+    )
+
+    assert await a1_validator.validate_async(["a", 1]) == Valid(("a", 1))
+    assert await a1_validator.validate_async(["b", 1]) == Invalid(
+        {"__container__": ["must be a if int is 1"]}
+    )
+    assert await a1_validator.validate_async(["b", 2]) == Valid(("b", 2))
+
+
 def test_tuple3() -> None:
     assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
         {}

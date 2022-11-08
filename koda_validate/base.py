@@ -114,7 +114,7 @@ class _ToTupleValidatorUnsafe(Validator[A, B, FailT]):
     """
 
     def validate_to_tuple(self, val: A) -> _ResultTupleUnsafe:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def __call__(self, val: A) -> Validated[B, FailT]:
         valid, result_val = self.validate_to_tuple(val)
@@ -124,7 +124,7 @@ class _ToTupleValidatorUnsafe(Validator[A, B, FailT]):
             return Invalid(result_val)
 
     async def validate_to_tuple_async(self, val: A) -> _ResultTupleUnsafe:
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     async def validate_async(self, val: A) -> Validated[B, FailT]:
         valid, result_val = await self.validate_to_tuple_async(val)

@@ -1,10 +1,10 @@
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 from koda_validate import *
 
 # if enable_recursive_aliases = true in mypy
-# NonEmptyList = tuple[int, Optional["NonEmptyList"]]
-NonEmptyList = tuple[int, Optional[Any]]
+# NonEmptyList = Tuple[int, Optional["NonEmptyList"]]
+NonEmptyList = Tuple[int, Optional[Any]]
 
 
 def recur_non_empty_list() -> Tuple2Validator[int, Optional[NonEmptyList]]:

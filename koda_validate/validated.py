@@ -1,6 +1,6 @@
 from typing import Any, Callable, ClassVar, Generic, Literal, Union
 
-from koda import Ok, Result
+from koda import Err, Ok, Result
 
 from koda_validate._generics import A, B, FailT
 
@@ -52,12 +52,6 @@ class Invalid(Generic[FailT]):
     def __repr__(self) -> str:
         return f"Invalid({repr(self.val)})"
 
-    def apply(self, _: "Validated[Callable[[Any], B], FailT]") -> "Validated[B, FailT]":
-        return self
-
-    def get_or_else(self, fallback: A) -> A:
-        return fallback
-
     def map(self, _: Callable[[Any], B]) -> "Validated[B, FailT]":
         return self
 
@@ -74,7 +68,7 @@ class Invalid(Generic[FailT]):
 
     @property
     def as_result(self) -> Result[Any, FailT]:
-        return Ok(self.val)
+        return Err(self.val)
 
 
 Validated = Union[Valid[A], Invalid[FailT]]

@@ -22,7 +22,6 @@ person_validator = RecordValidator(
     ),
 )
 
-# use `isinstance` in python 3.8 or 3.8
 assert person_validator(
     {1: "John Doe", False: 30, ("abc", 123): ["reading", "cooking"]}
 ) == Valid(Person("John Doe", Just(30), ["reading", "cooking"]))

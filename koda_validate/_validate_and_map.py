@@ -111,7 +111,7 @@ def validate_and_map(
     *,
     validate_object: Optional[Callable[[Ret], Validated[Ret, FailT]]] = None,
 ) -> Validated[Ret, Tuple[FailT, ...]]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -122,7 +122,7 @@ def validate_and_map(
     *,
     validate_object: Optional[Callable[[Ret], Validated[Ret, FailT]]] = None,
 ) -> Validated[Ret, Tuple[FailT, ...]]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -134,7 +134,7 @@ def validate_and_map(
     *,
     validate_object: Optional[Callable[[Ret], Validated[Ret, FailT]]] = None,
 ) -> Validated[Ret, Tuple[FailT, ...]]:
-    ...
+    ...  # pragma: no cover
 
 
 def validate_and_map(
