@@ -739,8 +739,8 @@ python /path/to/koda-validate/codegen/generate.py /your/target/directory --num-k
 Then _you_ can deal with really slow mypy checks :).  
 
 ### DictValidatorAny
-`DictValidatorAny` is similar to `RecordValidator`, with several key differences:
-- It does not narrow the types on either the key or the value. If valid, the type of returned data will be `Dict[Hashable, Any]`.
+`DictValidatorAny` is similar to `RecordValidator`, but there are several key differences:
+- It does not narrow the types on either the key or the value. If valid, the type of returned data will be `Dict[Hashable, Any]`. (This is why it has `Any` in its name.)
 - It can allow for arbitrary amounts of keys
 - It passes along the keys, so the validated object may appear quite similar to the input. Note that 
 it will always return a new dictionary (if valid), and it is legal for values to differ from the input.
@@ -941,17 +941,18 @@ assert always_valid("abc") == Valid("abc")
 Comparing Koda Validate and Pydantic is not exactly apples-to-apples, since Koda Validate is more narrowly
 aimed at _just_ validation -- Pydantic has a lot of other bells and whistles. Nonetheless, this is one of the most 
 common questions, there are a number of noteworthy differences:
+- **Koda Validate treats validation explicitly.** It does not coerce types or mutate values in surprising ways.
 - **Koda Validate treats validation as part of normal control flow.** It does not raise exceptions for invalid data.
-- **Koda Validate treats validation explicitly.** It does not coerce types or mutate values in surprising ways.  
-- **Koda Validate is fully asyncio-compatible.** 
-- **Koda Validate requires no plugins for mypy compatibility.**
-- **Koda Validate tends to be faster.** In common synchronous use cases covered in the `bench` folder, Koda Validate 
-is roughly 2x - 12x faster than Pydantic. You will see differences on different versions of Python
+- **Koda Validate is built around a simple, composable definition of what validation is.**
+- **Koda Validate is fully asyncio-compatible.**
+- **Koda Validate is faster.** In common synchronous use cases covered in the `bench` folder, Koda Validate 
+is roughly 1.5x - 12x faster than Pydantic. You will see differences on different versions of Python
 (Python3.8 tends to show the least difference) and different systems. You can run the suite on your 
 system with `python -m bench.run`. **Disclaimer that the benchmark suite is _not_ extensive.**
 - **Koda Validate is pure Python.** 
 - **Koda Validate is intended to empower validator documentation.** You can easily produce things like API schemas from 
 `Validator`s, `Predicate`s, and `Processor`s
+- **Koda Validate requires no plugins for mypy compatibility.** 
 - **Pydantic has a large, mature ecosystem** Lots of documentation, lots of searchable info on the web.
 - **Pydantic focuses on having a familiar, dataclass-like syntax.** 
 - **Pydantic has a lot of features Koda Validate does not.** Plugins, ORM tie-ins, etc. There will probably never be 
