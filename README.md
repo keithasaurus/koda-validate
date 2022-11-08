@@ -116,8 +116,15 @@ less code, and clearer paths to optimization than other approaches.
 
 ### Validators
 In Koda Validate a `Validator` is the fundamental validation building block. It's based on the idea that  
-validation can be universally represented by the function signature (pseudocode) `InputType -> ValidType | InvalidType`. In
-Koda Validate this looks more like `Callable[[InputType], Validated[ValidType, InvalidType]]`. A quick example:
+validation can be universally represented by the function signature (pseudocode): 
+```
+InputType -> ValidType | InvalidType
+```
+In Koda Validate this looks more like: 
+```python
+Callable[[InputType], Validated[ValidType, InvalidType]]
+``` 
+A quick example:
 ```python
 from koda_validate import IntValidator, Valid, Invalid
 
@@ -131,19 +138,18 @@ that in reality, but it isn't far off.) In this case, the `InputType` is `Any` -
 if it's invalid it returns `Invalid[List[str]]`. 
 
 This is a useful model to have for validation, because it means we can **combine**
-validators in different ways (i.e. nesting them), and have our model of validation be consistent throughout. In theory, we 
-should be able to validate anything with this approach.
+validators in different ways (i.e. nesting them), and have our model of validation be consistent throughout.
 
 Take a look at [Extension](#extension) to see how to build custom `Validator`s.
 
 ### Predicates
-In validation, predicates are simple expressions that return a `True` or `False` for a given condition. Koda Validate uses predicates to 
-_enrich_ `Validator`s. Because `Validator`s might return different types and values in their valid state than in their input,
-it's difficult to do something like apply a list of `Validator`s to a given value:
+In validation, predicates are simple expressions that return a `True` or `False` for a given condition. Koda Validate uses a 
+class based om this concept, `Predicate`, to _enrich_ `Validator`s. Because the type and value of a `Validator`'s valid state may
+differ from those of its input, it's difficult to do something like apply a list of `Validator`s to a given value:
 even _if_ the types all match up, there's no assurance that the values won't change from one validator to the next. 
 
 The role of a `Predicate` in Koda Validate is to perform additional validation _after_ the data has been verified to be 
-of a specific type. To this end, `Predicate`s in Koda Validate cannot change their input types or values. Let's go further with our `IntValidator`:
+of a specific type or shape. To this end, `Predicate`s in Koda Validate cannot change their input types or values. Let's go further with our `IntValidator`:
 ```python
 from koda_validate import * 
 
@@ -153,8 +159,11 @@ assert int_validator(6) == Valid(6)
 
 assert int_validator(4) == Invalid(["minimum allowed value is 5"])
 ```
-In this example `Min(5)` is a `Predicate`. Because we know that predicates don't change the type or value of their inputs, we can 
-sequence an arbitrary number of them, and validate them all.
+In this example `Min(5)` is a `Predicate`. As you can see the value 4
+passes the `int` check but fails to pass the `Min(5)` predicate.
+
+Because we know that predicates don't change the type or value of their inputs, we can 
+sequence an arbitrary number of them together, and validate them all.
 
 ```python
 from koda_validate import * 
@@ -175,7 +184,7 @@ predicates are returned. This is possible because we know that the value should 
 
 
 ### Processors
-`Processor`s allow us to take a value of a given type and transform it into another value of a given type. Processors are most useful
+`Processor`s allow us to take a value of a given type and transform it into another value of that type. Processors are most useful
 _after_ type validation, but _before_ predicates are checked. Here's an example:
 ```python
 from koda_validate import *
@@ -194,9 +203,7 @@ Processors are very simple to write -- see [Extension](#extension) for more deta
 
 ## Extension
 Koda Validate aims to provide enough tools to handle most common validation needs; for the cases it doesn't
-cover, it aims to allow easy extension. Again, because Koda Validate is built on simple principles, it should be able
-to validate practically any kind of data using Koda Validate's base types.
-
+cover, it aims to allow easy extension. 
 
 ```python
 from typing import Any
@@ -225,6 +232,7 @@ What is this doing?
   - `Any`: any type of input can be passed in to be validated
   - `float`: if the data is valid, a value of type `Valid[float]` will be returned 
   - `Serializable`: if it's invalid, a value of type `Invalid[Serializable]` will be returned
+  - note that mypy understands the role of all of these types 
 - the `__call__` method performs any kind of validation needed, so long as the input and output type signatures -- as determined by the `Validator` type parameters - are abided
 
 We accept `Any` because the type of input may be unknown before submitting to the `Validator`. After our 
@@ -926,6 +934,9 @@ validation right" -- or at least to get the fundamental ideas correct (some ergo
 since this is one of the most common questions, here are a number of differences:
 - **Koda Validate is fully asyncio-compatible.** If Koda Validate enables a change in your use case from sync to async, it's 
 entirely possible you could see multiple orders of magnitude improvement in throughput.
+- **Koda Validate treats validation as part of normal control flow.** It does not raise exceptions for invalid data.
+- **Koda Validate treats validation explicitly.** It does not coerce types or mutate values in surprising ways.  
+- **Koda Validate requires no plugins for mypy compatibility.**
 - **Koda Validate is faster in synchronous validation.** In common synchronous use cases covered in the `bench` folder (validating objects, 
 list of objects, simple scalars), Koda Validate is roughly 2x - 12x faster. You will see differences on different versions of Python
 (Python3.8 tends to show the least difference; Python 3.11 and pypy3.9 the most) and different systems, but in all benchmark tests this library
@@ -933,12 +944,7 @@ currently uses Koda Validate is faster. Please feel free to run the benchmarks o
 maintainer if you think there might be better cases to benchmark -- it's a very young suite! The libraries are 
 not exactly equivalent, so there is no fully apples-to-apples comparison.
 - **Koda Validate is pure Python.** At this moment there is no use of Cython, Rust, or mypyc. (This may change in the future.)
-- **Koda Validate treats validation as part of normal control flow.** It does not raise exceptions for invalid data.
-- **Koda Validate treats validation explicitly.** It does not coerce types or mutate values in surprising ways.  
-- **Koda Validate requires no plugins for mypy compatibility.**
 - **Koda Validate is intended to empower validators documentation.** You can produce things like API schemas from `Validator`s, `Predicate`s, and `Processor`s
-- **Koda Validate has a wider range of possibilities than Pydantic.** Because the core of Koda Validate
-is little more than a simple function definition, it can, in theory, be used to validate any kind of data, using a consistent form for invocation.
 
 ### Something's Missing Or Wrong 
 Open an [issue on GitHub](https://github.com/keithasaurus/koda-validate/issues) please!
