@@ -353,7 +353,7 @@ to remember that our `Validator`, `Predicate` (and `PredicateAsync` -- see [Asyn
 ## Validation Errors
 
 In Koda Validate errors are returned as data as part of normal control flow. `Invalid` instances from built-in `Validator`s
-contain are JSON/YAML serializable values. (Should you build your own custom validators, there is no contract enforcing 
+contain JSON/YAML serializable values. (Should you build your own custom validators, there is no contract enforcing 
 that constraint.) Here are a few examples of the kinds of errors you can expect to see out of the box.
 
 ```python
