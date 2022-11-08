@@ -3,9 +3,9 @@
 Validate Anything. Faster!
 
 Koda Validate is:
-- type-driven (works with type hints)
-- easily inspected -- build API schemas from validators
+- type-driven (works with type hints without plugins)
 - fully asyncio-compatible
+- easily inspected -- build API schemas from validators
 
 
 ### Contents
