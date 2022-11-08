@@ -434,8 +434,16 @@ the documentation on specific validators below:
 
 ## Async Validation
 Because Koda Validate is based on simple principles, it's straightforward to make it compatible with `asyncio`.
-All the built-in `Validator`s in Koda are asyncio-compatible -- all you need to do is call a `Validator` in this form 
-`await validator.validate_async("abc")`, instead of `validator("abc")`. 
+All the built-in `Validator`s in Koda are asyncio-compatible -- all you need to do is call a `Validator` in this form: 
+```python
+await validator.validate_async("abc")
+```
+instead of:
+```python
+validator("abc")
+```
+For example, this is how you could re-use the same `StringValidator` in both
+sync and async contexts:
 ```python
 import asyncio
 from koda_validate import *
@@ -449,8 +457,9 @@ assert short_string_validator("sync") == Valid("sync")
 assert asyncio.run(short_string_validator.validate_async("async")) == Valid("async")
 ```
 
-This example isn't particularly helpful because we aren't doing any asynchronous IO. It would be much more 
-useful if we were doing something like querying a database:
+Synchronous validators can be used in both async and sync contexts. So while this Validator works in async mode,
+it isn't yielding any benefit for IO. It would be much more useful if we were doing something like querying a database
+asynchronously:
 ```python
 import asyncio
 from koda_validate import *
@@ -477,7 +486,7 @@ assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(["inv
 
 # calling in sync mode raises an AssertionError
 try:
-    username_validator("tobias")
+    username_validator("michael")
 except AssertionError as e:
     print(e)
 
@@ -488,7 +497,8 @@ explicit -- we don't want to be confused about whether a validator requires `asy
 synchronous mode, it will raise an `AssertionError` -- instead make sure you call it like 
 `await username_validator.validate_async("buster")`.)
 
-You can nest async `Validator`s and use the same `.validate_async` method.
+Like other validators, you can nest async `Validator`s. Again, the only difference needed is to use the `.validate_async`
+method of the outer-most validator.
 ```python
 # continued from previous example
 
@@ -503,13 +513,13 @@ You can run async validation on nested lists, dictionaries, tuples, strings, etc
 understand the `.validate_async` method. 
 
 Koda Validate makes no assumptions about running async `Validator`s or `PredicateAsync`s concurrently; it is expected that that is
-handled by the surrounding context. That is to say, async validators will not block when performing IO, as is normal, but if you had, say, 10 async 
+handled by the surrounding context. That is to say, async validators will not block when performing IO -- as is normal -- but if you had, say, 10 async 
 predicates, they would not be run in parallel by default. This is simply because that is too much of an assumption for this library to make -- we don't 
 want to accidentally send N simultaneous requests to some other service without the intent being explicitly defined. If you'd like to have `Validator`s 
 or `Predicate`s run in parallel _within_ the validation step, all you should need to do is write a simple wrapper class based on either `Validator` 
 or `Predicate`, implementing whatever concurrency needs you have.
 
-For custom `Validator`s, all you need to do is implement the `validate_async` method on a `Validator` class. There is no
+For custom async `Validator`s, all you need to do is implement the `validate_async` method on a `Validator` class. There is no
 separate async-only `Validator` class. This is because we might want to re-use synchronous validators in either synchronous
 or asynchronous contexts. Here's an example of making a `SimpleFloatValidator` async-compatible:
 ```python
@@ -541,8 +551,10 @@ assert asyncio.run(float_validator.validate_async(5)) == Invalid("expected a flo
 
 ```
 
-If your `Validator` only makes sense in an async context, then you probably don't want to implement the `__call__` method. 
-Instead, you'd want to make sure that validator is always called by `await`-ing the `.validate_async` method. 
+If your `Validator` only makes sense in an async context, then you probably don't need to implement the `__call__` method. 
+Instead, you'd just implement the `.validate_async` method and make sure that validator is always called by `await`-ing 
+the `.validate_async` method. A `NotImplementedError` will be raised if you try to use the `__call__` method on an 
+async-only `Validator`. 
 
 ## Using Metadata
 One of Koda Validate's design objectives is to allow reuse of validator metadata. Principally this 

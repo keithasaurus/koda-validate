@@ -25,7 +25,7 @@ assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(
 
 # calling in sync mode raises an AssertionError!
 try:
-    username_validator("tobias")
+    username_validator("michael")
 except AssertionError as e:
     print(e)
 
