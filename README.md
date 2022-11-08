@@ -205,6 +205,9 @@ Processors are very simple to write -- see [Extension](#extension) for more deta
 Koda Validate aims to provide enough tools to handle most common validation needs; for the cases it doesn't
 cover, it aims to allow easy extension. 
 
+Even though there is an existing `FloatValidator` in Koda Validate, we'll build our own. (Extension does not
+need to be limited to new functionality; it can also be writing alternatives to the default for custom needs.)
+
 ```python
 from typing import Any
 from koda_validate import * 
@@ -240,7 +243,7 @@ validation in `SimpleFloatValidator` succeeds, we know the type must be `float`.
 to a `float` instead of checking its type -- that is 100% OK to do. For simplicity's sake, this validator does not coerce.)
 
 This is all well and good, but we'll probably want to be able to validate against values of the floats, such as min, 
-max, or rough equality checks. For this we use `Predicate`s. For exmaple, if we wanted to allow a single predicate in 
+max, or rough equality checks. For this we use `Predicate`s. For example, if we wanted to allow a single `Predicate` in 
 our `SimpleFloatValidator` we could do it like this:
 
 ```python
@@ -262,7 +265,7 @@ class SimpleFloatValidator2(Validator[Any, float, Serializable]):
             return Invalid(["expected a float"])
 
 ```
-Here we allow for a single predicate to be specified. If it is specified, we'll check it _after_ we've verified the type of the value.
+If `predicate` is specified, we'll check it _after_ we've verified the type of the value.
 
 `Predicate`s are meant to validate the _value_ of a known type -- as opposed to validating at the type-level (that's what the `Validator` does). 
 For example, this is how you might write and use a `Predicate` to validate a range of values:
@@ -296,8 +299,7 @@ entire `__call__` method. This is because the base `Predicate` class is construc
 much it can actually do -- we don't want it to be able to alter the value being validated.
 
 Finally, let's add a `Processor`. A `Processor` is a function that takes a value of one type and then produces another 
-value of that type. In our case, we want to preprocess our `float`s by converting them to their
-absolute value.
+value of that type. In our case, we want to preprocess our `float`s by converting them to their absolute value.
 
 ```python
 # (continuing from previous example)
@@ -337,7 +339,7 @@ assert range_validator_2(test_val) == Valid(abs(test_val))
 assert range_validator_2(-0.01) == Invalid('expected a value in the range of 0.5 and 1.0')
 ```
 Note that we pre-process _after_ type checking but _before_ the predicates are run. This is the general approach 
-Koda Validate takes on built-in validators. More specifically, the built-in validators consider there to be a pipeline of 
+Koda Validate takes on built-in validators. More specifically, the built-in validators expect there to be a pipeline of 
 actions taken within a `Validator`: `type-check/coerce -> preprocess -> validate predicates`, where it can fail 
 validation at either the first or last stage.
 
@@ -419,7 +421,7 @@ assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Invalid(
 )
 
 ```
-If you have any concerns about being able to handle specific types of key or object requirements, please see some of 
+If you have any concerns about being able to handle specific types of key or object requirements, please see  
 the documentation on specific validators below:
 - [RecordValidator](#recordvalidator)
 - [DictValidatorAny](#dictvalidatorany)
@@ -431,7 +433,7 @@ the documentation on specific validators below:
 
 
 ## Async Validation
-Because Koda Validate is based on simple principles, it's relatively straightforward to make it compatible with `asyncio`.
+Because Koda Validate is based on simple principles, it's straightforward to make it compatible with `asyncio`.
 All the built-in `Validator`s in Koda are asyncio-compatible -- all you need to do is call a `Validator` in this form 
 `await validator.validate_async("abc")`, instead of `validator("abc")`. 
 ```python
@@ -481,9 +483,10 @@ except AssertionError as e:
 
 ```
 In this example we are calling the database to verify a username. A few things worth pointing out:
-`PredicateAsync`s are specified in `predicates_async` -- separately from `Predicates`. We do this to be explicit -- we 
-don't want to be confused about whether a validator requires `asyncio`. (If you try to run this validator in synchronous mode, it 
-will raise an `AssertionError` -- instead make sure you call it like `await username_validator.validate_async("buster")`.)
+`PredicateAsync`s are specified in the `predicates_async` keyword argument -- separately from `Predicates`. We do this to be 
+explicit -- we don't want to be confused about whether a validator requires `asyncio`. (If you try to run this validator in 
+synchronous mode, it will raise an `AssertionError` -- instead make sure you call it like 
+`await username_validator.validate_async("buster")`.)
 
 You can nest async `Validator`s and use the same `.validate_async` method.
 ```python
@@ -497,7 +500,7 @@ assert asyncio.run(username_list_validator.validate_async(["michael", "gob", "li
 
 ```
 You can run async validation on nested lists, dictionaries, tuples, strings, etc. All `Validator`s built into to Koda Validate
-understand this form. 
+understand the `.validate_async` method. 
 
 Koda Validate makes no assumptions about running async `Validator`s or `PredicateAsync`s concurrently; it is expected that that is
 handled by the surrounding context. That is to say, async validators will not block when performing IO, as is normal, but if you had, say, 10 async 
@@ -950,8 +953,8 @@ system with `python -m bench.run`. **Disclaimer that the benchmark suite is _not
 - **Koda Validate is intended to empower validator documentation.** You can easily produce things like API schemas from 
 `Validator`s, `Predicate`s, and `Processor`s
 - **Pydantic has a large, mature ecosystem** Lots of documentation, lots of searchable info on the web.
-- **Pydantic focuses on having a familiar, dataclass-like syntax** 
-- **Pydantic has a lot of features Koda Validate does not** Plugins, ORM tie-ins, etc. There will probably never be 
+- **Pydantic focuses on having a familiar, dataclass-like syntax.** 
+- **Pydantic has a lot of features Koda Validate does not.** Plugins, ORM tie-ins, etc. There will probably never be 
 feature parity between the two libraries. 
 
 ## Something's Missing Or Wrong 
