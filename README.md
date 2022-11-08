@@ -925,13 +925,13 @@ assert is_dict_validator({"a": 1, "b": 2, 5: "xyz"}) == Valid({"a": 1, "b": 2, 5
 
 ```
 
-### AnyValidator
+### AlwaysValid
 Will always return `Valid` with the given value:
 ```python
 from koda_validate import *
 
-assert any_validator(123) == Valid(123)
-assert any_validator("abc") == Valid("abc")
+assert always_valid(123) == Valid(123)
+assert always_valid("abc") == Valid("abc")
 ```
 
 ## Comparison to Pydantic

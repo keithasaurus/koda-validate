@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from koda_validate import Choices, ExactValidator, Max, Min, MultipleOf, strip
-from koda_validate.generic import any_validator
+from koda_validate.generic import always_valid
 from koda_validate.validated import Invalid, Valid
 
 
@@ -88,13 +88,13 @@ def test_max() -> None:
 
 
 def test_any() -> None:
-    assert any_validator(5) == Valid(5)
-    assert any_validator([1, 2, 3]) == Valid([1, 2, 3])
-    assert any_validator(False) == Valid(False)
+    assert always_valid(5) == Valid(5)
+    assert always_valid([1, 2, 3]) == Valid([1, 2, 3])
+    assert always_valid(False) == Valid(False)
 
 
 @pytest.mark.asyncio
 async def test_any_async() -> None:
-    assert any_validator(5) == Valid(5)
-    assert any_validator([1, 2, 3]) == Valid([1, 2, 3])
-    assert any_validator(False) == Valid(False)
+    assert always_valid(5) == Valid(5)
+    assert always_valid([1, 2, 3]) == Valid([1, 2, 3])
+    assert always_valid(False) == Valid(False)

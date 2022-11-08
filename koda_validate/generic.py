@@ -182,7 +182,7 @@ class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
         return self(val)
 
 
-class AnyValidator(_ToTupleValidatorUnsafe[A, A, Serializable]):
+class AlwaysValid(_ToTupleValidatorUnsafe[A, A, Serializable]):
     __match_args__ = ()
 
     def validate_to_tuple(self, val: A) -> _ResultTupleUnsafe:
@@ -192,4 +192,4 @@ class AnyValidator(_ToTupleValidatorUnsafe[A, A, Serializable]):
         return True, val
 
 
-any_validator: _ToTupleValidatorUnsafe[Any, Any, Serializable] = AnyValidator()
+always_valid: _ToTupleValidatorUnsafe[Any, Any, Serializable] = AlwaysValid()
