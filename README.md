@@ -949,6 +949,10 @@ system with `python -m bench.run`. **Disclaimer that the benchmark suite is _not
 - **Koda Validate is pure Python.** 
 - **Koda Validate is intended to empower validator documentation.** You can easily produce things like API schemas from 
 `Validator`s, `Predicate`s, and `Processor`s
+- **Pydantic has a large, mature ecosystem** Lots of documentation, lots of searchable info on the web.
+- **Pydantic focuses on having a familiar, dataclass-like syntax** 
+- **Pydantic has a lot of features Koda Validate does not** Plugins, ORM tie-ins, etc. There will probably never be 
+feature parity between the two libraries. 
 
-### Something's Missing Or Wrong 
+## Something's Missing Or Wrong 
 Open an [issue on GitHub](https://github.com/keithasaurus/koda-validate/issues) please!
