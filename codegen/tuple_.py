@@ -4,7 +4,7 @@ NOT READY YET
 
 from typing import List
 
-from codegen.utils import add_type_vars, get_type_vars  # type: ignore
+from codegen.utils import add_type_vars, get_type_vars
 
 
 def generate_code(num_keys: int) -> str:

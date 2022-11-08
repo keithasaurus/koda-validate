@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, Hashable
+from typing import TYPE_CHECKING, Any, Dict, Hashable
 
 from koda import Maybe
 
@@ -45,6 +45,12 @@ from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.validated import Invalid, Valid, Validated
 
 
+@dataclass
+class Person:
+    name: str
+    age: Maybe[int]
+
+
 def test_match_args() -> None:
     match BoolValidator():
         case BoolValidator(predicates_bool):
@@ -86,18 +92,15 @@ def test_match_args() -> None:
         case _:
             assert False
 
-    @dataclass
-    class Person:
-        name: str
-        age: Maybe[int]
 
+def test_record_validator_match_args() -> None:
     def validate_person(p: Person) -> Validated[Person, Serializable]:
         if len(p.name) > p.age.get_or_else(100):
             return Invalid(["your name cannot be longer than your age"])
         else:
             return Valid(p)
 
-    dv_validator: RecordValidator[Person] = RecordValidator(
+    dv_validator = RecordValidator(
         into=(into_ := Person),
         keys=(
             (str_1 := ("name", StringValidator())),
@@ -106,18 +109,27 @@ def test_match_args() -> None:
         validate_object=validate_person,
     )
     match dv_validator:
-        case RecordValidator(fields, into, preprocessors, validate_object):
+        case RecordValidator(
+            fields_dv, into, preprocessors, validate_object, validate_object_async
+        ):
             assert into == into_
-            assert fields[0] == str_1
-            assert fields[1][0] == "age"
-            assert isinstance(fields[1][1], KeyNotRequired)
-            assert fields[1][1].validator == int_1[1].validator
+            assert fields_dv[0] == str_1
+            assert fields_dv[1][0] == "age"
+            knr = fields_dv[1][1]
+            assert isinstance(knr, KeyNotRequired)
+            # mypy doesn't quite understand `KeyNotRequired`,
+            # and sees the next line as unreachable. This is because of the
+            # isinstance on the preceding line.
+            assert knr.validator == int_1[1].validator  # type: ignore
             assert validate_object == validate_person
+            assert validate_object_async is None
             assert preprocessors is None
 
         case _:
             assert False
 
+
+def test_dict_any_match_args() -> None:
     def validate_person_dict_any(
         p: Dict[Hashable, Any]
     ) -> Validated[Dict[Hashable, Any], Serializable]:
@@ -126,20 +138,19 @@ def test_match_args() -> None:
         else:
             return Valid(p)
 
-    dvu_validator = DictValidatorAny(
+    dva_validator = DictValidatorAny(
         keys=((str_0 := ("name", StringValidator())), (int_0 := ("age", IntValidator()))),
         validate_object=validate_person_dict_any,
     )
-    match dvu_validator:
+    match dva_validator:
         case DictValidatorAny(
-            fields, preprocessors_, validate_object, validate_object_async
+            fields_dva, preprocessors_dva, validate_object_dva, validate_object_async_dva
         ):
-            assert into == into_
-            assert fields[0] is str_0
-            assert fields[1] == int_0
-            assert validate_object == validate_person_dict_any
-            assert preprocessors_ is None
-            assert validate_object_async is None
+            assert fields_dva[0] is str_0
+            assert fields_dva[1] == int_0
+            assert validate_object_dva == validate_person_dict_any
+            assert preprocessors_dva is None
+            assert validate_object_async_dva is None
 
         case _:
             assert False
@@ -150,6 +161,8 @@ def test_match_args() -> None:
         case _:
             assert False
 
+
+def test_lazy_match_args() -> None:
     def lazy_dv_validator() -> RecordValidator[Person]:
         return dv_validator_2
 
@@ -195,9 +208,9 @@ def test_match_args() -> None:
             assert False
 
     match ExactValidator("abc"):
-        case ExactValidator(match, preprocessors):
+        case ExactValidator(match, preprocessors_exact):
             assert match == "abc"
-            assert preprocessors is None
+            assert preprocessors_exact is None
 
     match IntValidator((int_min := Min(5))):
         case IntValidator(predicates):

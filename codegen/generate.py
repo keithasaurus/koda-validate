@@ -2,7 +2,7 @@ import os.path
 from argparse import ArgumentParser
 from pathlib import Path
 
-from codegen import dict_validator, tuple_  # type: ignore
+from codegen import dict_validator
 
 if __name__ == "__main__":
     parser = ArgumentParser()

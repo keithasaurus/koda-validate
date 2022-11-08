@@ -598,7 +598,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
     ) -> None:
 
         self.into = into
-        self.keys = keys
+        self.keys: Tuple[KeyValidator[Any], ...] = keys
         if validate_object is not None and validate_object_async is not None:
             raise AssertionError(
                 "validate_object and validate_object_async cannot both be defined"

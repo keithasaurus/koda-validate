@@ -1,6 +1,6 @@
 from typing import List
 
-from codegen.utils import add_type_vars, get_type_vars  # type: ignore
+from codegen.utils import add_type_vars, get_type_vars
 
 DICT_KEYS_CHECK_CODE: str = """
         if not isinstance(data, dict):
