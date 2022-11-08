@@ -62,7 +62,7 @@ validator([5])
 # > Invalid({'0': ['expected a string']}))
 ```
 
-#### Dictionaries
+#### Record-like Dictionaries
 
 ```python
 from dataclasses import dataclass
@@ -89,18 +89,30 @@ print(person_validator({"name": "Bob",
 # > Valid(Person(name='Bob', hobbies=['eating', 'running']))
 ```
 
-Here's what we've seen so far:
+#### Map-like Dictionaries
+```python
+from koda_validate import *
+
+str_to_int_validator = MapValidator(key=StringValidator(),
+                                    value=IntValidator())
+
+assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
+    {"a": 1, "b": 25, "xyz": 900}
+)
+
+```
+
+Some of what we've seen so far:
 - All validators we've created are simple `Callable`s that return an `Ok` instance when validation succeeds, or an `Invalid` instance when validation fails.
 - Nesting one validator within another is straightforward
-- `RecordValidator` requires a separate target for its validated data; more on that here.
+- `RecordValidator` requires a separate target for its validated data; more on that [here](#recordvalidator).
 
-It's worth noting that all this code is typesafe. And for similar 
-equivalent validations in Pydantic, Koda Validate can be up to 15x faster.
+It's worth noting that all this code is typesafe, without needing any plugins.
 
 ## Philosophy
 At it's core, Koda Validate is based on a few simple ideas about what validation _is_. This 
-allows Koda Validate to be flexible enough to be able to validate anything. It also generally allows for 
-less code, and clearer paths to opimization than other approaches.
+allows Koda Validate to be extended to validate essentially any kind of data. It also generally allows for 
+less code, and clearer paths to optimization than other approaches.
 
 ### Validators
 In Koda Validate a `Validator` is the fundamental validation building block. It's based on the idea that  
@@ -912,18 +924,21 @@ First of all, Pydantic is a great library that has had a lot of success. The aut
 projects, and it mostly just works. Koda Validate is not so much a response to Pydantic as much as it is an attempt to "get
 validation right" -- or at least to get the fundamental ideas correct (some ergonomics can surely be improved). Nonetheless, 
 since this is one of the most common questions, here are a number of differences:
-- **Koda Validate has a wider range of possibilities than Pydantic.** Because the core of Koda Validate
-is little more than a simple function definition, it can, in theory, be used to validate anything, using a consistent form for invocation.
-- **Koda Validate is faster.** In common synchronous use cases covered in the `bench` folder (validating objects, 
+- **Koda Validate is fully asyncio-compatible.** If Koda Validate enables a change in your use case from sync to async, it's 
+entirely possible you could see multiple orders of magnitude improvement in throughput.
+- **Koda Validate is faster in synchronous validation.** In common synchronous use cases covered in the `bench` folder (validating objects, 
 list of objects, simple scalars), Koda Validate is roughly 2x - 12x faster. You will see differences on different versions of Python
 (Python3.8 tends to show the least difference; Python 3.11 and pypy3.9 the most) and different systems, but in all benchmark tests this library
 currently uses Koda Validate is faster. Please feel free to run the benchmarks on your system `python -m bench.run`, and feel free to contact the 
-maintainer if you think there might be better cases to benchmark. The libraries are 
-not exactly equivalent, and there is no fully apples-to-apples comparison.
-- **Koda Validate is fully async-compatible.** If Koda Validate enables a change in your use case from sync to async, it's 
-entirely possible you could see multiple orders of magnitude improvement in throughput.
-- **Koda Validate is intended to have inspectable validators.** You can produce things like API schemas from `Validator`s, `Predicate`s, and `Processor`s
-- **Koda Validate is pure Python.** At this moment there is no use of Cython, Rust, or mypyc for performance increases, but this may change in the future. 
+maintainer if you think there might be better cases to benchmark -- it's a very young suite! The libraries are 
+not exactly equivalent, so there is no fully apples-to-apples comparison.
+- **Koda Validate is pure Python.** At this moment there is no use of Cython, Rust, or mypyc. (This may change in the future.)
+- **Koda Validate treats validation as part of normal control flow.** It does not raise exceptions for invalid data.
+- **Koda Validate treats validation explicitly.** It does not coerce types or mutate values in surprising ways.  
+- **Koda Validate requires no plugins for mypy compatibility.**
+- **Koda Validate is intended to empower validators documentation.** You can produce things like API schemas from `Validator`s, `Predicate`s, and `Processor`s
+- **Koda Validate has a wider range of possibilities than Pydantic.** Because the core of Koda Validate
+is little more than a simple function definition, it can, in theory, be used to validate any kind of data, using a consistent form for invocation.
 
 ### Something's Missing Or Wrong 
 Open an [issue on GitHub](https://github.com/keithasaurus/koda-validate/issues) please!
