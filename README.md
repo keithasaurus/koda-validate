@@ -957,8 +957,7 @@ common questions, there are a number of noteworthy differences:
 - **Koda Validate treats validation as part of normal control flow.** It does not raise exceptions for invalid data.
 - **Koda Validate is built around a simple, composable definition of what validation is.**
 - **Koda Validate is fully asyncio-compatible.**
-- **Koda Validate is faster.** In common synchronous use cases covered in the `bench` folder, Koda Validate 
-is roughly 1.5x - 12x faster than Pydantic. You will see differences on different versions of Python
+- **Koda Validate is ~1.5 - 12x faster.** You will see differences on different versions of Python
 (Python3.8 tends to show the least difference) and different systems. You can run the suite on your 
 system with `python -m bench.run`. **Disclaimer that the benchmark suite is _not_ extensive.**
 - **Koda Validate is pure Python.** 
