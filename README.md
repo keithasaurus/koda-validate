@@ -935,20 +935,18 @@ assert any_validator("abc") == Valid("abc")
 ```
 
 ## Comparison to Pydantic
-First of all, Pydantic is a great library that has had a lot of success. The author of this library has used it in several
-projects, and it mostly just works. Koda Validate is not so much a response to Pydantic as much as it is an attempt to "get
-validation right" -- or at least to get the fundamental ideas correct (some ergonomics can surely be improved). Nonetheless, 
-since this is one of the most common questions, here are a number of differences:
-- **Koda Validate is fully asyncio-compatible.** If Koda Validate enables a change in your use case from sync to async, it's 
-possible you could see orders of magnitude improvement in throughput.
+Comparing Koda Validate and Pydantic is not exactly apples-to-apples, since Koda Validate is more narrowly
+aimed at _just_ validation -- Pydantic has a lot of other bells and whistles. Nonetheless, this is one of the most 
+common questions, there are a number of noteworthy differences:
 - **Koda Validate treats validation as part of normal control flow.** It does not raise exceptions for invalid data.
 - **Koda Validate treats validation explicitly.** It does not coerce types or mutate values in surprising ways.  
+- **Koda Validate is fully asyncio-compatible.** 
 - **Koda Validate requires no plugins for mypy compatibility.**
-- **Koda Validate tends to be faster.** In common synchronous use cases covered in the `bench` folder (validating objects, 
-list of objects, simple scalars), Koda Validate is roughly 2x - 12x faster. You will see differences on different versions of Python
+- **Koda Validate tends to be faster.** In common synchronous use cases covered in the `bench` folder, Koda Validate 
+is roughly 2x - 12x faster than Pydantic. You will see differences on different versions of Python
 (Python3.8 tends to show the least difference) and different systems. You can run the suite on your 
-system with `python -m bench.run`. 
-- **Koda Validate is pure Python.** At this moment there is no use of Cython, Rust, mypyc, or other compilation step. 
+system with `python -m bench.run`. **Disclaimer that the benchmark suite is _not_ extensive.**
+- **Koda Validate is pure Python.** 
 - **Koda Validate is intended to empower validator documentation.** You can easily produce things like API schemas from 
 `Validator`s, `Predicate`s, and `Processor`s
 
