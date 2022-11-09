@@ -15,7 +15,7 @@
 - `dict_validator` -> `RecordValidator`
 - `DictNKeysValidator`s are removed. Instead, `RecordValidator` is used.
 - `RecordValidator` requires all arguments as keyword-only
-- `RecordValidator` accepts up-to 10 keys
+- `RecordValidator` accepts up-to 16 keys
 - `key` helper is removed
 - `maybe_key` helper is replaced by `KeyNotRequired`
 - `MapValidator` requires all arguments as keyword-only

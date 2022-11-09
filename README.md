@@ -3,9 +3,10 @@
 Validate Anything. Faster!
 
 Koda Validate is:
-- type-driven (works with type hints without plugins)
+- flexible
 - explicit
 - fully asyncio-compatible
+- type-driven (works with type hints without plugins)
 - easily inspected -- build API schemas from validators
 
 
@@ -25,6 +26,8 @@ Koda Validate is:
 
 
 ## Installation
+Python 3.8+
+
 pip
 ```bash
 pip install koda-validate
@@ -36,7 +39,7 @@ poetry add koda-validate
 
 ## The Basics
 
-#### Scalars
+### Scalars
 ```python3
 from koda_validate import * 
 
@@ -49,7 +52,7 @@ string_validator(5)
 # > Invalid(['expected a string'])
 
 ```
-Note that you can `match` on validated data on python >= 3.10
+Note that you can pattern match on validated data on python >= 3.10
 ```python3
 # continued from above
 
@@ -61,7 +64,7 @@ match string_validator("new string"):
 
 # prints: "new string is valid"
 ```
-You can also use `is_valid` on python >= 3.8+:
+You can also use `.is_valid` on python >= 3.8+:
 ```python3
 # continued from above
 
@@ -71,9 +74,9 @@ else:
     print(f"got error: {result.val}")
 # prints: "another string is valid"
 ```
- Note that mypy understands `.is_valid` and narrows the type appropriately.
+Mypy understands `.is_valid` and narrows the `Validated` type to `Valid` or `Invalid` appropriately.
 
-#### Lists
+### Lists
 ```python3
 from koda_validate import *
 
@@ -87,7 +90,7 @@ validator([5])
 
 ```
 
-#### Record-like Dictionaries
+### Record-like Dictionaries
 
 ```python3
 from dataclasses import dataclass
@@ -114,7 +117,7 @@ print(person_validator({"name": "Bob",
 # > Valid(Person(name='Bob', hobbies=['eating', 'running']))
 ```
 
-#### Map-like Dictionaries
+### Map-like Dictionaries
 ```python3
 from koda_validate import *
 
@@ -127,7 +130,7 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
 
 ```
 
-#### Schema-ed Dictionaries (Not typesafe) 
+### Schema-ed Dictionaries  
 ```python3
 from koda_validate import *
 
@@ -143,8 +146,8 @@ else:
     print(result.val)
 
 # prints: "John Doe is 30 years old"
-
 ```
+Note that `DictValidatorAny` is not typesafe.
 
 Some of what we've seen so far:
 - All validators we've created are simple `Callable`s that return an `Valid` instance when validation succeeds, or an `Invalid` instance when validation fails.
@@ -160,7 +163,7 @@ allows Koda Validate to be extended to validate essentially any kind of data. It
 less code, and clearer paths to optimization than other approaches.
 
 ### Validators
-In Koda Validate a `Validator` is the fundamental validation building block. It's based on the idea that  
+In Koda Validate, `Validator` is the fundamental validation building block. It's based on the idea that  
 validation can be universally represented by the function signature (pseudocode): 
 ```
 InputType -> ValidType | InvalidType
@@ -188,8 +191,8 @@ validators in different ways (i.e. nesting them), and have our model of validati
 Take a look at [Extension](#extension) to see how to build custom `Validator`s.
 
 ### Predicates
-In validation, predicates are simple expressions that return a `True` or `False` for a given condition. Koda Validate uses a 
-class based om this concept, `Predicate`, to _enrich_ `Validator`s. Because the type and value of a `Validator`'s valid state may
+In the world of validation, predicates are simple expressions that return a `True` or `False` for a given condition. Koda Validate uses a 
+class based on this concept, `Predicate`, to _enrich_ `Validator`s. Because the type and value of a `Validator`'s valid state may
 differ from those of its input, it's difficult to do something like apply a list of `Validator`s to a given value:
 even _if_ the types all match up, there's no assurance that the values won't change from one validator to the next. 
 
@@ -996,10 +999,10 @@ assert always_valid("abc") == Valid("abc")
 ## Comparison to Pydantic
 Comparing Koda Validate and Pydantic is not exactly apples-to-apples, since Koda Validate is more narrowly
 aimed at _just_ validation -- Pydantic has a lot of other bells and whistles. Nonetheless, this is one of the most 
-common questions, there are a number of noteworthy differences:
+common questions, and there are a number of noteworthy differences:
+- **Koda Validate is built around a simple, composable definition of what validation is.**
 - **Koda Validate treats validation explicitly.** It does not coerce types or mutate values in surprising ways.
 - **Koda Validate treats validation as part of normal control flow.** It does not raise exceptions for invalid data.
-- **Koda Validate is built around a simple, composable definition of what validation is.**
 - **Koda Validate is fully asyncio-compatible.**
 - **Koda Validate is ~1.5 - 12x faster.** You will see differences on different versions of Python
 (Python3.8 tends to show the least difference) and different systems. You can run the suite on your 
@@ -1008,7 +1011,7 @@ system with `python -m bench.run`. **Disclaimer that the benchmark suite is _not
 - **Koda Validate is intended to empower validator documentation.** You can easily produce things like API schemas from 
 `Validator`s, `Predicate`s, and `Processor`s
 - **Koda Validate requires no plugins for mypy compatibility.** 
-- **Pydantic has a large, mature ecosystem** Lots of documentation, lots of searchable info on the web.
+- **Pydantic has a large, mature ecosystem.** Lots of documentation, lots of searchable info on the web.
 - **Pydantic focuses on having a familiar, dataclass-like syntax.** 
 - **Pydantic has a lot of features Koda Validate does not.** Plugins, ORM tie-ins, etc. There will probably never be 
 feature parity between the two libraries. 
