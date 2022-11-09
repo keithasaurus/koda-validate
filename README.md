@@ -4,6 +4,7 @@ Validate Anything. Faster!
 
 Koda Validate is:
 - type-driven (works with type hints without plugins)
+- explicit
 - fully asyncio-compatible
 - easily inspected -- build API schemas from validators
 
@@ -37,7 +38,7 @@ poetry add koda-validate
 
 #### Scalars
 ```python3
-from koda_validate import StringValidator
+from koda_validate import * 
 
 string_validator = StringValidator()
 
@@ -48,6 +49,29 @@ string_validator(5)
 # > Invalid(['expected a string'])
 
 ```
+Note that you can `match` on validated data on python >= 3.10
+```python3
+# continued from above
+
+match string_validator("new string"):
+    case Valid(valid_val):
+        print(f"{valid_val} is valid!")
+    case Invalid(err):
+        print(f"got error: {err}")
+
+# prints: "new string is valid"
+```
+You can also use `is_valid` on python >= 3.8+:
+```python3
+# continued from above
+
+if (result := string_validator("another string")).is_valid:
+    print(f"{result.val} is valid!")
+else:    
+    print(f"got error: {result.val}")
+# prints: "another string is valid"
+```
+ Note that mypy understands `.is_valid` and narrows the type appropriately.
 
 #### Lists
 ```python3
@@ -60,11 +84,12 @@ validator(["cool"])
 
 validator([5])
 # > Invalid({'0': ['expected a string']}))
+
 ```
 
 #### Record-like Dictionaries
 
-```python
+```python3
 from dataclasses import dataclass
 
 from koda_validate import *
@@ -90,7 +115,7 @@ print(person_validator({"name": "Bob",
 ```
 
 #### Map-like Dictionaries
-```python
+```python3
 from koda_validate import *
 
 str_to_int_validator = MapValidator(key=StringValidator(),
@@ -102,12 +127,32 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
 
 ```
 
+#### Schema-ed Dictionaries (Not typesafe) 
+```python3
+from koda_validate import *
+
+person_validator = DictValidatorAny({
+    "name": StringValidator(),
+    "age": IntValidator(),
+})
+
+result = person_validator({"name": "John Doe", "age": 30})
+if isinstance(result, Valid):
+    print(f"{result.val['name']} is {result.val['age']} years old")
+else:
+    print(result.val)
+
+# prints: "John Doe is 30 years old"
+
+```
+
 Some of what we've seen so far:
 - All validators we've created are simple `Callable`s that return an `Valid` instance when validation succeeds, or an `Invalid` instance when validation fails.
 - Nesting one validator within another is straightforward
-- `RecordValidator` requires a separate target for its validated data; more on that [here](#recordvalidator).
+- We have multiple means of validating dictionaries
+- [RecordValidator](#recordvalidator) requires a separate target for its validated data; more on that [here](#recordvalidator).
 
-It's worth noting that all this code is typesafe, without needing any plugins.
+It's worth noting that all this code is typesafe (aside from [DictValidatorAny](#dictvalidatorany), which is explicitly not typesafe). No plugins are required for mypy. 
 
 ## Philosophy
 At it's core, Koda Validate is based on a few simple ideas about what validation _is_. This 
@@ -121,11 +166,11 @@ validation can be universally represented by the function signature (pseudocode)
 InputType -> ValidType | InvalidType
 ```
 In Koda Validate this looks more like: 
-```python
+```python3
 Callable[[InputType], Validated[ValidType, InvalidType]]
 ``` 
 A quick example:
-```python
+```python3
 from koda_validate import IntValidator, Valid, Invalid
 
 int_validator = IntValidator()
@@ -150,7 +195,7 @@ even _if_ the types all match up, there's no assurance that the values won't cha
 
 The role of a `Predicate` in Koda Validate is to perform additional validation _after_ the data has been verified to be 
 of a specific type or shape. To this end, `Predicate`s in Koda Validate cannot change their input types or values. Let's go further with our `IntValidator`:
-```python
+```python3
 from koda_validate import * 
 
 int_validator = IntValidator(Min(5))
@@ -165,7 +210,7 @@ passes the `int` check but fails to pass the `Min(5)` predicate.
 Because we know that predicates don't change the type or value of their inputs, we can 
 sequence an arbitrary number of them together, and validate them all.
 
-```python
+```python3
 from koda_validate import * 
 
 int_validator = IntValidator(Min(5), Max(20), MultipleOf(4))
@@ -186,7 +231,7 @@ predicates are returned. This is possible because we know that the value should 
 ### Processors
 `Processor`s allow us to take a value of a given type and transform it into another value of that type. Processors are most useful
 _after_ type validation, but _before_ predicates are checked. Here's an example:
-```python
+```python3
 from koda_validate import *
 
 max_length_3_validator = StringValidator(
@@ -208,7 +253,7 @@ cover, it aims to allow easy extension.
 Even though there is an existing `FloatValidator` in Koda Validate, we'll build our own. (Extension does not
 need to be limited to new functionality; it can also be writing alternatives to the default for custom needs.)
 
-```python
+```python3
 from typing import Any
 from koda_validate import * 
 
@@ -246,7 +291,7 @@ This is all well and good, but we'll probably want to be able to validate agains
 max, or rough equality checks. For this we use `Predicate`s. For example, if we wanted to allow a single `Predicate` in 
 our `SimpleFloatValidator` we could do it like this:
 
-```python
+```python3
 from dataclasses import dataclass
 from typing import Any, Optional
 from koda_validate import *
@@ -270,7 +315,7 @@ If `predicate` is specified, we'll check it _after_ we've verified the type of t
 `Predicate`s are meant to validate the _value_ of a known type -- as opposed to validating at the type-level (that's what the `Validator` does). 
 For example, this is how you might write and use a `Predicate` to validate a range of values:
 
-```python
+```python3
 # (continuing from previous example)
 
 @dataclass
@@ -301,7 +346,7 @@ much it can actually do -- we don't want it to be able to alter the value being 
 Finally, let's add a `Processor`. A `Processor` is a function that takes a value of one type and then produces another 
 value of that type. In our case, we want to preprocess our `float`s by converting them to their absolute value.
 
-```python
+```python3
 # (continuing from previous example)
 
 @dataclass
@@ -356,7 +401,7 @@ In Koda Validate errors are returned as data as part of normal control flow. `In
 contain JSON/YAML serializable values. (Should you build your own custom validators, there is no contract enforcing 
 that constraint.) Here are a few examples of the kinds of errors you can expect to see out of the box.
 
-```python
+```python3
 from dataclasses import dataclass
 
 from koda import Maybe
@@ -435,16 +480,16 @@ the documentation on specific validators below:
 ## Async Validation
 Because Koda Validate is based on simple principles, it's straightforward to make it compatible with `asyncio`.
 All the built-in `Validator`s in Koda are asyncio-compatible -- all you need to do is call a `Validator` in this form: 
-```python
+```python3
 await validator.validate_async("abc")
 ```
 instead of:
-```python
+```python3
 validator("abc")
 ```
 For example, this is how you could re-use the same `StringValidator` in both
 sync and async contexts:
-```python
+```python3
 import asyncio
 from koda_validate import *
 
@@ -460,7 +505,7 @@ assert asyncio.run(short_string_validator.validate_async("async")) == Valid("asy
 Synchronous validators can be used in both async and sync contexts. So while this Validator works in async mode,
 it isn't yielding any benefit for IO. It would be much more useful if we were doing something like querying a database
 asynchronously:
-```python
+```python3
 import asyncio
 from koda_validate import *
 
@@ -499,7 +544,7 @@ synchronous mode, it will raise an `AssertionError` -- instead make sure you cal
 
 Like other validators, you can nest async `Validator`s. Again, the only difference needed is to use the `.validate_async`
 method of the outer-most validator.
-```python
+```python3
 # continued from previous example
 
 username_list_validator = ListValidator(username_validator)
@@ -522,7 +567,7 @@ or `Predicate`, implementing whatever concurrency needs you have.
 For custom async `Validator`s, all you need to do is implement the `validate_async` method on a `Validator` class. There is no
 separate async-only `Validator` class. This is because we might want to re-use synchronous validators in either synchronous
 or asynchronous contexts. Here's an example of making a `SimpleFloatValidator` async-compatible:
-```python
+```python3
 import asyncio
 from typing import Any
 
@@ -608,7 +653,7 @@ Here are some noteworthy parts of Koda Validate explained in more detail.
 `RecordValidator` is a flexible way to validate a dictionary into some other form (or back into a dictionary, if desired). It
 is primarily for record-like dictionaries ([MapValidator](#mapvalidator) is recommended for map-like dictionaries).
 
-```python
+```python3
 from dataclasses import dataclass
 from koda import Maybe, Just
 from koda_validate import *
@@ -653,7 +698,7 @@ they don't even need to be strings.
 
 `RecordValidator` is extremely flexible because it can handle any kind of dictionary key, and whether it is required or not. So,
 you can validate _weird_ data like this:
-```python
+```python3
 from typing import List
 from dataclasses import dataclass
 from koda import Maybe, Just
@@ -690,7 +735,7 @@ In the opinion of this library, yes, dictionaries that use integers, bools, and 
 validate it :sparkles:
 
 In `RecordValidator`, you can also validate the entire object after keys are validated by providing a `validate_object` argument.
-```python
+```python3
 from dataclasses import dataclass
 
 from koda_validate import *
@@ -760,7 +805,7 @@ it will always return a new dictionary (if valid), and it is legal for values to
 
 This is an equivalent example to the last `RecordValidator` example above. 
 
-```python
+```python3
 from typing import Any, Dict, Hashable
 
 from koda_validate import *
@@ -803,7 +848,7 @@ assert employee_validator(
 `ListValidator` validates whether some value is a list. It requires a validator to validate each item in the list. It 
 can have predicates (number of items, etc.), as well as preprocessors.
 
-```python
+```python3
 from koda_validate import *
 
 binary_list_validator = ListValidator(
@@ -827,7 +872,7 @@ be strings.
 `MapValidator` allows us to validate dictionaries that are mappings of one type to another type, where we don't
 need to be concerned about individual keys or values:
 
-```python
+```python3
 from koda_validate import *
 
 str_to_int_validator = MapValidator(key=StringValidator(),
@@ -847,7 +892,7 @@ assert str_to_int_validator({3.14: "pi!"}) == Invalid({
 ### OneOf2 / OneOf3
 
 OneOfN validators are useful when you may have multiple valid shapes of data.
-```python
+```python3
 from koda import First, Second
 
 from koda_validate import * 
@@ -868,7 +913,7 @@ assert string_or_list_string_validator(["list", "of", "strings"]) == Valid(
 ### Tuple2Validator / Tuple3Validator
 
 These `Validator`s work on `tuple`s as you might expect:
-```python
+```python3
 from koda_validate import * 
 
 string_int_validator = Tuple2Validator(StringValidator(), IntValidator())
@@ -886,7 +931,7 @@ assert string_int_validator(["ok", 100]) == Valid(("ok", 100))
 in a comment thread. This can be done with mutually recursive functions. For simplicity, here's an example of parsing a 
 kind of non-empty list.
 
-```python
+```python3
 from typing import Any, Optional, Tuple
 
 from koda_validate import *
@@ -916,7 +961,7 @@ assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Valid(
 
 `OptionalValidator` is very simple. It validates a value is either `None` or passes another validator's rules.
 
-```python
+```python3
 from koda_validate import *
 
 optional_int_validator = OptionalValidator(IntValidator())
@@ -930,7 +975,7 @@ assert optional_int_validator(None) == Valid(None)
 A very simple validator that only validates that and object is a dict. It doesn't do any validation against keys or
 values.
 
-```python
+```python3
 from koda_validate import *
 
 assert is_dict_validator({}) == Valid({})
@@ -941,7 +986,7 @@ assert is_dict_validator({"a": 1, "b": 2, 5: "xyz"}) == Valid({"a": 1, "b": 2, 5
 
 ### AlwaysValid
 Will always return `Valid` with the given value:
-```python
+```python3
 from koda_validate import *
 
 assert always_valid(123) == Valid(123)

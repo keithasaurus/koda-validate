@@ -32,4 +32,7 @@ T16 = TypeVar("T16")
 
 Ret = TypeVar("Ret")
 
+
+InputT = TypeVar("InputT")
+SuccessT = TypeVar("SuccessT")
 FailT = TypeVar("FailT")

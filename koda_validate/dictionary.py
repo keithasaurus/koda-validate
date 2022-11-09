@@ -18,7 +18,7 @@ from typing import (
 
 from koda import Just, Maybe, mapping_get, nothing
 
-from koda_validate._generics import T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, A, FailT, Ret
+from koda_validate._generics import T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, A, Ret
 from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
     Predicate,

@@ -1,28 +1,28 @@
 from abc import abstractmethod
 from typing import Any, Dict, Generic, List, Tuple, Union, final
 
-from koda_validate._generics import A, B, FailT
+from koda_validate._generics import A, FailT, InputT, SuccessT
 from koda_validate.validated import Invalid, Valid, Validated
 
 
-class Validator(Generic[A, B, FailT]):
+class Validator(Generic[InputT, SuccessT, FailT]):
     """
     Essentially a `Callable[[A], Result[B, FailT]]`, but allows us to
     retain metadata from the validator (instead of hiding inside a closure). For
     instance, we can later access `5` from something like `MaxLength(5)`.
     """
 
-    def __call__(self, val: A) -> Validated[B, FailT]:  # pragma: no cover
-        raise NotImplementedError
+    def __call__(self, val: InputT) -> Validated[SuccessT, FailT]:
+        raise NotImplementedError  # pragma: no cover
 
-    async def validate_async(self, val: A) -> Validated[B, FailT]:  # pragma: no cover
+    async def validate_async(self, val: InputT) -> Validated[SuccessT, FailT]:
         """
         make it possible for all validators to be async-compatible
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
 
-class Predicate(Generic[A, FailT]):
+class Predicate(Generic[InputT, FailT]):
     """
     The important aspect of a `Predicate` is that it is not
     possible to change the data passed in (it is technically possible to mutate
@@ -34,36 +34,36 @@ class Predicate(Generic[A, FailT]):
     """
 
     @abstractmethod
-    def is_valid(self, val: A) -> bool:  # pragma: no cover
+    def is_valid(self, val: InputT) -> bool:  # pragma: no cover
         raise NotImplementedError
 
     @abstractmethod
-    def err(self, val: A) -> FailT:  # pragma: no cover
+    def err(self, val: InputT) -> FailT:  # pragma: no cover
         raise NotImplementedError
 
     @final
-    def __call__(self, val: A) -> Validated[A, FailT]:
+    def __call__(self, val: InputT) -> Validated[InputT, FailT]:
         if self.is_valid(val) is True:
             return Valid(val)
         else:
             return Invalid(self.err(val))
 
 
-class PredicateAsync(Generic[A, FailT]):
+class PredicateAsync(Generic[InputT, FailT]):
     """
     For async-only validation.
     """
 
     @abstractmethod
-    async def is_valid_async(self, val: A) -> bool:  # pragma: no cover
+    async def is_valid_async(self, val: InputT) -> bool:  # pragma: no cover
         raise NotImplementedError
 
     @abstractmethod
-    async def err_async(self, val: A) -> FailT:  # pragma: no cover
+    async def err_async(self, val: InputT) -> FailT:  # pragma: no cover
         raise NotImplementedError
 
     @final
-    async def validate_async(self, val: A) -> Validated[A, FailT]:
+    async def validate_async(self, val: InputT) -> Validated[InputT, FailT]:
         if await self.is_valid_async(val) is True:
             return Valid(val)
         else:
@@ -101,7 +101,7 @@ class Processor(Generic[A]):
 _ResultTupleUnsafe = Tuple[bool, Any]
 
 
-class _ToTupleValidatorUnsafe(Validator[A, B, FailT]):
+class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT, FailT]):
     """
     This `Validator` subclass exists for optimization. When we call
     nested validators it's much less computation to deal with simple
@@ -113,20 +113,20 @@ class _ToTupleValidatorUnsafe(Validator[A, B, FailT]):
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
 
-    def validate_to_tuple(self, val: A) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: InputT) -> _ResultTupleUnsafe:
         raise NotImplementedError  # pragma: no cover
 
-    def __call__(self, val: A) -> Validated[B, FailT]:
+    def __call__(self, val: InputT) -> Validated[SuccessT, FailT]:
         valid, result_val = self.validate_to_tuple(val)
         if valid:
             return Valid(result_val)
         else:
             return Invalid(result_val)
 
-    async def validate_to_tuple_async(self, val: A) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: InputT) -> _ResultTupleUnsafe:
         raise NotImplementedError  # pragma: no cover
 
-    async def validate_async(self, val: A) -> Validated[B, FailT]:
+    async def validate_async(self, val: InputT) -> Validated[SuccessT, FailT]:
         valid, result_val = await self.validate_to_tuple_async(val)
         if valid:
             return Valid(result_val)

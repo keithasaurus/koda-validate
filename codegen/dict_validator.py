@@ -51,8 +51,7 @@ from koda import Just, Maybe, mapping_get, nothing
 from koda_validate._generics import (
     A,
     {import_type_vars}
-    Ret,
-    FailT
+    Ret
 ) 
 """
         + """
