@@ -23,6 +23,7 @@ def generate_code(num_keys: int) -> str:
     dict_validator_into_signatures: List[str] = []
     dict_validator_fields: List[str] = []
     dict_validator_fields_final: List[str] = []
+    type_vars = get_type_vars(num_keys)
     ret = """from typing import (
     Any,
     Callable,
@@ -35,7 +36,6 @@ def generate_code(num_keys: int) -> str:
     Optional,
     Tuple,
     TYPE_CHECKING,
-    TypeVar,
     Union,
     overload,
     Awaitable,
@@ -44,7 +44,18 @@ def generate_code(num_keys: int) -> str:
 
 from koda import Just, Maybe, mapping_get, nothing
 
-from koda_validate._generics import A
+"""
+    import_type_vars = "\n".join(f"    {tv}," for tv in type_vars)
+    ret += (
+        f""" 
+from koda_validate._generics import (
+    A,
+    {import_type_vars}
+    Ret,
+    FailT
+) 
+"""
+        + """
 from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
     _ResultTupleUnsafe,
@@ -91,11 +102,6 @@ KeyValidator = Tuple[
     Validator[Any, A, Serializable],
 ]
 
-"""
-    type_vars = get_type_vars(num_keys)
-    ret += add_type_vars(type_vars)
-
-    ret += """
 
 class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
     __slots__ = (
@@ -303,6 +309,7 @@ def _make_keys_err(keys: Union[FrozenSet[Hashable], KeysView[Hashable]]) -> Seri
     }
 
 """
+    )
     for i in range(num_keys):
         key_type_vars = type_vars[: i + 1]
         generic_vals = ", ".join(key_type_vars)

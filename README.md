@@ -103,7 +103,7 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
 ```
 
 Some of what we've seen so far:
-- All validators we've created are simple `Callable`s that return an `Ok` instance when validation succeeds, or an `Invalid` instance when validation fails.
+- All validators we've created are simple `Callable`s that return an `Valid` instance when validation succeeds, or an `Invalid` instance when validation fails.
 - Nesting one validator within another is straightforward
 - `RecordValidator` requires a separate target for its validated data; more on that [here](#recordvalidator).
 
@@ -738,9 +738,9 @@ It's worth noting you can specify `validate_object_async` instead if you need to
 you must use the `.validate_async` method when doing any kind of async validation.
 
 #### Limitations
-`RecordValidator` is currently limited to at-most 10 keys. This is simply because mypy gets slower and slower
-when typechecking against the `@overload`s for RecordValidator's `__init__` method. This may change soon. In the meantime,
-if you have 10+ fields on a record like object, you may be able to use `DictValidatorAny`, `MapValidator`, or, in some cases,
+`RecordValidator` is currently limited to at-most 16 keys. This is simply because mypy gets slower and slower
+when typechecking against the `@overload`s for RecordValidator's `__init__` method. In the uncommon case that  
+you need to validate 16+ fields on a record-like object, you may be able to use `DictValidatorAny`, `MapValidator`, or, in some cases,
 `OneOf2`/`OneOf3` in combination with `RecordValidator`. There is also the possibility to generate the code into your project
 if you want more keys:
 
@@ -748,11 +748,12 @@ if you want more keys:
 # allow up to 30 keys
 python /path/to/koda-validate/codegen/generate.py /your/target/directory --num-keys 30
 ```
-Then _you_ can deal with really slow mypy checks :).  
+  
 
 ### DictValidatorAny
-`DictValidatorAny` is similar to `RecordValidator`, but there are several key differences:
-- It does not narrow the types on either the key or the value. If valid, the type of returned data will be `Dict[Hashable, Any]`. (This is why it has `Any` in its name.)
+`DictValidatorAny` is somewhat similar to `RecordValidator`, but there are several key differences:
+- It accepts a dictionary `schema` instead of a tuple of key / value 2-tuples.
+- It does not narrow the types on either the key or the value. If valid, the type of returned data will be `Dict[Any, Any]`. (This is why it has `Any` in its name.)
 - It can allow for arbitrary amounts of keys
 - It passes along the keys, so the validated object may appear quite similar to the input. Note that 
 it will always return a new dictionary (if valid), and it is legal for values to differ from the input.
@@ -760,15 +761,17 @@ it will always return a new dictionary (if valid), and it is legal for values to
 This is an equivalent example to the last `RecordValidator` example above. 
 
 ```python
-from typing import Dict, Hashable, Any
+from typing import Any, Dict, Hashable
 
 from koda_validate import *
 
 
-def no_dwight_regional_manager(employee: Dict[Hashable, Any]) -> Validated[Dict[Hashable, Any], Serializable]:
+def no_dwight_regional_manager(
+    employee: Dict[Hashable, Any]
+) -> Validated[Dict[Hashable, Any], Serializable]:
     if (
-            "schrute" in employee["name"].lower()
-            and employee["title"].lower() == "assistant regional manager"
+        "schrute" in employee["name"].lower()
+        and employee["title"].lower() == "assistant regional manager"
     ):
         return Invalid("Assistant TO THE Regional Manager!")
     else:
@@ -776,21 +779,17 @@ def no_dwight_regional_manager(employee: Dict[Hashable, Any]) -> Validated[Dict[
 
 
 employee_validator = DictValidatorAny(
-    keys=(
-        ("title", StringValidator(not_blank, MaxLength(100), preprocessors=[strip])),
-        ("name", StringValidator(not_blank, preprocessors=[strip])),
-    ),
+    {
+        "title": StringValidator(not_blank, MaxLength(100), preprocessors=[strip]),
+        "name": StringValidator(not_blank, preprocessors=[strip]),
+    },
     # After we've validated individual fields, we may want to validate them as a whole
     validate_object=no_dwight_regional_manager,
 )
 
 assert employee_validator(
-    {"name": "Jim Halpert",
-     "title": "Sales Representative"}
-) == Valid(
-    {"name": "Jim Halpert",
-     "title": "Sales Representative"}
-)
+    {"name": "Jim Halpert", "title": "Sales Representative"}
+) == Valid({"name": "Jim Halpert", "title": "Sales Representative"})
 
 assert employee_validator(
     {

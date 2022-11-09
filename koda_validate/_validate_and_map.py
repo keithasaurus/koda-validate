@@ -1,33 +1,11 @@
 """Deprecated. Should be removed soon"""
 
 from functools import partial
-from typing import Callable, Optional, Tuple, TypeVar, Union, cast, overload
+from typing import Callable, Optional, Tuple, Union, cast, overload
 
+from koda_validate._generics import T1, T2, T3, FailT, Ret
 from koda_validate._internals import _flat_map_same_type_if_not_none
 from koda_validate.validated import Invalid, Valid, Validated
-
-T1 = TypeVar("T1")
-T2 = TypeVar("T2")
-T3 = TypeVar("T3")
-T4 = TypeVar("T4")
-T5 = TypeVar("T5")
-T6 = TypeVar("T6")
-T7 = TypeVar("T7")
-T8 = TypeVar("T8")
-T9 = TypeVar("T9")
-T10 = TypeVar("T10")
-T11 = TypeVar("T11")
-T12 = TypeVar("T12")
-T13 = TypeVar("T13")
-T14 = TypeVar("T14")
-T15 = TypeVar("T15")
-T16 = TypeVar("T16")
-T17 = TypeVar("T17")
-T18 = TypeVar("T18")
-T19 = TypeVar("T19")
-T20 = TypeVar("T20")
-Ret = TypeVar("Ret")
-FailT = TypeVar("FailT")
 
 
 def _validate1_helper(
