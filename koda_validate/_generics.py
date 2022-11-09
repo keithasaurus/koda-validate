@@ -7,11 +7,6 @@ from typing import TypeVar
 A = TypeVar("A")
 B = TypeVar("B")
 C = TypeVar("C")
-D = TypeVar("D")
-E = TypeVar("E")
-F = TypeVar("F")
-G = TypeVar("G")
-H = TypeVar("H")
 
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")

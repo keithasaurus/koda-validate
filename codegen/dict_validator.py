@@ -1,6 +1,6 @@
 from typing import List
 
-from codegen.utils import add_type_vars, get_type_vars
+from codegen.utils import get_type_vars
 
 
 def get_dict_keys_check_code(key_source: str) -> str:

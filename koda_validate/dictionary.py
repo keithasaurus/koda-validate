@@ -38,10 +38,7 @@ EXPECTED_MAP_ERR: Final[Invalid[Serializable]] = Invalid(
     {OBJECT_ERRORS_FIELD: ["expected a map"]}
 )
 
-VALID_NOTHING: Final[Validated[Maybe[Any], Any]] = Valid(nothing)
-
 KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
-KEY_MISSING_ERR: Final[Invalid[Serializable]] = Invalid(KEY_MISSING_MSG)
 
 
 class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):
