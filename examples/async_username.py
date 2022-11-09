@@ -14,9 +14,7 @@ class IsActiveUsername(PredicateAsync[str, Serializable]):
         return "invalid username"
 
 
-username_validator = StringValidator(
-    MinLength(1), MaxLength(100), predicates_async=[IsActiveUsername()]
-)
+username_validator = StringValidator(MinLength(1), predicates_async=[IsActiveUsername()])
 
 assert asyncio.run(username_validator.validate_async("michael")) == Valid("michael")
 assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(

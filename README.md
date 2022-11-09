@@ -481,8 +481,8 @@ the documentation on specific validators below:
 
 
 ## Async Validation
-Because Koda Validate is based on simple principles, it's straightforward to make it compatible with `asyncio`.
-All the built-in `Validator`s in Koda are asyncio-compatible -- all you need to do is call a `Validator` in this form: 
+All the built-in `Validator`s in Koda are asyncio-compatible, and there is a simple, consistent way to run async validation. You 
+just call a `Validator` in this form:
 ```python3
 await validator.validate_async("abc")
 ```
@@ -490,7 +490,11 @@ instead of:
 ```python3
 validator("abc")
 ```
-For example, this is how you could re-use the same `StringValidator` in both
+
+(Feel free to check out [The Basics](#the-basics) and [Philosophy](#philosophy) if you are missing any context on how 
+validation has been documented up to this point.)
+
+For example, this is how you could re-use the same `StringValidator` instance in both
 sync and async contexts:
 ```python3
 import asyncio
@@ -505,7 +509,7 @@ assert short_string_validator("sync") == Valid("sync")
 assert asyncio.run(short_string_validator.validate_async("async")) == Valid("async")
 ```
 
-Synchronous validators can be used in both async and sync contexts. So while this Validator works in async mode,
+Synchronous validators can be used in both async and sync contexts. Nonetheless, while this Validator works in async mode,
 it isn't yielding any benefit for IO. It would be much more useful if we were doing something like querying a database
 asynchronously:
 ```python3
@@ -524,8 +528,7 @@ class IsActiveUsername(PredicateAsync[str, Serializable]):
         return "invalid username"
 
 
-username_validator = StringValidator(MinLength(1),
-                                     MaxLength(100),
+username_validator = StringValidator(MinLength(1), 
                                      predicates_async=[IsActiveUsername()])
 
 assert asyncio.run(username_validator.validate_async("michael")) == Valid("michael")
