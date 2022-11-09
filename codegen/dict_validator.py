@@ -70,7 +70,7 @@ KEY_MISSING_ERR: Final[Invalid[Serializable]] = Invalid(KEY_MISSING_MSG)
 
 class KeyNotRequired(Generic[A]):
     \"""
-    For complex type reasons in the KeyValidator defintion,
+    For complex type reasons in the KeyValidator definition,
     this does not subclass Validator (even though it probably should)
     \"""
 
@@ -86,12 +86,7 @@ class KeyNotRequired(Generic[A]):
 
 KeyValidator = Tuple[
     Hashable,
-    Union[
-        Validator[Any, A, Serializable],
-        # this is NOT a validator intentionally; for typing reasons
-        # ONLY intended for using KeyNotRequired
-        Callable[[Maybe[Any]], Validated[A, Serializable]]
-    ]
+    Validator[Any, A, Serializable],
 ]
 
 """
@@ -607,7 +602,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
                 else:
                     success, new_val = (
                         (True, result_.val)
-                        if (result_ := await validator.validate_async(val)).is_valid  # type: ignore  # noqa: E501 
+                        if (result_ := await validator.validate_async(val)).is_valid 
                         else (False, result_.val)
                     )
 

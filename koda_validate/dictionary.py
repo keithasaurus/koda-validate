@@ -45,7 +45,7 @@ KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
 KEY_MISSING_ERR: Final[Invalid[Serializable]] = Invalid(KEY_MISSING_MSG)
 
 
-class KeyNotRequired(Generic[A]):
+class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):
     """
     For complex type reasons in the KeyValidator defintion,
     this does not subclass Validator (even though it probably should)
@@ -61,15 +61,7 @@ class KeyNotRequired(Generic[A]):
         return (await self.validator.validate_async(val)).map(Just)
 
 
-KeyValidator = Tuple[
-    Hashable,
-    Union[
-        Validator[Any, A, Serializable],
-        # this is NOT a validator intentionally; for typing reasons
-        # ONLY intended for using KeyNotRequired
-        Callable[[Maybe[Any]], Validated[A, Serializable]],
-    ],
-]
+KeyValidator = Tuple[Hashable, Validator[Any, A, Serializable]]
 
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
@@ -598,7 +590,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
     ) -> None:
 
         self.into = into
-        self.keys: Tuple[KeyValidator[Any], ...] = keys
+        self.keys = keys
         if validate_object is not None and validate_object_async is not None:
             raise AssertionError(
                 "validate_object and validate_object_async cannot both be defined"
@@ -654,7 +646,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
                 else:
                     success, new_val = (
                         (True, result_.val)
-                        if (result_ := validator(val)).is_valid
+                        if (result_ := validator(val)).is_valid  # type: ignore
                         else (False, result_.val)
                     )
 
@@ -891,7 +883,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
                 else:
                     success, new_val = (
                         (True, result_.val)
-                        if (result_ := await validator.validate_async(val)).is_valid  # type: ignore  # noqa: E501
+                        if (result_ := await validator.validate_async(val)).is_valid
                         else (False, result_.val)
                     )
 
