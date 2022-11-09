@@ -2,7 +2,9 @@ from typing import List
 
 from codegen.utils import add_type_vars, get_type_vars
 
-DICT_KEYS_CHECK_CODE: str = """
+
+def get_dict_keys_check_code(key_source: str) -> str:
+    return f"""
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
             
@@ -12,7 +14,7 @@ DICT_KEYS_CHECK_CODE: str = """
 
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
-            if key_ not in self._key_set:
+            if key_ not in {key_source}:
                 return self._unknown_keys_err 
 """
 
@@ -27,7 +29,6 @@ def generate_code(num_keys: int) -> str:
     Dict,
     Final,
     FrozenSet,
-    Generic,
     Hashable,
     List,
     Literal,
@@ -36,14 +37,15 @@ def generate_code(num_keys: int) -> str:
     TYPE_CHECKING,
     TypeVar,
     Union,
-    overload, 
+    overload,
     Awaitable,
+    KeysView,
 )
 
 from koda import Just, Maybe, mapping_get, nothing
 
 from koda_validate._generics import A
-from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning 
+from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
@@ -68,7 +70,7 @@ VALID_NOTHING: Final[Validated[Maybe[Any], Any]] = Valid(nothing)
 KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
 KEY_MISSING_ERR: Final[Invalid[Serializable]] = Invalid(KEY_MISSING_MSG)
 
-class KeyNotRequired(Generic[A]):
+class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):
     \"""
     For complex type reasons in the KeyValidator definition,
     this does not subclass Validator (even though it probably should)
@@ -287,7 +289,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _make_keys_err(keys: FrozenSet[Hashable]) -> Serializable:
+def _make_keys_err(keys: Union[FrozenSet[Hashable], KeysView[Hashable]]) -> Serializable:
     return {
         OBJECT_ERRORS_FIELD: [
             "Received unknown keys. " + (
@@ -361,7 +363,8 @@ class RecordValidator(
     ret += (
         f"""
         self.into = into
-        self.keys = keys
+        # needs to be `Any` until we have variadic generics presumably
+        self.keys: Tuple[KeyValidator[Any], ...] = keys
         if validate_object is not None and validate_object_async is not None:
             raise AssertionError(
                 "validate_object and validate_object_async cannot both be defined"
@@ -383,7 +386,7 @@ class RecordValidator(
         self._unknown_keys_err = False, _make_keys_err(_key_set)
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
-{DICT_KEYS_CHECK_CODE}
+{get_dict_keys_check_code("self._key_set")}
 
         args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
@@ -403,7 +406,7 @@ class RecordValidator(
                 else:
                     success, new_val = ( 
                         (True, result_.val)
-                        if (result_ := validator(val)).is_valid
+                        if (result_ := validator(val)).is_valid  # type: ignore
                         else (False, result_.val)
                     )
                 
@@ -428,7 +431,7 @@ class RecordValidator(
 
 
     async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
-{DICT_KEYS_CHECK_CODE}
+{get_dict_keys_check_code("self._key_set")}
         args: List[Any] = []
         errs: List[Tuple[str, Serializable]] = []
         for key_, validator, key_required, is_tuple_validator, str_key in self._fast_keys:
@@ -492,25 +495,38 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
     assistance.
     \"""
 
-    __slots__ = ("keys", "_key_set", "_fast_keys", "_unknown_keys_err", "preprocessors", "validate_object", "validate_object_async")
-    __match_args__ = ("keys", "preprocessors", "validate_object", "validate_object_async")
+    __slots__ = (
+        "schema",
+        "_key_set",
+        "_fast_keys",
+        "_unknown_keys_err",
+        "preprocessors",
+        "validate_object",
+        "validate_object_async",
+    )
+    __match_args__ = (
+        "schema",
+        "preprocessors",
+        "validate_object",
+        "validate_object_async",
+    )
 
     def __init__(
         self,
+        schema: Dict[Any, Validator[Any, Any, Serializable]],
         *,
-        keys: Tuple[KeyValidator[Any], ...],
         validate_object: Optional[
-            Callable[[Dict[Hashable, Any]], Validated[Dict[Hashable, Any], Serializable]]
+            Callable[[Dict[Hashable, Any]], Validated[Dict[Any, Any], Serializable]]
         ] = None,
         validate_object_async: Optional[
             Callable[
-                [Dict[Hashable, Any]],
-                Awaitable[Validated[Dict[Hashable, Any], Serializable]],
+                [Dict[Any, Any]],
+                Awaitable[Validated[Dict[Any, Any], Serializable]],
             ]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
-        self.keys: Tuple[KeyValidator[Any], ...] = keys
+        self.schema: Dict[Any, Validator[Any, Any, Serializable]] = schema
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
@@ -521,21 +537,22 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
         self.preprocessors = preprocessors
 
         # so we don't need to calculate each time we validate
-        _key_set = frozenset(k for k, _ in keys)
-        self._key_set = _key_set
         self._fast_keys = [
-            (key,
-             val,
-             not isinstance(val, KeyNotRequired),
-             isinstance(val, _ToTupleValidatorUnsafe),
-             str(key)) for key, val in keys
+            (
+                key,
+                val,
+                not isinstance(val, KeyNotRequired),
+                isinstance(val, _ToTupleValidatorUnsafe),
+                str(key),
+            )
+            for key, val in schema.items()
         ]
 
-        self._unknown_keys_err = False, _make_keys_err(_key_set)
+        self._unknown_keys_err = False, _make_keys_err(schema.keys())
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
 """
-        + DICT_KEYS_CHECK_CODE
+        + get_dict_keys_check_code("self.schema")
         + """
 
         success_dict: Dict[Hashable, Any] = {}
@@ -581,7 +598,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
         self, data: Any
     ) -> _ResultTupleUnsafe:
 """
-        + DICT_KEYS_CHECK_CODE
+        + get_dict_keys_check_code("self.schema")
         + """ 
 
         success_dict: Dict[Hashable, Any] = {}

@@ -6,8 +6,8 @@ from typing import (
     Dict,
     Final,
     FrozenSet,
-    Generic,
     Hashable,
+    KeysView,
     List,
     Literal,
     Optional,
@@ -47,7 +47,7 @@ KEY_MISSING_ERR: Final[Invalid[Serializable]] = Invalid(KEY_MISSING_MSG)
 
 class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):
     """
-    For complex type reasons in the KeyValidator defintion,
+    For complex type reasons in the KeyValidator definition,
     this does not subclass Validator (even though it probably should)
     """
 
@@ -61,7 +61,10 @@ class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):
         return (await self.validator.validate_async(val)).map(Just)
 
 
-KeyValidator = Tuple[Hashable, Validator[Any, A, Serializable]]
+KeyValidator = Tuple[
+    Hashable,
+    Validator[Any, A, Serializable],
+]
 
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
@@ -73,6 +76,12 @@ T7 = TypeVar("T7")
 T8 = TypeVar("T8")
 T9 = TypeVar("T9")
 T10 = TypeVar("T10")
+T11 = TypeVar("T11")
+T12 = TypeVar("T12")
+T13 = TypeVar("T13")
+T14 = TypeVar("T14")
+T15 = TypeVar("T15")
+T16 = TypeVar("T16")
 Ret = TypeVar("Ret")
 FailT = TypeVar("FailT")
 
@@ -269,7 +278,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _make_keys_err(keys: FrozenSet[Hashable]) -> Serializable:
+def _make_keys_err(keys: Union[FrozenSet[Hashable], KeysView[Hashable]]) -> Serializable:
     return {
         OBJECT_ERRORS_FIELD: [
             "Received unknown keys. "
@@ -505,6 +514,183 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
     ) -> None:
         ...  # pragma: no cover
 
+    @overload
+    def __init__(
+        self,
+        *,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+            KeyValidator[T7],
+            KeyValidator[T8],
+            KeyValidator[T9],
+            KeyValidator[T10],
+            KeyValidator[T11],
+        ],
+        validate_object: Optional[Callable[[Ret], Validated[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Validated[Ret, Serializable]]]
+        ] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        *,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+            KeyValidator[T7],
+            KeyValidator[T8],
+            KeyValidator[T9],
+            KeyValidator[T10],
+            KeyValidator[T11],
+            KeyValidator[T12],
+        ],
+        validate_object: Optional[Callable[[Ret], Validated[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Validated[Ret, Serializable]]]
+        ] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        *,
+        into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+            KeyValidator[T7],
+            KeyValidator[T8],
+            KeyValidator[T9],
+            KeyValidator[T10],
+            KeyValidator[T11],
+            KeyValidator[T12],
+            KeyValidator[T13],
+        ],
+        validate_object: Optional[Callable[[Ret], Validated[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Validated[Ret, Serializable]]]
+        ] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        *,
+        into: Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret
+        ],
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+            KeyValidator[T7],
+            KeyValidator[T8],
+            KeyValidator[T9],
+            KeyValidator[T10],
+            KeyValidator[T11],
+            KeyValidator[T12],
+            KeyValidator[T13],
+            KeyValidator[T14],
+        ],
+        validate_object: Optional[Callable[[Ret], Validated[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Validated[Ret, Serializable]]]
+        ] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        *,
+        into: Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
+        ],
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+            KeyValidator[T7],
+            KeyValidator[T8],
+            KeyValidator[T9],
+            KeyValidator[T10],
+            KeyValidator[T11],
+            KeyValidator[T12],
+            KeyValidator[T13],
+            KeyValidator[T14],
+            KeyValidator[T15],
+        ],
+        validate_object: Optional[Callable[[Ret], Validated[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Validated[Ret, Serializable]]]
+        ] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
+    @overload
+    def __init__(
+        self,
+        *,
+        into: Callable[
+            [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
+        ],
+        keys: Tuple[
+            KeyValidator[T1],
+            KeyValidator[T2],
+            KeyValidator[T3],
+            KeyValidator[T4],
+            KeyValidator[T5],
+            KeyValidator[T6],
+            KeyValidator[T7],
+            KeyValidator[T8],
+            KeyValidator[T9],
+            KeyValidator[T10],
+            KeyValidator[T11],
+            KeyValidator[T12],
+            KeyValidator[T13],
+            KeyValidator[T14],
+            KeyValidator[T15],
+            KeyValidator[T16],
+        ],
+        validate_object: Optional[Callable[[Ret], Validated[Ret, Serializable]]] = None,
+        validate_object_async: Optional[
+            Callable[[Ret], Awaitable[Validated[Ret, Serializable]]]
+        ] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+    ) -> None:
+        ...  # pragma: no cover
+
     def __init__(
         self,
         into: Union[
@@ -518,6 +704,17 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
             Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
             Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
             Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
+            Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret],
+            Callable[
+                [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
+            ],
+            Callable[
+                [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16],
+                Ret,
+            ],
         ],
         keys: Union[
             Tuple[KeyValidator[T1]],
@@ -581,6 +778,99 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
                 KeyValidator[T9],
                 KeyValidator[T10],
             ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+                KeyValidator[T7],
+                KeyValidator[T8],
+                KeyValidator[T9],
+                KeyValidator[T10],
+                KeyValidator[T11],
+            ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+                KeyValidator[T7],
+                KeyValidator[T8],
+                KeyValidator[T9],
+                KeyValidator[T10],
+                KeyValidator[T11],
+                KeyValidator[T12],
+            ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+                KeyValidator[T7],
+                KeyValidator[T8],
+                KeyValidator[T9],
+                KeyValidator[T10],
+                KeyValidator[T11],
+                KeyValidator[T12],
+                KeyValidator[T13],
+            ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+                KeyValidator[T7],
+                KeyValidator[T8],
+                KeyValidator[T9],
+                KeyValidator[T10],
+                KeyValidator[T11],
+                KeyValidator[T12],
+                KeyValidator[T13],
+                KeyValidator[T14],
+            ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+                KeyValidator[T7],
+                KeyValidator[T8],
+                KeyValidator[T9],
+                KeyValidator[T10],
+                KeyValidator[T11],
+                KeyValidator[T12],
+                KeyValidator[T13],
+                KeyValidator[T14],
+                KeyValidator[T15],
+            ],
+            Tuple[
+                KeyValidator[T1],
+                KeyValidator[T2],
+                KeyValidator[T3],
+                KeyValidator[T4],
+                KeyValidator[T5],
+                KeyValidator[T6],
+                KeyValidator[T7],
+                KeyValidator[T8],
+                KeyValidator[T9],
+                KeyValidator[T10],
+                KeyValidator[T11],
+                KeyValidator[T12],
+                KeyValidator[T13],
+                KeyValidator[T14],
+                KeyValidator[T15],
+                KeyValidator[T16],
+            ],
         ],
         validate_object: Optional[Callable[[Ret], Validated[Ret, Serializable]]] = None,
         validate_object_async: Optional[
@@ -590,7 +880,8 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
     ) -> None:
 
         self.into = into
-        self.keys = keys
+        # needs to be `Any` until we have variadic generics presumably
+        self.keys: Tuple[KeyValidator[Any], ...] = keys
         if validate_object is not None and validate_object_async is not None:
             raise AssertionError(
                 "validate_object and validate_object_async cannot both be defined"
@@ -747,7 +1038,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
     """
 
     __slots__ = (
-        "keys",
+        "schema",
         "_key_set",
         "_fast_keys",
         "_unknown_keys_err",
@@ -755,24 +1046,29 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
         "validate_object",
         "validate_object_async",
     )
-    __match_args__ = ("keys", "preprocessors", "validate_object", "validate_object_async")
+    __match_args__ = (
+        "schema",
+        "preprocessors",
+        "validate_object",
+        "validate_object_async",
+    )
 
     def __init__(
         self,
+        schema: Dict[Any, Validator[Any, Any, Serializable]],
         *,
-        keys: Tuple[KeyValidator[Any], ...],
         validate_object: Optional[
-            Callable[[Dict[Hashable, Any]], Validated[Dict[Hashable, Any], Serializable]]
+            Callable[[Dict[Hashable, Any]], Validated[Dict[Any, Any], Serializable]]
         ] = None,
         validate_object_async: Optional[
             Callable[
-                [Dict[Hashable, Any]],
-                Awaitable[Validated[Dict[Hashable, Any], Serializable]],
+                [Dict[Any, Any]],
+                Awaitable[Validated[Dict[Any, Any], Serializable]],
             ]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
-        self.keys: Tuple[KeyValidator[Any], ...] = keys
+        self.schema: Dict[Any, Validator[Any, Any, Serializable]] = schema
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
@@ -783,8 +1079,6 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
         self.preprocessors = preprocessors
 
         # so we don't need to calculate each time we validate
-        _key_set = frozenset(k for k, _ in keys)
-        self._key_set = _key_set
         self._fast_keys = [
             (
                 key,
@@ -793,10 +1087,10 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
                 isinstance(val, _ToTupleValidatorUnsafe),
                 str(key),
             )
-            for key, val in keys
+            for key, val in schema.items()
         ]
 
-        self._unknown_keys_err = False, _make_keys_err(_key_set)
+        self._unknown_keys_err = False, _make_keys_err(schema.keys())
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
 
@@ -809,7 +1103,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
 
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
-            if key_ not in self._key_set:
+            if key_ not in self.schema:
                 return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
@@ -862,7 +1156,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
 
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
-            if key_ not in self._key_set:
+            if key_ not in self.schema:
                 return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}

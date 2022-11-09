@@ -801,7 +801,7 @@ def test_dict_validator_preprocessors() -> None:
 
 
 def test_dict_validator_any_empty() -> None:
-    empty_dict_validator = DictValidatorAny(keys=())
+    empty_dict_validator = DictValidatorAny({})
 
     assert empty_dict_validator({}).val == {}
 
@@ -821,21 +821,23 @@ def _nobody_named_jones_has_first_name_alice_dict(
 
 def test_dict_validator_any() -> None:
     validator = DictValidatorAny(
-        keys=(
-            ("first_name", StringValidator(preprocessors=[strip])),
-            ("last_name", StringValidator()),
-            ("age", IntValidator()),
-            ("eye color", StringValidator()),
-            ("can-fly", BoolValidator()),
-            ("number_of_fingers", FloatValidator()),
-            ("number of toes", FloatValidator()),
-            ("favorite_color", KeyNotRequired(StringValidator())),
-            ("requires_none", none_validator),
-            ("favorite_books", ListValidator(StringValidator())),
-            ("aaa", StringValidator()),
-            ("owbwohe", IntValidator()),
-            ("something else", FloatValidator()),
-            (12, BoolValidator()),
+        dict(
+            (
+                ("first_name", StringValidator(preprocessors=[strip])),
+                ("last_name", StringValidator()),
+                ("age", IntValidator()),
+                ("eye color", StringValidator()),
+                ("can-fly", BoolValidator()),
+                ("number_of_fingers", FloatValidator()),
+                ("number of toes", FloatValidator()),
+                ("favorite_color", KeyNotRequired(StringValidator())),
+                ("requires_none", none_validator),
+                ("favorite_books", ListValidator(StringValidator())),
+                ("aaa", StringValidator()),
+                ("owbwohe", IntValidator()),
+                ("something else", FloatValidator()),
+                (12, BoolValidator()),
+            )
         ),
         validate_object=_nobody_named_jones_has_first_name_alice_dict,
     )
@@ -881,10 +883,10 @@ def test_dict_validator_any() -> None:
 
 def test_dict_validator_any_key_missing() -> None:
     validator = DictValidatorAny(
-        keys=(
-            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
-            ("last_name", StringValidator()),
-        ),
+        {
+            "first_name": KeyNotRequired(StringValidator(preprocessors=[strip])),
+            "last_name": StringValidator(),
+        },
         validate_object=_nobody_named_jones_has_first_name_alice_dict,
     )
 
@@ -911,9 +913,7 @@ def test_dict_validator_any_preprocessors() -> None:
                 del val["a"]
             return val
 
-    dv = DictValidatorAny(
-        keys=(("name", StringValidator()),), preprocessors=[RemoveKey()]
-    )
+    dv = DictValidatorAny({"name": StringValidator()}, preprocessors=[RemoveKey()])
 
     assert dv({"a": 123, "name": "bob"}) == Valid({"name": "bob"})
 
@@ -921,10 +921,10 @@ def test_dict_validator_any_preprocessors() -> None:
 @pytest.mark.asyncio
 async def test_validate_dictionary_any_async() -> None:
     validator = DictValidatorAny(
-        keys=(
-            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
-            ("last_name", StringValidator()),
-        ),
+        {
+            "first_name": KeyNotRequired(StringValidator(preprocessors=[strip])),
+            "last_name": StringValidator(),
+        },
         validate_object=_nobody_named_jones_has_first_name_alice_dict,
     )
 
@@ -967,10 +967,10 @@ async def test_dict_validator_any_async_processor() -> None:
             return val
 
     validator = DictValidatorAny(
-        keys=(
-            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
-            ("last_name", StringValidator()),
-        ),
+        {
+            "first_name": KeyNotRequired(StringValidator(preprocessors=[strip])),
+            "last_name": StringValidator(),
+        },
         preprocessors=[RemoveKey()],
     )
 
@@ -988,10 +988,10 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
         return _nobody_named_jones_has_first_name_alice_dict(obj)
 
     validator = DictValidatorAny(
-        keys=(
-            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
-            ("last_name", StringValidator()),
-        ),
+        {
+            "first_name": KeyNotRequired(StringValidator(preprocessors=[strip])),
+            "last_name": StringValidator(),
+        },
         validate_object_async=val_obj_async,
     )
 
@@ -1020,10 +1020,10 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
 @pytest.mark.asyncio
 async def test_dict_validator_any_no_validate_object() -> None:
     validator = DictValidatorAny(
-        keys=(
-            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
-            ("last_name", StringValidator()),
-        )
+        {
+            "first_name": KeyNotRequired(StringValidator(preprocessors=[strip])),
+            "last_name": StringValidator(),
+        }
     )
     assert await validator.validate_async(
         {"last_name": "jones", "first_name": "alice"}
@@ -1039,10 +1039,10 @@ def test_dict_validator_any_cannot_have_validate_object_and_validate_object_asyn
 
     with pytest.raises(AssertionError):
         DictValidatorAny(
-            keys=(
-                ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
-                ("last_name", StringValidator()),
-            ),
+            schema={
+                "first_name": KeyNotRequired(StringValidator(preprocessors=[strip])),
+                "last_name": StringValidator(),
+            },
             validate_object=_nobody_named_jones_has_first_name_alice_dict,
             validate_object_async=val_obj_async,
         )

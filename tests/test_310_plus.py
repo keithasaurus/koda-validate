@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Hashable
+from typing import Any, Dict, Hashable
 
 from koda import Maybe
 
@@ -30,6 +30,7 @@ from koda_validate import (
     RegexPredicate,
     Serializable,
     StringValidator,
+    Validator,
     strip,
 )
 from koda_validate.dictionary import (
@@ -113,17 +114,17 @@ def test_record_validator_match_args() -> None:
             fields_dv, into, preprocessors, validate_object, validate_object_async
         ):
             assert into == into_
-            # assert fields_dv[0] == str_1
-            # assert fields_dv[1][0] == "age"
-            # knr = fields_dv[1][1]
-            # assert isinstance(knr, KeyNotRequired)
+            assert fields_dv[0] == str_1
+            assert fields_dv[1][0] == "age"
+            knr = fields_dv[1][1]
+            assert isinstance(knr, KeyNotRequired)
             # # mypy doesn't quite understand `KeyNotRequired`,
             # # and sees the next line as unreachable. This is because of the
             # # isinstance on the preceding line.
-            # assert knr.validator == int_1[1].validator
-            # assert validate_object == validate_person
-            # assert validate_object_async is None
-            # assert preprocessors is None
+            assert knr.validator == int_1[1].validator
+            assert validate_object == validate_person
+            assert validate_object_async is None
+            assert preprocessors is None
 
         case _:
             assert False
@@ -131,23 +132,26 @@ def test_record_validator_match_args() -> None:
 
 def test_dict_any_match_args() -> None:
     def validate_person_dict_any(
-        p: Dict[Hashable, Any]
-    ) -> Validated[Dict[Hashable, Any], Serializable]:
+        p: Dict[Any, Any]
+    ) -> Validated[Dict[Any, Any], Serializable]:
         if len(p["name"]) > p["age"]:
             return Invalid(["your name cannot be longer than your name"])
         else:
             return Valid(p)
 
+    schema_: Dict[Hashable, Validator[Any, Any, Serializable]] = {
+        "name": StringValidator(),
+        "age": IntValidator(),
+    }
     dva_validator = DictValidatorAny(
-        keys=((str_0 := ("name", StringValidator())), (int_0 := ("age", IntValidator()))),
+        schema_,
         validate_object=validate_person_dict_any,
     )
     match dva_validator:
         case DictValidatorAny(
             fields_dva, preprocessors_dva, validate_object_dva, validate_object_async_dva
         ):
-            assert fields_dva[0] is str_0
-            assert fields_dva[1] == int_0
+            assert fields_dva is schema_
             assert validate_object_dva == validate_person_dict_any
             assert preprocessors_dva is None
             assert validate_object_async_dva is None
