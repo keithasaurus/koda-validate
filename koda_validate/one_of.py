@@ -1,37 +1,46 @@
-from dataclasses import dataclass
 from typing import Any
 
-from koda import Either, Either3, Err, First, Ok, Result, Second, Third
+from koda import Either, Either3, First, Second, Third
 from koda._generics import A, B, C
 
-from koda_validate.typedefs import Serializable, Validator
+from koda_validate.base import Serializable, Validator
+from koda_validate.validated import Invalid, Valid, Validated
 
 
-@dataclass(frozen=True, init=False)
 class OneOf2(Validator[Any, Either[A, B], Serializable]):
-    variant_one: Validator[Any, A, Serializable]
-    variant_two: Validator[Any, B, Serializable]
+    __slots__ = ("variant_1", "variant_2")
+    __match_args__ = ("variant_1", "variant_2")
 
     def __init__(
         self,
-        variant_one: Validator[Any, A, Serializable],
-        variant_two: Validator[Any, B, Serializable],
+        variant_1: Validator[Any, A, Serializable],
+        variant_2: Validator[Any, B, Serializable],
     ) -> None:
-        object.__setattr__(self, "variant_one", variant_one)
-        object.__setattr__(self, "variant_two", variant_two)
+        self.variant_1 = variant_1
+        self.variant_2 = variant_2
 
-    def __call__(self, val: Any) -> Result[Either[A, B], Serializable]:
-        v1_result = self.variant_one(val)
-
-        if isinstance(v1_result, Ok):
-            return Ok(First(v1_result.val))
+    def __call__(self, val: Any) -> Validated[Either[A, B], Serializable]:
+        if (v1_result := self.variant_1(val)).is_valid:
+            return Valid(First(v1_result.val))
         else:
-            v2_result = self.variant_two(val)
-
-            if isinstance(v2_result, Ok):
-                return Ok(Second(v2_result.val))
+            if (v2_result := self.variant_2(val)).is_valid:
+                return Valid(Second(v2_result.val))
             else:
-                return Err(
+                return Invalid(
+                    {
+                        "variant 1": v1_result.val,
+                        "variant 2": v2_result.val,
+                    }
+                )
+
+    async def validate_async(self, val: Any) -> Validated[Either[A, B], Serializable]:
+        if (v1_result := await self.variant_1.validate_async(val)).is_valid:
+            return Valid(First(v1_result.val))
+        else:
+            if (v2_result := await self.variant_2.validate_async(val)).is_valid:
+                return Valid(Second(v2_result.val))
+            else:
+                return Invalid(
                     {
                         "variant 1": v1_result.val,
                         "variant 2": v2_result.val,
@@ -39,39 +48,49 @@ class OneOf2(Validator[Any, Either[A, B], Serializable]):
                 )
 
 
-@dataclass(init=False, frozen=True)
 class OneOf3(Validator[Any, Either3[A, B, C], Serializable]):
-    variant_one: Validator[Any, A, Serializable]
-    variant_two: Validator[Any, B, Serializable]
-    variant_three: Validator[Any, C, Serializable]
+    __match_args__ = ("variant_1", "variant_2", "variant_3")
+    __slots__ = ("variant_1", "variant_2", "variant_3")
 
     def __init__(
         self,
-        variant_one: Validator[Any, A, Serializable],
-        variant_two: Validator[Any, B, Serializable],
-        variant_three: Validator[Any, C, Serializable],
+        variant_1: Validator[Any, A, Serializable],
+        variant_2: Validator[Any, B, Serializable],
+        variant_3: Validator[Any, C, Serializable],
     ) -> None:
-        object.__setattr__(self, "variant_one", variant_one)
-        object.__setattr__(self, "variant_two", variant_two)
-        object.__setattr__(self, "variant_three", variant_three)
+        self.variant_1 = variant_1
+        self.variant_2 = variant_2
+        self.variant_3 = variant_3
 
-    def __call__(self, val: Any) -> Result[Either3[A, B, C], Serializable]:
-        v1_result = self.variant_one(val)
-
-        if isinstance(v1_result, Ok):
-            return Ok(First(v1_result.val))
+    def __call__(self, val: Any) -> Validated[Either3[A, B, C], Serializable]:
+        if (v1_result := self.variant_1(val)).is_valid:
+            return Valid(First(v1_result.val))
         else:
-            v2_result = self.variant_two(val)
-
-            if isinstance(v2_result, Ok):
-                return Ok(Second(v2_result.val))
+            if (v2_result := self.variant_2(val)).is_valid:
+                return Valid(Second(v2_result.val))
             else:
-                v3_result = self.variant_three(val)
-
-                if isinstance(v3_result, Ok):
-                    return Ok(Third(v3_result.val))
+                if (v3_result := self.variant_3(val)).is_valid:
+                    return Valid(Third(v3_result.val))
                 else:
-                    return Err(
+                    return Invalid(
+                        {
+                            "variant 1": v1_result.val,
+                            "variant 2": v2_result.val,
+                            "variant 3": v3_result.val,
+                        }
+                    )
+
+    async def validate_async(self, val: Any) -> Validated[Either3[A, B, C], Serializable]:
+        if (v1_result := self.variant_1(val)).is_valid:
+            return Valid(First(v1_result.val))
+        else:
+            if (v2_result := self.variant_2(val)).is_valid:
+                return Valid(Second(v2_result.val))
+            else:
+                if (v3_result := self.variant_3(val)).is_valid:
+                    return Valid(Third(v3_result.val))
+                else:
+                    return Invalid(
                         {
                             "variant 1": v1_result.val,
                             "variant 2": v2_result.val,

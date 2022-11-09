@@ -6,13 +6,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10', '3.9', '3.8']
+        python-version: ['3.11', '3.10', '3.9', '3.8', 'pypy3.9']
         poetry-version: [1.2.2]
         os: [ubuntu-20.04, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run image
@@ -21,10 +21,29 @@ jobs:
           poetry-version: ${{ matrix.poetry-version }}
       - name: poetry install
         run: poetry install
-      - name: mypy
+      # not running mypy against 3.11 (yet) because it's like 10x slower
+      - name: mypy 3.9-
+        if: matrix.python-version == 3.9 || matrix.python-version == 3.8
         # exclude examples in CI because some 3.10 features are used
-        run: poetry run mypy . --exclude examples
-      - name: run tests
+        run: poetry run mypy . --exclude examples --exclude tests/test_310_plus.py
+      - name: mypy 3.10
+        if: matrix.python-version == 3.10 || matrix.python-version == 3.11
+        # exclude examples in CI because some 3.10 features are used
+        run: poetry run mypy .
+      - name: run 3.9- tests
+        if: matrix.python-version == 3.9 || matrix.python-version == 3.8 || matrix.python-version == 'pypy3.9'
+        run: poetry run pytest --ignore tests/test_310_plus.py
+      - name: run 3.10+ tests
+        if: matrix.python-version == 3.10 || matrix.python-version == 3.11
         run: poetry run pytest
-      - name: linting
-        run: poetry run flake8 --exclude examples,codegen --ignore E741,W503,F405,F403,F401
+      - name: run all examples
+        if: matrix.python-version == 3.10
+        run: poetry run bash run_all_examples.sh
+      - name: linting 3.9-
+        if: matrix.python-version == 3.9 || matrix.python-version == 3.8 || matrix.python-version == 'pypy3.9'
+        run: poetry run flake8 --exclude codegen,bench,examples/metadata.py,examples/tour_record_1.py,examples/string_validator.py,tests/test_310_plus.py --ignore E741,W503,F405,F403,F401
+      - name: linting 3.10+
+        if: matrix.python-version == 3.10 || matrix.python-version == 3.11
+        run: poetry run flake8 --exclude codegen --ignore E741,W503,F405,F403,F401
+      - name: benchmarks
+        run: poetry run python -m bench.run

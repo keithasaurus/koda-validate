@@ -1,49 +1,86 @@
 import re
-from dataclasses import dataclass
-from typing import Any, Final, List, Optional, Pattern, Tuple
+from typing import Any, Final, List, Literal, Optional, Pattern, Tuple
 
-from koda import Err, Result
+from koda_validate._internals import (
+    _async_predicates_warning,
+    _handle_scalar_processors_and_predicates_async_tuple,
+)
+from koda_validate.base import (
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
+)
 
-from koda_validate.typedefs import Predicate, Processor, Serializable, Validator
-from koda_validate.utils import accum_errors_serializable, expected
+EXPECTED_STR_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
+    "expected a string"
+]
 
 
-@dataclass(init=False, frozen=True)
-class StringValidator(Validator[Any, str, Serializable]):
-    predicates: Tuple[Predicate[str, Serializable], ...]
-    preprocessors: Optional[List[Processor[str]]]
+class StringValidator(_ToTupleValidatorUnsafe[Any, str, Serializable]):
+    __match_args__ = ("predicates", "predicates_async", "preprocessors")
+    __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
         *predicates: Predicate[str, Serializable],
+        predicates_async: Optional[List[PredicateAsync[str, Serializable]]] = None,
         preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
-        object.__setattr__(self, "predicates", predicates)
-        object.__setattr__(self, "preprocessors", preprocessors)
+        self.predicates = predicates
+        self.predicates_async = predicates_async
+        self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[str, Serializable]:
-        if isinstance(val, str):
-            if self.preprocessors is not None:
-                for preprocess in self.preprocessors:
-                    val = preprocess(val)
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
 
-            return accum_errors_serializable(val, self.predicates)
+        if type(val) is str:
+            if self.preprocessors:
+                for proc in self.preprocessors:
+                    val = proc(val)
+
+            if self.predicates:
+                if errors := [
+                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
+                ]:
+                    return False, errors
+                else:
+                    return True, val
+            else:
+                return True, val
+
+        return EXPECTED_STR_ERR
+
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+        if type(val) is str:
+            return await _handle_scalar_processors_and_predicates_async_tuple(
+                val, self.preprocessors, self.predicates, self.predicates_async
+            )
         else:
-            return Err([expected("a string")])
+            return EXPECTED_STR_ERR
 
 
-@dataclass(frozen=True)
 class RegexPredicate(Predicate[str, Serializable]):
-    pattern: Pattern[str]
+    __slots__ = ("pattern",)
+    __match_args__ = ("pattern", "_err")
+
+    def __init__(self, pattern: Pattern[str]) -> None:
+        self.pattern: Pattern[str] = pattern
+        self._err = rf"must match pattern {self.pattern.pattern}"
 
     def is_valid(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
 
     def err(self, val: str) -> str:
-        return rf"must match pattern {self.pattern.pattern}"
+        return self._err
 
 
-@dataclass(frozen=True)
+EXPECTED_EMAIL_ADDRESS: Final[str] = "expected a valid email address"
+
+
 class EmailPredicate(Predicate[str, Serializable]):
     pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
 
@@ -51,7 +88,7 @@ class EmailPredicate(Predicate[str, Serializable]):
         return re.match(self.pattern, val) is not None
 
     def err(self, val: str) -> str:
-        return "expected a valid email address"
+        return EXPECTED_EMAIL_ADDRESS
 
 
 BLANK_STRING_MSG: Final[str] = "cannot be blank"
@@ -68,26 +105,34 @@ class NotBlank(Predicate[str, Serializable]):
 not_blank = NotBlank()
 
 
-@dataclass(frozen=True)
 class MaxLength(Predicate[str, Serializable]):
-    length: int
+    __match_args__ = ("length",)
+    __slots__ = ("length", "_err")
+
+    def __init__(self, length: int):
+        self.length = length
+        self._err = f"maximum allowed length is {self.length}"
 
     def is_valid(self, val: str) -> bool:
         return len(val) <= self.length
 
     def err(self, val: str) -> Serializable:
-        return f"maximum allowed length is {self.length}"
+        return self._err
 
 
-@dataclass(frozen=True)
 class MinLength(Predicate[str, Serializable]):
-    length: int
+    __match_args__ = ("length",)
+    __slots__ = ("length", "_err")
+
+    def __init__(self, length: int):
+        self.length = length
+        self._err = f"minimum allowed length is {self.length}"
 
     def is_valid(self, val: str) -> bool:
         return len(val) >= self.length
 
     def err(self, val: str) -> str:
-        return f"minimum allowed length is {self.length}"
+        return self._err
 
 
 class Strip(Processor[str]):

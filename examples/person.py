@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from koda import Ok
-
 from koda_validate import *
 
 
@@ -11,19 +9,19 @@ class Person:
     age: int
 
 
-person_validator = dict_validator(
-    Person,
-    key("name", StringValidator()),
-    key("age", IntValidator()),
+person_validator = RecordValidator(
+    into=Person,
+    keys=(
+        ("name", StringValidator()),
+        ("age", IntValidator()),
+    ),
 )
 
-
 result = person_validator({"name": "John Doe", "age": 30})
-if isinstance(result, Ok):
+if isinstance(result, Valid):
     print(f"{result.val.name} is {result.val.age} years old")
 else:
     print(result.val)
-
 
 people_validator = ListValidator(person_validator)
 
@@ -34,10 +32,12 @@ class Group:
     people: list[Person]
 
 
-group_validator = dict_validator(
-    Group,
-    key("name", StringValidator()),
-    key("people", people_validator),
+group_validator = RecordValidator(
+    into=Group,
+    keys=(
+        ("name", StringValidator()),
+        ("people", people_validator),
+    ),
 )
 
 data = {
@@ -45,7 +45,7 @@ data = {
     "people": [{"name": "George Bluth", "age": 70}, {"name": "Michael Bluth", "age": 35}],
 }
 
-assert group_validator(data) == Ok(
+assert group_validator(data) == Valid(
     Group(
         name="Arrested Development Characters",
         people=[

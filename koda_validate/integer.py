@@ -1,22 +1,62 @@
-from dataclasses import dataclass
-from typing import Any, Tuple
+from typing import Any, Final, List, Literal, Optional, Tuple
 
-from koda import Err, Result
+from koda_validate._internals import (
+    _async_predicates_warning,
+    _handle_scalar_processors_and_predicates_async_tuple,
+)
+from koda_validate.base import (
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
+)
 
-from koda_validate.typedefs import Predicate, Serializable, Validator
-from koda_validate.utils import accum_errors_serializable, expected
+EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
+    "expected an integer"
+]
 
 
-@dataclass(init=False, frozen=True)
-class IntValidator(Validator[Any, int, Serializable]):
-    predicates: Tuple[Predicate[int, Serializable]]
+class IntValidator(_ToTupleValidatorUnsafe[Any, int, Serializable]):
+    __match_args__ = ("predicates", "predicates_async", "preprocessors")
+    __slots__ = ("predicates", "predicates_async", "preprocessors")
 
-    def __init__(self, *predicates: Predicate[int, Serializable]) -> None:
-        object.__setattr__(self, "predicates", predicates)
+    def __init__(
+        self,
+        *predicates: Predicate[int, Serializable],
+        predicates_async: Optional[List[PredicateAsync[int, Serializable]]] = None,
+        preprocessors: Optional[List[Processor[int]]] = None,
+    ) -> None:
+        self.predicates = predicates
+        self.predicates_async = predicates_async
+        self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Result[int, Serializable]:
-        # can't use isinstance because it would return true for bools
-        if type(val) == int:
-            return accum_errors_serializable(val, self.predicates)
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
+        if type(val) is int:
+            if self.preprocessors:
+                for proc in self.preprocessors:
+                    val = proc(val)
+
+            if self.predicates:
+                if errors := [
+                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
+                ]:
+                    return False, errors
+                else:
+                    return True, val
+            else:
+                return True, val
+
+        return EXPECTED_INTEGER_ERR
+
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+        if type(val) is int:
+            return await _handle_scalar_processors_and_predicates_async_tuple(
+                val, self.preprocessors, self.predicates, self.predicates_async
+            )
         else:
-            return Err([expected("an integer")])
+            return EXPECTED_INTEGER_ERR

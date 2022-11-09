@@ -1,120 +1,181 @@
 from typing import List
 
-from codegen.utils import add_type_vars, get_type_vars  # type: ignore
+from codegen.utils import get_type_vars
+
+
+def get_dict_keys_check_code(key_source: str) -> str:
+    return f"""
+        if not isinstance(data, dict):
+            return EXPECTED_DICT_ERR
+            
+        if self.preprocessors is not None:
+            for preproc in self.preprocessors:
+                data = preproc(data)
+
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in {key_source}:
+                return self._unknown_keys_err 
+"""
 
 
 def generate_code(num_keys: int) -> str:
-
     dict_validator_into_signatures: List[str] = []
     dict_validator_fields: List[str] = []
-    dict_validator_overloads: List[str] = []
-    ret = """from dataclasses import dataclass
-from typing import Dict, List, Tuple, Set, TypeVar, Generic, Any, Callable, Optional, cast, overload, Union, Final
+    dict_validator_fields_final: List[str] = []
+    type_vars = get_type_vars(num_keys)
+    ret = """from typing import (
+    Any,
+    Callable,
+    Dict,
+    Final,
+    FrozenSet,
+    Hashable,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+    overload,
+    Awaitable,
+    KeysView,
+)
 
-from koda import Err, Maybe, Ok, Result, mapping_get, Nothing, Just
-
-from koda_validate._generics import A
-from koda_validate.utils import expected, _flat_map_same_type_if_not_none, OBJECT_ERRORS_FIELD
-from koda_validate.typedefs import Validator, Serializable, Predicate
-from koda_validate.validate_and_map import validate_and_map
+from koda import Just, Maybe, mapping_get, nothing
 
 """
-    type_vars = get_type_vars(num_keys)
-    ret += add_type_vars(type_vars)
-
-    ret += """
-
-KeyValidator = Tuple[str, Callable[[Maybe[Any]], Result[A, Serializable]]]
-
-
-_KEY_MISSING: Final[str] = "key missing"
-
-
-@dataclass(frozen=True)
-class RequiredField(Generic[A]):
-    validator: Validator[Any, A, Serializable]
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[A, Serializable]:
-        if isinstance(maybe_val, Nothing):
-            return Err([_KEY_MISSING])
-        else:
-            return self.validator(maybe_val.val)
-
-
-@dataclass(frozen=True)
-class MaybeField(Generic[A]):
-    validator: Validator[Any, A, Serializable]
-
-    def __call__(self, maybe_val: Maybe[Any]) -> Result[Maybe[A], Serializable]:
-        if isinstance(maybe_val, Just):
-            result: Result[Maybe[A], Serializable] = self.validator(maybe_val.val).map(Just)
-        else:
-            result = Ok(maybe_val)
-        return result
+    import_type_vars = "\n".join(f"    {tv}," for tv in type_vars)
+    ret += (
+        f""" 
+from koda_validate._generics import (
+    A,
+    {import_type_vars}
+    Ret
+) 
+"""
+        + """
+from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
+from koda_validate.base import (
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+    Validator,
+)
+from koda_validate.validated import Invalid, Valid, Validated
 
 
+EXPECTED_DICT_MSG: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
+EXPECTED_DICT_ERR: Final[Tuple[Literal[False], Serializable]] = False, EXPECTED_DICT_MSG
 
-def key(
-        prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[A, Serializable]]]:
-    return prop_, RequiredField(validator)
+EXPECTED_MAP_ERR: Final[Invalid[Serializable]] = Invalid(
+    {OBJECT_ERRORS_FIELD: ["expected a map"]}
+)
+
+VALID_NOTHING: Final[Validated[Maybe[Any], Any]] = Valid(nothing)
+
+KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
+KEY_MISSING_ERR: Final[Invalid[Serializable]] = Invalid(KEY_MISSING_MSG)
+
+class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):
+    \"""
+    For complex type reasons in the KeyValidator definition,
+    this does not subclass Validator (even though it probably should)
+    \"""
+
+    def __init__(self, validator: Validator[Any, A, Serializable]):
+        self.validator = validator
+
+    def __call__(self, val: Any) -> Validated[Maybe[A], Serializable]:
+        return self.validator(val).map(Just)
+
+    async def validate_async(self, val: Any) -> Validated[Maybe[A], Serializable]:
+        return (await self.validator.validate_async(val)).map(Just)
 
 
-def maybe_key(
-        prop_: str, validator: Validator[Any, A, Serializable]
-) -> Tuple[str, Callable[[Any], Result[Maybe[A], Serializable]]]:
-    return prop_, MaybeField(validator)
+KeyValidator = Tuple[
+    Hashable,
+    Validator[Any, A, Serializable],
+]
 
 
-@dataclass(frozen=True, init=False)
 class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
-    key_validator: Validator[Any, T1, Serializable]
-    value_validator: Validator[Any, T2, Serializable]
-    predicates: Tuple[Predicate[Dict[T1, T2], Serializable], ...]
+    __slots__ = (
+        "key_validator",
+        "value_validator",
+        "predicates",
+        "predicates_async",
+        "preprocessors",
+    )
+    __match_args__ = (
+        "key_validator",
+        "value_validator",
+        "predicates",
+        "predicates_async",
+        "preprocessors",
+    )
 
     def __init__(
         self,
-        key_validator: Validator[Any, T1, Serializable],
-        value_validator: Validator[Any, T2, Serializable],
-        *predicates: Predicate[Dict[T1, T2], Serializable],
+        *,
+        key: Validator[Any, T1, Serializable],
+        value: Validator[Any, T2, Serializable],
+        predicates: Optional[List[Predicate[Dict[T1, T2], Serializable]]] = None,
+        predicates_async: Optional[
+            List[PredicateAsync[Dict[T1, T2], Serializable]]
+        ] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
-        object.__setattr__(self, "key_validator", key_validator)
-        object.__setattr__(self, "value_validator", value_validator)
-        object.__setattr__(self, "predicates", predicates)
+        self.key_validator = key
+        self.value_validator = value
+        self.predicates = predicates
+        self.predicates_async = predicates_async
+        self.preprocessors = preprocessors
 
-    def __call__(self, data: Any) -> Result[Dict[T1, T2], Serializable]:
-        if isinstance(data, dict):
+    def __call__(self, val: Any) -> Validated[Dict[T1, T2], Serializable]:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
+        if isinstance(val, dict):
+            if self.preprocessors is not None:
+                for preproc in self.preprocessors:
+                    val = preproc(val)
+
             return_dict: Dict[T1, T2] = {}
             errors: Dict[str, Serializable] = {}
-            for key, val in data.items():
+            for key, val_ in val.items():
                 key_result = self.key_validator(key)
-                val_result = self.value_validator(val)
+                val_result = self.value_validator(val_)
 
-                if isinstance(key_result, Ok) and isinstance(val_result, Ok):
+                if key_result.is_valid and val_result.is_valid:
                     return_dict[key_result.val] = val_result.val
                 else:
                     err_key = str(key)
-                    if isinstance(key_result, Err):
+                    if not key_result.is_valid:
                         errors[err_key] = {"key_error": key_result.val}
 
-                    if isinstance(val_result, Err):
+                    if not val_result.is_valid:
                         err_dict = {"value_error": val_result.val}
                         errs: Maybe[Serializable] = mapping_get(errors, err_key)
-                        if isinstance(errs, Just) and isinstance(errs.val, dict):
+                        if errs.is_just and isinstance(errs.val, dict):
                             errs.val.update(err_dict)
                         else:
                             errors[err_key] = err_dict
 
             dict_validator_errors: List[Serializable] = []
-            for predicate in self.predicates:
-                # Note that the expectation here is that validators will likely
-                # be doing json like number of keys; they aren't expected
-                # to be drilling down into specific keys and values. That may be
-                # an incorrect assumption; if so, some minor refactoring is probably
-                # necessary.
-                result = predicate(data)
-                if isinstance(result, Err):
-                    dict_validator_errors.append(result.val)
+            if self.predicates is not None:
+                for predicate in self.predicates:
+                    # Note that the expectation here is that validators will likely
+                    # be doing json like number of keys; they aren't expected
+                    # to be drilling down into specific keys and values. That may be
+                    # an incorrect assumption; if so, some minor refactoring is probably
+                    # necessary.
+                    result = predicate(val)
+                    if not result.is_valid:
+                        dict_validator_errors.append(result.val)
 
             if len(dict_validator_errors) > 0:
                 # in case somehow there are already errors in this field
@@ -124,51 +185,93 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
                 errors[OBJECT_ERRORS_FIELD] = dict_validator_errors
 
             if errors:
-                return Err(errors)
+                return Invalid(errors)
             else:
-                return Ok(return_dict)
+                return Valid(return_dict)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("a map")]})
+            return EXPECTED_MAP_ERR
 
-
-class IsDictValidator(Validator[Any, Dict[Any, Any], Serializable]):
-    def __call__(self, val: Any) -> Result[Dict[Any, Any], Serializable]:
+    async def validate_async(self, val: Any) -> Validated[Dict[T1, T2], Serializable]:
         if isinstance(val, dict):
-            return Ok(val)
+            if self.preprocessors is not None:
+                for preproc in self.preprocessors:
+                    val = preproc(val)
+
+            return_dict: Dict[T1, T2] = {}
+            errors: Dict[str, Serializable] = {}
+
+            for key, val_ in val.items():
+                key_result = await self.key_validator.validate_async(key)
+                val_result = await self.value_validator.validate_async(val_)
+
+                if key_result.is_valid and val_result.is_valid:
+                    return_dict[key_result.val] = val_result.val
+                else:
+                    err_key = str(key)
+                    if not key_result.is_valid:
+                        errors[err_key] = {"key_error": key_result.val}
+
+                    if not val_result.is_valid:
+                        err_dict = {"value_error": val_result.val}
+                        errs: Maybe[Serializable] = mapping_get(errors, err_key)
+                        if errs.is_just and isinstance(errs.val, dict):
+                            errs.val.update(err_dict)
+                        else:
+                            errors[err_key] = err_dict
+
+            dict_validator_errors: List[Serializable] = []
+            if self.predicates is not None:
+                for predicate in self.predicates:
+                    # Note that the expectation here is that validators will likely
+                    # be doing json like number of keys; they aren't expected
+                    # to be drilling down into specific keys and values. That may be
+                    # an incorrect assumption; if so, some minor refactoring is probably
+                    # necessary.
+                    result = predicate(val)
+                    if not result.is_valid:
+                        dict_validator_errors.append(result.val)
+
+            if self.predicates_async is not None:
+                for pred_async in self.predicates_async:
+                    result = await pred_async.validate_async(val)
+                    if not result.is_valid:
+                        dict_validator_errors.append(result.val)
+
+            if len(dict_validator_errors) > 0:
+                # in case somehow there are already errors in this field
+                if OBJECT_ERRORS_FIELD in errors:
+                    dict_validator_errors.append(errors[OBJECT_ERRORS_FIELD])
+
+                errors[OBJECT_ERRORS_FIELD] = dict_validator_errors
+
+            if errors:
+                return Invalid(errors)
+            else:
+                return Valid(return_dict)
         else:
-            return Err({OBJECT_ERRORS_FIELD: [expected("a dictionary")]})
+            return EXPECTED_MAP_ERR
+
+
+class IsDictValidator(_ToTupleValidatorUnsafe[Any, Dict[Any, Any], Serializable]):
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+        if isinstance(val, dict):
+            return True, val
+        else:
+            return EXPECTED_DICT_ERR
+
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+        return self.validate_to_tuple(val) 
 
 
 is_dict_validator = IsDictValidator()
 
-def _has_no_extra_keys(
-    keys: Set[str],
-) -> Callable[[Dict[T1, T2]], Result[Dict[T1, T2], Serializable]]:
-    def inner(mapping: Dict[T1, T2]) -> Result[Dict[T1, T2], Serializable]:
-        if len(mapping.keys() - keys) > 0:
-            return Err(
-                {
-                    OBJECT_ERRORS_FIELD: [
-                        f"Received unknown keys. Only expected {sorted(keys)}"
-                    ]
-                }
-            )
-        else:
-            return Ok(mapping)
 
-    return inner
-
-
-def _dict_without_extra_keys(
-    keys: Set[str], data: Any
-) -> Result[Dict[Any, Any], Serializable]:
-    return is_dict_validator(data).flat_map(_has_no_extra_keys(keys))
-
-
-
-@dataclass(frozen=True)
 class MinKeys(Predicate[Dict[Any, Any], Serializable]):
-    size: int
+    __slots__ = ("size",)
+    __match_args__ = ("size",)
+
+    def __init__(self, size: int) -> None:
+        self.size = size
 
     def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) >= self.size
@@ -177,9 +280,12 @@ class MinKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"minimum allowed properties is {self.size}"
 
 
-@dataclass(frozen=True)
 class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
-    size: int
+    __slots__ = ("size",)
+    __match_args__ = ("size",)
+
+    def __init__(self, size: int) -> None:
+        self.size = size
 
     def is_valid(self, val: Dict[Any, Any]) -> bool:
         return len(val) <= self.size
@@ -188,136 +294,365 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         return f"maximum allowed properties is {self.size}"
 
 
-def _tuples_to_json_dict(data: Tuple[Tuple[str, Serializable], ...]) -> Serializable:
-    return dict(data)
+def _make_keys_err(keys: Union[FrozenSet[Hashable], KeysView[Hashable]]) -> Serializable:
+    return {
+        OBJECT_ERRORS_FIELD: [
+            "Received unknown keys. " + (
+                "Expected empty dictionary."
+                if len(keys) == 0
+                else "Only expected " + ", ".join(
+                    sorted([repr(k) for k in keys])
+                ) + "."
+            )
+        ]
+    }
 
-
-def _validate_with_key(
-        r: KeyValidator[T1], data: Dict[Any, Any]
-) -> Result[T1, Tuple[str, Serializable]]:
-    key, fn = r
-
-    def add_key(val: Serializable) -> Tuple[str, Serializable]:
-        return key, val
-
-    return fn(mapping_get(data, key)).map_err(add_key)
 """
+    )
     for i in range(num_keys):
         key_type_vars = type_vars[: i + 1]
         generic_vals = ", ".join(key_type_vars)
         dict_validator_into_signatures.append(f"Callable[[{generic_vals}], Ret]")
 
-        dict_validator_fields.append(
-            f"field{i+1}: KeyValidator[{type_vars[i]}]"
-            if i == 0
-            else f"field{i+1}: Optional[KeyValidator[{type_vars[i]}]] = None"
+        dict_validator_fields.append(f"KeyValidator[{type_vars[i]}]")
+        final_tuple_fields = [
+            f"            KeyValidator[{type_vars[j]}]" for j in range(i + 1)
+        ]
+        dict_validator_fields_final.append(
+            "Tuple[" + ",\n".join(final_tuple_fields) + "]"
         )
 
-        ret += f"""
+    ret += """
+class RecordValidator(
+    _ToTupleValidatorUnsafe[Any, Ret, Serializable]
+):
+    __slots__ = ("_fast_keys", "_key_set", "keys", "into", "preprocessors", "validate_object", "validate_object_async")
+    __match_args__ = ("keys", "into", "preprocessors", "validate_object", "validate_object_async")
 
-class Dict{i+1}KeysValidator(Generic[{generic_vals}, Ret], Validator[Any, Ret, Serializable]):
-    __match_args__: Tuple[str, ...] = ('dv_fields',)
 """
-        ret += f"""    def __init__(self,
-                 into: {dict_validator_into_signatures[-1]},"""
-        ret += "".join(
-            [
-                f"\n                 field{j+1}: KeyValidator[{type_var}],"
-                for j, type_var in enumerate(key_type_vars)
-            ]
-        )
+    for i in range(num_keys):
         ret += f"""
+    @overload
+    def __init__(self,
                  *,
-                 validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
-                 ) -> None:
-        self.into = into
-        self.dv_fields = (
-            {" ".join([f'field{j+1},' for j in range(i + 1)])}
-        )
-        self.validate_object = validate_object
+                 into: Callable[[{",".join(type_vars[:i + 1])}], Ret],
+                 keys: Tuple[
 """
-        ret += """
-    def __call__(self, data: Any) -> Result[Ret, Serializable]:
-        result = _dict_without_extra_keys(
-    """
-        ret += "        {"
-        ret += ", ".join([f"self.dv_fields[{j}][0]" for j in range(i + 1)])
-        ret += "},"
-        ret += "\n            data"
-        ret += """
-        )
+        for j in range(i + 1):
+            ret += f"                     {dict_validator_fields[j]},\n"
+        ret += """                 ],
+                 validate_object: Optional[Callable[[Ret], Validated[Ret, Serializable]]] = None,
+                 validate_object_async: Optional[Callable[[Ret], Awaitable[Validated[Ret, Serializable]]]] = None,
+                 preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None
+                 ) -> None: 
+        ...  # pragma: no cover
 
-        if isinstance(result, Err):
-            return result
-        else:
-            result_1 = validate_and_map(
-                self.into,
-"""
-        ret += "\n".join(
-            [
-                f"                _validate_with_key(self.dv_fields[{j}], result.val),"
-                for j in range(i + 1)
-            ]
-        )
-        ret += """
-            )
-            return _flat_map_same_type_if_not_none(
-                self.validate_object, result_1.map_err(_tuples_to_json_dict)
-            )
 """
 
-        # overload for dict_validator
-        dv_overload = f"""
-
-@overload
-def dict_validator(
-    into: {dict_validator_into_signatures[-1]},"""
-        dv_overload += "".join(
-            [
-                f"\n    field{j+1}: KeyValidator[{type_var}],"
-                for j, type_var in enumerate(key_type_vars)
-            ]
-        )
-        dv_overload += """
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None,
-) -> Validator[Any, Ret, Serializable]:
-    ...
-"""
-        dict_validator_overloads.append(dv_overload)
-
-    ret += "\n".join(dict_validator_overloads)
-
-    dv_fields: str = ",\n".join([f"    {f}" for f in dict_validator_fields])
+    dv_fields_2: str = ",\n".join([f"         {f}" for f in dict_validator_fields_final])
 
     ret += f"""
 
-def dict_validator(
-    into: Union[
-        {", ".join(dict_validator_into_signatures)}
-    ],
-{dv_fields},
-    *,
-    validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
-) -> Validator[Any, Ret, Serializable]:
+    def __init__( 
+        self,
+        into: Union[
+            {", ".join(dict_validator_into_signatures)}
+        ],
+        keys: Union[
+    {dv_fields_2},
+        ],
+        validate_object: Optional[Callable[[Ret], Validated[Ret, Serializable]]] = None,
+        validate_object_async: Optional[Callable[[Ret], Awaitable[Validated[Ret, Serializable]]]] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None
+    ) -> None:
 """
-    for i in range(1, num_keys + 1):
-        dv_fields = ", ".join([f"field{j}" for j in range(1, i + 1)])
-        ret_stmt = f"        return Dict{i}KeysValidator(cast({dict_validator_into_signatures[i-1]}, into), {dv_fields}, validate_object=validate_object)"
-        if i == 1:
-            ret += f"""
-    if field{i + 1} is None:
-{ret_stmt}"""
-        elif i == num_keys:
-            ret += f"""
-    else:
-{ret_stmt}
-"""
+    ret += (
+        f"""
+        self.into = into
+        # needs to be `Any` until we have variadic generics presumably
+        self.keys: Tuple[KeyValidator[Any], ...] = keys
+        if validate_object is not None and validate_object_async is not None:
+            raise AssertionError(
+                "validate_object and validate_object_async cannot both be defined"
+            )
+        self.validate_object = validate_object
+        self.validate_object_async = validate_object_async
+        self.preprocessors = preprocessors
+
+        # so we don't need to calculate each time we validate
+        _key_set = frozenset(k for k, _ in keys)
+        self._key_set = _key_set
+        self._fast_keys = [
+            (key,
+             val,
+             not isinstance(val, KeyNotRequired),
+             isinstance(val, _ToTupleValidatorUnsafe),
+             str(key)) for key, val in keys
+        ]
+        self._unknown_keys_err = False, _make_keys_err(_key_set)
+
+    def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
+{get_dict_keys_check_code("self._key_set")}
+
+        args: List[Any] = []
+        errs: List[Tuple[str, Serializable]] = []
+        for key_, validator, key_required, is_tuple_validator, str_key in self._fast_keys:
+            try:
+                val = data[key_]
+            except KeyError:
+                if key_required: 
+                    errs.append((str_key, KEY_MISSING_MSG))
+                else:
+                    args.append(nothing)
+            else:
+                if is_tuple_validator:
+                    if TYPE_CHECKING:
+                        assert isinstance(validator, _ToTupleValidatorUnsafe)
+                    success, new_val = validator.validate_to_tuple(val)  
+                else:
+                    success, new_val = ( 
+                        (True, result_.val)
+                        if (result_ := validator(val)).is_valid  # type: ignore
+                        else (False, result_.val)
+                    )
+                
+                if not success:
+                    errs.append((str_key, new_val))
+                elif not errs:
+                    args.append(new_val)
+
+        if errs:
+            return False, dict(errs)
         else:
-            ret += f"""
-    elif field{i+1} is None:
-{ret_stmt}
+            # we know this should be ret
+            obj = self.into(*args)
+            if self.validate_object is None:
+                return True, obj
+            else:
+                result = self.validate_object(obj)
+                if result.is_valid:
+                    return True, result.val
+                else:
+                    return False, result.val
+
+
+    async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
+{get_dict_keys_check_code("self._key_set")}
+        args: List[Any] = []
+        errs: List[Tuple[str, Serializable]] = []
+        for key_, validator, key_required, is_tuple_validator, str_key in self._fast_keys:
+            try:
+                val = data[key_]
+            except KeyError:
+                if key_required:
+                    errs.append((str_key, KEY_MISSING_MSG))
+                else:
+                    args.append(nothing)
+            else:
+                if is_tuple_validator:
+                    success, new_val = await validator.validate_to_tuple_async(val)  # type: ignore  # noqa: E501
+                else:
+                    success, new_val = ( 
+                        (True, result_.val)
+                        if (result_ := await validator.validate_async(val)).is_valid  # type: ignore  # noqa: E501
+                        else (False, result_.val)
+                    )
+
+                if not success:
+                    errs.append((str_key, new_val))
+                elif not errs:
+                    args.append(new_val)
+
+        if errs:
+            return False, dict(errs)
+        else:
+            obj = self.into(*args)
+            if self.validate_object is not None:
+                result = self.validate_object(obj)
+                if result.is_valid:
+                    return True, result.val
+                else:
+                    return False, result.val
+            elif self.validate_object_async is not None:
+                result = await self.validate_object_async(obj)
+                if result.is_valid:
+                    return True, result.val
+                else:
+                    return False, result.val
+            else:
+                return True, obj
+
+
+class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
+    \"""
+    This differs from RecordValidator in a few ways:
+    - if valid, it returns a dict; it does not allow another target to be specified
+    - it does not narrow the types of keys / values. It always returns
+    `Dict[Hashable, Any]`
+    - it allows for any number of `KeyValidator`s
+
+    This class exists for two reasons:
+    - because the overloads we use to define `RecordValidator` get very slow
+    for type checkers beyond a certain point, sa we have a max number of
+    type-checkable keys
+    - if you don't care about the types in the target object
+
+    VALIDATION WILL STILL WORK PROPERLY, but there won't be much type hinting
+    assistance.
+    \"""
+
+    __slots__ = (
+        "schema",
+        "_key_set",
+        "_fast_keys",
+        "_unknown_keys_err",
+        "preprocessors",
+        "validate_object",
+        "validate_object_async",
+    )
+    __match_args__ = (
+        "schema",
+        "preprocessors",
+        "validate_object",
+        "validate_object_async",
+    )
+
+    def __init__(
+        self,
+        schema: Dict[Any, Validator[Any, Any, Serializable]],
+        *,
+        validate_object: Optional[
+            Callable[[Dict[Hashable, Any]], Validated[Dict[Any, Any], Serializable]]
+        ] = None,
+        validate_object_async: Optional[
+            Callable[
+                [Dict[Any, Any]],
+                Awaitable[Validated[Dict[Any, Any], Serializable]],
+            ]
+        ] = None,
+        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+    ) -> None:
+        self.schema: Dict[Any, Validator[Any, Any, Serializable]] = schema
+        self.validate_object = validate_object
+        self.validate_object_async = validate_object_async
+
+        if validate_object is not None and validate_object_async is not None:
+            raise AssertionError(
+                "validate_object and validate_object_async cannot both be defined"
+            )
+        self.preprocessors = preprocessors
+
+        # so we don't need to calculate each time we validate
+        self._fast_keys = [
+            (
+                key,
+                val,
+                not isinstance(val, KeyNotRequired),
+                isinstance(val, _ToTupleValidatorUnsafe),
+                str(key),
+            )
+            for key, val in schema.items()
+        ]
+
+        self._unknown_keys_err = False, _make_keys_err(schema.keys())
+
+    def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
 """
+        + get_dict_keys_check_code("self.schema")
+        + """
+
+        success_dict: Dict[Hashable, Any] = {}
+        errs: List[Tuple[str, Serializable]] = []
+        for key_, validator, key_required, is_tuple_validator, str_key in self._fast_keys:
+            try:
+                val = data[key_]
+            except KeyError:
+                if key_required: 
+                    errs.append((str_key, KEY_MISSING_MSG))
+                elif not errs:
+                    success_dict[key_] = nothing
+            else:
+                if is_tuple_validator:
+                    if TYPE_CHECKING:
+                        assert isinstance(validator, _ToTupleValidatorUnsafe)
+                    success, new_val = validator.validate_to_tuple(val) 
+                else:
+                    success, new_val = ( 
+                        (True, result_.val)
+                        if (result_ := validator(val)).is_valid
+                        else (False, result_.val)
+                    )
+                
+                if not success:
+                    errs.append((str_key, new_val))
+                elif not errs:
+                    success_dict[key_] = new_val
+ 
+        if errs:
+            return False, dict(errs)
+        else:
+            if self.validate_object is None:
+                return True, success_dict
+            else:
+                vo_result = self.validate_object(success_dict)
+                if vo_result.is_valid:
+                    return True, vo_result.val
+                else:
+                    return False, vo_result.val 
+
+    async def validate_to_tuple_async(
+        self, data: Any
+    ) -> _ResultTupleUnsafe:
+"""
+        + get_dict_keys_check_code("self.schema")
+        + """ 
+
+        success_dict: Dict[Hashable, Any] = {}
+        errs: List[Tuple[str, Serializable]] = []
+        for key_, validator, key_required, is_tuple_validator, str_key in self._fast_keys:
+            try:
+                val = data[key_]
+            except KeyError:
+                if key_required:
+                    errs.append((str_key, KEY_MISSING_MSG))
+                elif not errs:
+                    success_dict[key_] = nothing
+            else:
+                if is_tuple_validator:
+                    if TYPE_CHECKING:
+                        assert isinstance(validator, _ToTupleValidatorUnsafe)
+                    success, new_val = await validator.validate_to_tuple_async(val)
+                else:
+                    success, new_val = (
+                        (True, result_.val)
+                        if (result_ := await validator.validate_async(val)).is_valid 
+                        else (False, result_.val)
+                    )
+
+                if not success:
+                    errs.append((str_key, new_val))
+                elif not errs:
+                    success_dict[key_] = new_val
+
+        if errs:
+            return False, dict(errs)
+        else:
+            if self.validate_object is not None:
+                result = self.validate_object(success_dict)
+                if result.is_valid:
+                    return True, result.val
+                else:
+                    return False, result.val
+            elif self.validate_object_async is not None:
+                result = await self.validate_object_async(success_dict)
+                if result.is_valid:
+                    return True, result.val
+                else:
+                    return False, result.val
+            else:
+                return True, success_dict 
+"""
+    )
 
     return ret
 
