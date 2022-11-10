@@ -1,6 +1,5 @@
-import decimal
-from decimal import Decimal as Decimal
 from typing import Any, Final, List, Literal, Optional, Tuple
+from uuid import UUID
 
 from koda_validate._internals import (
     _async_predicates_warning,
@@ -16,20 +15,20 @@ from koda_validate.base import (
     _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_DECIMAL_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
-    "expected a Decimal, or a Decimal-compatible string or integer"
+EXPECTED_UUID_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
+    "expected a UUID, or a UUID-compatible string"
 ]
 
 
-class DecimalValidator(_ToTupleValidatorUnsafe[Any, Decimal, Serializable]):
+class UUIDValidator(_ToTupleValidatorUnsafe[Any, UUID, Serializable]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[Decimal, Serializable],
-        predicates_async: Optional[List[PredicateAsync[Decimal, Serializable]]] = None,
-        preprocessors: Optional[List[Processor[Decimal]]] = None,
+        *predicates: Predicate[UUID, Serializable],
+        predicates_async: Optional[List[PredicateAsync[UUID, Serializable]]] = None,
+        preprocessors: Optional[List[Processor[UUID]]] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
@@ -39,39 +38,38 @@ class DecimalValidator(_ToTupleValidatorUnsafe[Any, Decimal, Serializable]):
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
-        if type(val) is Decimal:
+        if type(val) is UUID:
             return _handle_scalar_processors_and_predicates_tuple(
                 val, self.preprocessors, self.predicates
             )
 
-        elif isinstance(val, (str, int)):
+        elif type(val) is str:
             try:
-                dec = Decimal(val)
-            except decimal.InvalidOperation:
-                return EXPECTED_DECIMAL_ERR
+                _uuid = UUID(val)
+            except ValueError:
+                return EXPECTED_UUID_ERR
             else:
                 return _handle_scalar_processors_and_predicates_tuple(
-                    dec, self.preprocessors, self.predicates
+                    _uuid, self.preprocessors, self.predicates
                 )
-
         else:
-            return EXPECTED_DECIMAL_ERR
+            return EXPECTED_UUID_ERR
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
-        if type(val) is Decimal:
+        if type(val) is UUID:
             return await _handle_scalar_processors_and_predicates_async_tuple(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
 
-        elif isinstance(val, (str, int)):
+        elif type(val) is str:
             try:
-                dec = Decimal(val)
-            except decimal.InvalidOperation:
-                return EXPECTED_DECIMAL_ERR
+                _uuid = UUID(val)
+            except ValueError:
+                return EXPECTED_UUID_ERR
             else:
                 return await _handle_scalar_processors_and_predicates_async_tuple(
-                    dec, self.preprocessors, self.predicates, self.predicates_async
+                    _uuid, self.preprocessors, self.predicates, self.predicates_async
                 )
 
         else:
-            return EXPECTED_DECIMAL_ERR
+            return EXPECTED_UUID_ERR

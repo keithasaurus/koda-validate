@@ -444,7 +444,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e75cfdfd099829cbfb03f60f392cfe0dbec48d082eda2777b6d0ccf45a81f1ef"
+content-hash = "67a6850a082351689b4308341bf582922504418ccbd4b3107c445040b904e06b"
 
 [metadata.files]
 attrs = [

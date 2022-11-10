@@ -8,7 +8,7 @@ def get_dict_keys_check_code(key_source: str) -> str:
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR
             
-        if self.preprocessors is not None:
+        if self.preprocessors:
             for preproc in self.preprocessors:
                 data = preproc(data)
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "koda-validate"
-version = "2.0.0"
+version = "2.1.0"
 readme = "README.md"
 description = "Typesafe, combinable validation"
 authors = ["Keith Philpott"]
@@ -23,7 +23,7 @@ pre-commit = "2.20.0"
 mypy = "0.990"
 pydantic = "1.10.2"
 pytest-asyncio = "0.20.1"
-voluptuous = "^0.13.1"
+voluptuous = "0.13.1"
 
 [tool.mypy]
 exclude = ["build", "bench"]
@@ -58,7 +58,7 @@ addopts ="""
   --cov-report=term:skip-covered
   --cov-report=html
   --cov-branch
-  --cov-fail-under=95
+  --cov-fail-under=96
 """
 
 [tool.coverage.run]

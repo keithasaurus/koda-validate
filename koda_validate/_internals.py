@@ -31,12 +31,30 @@ def _flat_map_same_type_if_not_none(
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 
 
+def _handle_scalar_processors_and_predicates_tuple(
+    val: A,
+    preprocessors: Optional[List[Processor[A]]],
+    predicates: Tuple[Predicate[A, Serializable], ...],
+) -> _ResultTupleUnsafe:
+    if preprocessors:
+        for proc in preprocessors:
+            val = proc(val)
+
+    if predicates:
+        if errors := [pred.err(val) for pred in predicates if not pred.is_valid(val)]:
+            return False, errors
+        else:
+            return True, val
+    else:
+        return True, val
+
+
 def _handle_scalar_processors_and_predicates(
     val: A,
     preprocessors: Optional[List[Processor[A]]],
     predicates: Tuple[Predicate[A, Serializable], ...],
 ) -> Validated[A, Serializable]:
-    if preprocessors is not None:
+    if preprocessors:
         for proc in preprocessors:
             val = proc(val)
 
