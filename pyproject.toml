@@ -2,11 +2,11 @@
 name = "koda-validate"
 version = "2.1.0"
 readme = "README.md"
-description = "Typesafe, combinable validation"
+description = "Typesafe, composable validation"
 authors = ["Keith Philpott"]
 license = "MIT"
 homepage = "https://github.com/keithasaurus/koda-validate"
-keywords = ["validation", "functional programming", "type hints"]
+keywords = ["validation", "functional programming", "type hints", "asyncio"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
