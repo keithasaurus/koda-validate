@@ -134,14 +134,14 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
                 else:
                     _result = self.item_validator(item)
                     is_valid, item_result = (_result.is_valid, _result.val)
-                if is_valid:
-                    if not errors:
-                        return_list.append(item_result)
-                else:
+
+                if not is_valid:
                     if errors is None:
                         errors = {str(i): item_result}
                     else:
                         errors[str(i)] = item_result
+                elif not errors:
+                    return_list.append(item_result)
 
             if errors:
                 return False, errors
@@ -156,7 +156,6 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
                 for processor in self.preprocessors:
                     val = processor(val)
 
-            return_list: List[A] = []
             list_errors: List[Serializable] = []
             if self.predicates:
                 list_errors.extend(
@@ -173,16 +172,23 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
             if list_errors:
                 errors = {OBJECT_ERRORS_FIELD: list_errors}
 
+            return_list: List[A] = []
             for i, item in enumerate(val):
-                item_result = await self.item_validator.validate_async(item)
-                if item_result.is_valid:
-                    if not errors:
-                        return_list.append(item_result.val)
+                if self._item_validator_is_tuple:
+                    is_valid, item_result = await self.item_validator.validate_to_tuple_async(  # type: ignore  # noqa: E501
+                        item
+                    )
                 else:
-                    if not errors:
-                        errors = {str(i): item_result.val}
+                    _result = await self.item_validator.validate_async(item)
+                    is_valid, item_result = (_result.is_valid, _result.val)
+
+                if not is_valid:
+                    if errors is None:
+                        errors = {str(i): item_result}
                     else:
-                        errors[str(i)] = item_result.val
+                        errors[str(i)] = item_result
+                elif not errors:
+                    return_list.append(item_result)
 
             if errors:
                 return False, errors

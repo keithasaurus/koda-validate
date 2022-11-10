@@ -37,6 +37,9 @@ class Predicate(Generic[InputT, FailT]):
     def is_valid(self, val: InputT) -> bool:  # pragma: no cover
         raise NotImplementedError
 
+    # potential optimization: allowing for a STATIC_ERR (or similar) class
+    # attribute can result in ~3% speedup for predicates,
+    # i.e. [pred.STATIC_ERR or pred.err(val) for pred in preds]
     @abstractmethod
     def err(self, val: InputT) -> FailT:  # pragma: no cover
         raise NotImplementedError

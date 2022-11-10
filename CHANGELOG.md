@@ -1,4 +1,14 @@
-2.0.0 (Nov. 8 2022)
+2.1.0 (Nov. 9, 2022)
+**Features**
+- `UUIDValidator`
+
+**Bug Fixes**
+- `RecordValidator` allows up-to-16 keys as intended
+
+**Performance**
+- Small optimizations for `RecordValidator`, `DictValidatorAny`, `ListValidator` and `DecimalValidator`
+
+2.0.0 (Nov. 8, 2022)
 **Features**
 - `asyncio` is supported with `.validate_async` method
 - `PredicateAsync` is added

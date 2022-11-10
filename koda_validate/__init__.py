@@ -61,6 +61,8 @@ __all__ = (
     # tuple.py
     "Tuple2Validator",
     "Tuple3Validator",
+    # uuid
+    "UUIDValidator",
     # validated
     "Validated",
     "Valid",
@@ -121,4 +123,5 @@ from koda_validate.string import (
 )
 from koda_validate.time import DateStringValidator, DatetimeStringValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
+from koda_validate.uuid import UUIDValidator
 from koda_validate.validated import Invalid, Valid, Validated
