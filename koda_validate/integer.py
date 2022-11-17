@@ -9,12 +9,14 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
+    ValidationError,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
+    type_error,
 )
 
-EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
-    "expected an integer"
+EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], List[ValidationError]]] = False, [
+    type_error("int", "expected an integer")
 ]
 
 

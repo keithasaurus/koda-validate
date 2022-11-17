@@ -9,11 +9,15 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
+    ValidationError,
     Validator,
+    type_error,
 )
 from koda_validate.validated import Invalid, Valid, Validated
 
-EXPECTED_BOOL_ERR: Final[Invalid[Serializable]] = Invalid(["expected a boolean"])
+EXPECTED_BOOL_ERR: Final[Invalid[List[ValidationError]]] = Invalid(
+    [type_error("bool", "expected a boolean")]
+)
 
 
 class BoolValidator(Validator[Any, bool, Serializable]):

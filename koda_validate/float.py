@@ -11,10 +11,11 @@ from koda_validate.base import (
     Serializable,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
+    type_error,
 )
 
 EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
-    "expected a float"
+    type_error("float", "expected a float")
 ]
 
 

@@ -44,23 +44,19 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
+    ValidationError,
     Validator,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
+    type_error,
 )
 from koda_validate.validated import Invalid, Valid, Validated
 
-EXPECTED_DICT_MSG: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
-EXPECTED_DICT_ERR: Final[Tuple[Literal[False], Serializable]] = False, EXPECTED_DICT_MSG
-
-EXPECTED_MAP_ERR: Final[Invalid[Serializable]] = Invalid(
-    {OBJECT_ERRORS_FIELD: ["expected a map"]}
-)
-
-VALID_NOTHING: Final[Validated[Maybe[Any], Any]] = Valid(nothing)
+EXPECTED_DICT_ERR: Final[
+    Tuple[Literal[False], Dict[str, List[ValidationError]]]
+] = False, {OBJECT_ERRORS_FIELD: [type_error("dict", "expected a dictionary")]}
 
 KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
-KEY_MISSING_ERR: Final[Invalid[Serializable]] = Invalid(KEY_MISSING_MSG)
 
 
 class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):

@@ -1003,9 +1003,9 @@ assert always_valid("abc") == Valid("abc")
 Comparing Koda Validate and Pydantic is not exactly apples-to-apples, since Koda Validate is more narrowly
 aimed at _just_ validation -- Pydantic has a lot of other bells and whistles. Nonetheless, this is one of the most 
 common questions, and there are a number of noteworthy differences:
-- **Koda Validate is built around a simple, composable definition of what validation is.**
-- **Koda Validate treats validation explicitly.** It does not coerce types or mutate values in surprising ways.
+- **Koda Validate is built around a simple, composable definition of validation.**
 - **Koda Validate treats validation as part of normal control flow.** It does not raise exceptions for invalid data.
+- **Koda Validate treats validation explicitly.** It does not coerce types or mutate values in surprising ways.
 - **Koda Validate is fully asyncio-compatible.**
 - **Koda Validate is ~1.5 - 12x faster.** You will see differences on different versions of Python
 (Python3.8 tends to show the least difference) and different systems. You can run the suite on your 

@@ -1,5 +1,17 @@
 from abc import abstractmethod
-from typing import Any, Dict, Generic, List, Tuple, Union, final
+from functools import partial
+from typing import (
+    Any,
+    Dict,
+    Generic,
+    Hashable,
+    List,
+    Literal,
+    Tuple,
+    TypedDict,
+    Union,
+    final,
+)
 
 from koda_validate._generics import A, FailT, InputT, SuccessT
 from koda_validate.validated import Invalid, Valid, Validated
@@ -90,6 +102,32 @@ Serializable = Union[
     List[Serializable1],
     Tuple[Serializable1, ...],
     Dict[str, Serializable1],
+]
+
+ErrType = Literal["type", "value"]
+
+
+class ValidationError(TypedDict):
+    err_type: ErrType
+    code: str
+    msg: str
+    details: Serializable
+
+
+def validation_error(
+    err_type: ErrType, code: str, msg: str, details: Serializable = None
+) -> ValidationError:
+    return {"err_type": err_type, "code": code, "msg": msg, "details": details}
+
+
+type_error = partial(validation_error, "type")
+value_error = partial(validation_error, "value")
+
+_Err1 = Union[ValidationError, dict[Any, Any]]
+Err = Union[
+    ValidationError,
+    dict[Any, _Err1],
+    # list[int, "Err"]
 ]
 
 

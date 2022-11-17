@@ -27,7 +27,7 @@ from koda_validate import (
 from koda_validate._generics import A
 from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.dictionary import (
-    EXPECTED_MAP_ERR,
+    EXPECTED_DICT_ERR,
     DictValidatorAny,
     KeyNotRequired,
     RecordValidator,
@@ -70,7 +70,7 @@ async def test_is_dict_async() -> None:
 def test_map_validator() -> None:
     assert (
         MapValidator(key=StringValidator(), value=FloatValidator())(None)
-        == EXPECTED_MAP_ERR
+        == EXPECTED_DICT_ERR
     )
 
     assert MapValidator(key=StringValidator(), value=StringValidator())(5) == Invalid(
@@ -152,7 +152,7 @@ async def test_map_validator_async() -> None:
         await MapValidator(key=StringValidator(), value=FloatValidator()).validate_async(
             None
         )
-        == EXPECTED_MAP_ERR
+        == EXPECTED_DICT_ERR
     )
 
     assert await MapValidator(

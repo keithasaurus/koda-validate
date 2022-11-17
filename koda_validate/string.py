@@ -1,5 +1,5 @@
 import re
-from typing import Any, Final, List, Literal, Optional, Pattern, Tuple
+from typing import Any, Dict, Final, List, Literal, Optional, Pattern, Tuple, TypedDict
 
 from koda_validate._internals import (
     _async_predicates_warning,
@@ -10,12 +10,15 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
+    ValidationError,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
+    type_error,
+    validation_error,
 )
 
-EXPECTED_STR_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
-    "expected a string"
+EXPECTED_STR_ERR: Final[Tuple[Literal[False], List[ValidationError]]] = False, [
+    type_error("str", "expected a string")
 ]
 
 
