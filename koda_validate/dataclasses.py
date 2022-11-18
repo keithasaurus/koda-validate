@@ -1,15 +1,36 @@
 from dataclasses import is_dataclass
-from typing import Any, ClassVar, Dict, Protocol, Type, TypeVar, get_type_hints
+from decimal import Decimal
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    List,
+    Protocol,
+    Type,
+    TypeVar,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
+from uuid import UUID
 
 from koda_validate import (
+    BoolValidator,
+    DecimalValidator,
     DictValidatorAny,
+    FloatValidator,
     IntValidator,
     Invalid,
+    ListValidator,
+    MapValidator,
+    NoneValidator,
     Serializable,
     StringValidator,
+    UUIDValidator,
     Valid,
     Validated,
     Validator,
+    always_valid,
 )
 
 
@@ -20,19 +41,51 @@ class DataclassLike(Protocol):
 _DCT = TypeVar("_DCT", bound=DataclassLike)
 
 
+def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Any]:
+    if annotations is str:
+        return StringValidator()
+    elif annotations is int:
+        return IntValidator()
+    elif annotations is float:
+        return FloatValidator()
+    elif annotations is None:
+        return NoneValidator()
+    elif annotations is UUID:
+        return UUIDValidator()
+    elif annotations is bool:
+        return BoolValidator()
+    elif annotations is Decimal:
+        return DecimalValidator()
+    elif annotations is Any:
+        return always_valid
+    elif annotations is List or annotations is list:
+        return ListValidator(always_valid)
+    elif annotations is Dict or annotations is dict:
+        return MapValidator(key=always_valid, value=always_valid)
+    elif is_dataclass(annotations):
+        return DataclassValidator(annotations)
+    else:
+        origin, args = get_origin(annotations), get_args(annotations)
+        if (origin is list or origin is List) and len(args) == 1:
+            item_validator = get_typehint_validator(args[0])
+            return ListValidator(item_validator)
+        if (origin is dict or origin is Dict) and len(args) == 2:
+            return MapValidator(
+                key=get_typehint_validator(args[0]), value=get_typehint_validator(args[1])
+            )
+
+        raise TypeError(f"got unhandled annotation: {type(annotations)}")
+
+
 class DataclassValidator(Validator[Any, _DCT, Serializable]):
     def __init__(self, data_cls: Type[_DCT]) -> None:
         self.data_cls = data_cls
-        fields = {}
-        for field, annotations in get_type_hints(self.data_cls).items():
-            if annotations is str:
-                fields[field] = StringValidator()
-            elif annotations is int:
-                fields[field] = IntValidator()
-            else:
-                raise TypeError(f"got unhandled annotation: {type(annotations)}")
-
-        self.validator = DictValidatorAny(fields)
+        self.validator = DictValidatorAny(
+            {
+                field: get_typehint_validator(annotations)
+                for field, annotations in get_type_hints(self.data_cls).items()
+            }
+        )
 
     def __call__(self, val: Any) -> Validated[_DCT, Serializable]:
         if isinstance(val, self.data_cls):
