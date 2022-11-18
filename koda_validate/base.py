@@ -104,24 +104,38 @@ Serializable = Union[
     Dict[str, Serializable1],
 ]
 
-ErrType = Literal["type", "value"]
-
 
 class ValidationError(TypedDict):
-    err_type: ErrType
-    code: str
-    msg: str
+    error_code: str
+    default_message: str
     details: Serializable
 
 
 def validation_error(
-    err_type: ErrType, code: str, msg: str, details: Serializable = None
+    error_code: str, default_message: str, details: Serializable = None
 ) -> ValidationError:
-    return {"err_type": err_type, "code": code, "msg": msg, "details": details}
+    return {
+        "error_code": error_code,
+        "default_message": default_message,
+        "details": details,
+    }
 
 
-type_error = partial(validation_error, "type")
-value_error = partial(validation_error, "value")
+def type_error(
+    error_code_suffix: str, default_message: str, details: Serializable = None
+) -> ValidationError:
+    return validation_error(f"type.{error_code_suffix}", default_message, details)
+
+
+def value_error(
+    error_code_suffix: str, default_message: str, details: Serializable = None
+) -> ValidationError:
+    return validation_error(f"value.{error_code_suffix}", default_message, details)
+
+
+def key_missing_error(key: Hashable, details: Serializable = None) -> ValidationError:
+    return validation_error("key.missing", "key missing", {"key": key})
+
 
 _Err1 = Union[ValidationError, dict[Any, Any]]
 Err = Union[
