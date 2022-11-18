@@ -77,7 +77,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Any]:
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
 
-class DataclassValidator(Validator[Any, _DCT, Serializable]):
+class ModelValidator(Validator[Any, _DCT, Serializable]):
     def __init__(self, data_cls: Type[_DCT]) -> None:
         self.data_cls = data_cls
         self.validator = DictValidatorAny(
@@ -88,17 +88,18 @@ class DataclassValidator(Validator[Any, _DCT, Serializable]):
         )
 
     def __call__(self, val: Any) -> Validated[_DCT, Serializable]:
-        if isinstance(val, self.data_cls):
-            result = self.validator(val.__dict__)
-            if result.is_valid:
-                return Valid(self.data_cls(**result.val))
-            else:
-                return result
-        elif isinstance(val, dict):
+        if isinstance(val, dict):
             result = self.validator(val)
             if result.is_valid:
                 return Valid(self.data_cls(**result.val))
             else:
                 return result
+        elif is_dataclass(self.data_cls) and isinstance(val, self.data_cls):
+            result = self.validator(val.__dict__)
+            if result.is_valid:
+                return Valid(self.data_cls(**result.val))
+            else:
+                return result
+
         else:
             return Invalid([f"expected a dict or {self.data_cls.__name__} instance"])
