@@ -17,7 +17,7 @@ from koda_validate import (
     Valid,
 )
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
-from koda_validate.tuple import TupleHomogenousValidator
+from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny
 
 
@@ -271,7 +271,27 @@ def test_get_typehint_validator() -> None:
     assert isinstance(union_opt_str_int_validator.validators[3], BoolValidator)
 
 
-def test_get_typehint_validator_tuple() -> None:
+def test_get_typehint_validator_list_union() -> None:
+    for validator in [
+        get_typehint_validator(list[str | int]),
+        get_typehint_validator(list[Union[str, int]]),
+    ]:
+        assert isinstance(validator, ListValidator)
+        assert isinstance(validator.item_validator, UnionValidatorAny)
+        assert len(validator.item_validator.validators) == 2
+        assert isinstance(validator.item_validator.validators[0], StringValidator)
+        assert isinstance(validator.item_validator.validators[1], IntValidator)
+
+
+def test_get_typehint_validator_tuple_homogenous() -> None:
     tuple_homogeneous_validator_1 = get_typehint_validator(tuple[str, ...])
     assert isinstance(tuple_homogeneous_validator_1, TupleHomogenousValidator)
     assert isinstance(tuple_homogeneous_validator_1.item_validator, StringValidator)
+
+
+def test_get_typehint_validator_tuple_n_any() -> None:
+    t_n_any_validator = get_typehint_validator(tuple[str, int])
+    assert isinstance(t_n_any_validator, TupleNValidatorAny)
+    assert len(t_n_any_validator.validators) == 2
+    assert isinstance(t_n_any_validator.validators[0], StringValidator)
+    assert isinstance(t_n_any_validator.validators[1], IntValidator)

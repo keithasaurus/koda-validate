@@ -1,6 +1,6 @@
 from dataclasses import is_dataclass
 from decimal import Decimal
-from types import NoneType
+from types import NoneType, UnionType
 from typing import (
     Any,
     ClassVar,
@@ -35,7 +35,7 @@ from koda_validate import (
     Validator,
     always_valid,
 )
-from koda_validate.tuple import TupleHomogenousValidator
+from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny
 
 
@@ -78,14 +78,13 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Any]:
             return MapValidator(
                 key=get_typehint_validator(args[0]), value=get_typehint_validator(args[1])
             )
-        if origin is Union:
+        if origin is Union or origin is UnionType:
             return UnionValidatorAny(*[get_typehint_validator(arg) for arg in args])
-        if (
-            (origin is tuple or origin is Tuple)
-            and len(args) == 2
-            and args[1] is Ellipsis
-        ):
-            return TupleHomogenousValidator(get_typehint_validator(args[0]))
+        if origin is tuple or origin is Tuple:
+            if len(args) == 2 and args[1] is Ellipsis:
+                return TupleHomogenousValidator(get_typehint_validator(args[0]))
+            else:
+                return TupleNValidatorAny(*[get_typehint_validator(a) for a in args])
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
 

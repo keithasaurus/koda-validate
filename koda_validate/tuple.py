@@ -8,7 +8,11 @@ from typing import Any, Callable, Dict, Final, List, Literal, Optional, Tuple
 
 from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
-from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
+from koda_validate._internals import (
+    OBJECT_ERRORS_FIELD,
+    _async_predicates_warning,
+    _variant_errors,
+)
 from koda_validate._validate_and_map import validate_and_map
 from koda_validate.base import (
     Predicate,
@@ -234,3 +238,38 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...], Seria
                 return True, tuple(return_list)
         else:
             return EXPECTED_TUPLE_ERR
+
+
+class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[...], Serializable]):
+    def __init__(self, *validators: Validator[Any, Any, Serializable]) -> None:
+        self.validators = validators
+        self.tuple_len = len(validators)
+
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+        val_type = type(val)
+        if val_type is tuple or val_type is list:
+            if len(val) != self.tuple_len:
+                return False, f"expected tuple of length {self.tuple_len}"
+            else:
+                errs = []
+                vals = []
+                for validator, tuple_val in zip(self.validators, val):
+                    if isinstance(validator, _ToTupleValidatorUnsafe):
+                        succeeded, new_val = validator.validate_to_tuple(tuple_val)
+                        if succeeded:
+                            vals.append(new_val)
+                        else:
+                            errs.append(new_val)
+                    else:
+                        result = validator(tuple_val)
+                        if result.is_valid:
+                            vals.append(result.val)
+                        else:
+                            errs.append(result.val)
+                if errs:
+                    return False, _variant_errors(errs)
+                else:
+                    return True, tuple(vals)
+
+        else:
+            return False, EXPECTED_TUPLE_ERR
