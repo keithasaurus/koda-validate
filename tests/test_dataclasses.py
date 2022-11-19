@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID, uuid4
 
 from koda_validate import (
@@ -17,6 +17,8 @@ from koda_validate import (
     Valid,
 )
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
+from koda_validate.tuple import TupleHomogenousValidator
+from koda_validate.union import UnionValidatorAny
 
 
 @dataclass
@@ -195,6 +197,28 @@ def test_nested_dataclass() -> None:
     ) == Invalid({"a": {"something": {"5": {"key_error": ["expected a string"]}}}})
 
 
+def test_complex_union_dataclass() -> None:
+    @dataclass
+    class Example:
+        a: Optional[str] | float | int
+
+    example_validator = DataclassValidator(Example)
+    assert example_validator({"a": "ok"}) == Valid(Example("ok"))
+    assert example_validator({"a": None}) == Valid(Example(None))
+    assert example_validator({"a": 1.1}) == Valid(Example(1.1))
+    assert example_validator({"a": 5}) == Valid(Example(5))
+    assert example_validator({"a": False}) == Invalid(
+        {
+            "a": {
+                "variant 1": ["expected a string"],
+                "variant 2": ["expected None"],
+                "variant 3": ["expected a float"],
+                "variant 4": ["expected an integer"],
+            }
+        }
+    )
+
+
 def test_get_typehint_validator() -> None:
     assert isinstance(get_typehint_validator(Any), AlwaysValid)
     assert isinstance(get_typehint_validator(None), NoneValidator)
@@ -227,6 +251,27 @@ def test_get_typehint_validator() -> None:
     assert isinstance(dataclass_validator, DataclassValidator)
     assert dataclass_validator.data_cls is PersonSimple
 
-    # optional_str_validator = get_typehint_validator(Optional[str])
-    # assert isinstance(optional_str_validator, OptionalValidator)
-    # assert isinstance(optional_str_validator.validator, StringValidator)
+    optional_str_validator = get_typehint_validator(Optional[str])
+    assert isinstance(optional_str_validator, UnionValidatorAny)
+    assert isinstance(optional_str_validator.validators[0], StringValidator)
+    assert isinstance(optional_str_validator.validators[1], NoneValidator)
+
+    union_str_int_validator = get_typehint_validator(Union[str, int, bool])
+    assert isinstance(union_str_int_validator, UnionValidatorAny)
+    assert isinstance(union_str_int_validator.validators[0], StringValidator)
+    assert isinstance(union_str_int_validator.validators[1], IntValidator)
+    assert isinstance(union_str_int_validator.validators[2], BoolValidator)
+
+    union_opt_str_int_validator = get_typehint_validator(Union[Optional[str], int, bool])
+    assert len(union_opt_str_int_validator.validators) == 4
+    assert isinstance(union_opt_str_int_validator, UnionValidatorAny)
+    assert isinstance(union_opt_str_int_validator.validators[0], StringValidator)
+    assert isinstance(union_opt_str_int_validator.validators[1], NoneValidator)
+    assert isinstance(union_opt_str_int_validator.validators[2], IntValidator)
+    assert isinstance(union_opt_str_int_validator.validators[3], BoolValidator)
+
+
+def test_get_typehint_validator_tuple() -> None:
+    tuple_homogeneous_validator_1 = get_typehint_validator(tuple[str, ...])
+    assert isinstance(tuple_homogeneous_validator_1, TupleHomogenousValidator)
+    assert isinstance(tuple_homogeneous_validator_1.item_validator, StringValidator)

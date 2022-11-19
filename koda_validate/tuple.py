@@ -4,13 +4,21 @@ with a generic TupleValidator... (2 and 3 can still use the new one
 under the hood, if needed)
 """
 
-from typing import Any, Callable, Dict, Final, Optional, Tuple
+from typing import Any, Callable, Dict, Final, List, Literal, Optional, Tuple
 
 from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
-from koda_validate._internals import OBJECT_ERRORS_FIELD
+from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate._validate_and_map import validate_and_map
-from koda_validate.base import Serializable, Validator
+from koda_validate.base import (
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Serializable,
+    Validator,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
+)
 from koda_validate.validated import Invalid, Validated
 
 
@@ -148,3 +156,81 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
                     return result.flat_map(self.tuple_validator)
         else:
             return EXPECTED_TUPLE_THREE_ERROR
+
+
+EXPECTED_TUPLE_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
+    "expected a tuple"
+]
+
+
+class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...], Serializable]):
+    __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
+    __slots__ = (
+        "_item_validator_is_tuple",
+        "item_validator",
+        "predicates",
+        "predicates_async",
+        "preprocessors",
+    )
+
+    def __init__(
+        self,
+        item_validator: Validator[Any, A, Serializable],
+        *,
+        predicates: Optional[List[Predicate[Tuple[A, ...], Serializable]]] = None,
+        predicates_async: Optional[
+            List[PredicateAsync[Tuple[A, ...], Serializable]]
+        ] = None,
+        preprocessors: Optional[List[Processor[Tuple[Any, ...]]]] = None,
+    ) -> None:
+        self.item_validator = item_validator
+        self.predicates = predicates
+        self.predicates_async = predicates_async
+        self.preprocessors = preprocessors
+
+        self._item_validator_is_tuple = isinstance(
+            item_validator, _ToTupleValidatorUnsafe
+        )
+
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
+        if isinstance(val, tuple):
+            if self.preprocessors:
+                for processor in self.preprocessors:
+                    val = processor(val)
+
+            errors: Optional[Dict[str, Serializable]] = None
+            if self.predicates:
+                tuple_errors: List[Serializable] = [
+                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
+                ]
+
+                # Not running async validators! They shouldn't be set!
+                if tuple_errors:
+                    errors = {OBJECT_ERRORS_FIELD: tuple_errors}
+
+            return_list: List[A] = []
+
+            for i, item in enumerate(val):
+                if self._item_validator_is_tuple:
+                    is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501
+                else:
+                    _result = self.item_validator(item)
+                    is_valid, item_result = (_result.is_valid, _result.val)
+
+                if not is_valid:
+                    if errors is None:
+                        errors = {str(i): item_result}
+                    else:
+                        errors[str(i)] = item_result
+                elif not errors:
+                    return_list.append(item_result)
+
+            if errors:
+                return False, errors
+            else:
+                return True, tuple(return_list)
+        else:
+            return EXPECTED_TUPLE_ERR

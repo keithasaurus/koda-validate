@@ -1,13 +1,16 @@
 from dataclasses import is_dataclass
 from decimal import Decimal
+from types import NoneType
 from typing import (
     Any,
     ClassVar,
     Dict,
     List,
     Protocol,
+    Tuple,
     Type,
     TypeVar,
+    Union,
     get_args,
     get_origin,
     get_type_hints,
@@ -32,6 +35,8 @@ from koda_validate import (
     Validator,
     always_valid,
 )
+from koda_validate.tuple import TupleHomogenousValidator
+from koda_validate.union import UnionValidatorAny
 
 
 class DataclassLike(Protocol):
@@ -48,7 +53,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Any]:
         return IntValidator()
     elif annotations is float:
         return FloatValidator()
-    elif annotations is None:
+    elif annotations is None or annotations is NoneType:
         return NoneValidator()
     elif annotations is UUID:
         return UUIDValidator()
@@ -73,11 +78,18 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Any]:
             return MapValidator(
                 key=get_typehint_validator(args[0]), value=get_typehint_validator(args[1])
             )
-
+        if origin is Union:
+            return UnionValidatorAny(*[get_typehint_validator(arg) for arg in args])
+        if (
+            (origin is tuple or origin is Tuple)
+            and len(args) == 2
+            and args[1] is Ellipsis
+        ):
+            return TupleHomogenousValidator(get_typehint_validator(args[0]))
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
 
-class ModelValidator(Validator[Any, _DCT, Serializable]):
+class DataclassValidator(Validator[Any, _DCT, Serializable]):
     def __init__(self, data_cls: Type[_DCT]) -> None:
         self.data_cls = data_cls
         self.validator = DictValidatorAny(
