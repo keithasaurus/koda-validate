@@ -46,7 +46,8 @@ class DataclassLike(Protocol):
 _DCT = TypeVar("_DCT", bound=DataclassLike)
 
 
-def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Any]:
+# todo: evolve into general-purpose type-hint driven validator
+def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Serializable]:
     if annotations is str:
         return StringValidator()
     elif annotations is int:
@@ -65,6 +66,8 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Any]:
         return always_valid
     elif annotations is List or annotations is list:
         return ListValidator(always_valid)
+    elif annotations is Tuple or annotations is tuple:
+        return TupleHomogenousValidator(always_valid)
     elif annotations is Dict or annotations is dict:
         return MapValidator(key=always_valid, value=always_valid)
     elif is_dataclass(annotations):
@@ -85,6 +88,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Any]:
                 return TupleHomogenousValidator(get_typehint_validator(args[0]))
             else:
                 return TupleNValidatorAny(*[get_typehint_validator(a) for a in args])
+        breakpoint()
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
 

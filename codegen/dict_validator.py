@@ -81,11 +81,6 @@ KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
 KEY_MISSING_ERR: Final[Invalid[Serializable]] = Invalid(KEY_MISSING_MSG)
 
 class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):
-    \"""
-    For complex type reasons in the KeyValidator definition,
-    this does not subclass Validator (even though it probably should)
-    \"""
-
     def __init__(self, validator: Validator[Any, A, Serializable]):
         self.validator = validator
 

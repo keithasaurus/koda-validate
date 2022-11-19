@@ -240,7 +240,11 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...], Seria
             return EXPECTED_TUPLE_ERR
 
 
-class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[...], Serializable]):
+class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...], Serializable]):
+    """
+    Will be type-safe when we have variadic args available generally
+    """
+
     def __init__(self, *validators: Validator[Any, Any, Serializable]) -> None:
         self.validators = validators
         self.tuple_len = len(validators)

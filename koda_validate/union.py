@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple
 
 from koda_validate._internals import _variant_errors
 from koda_validate.base import (
@@ -20,7 +20,9 @@ class UnionValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
         validator_1: Validator[Any, Any, Serializable],
         *validators: Validator[Any, Any, Serializable],
     ) -> None:
-        self.validators = (validator_1,) + validators
+        self.validators: Tuple[Validator[Any, Any, Serializable], ...] = (
+            validator_1,
+        ) + validators
 
     def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         errs = []

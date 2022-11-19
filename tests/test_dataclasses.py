@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import UUID, uuid4
 
 from koda_validate import (
@@ -64,7 +64,11 @@ def test_validates_proper_string_type() -> None:
     dc_validator = DataclassValidator(Example)
 
     assert dc_validator(Example("ok")) == Valid(Example("ok"))
-    assert dc_validator(Example(5)) == Invalid({"name": ["expected a string"]})
+
+    # not type-safe, but still validate
+    assert dc_validator(Example(5)) == Invalid(  # type: ignore
+        {"name": ["expected a string"]}
+    )
 
 
 def test_validates_proper_int_type() -> None:
@@ -75,7 +79,10 @@ def test_validates_proper_int_type() -> None:
     dc_validator = DataclassValidator(Example)
 
     assert dc_validator(Example(5)) == Valid(Example(5))
-    assert dc_validator(Example("bad")) == Invalid({"name": ["expected an integer"]})
+    # not type-safe, but still validate
+    assert dc_validator(Example("bad")) == Invalid(  # type: ignore
+        {"name": ["expected an integer"]}
+    )
 
 
 def test_validates_proper_float_type() -> None:
@@ -97,7 +104,10 @@ def test_validates_proper_bool_type() -> None:
     dc_validator = DataclassValidator(Example)
 
     assert dc_validator(Example(False)) == Valid(Example(False))
-    assert dc_validator(Example(1)) == Invalid({"name": ["expected a boolean"]})
+    # not type-safe, but still validate
+    assert dc_validator(Example(1)) == Invalid(  # type: ignore
+        {"name": ["expected a boolean"]}
+    )
 
 
 def test_validates_proper_decimal_type() -> None:
@@ -108,7 +118,9 @@ def test_validates_proper_decimal_type() -> None:
     dc_validator = DataclassValidator(Example)
 
     assert dc_validator(Example(Decimal(4))) == Valid(Example(Decimal(4)))
-    assert dc_validator(Example(5.6)) == Invalid(
+
+    # not type-safe, but still validate
+    assert dc_validator(Example(5.6)) == Invalid(  # type: ignore
         {"name": ["expected a Decimal, or a Decimal-compatible string or integer"]}
     )
 
@@ -121,8 +133,12 @@ def test_validates_proper_uuid_type() -> None:
     dc_validator = DataclassValidator(Example)
     test_uuid = uuid4()
     assert dc_validator(Example(test_uuid)) == Valid(Example(test_uuid))
-    assert dc_validator(Example(str(test_uuid))) == Valid(Example(test_uuid))
-    assert dc_validator(Example(123)) == Invalid(
+
+    # not type-safe, but should still validate
+    assert dc_validator(Example(str(test_uuid))) == Valid(  # type: ignore
+        Example(test_uuid)
+    )
+    assert dc_validator(Example(123)) == Invalid(  # type: ignore
         {"name": ["expected a UUID, or a UUID-compatible string"]}
     )
 
@@ -258,13 +274,14 @@ def test_get_typehint_validator() -> None:
 
     union_str_int_validator = get_typehint_validator(Union[str, int, bool])
     assert isinstance(union_str_int_validator, UnionValidatorAny)
+    assert len(union_str_int_validator.validators) == 3
     assert isinstance(union_str_int_validator.validators[0], StringValidator)
     assert isinstance(union_str_int_validator.validators[1], IntValidator)
     assert isinstance(union_str_int_validator.validators[2], BoolValidator)
 
     union_opt_str_int_validator = get_typehint_validator(Union[Optional[str], int, bool])
-    assert len(union_opt_str_int_validator.validators) == 4
     assert isinstance(union_opt_str_int_validator, UnionValidatorAny)
+    assert len(union_opt_str_int_validator.validators) == 4
     assert isinstance(union_opt_str_int_validator.validators[0], StringValidator)
     assert isinstance(union_opt_str_int_validator.validators[1], NoneValidator)
     assert isinstance(union_opt_str_int_validator.validators[2], IntValidator)
@@ -289,8 +306,14 @@ def test_get_typehint_validator_tuple_homogenous() -> None:
     assert isinstance(tuple_homogeneous_validator_1.item_validator, StringValidator)
 
 
+def test_get_typehint_validator_bare_tuple() -> None:
+    for t_validator in [get_typehint_validator(tuple), get_typehint_validator(Tuple)]:
+        assert isinstance(t_validator, TupleHomogenousValidator)
+        assert isinstance(t_validator.item_validator, AlwaysValid)
+
+
 def test_get_typehint_validator_tuple_n_any() -> None:
-    t_n_any_validator = get_typehint_validator(tuple[str, int])
+    t_n_any_validator = get_typehint_validator(tuple[str, int])  # type: ignore
     assert isinstance(t_n_any_validator, TupleNValidatorAny)
     assert len(t_n_any_validator.validators) == 2
     assert isinstance(t_n_any_validator.validators[0], StringValidator)
