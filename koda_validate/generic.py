@@ -11,6 +11,7 @@ from koda_validate.base import (
     Predicate,
     Processor,
     Serializable,
+    ValidationErr,
     Validator,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
@@ -20,7 +21,7 @@ from koda_validate.validated import Invalid, Valid, Validated
 EnumT = TypeVar("EnumT", str, int)
 
 
-class Lazy(Validator[A, Ret, Serializable]):
+class Lazy(Validator[A, Ret]):
     __match_args__ = (
         "validator",
         "recurrent",
@@ -32,7 +33,7 @@ class Lazy(Validator[A, Ret, Serializable]):
 
     def __init__(
         self,
-        validator: Thunk[Validator[A, Ret, Serializable]],
+        validator: Thunk[Validator[A, Ret]],
         recurrent: bool = True,
     ) -> None:
         """
@@ -45,41 +46,37 @@ class Lazy(Validator[A, Ret, Serializable]):
         self.validator = validator
         self.recurrent = recurrent
 
-    def __call__(self, data: A) -> Validated[Ret, Serializable]:
+    def __call__(self, data: A) -> Validated[Ret, ValidationErr]:
         return self.validator()(data)
 
-    async def validate_async(self, data: A) -> Validated[Ret, Serializable]:
+    async def validate_async(self, data: A) -> Validated[Ret, ValidationErr]:
         return await self.validator().validate_async(data)
 
 
-class Choices(Predicate[EnumT, Serializable]):
+class Choices(Predicate[EnumT]):
     """
     This only exists separately from a more generic form because
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
-    __slots__ = ("choices", "_err")
+    __slots__ = ("choices",)
     __match_args__ = ("choices",)
 
     def __init__(self, choices: Set[EnumT]) -> None:
+        super().__init__(f"expected one of {sorted(choices)}")
         self.choices: Set[EnumT] = choices
-        self._err = f"expected one of {sorted(self.choices)}"
 
     def __call__(self, val: EnumT) -> bool:
         return val in self.choices
-
-    def err(self, val: EnumT) -> Serializable:
-        return self._err
 
 
 Num = TypeVar("Num", int, float, Decimal)
 
 
-class Min(Predicate[Num, Serializable]):
+class Min(Predicate[Num]):
     __slots__ = (
         "minimum",
         "exclusive_minimum",
-        "_err",
     )
     __match_args__ = ("minimum", "exclusive_minimum")
 
@@ -87,7 +84,7 @@ class Min(Predicate[Num, Serializable]):
         self.minimum: Num = minimum
         self.exclusive_minimum = exclusive_minimum
         exclusive = " (exclusive)" if self.exclusive_minimum else ""
-        self._err = f"minimum allowed value{exclusive} is {self.minimum}"
+        super().__init__(f"minimum allowed value{exclusive} is {self.minimum}")
 
     def __call__(self, val: Num) -> bool:
         if self.exclusive_minimum:
@@ -95,19 +92,16 @@ class Min(Predicate[Num, Serializable]):
         else:
             return val >= self.minimum
 
-    def err(self, val: Num) -> str:
-        return self._err
 
-
-class Max(Predicate[Num, Serializable]):
-    __slots__ = ("maximum", "exclusive_maximum", "_err")
+class Max(Predicate[Num]):
+    __slots__ = ("maximum", "exclusive_maximum")
     __match_args__ = ("maximum", "exclusive_maximum")
 
     def __init__(self, maximum: Num, exclusive_maximum: bool = False) -> None:
         self.maximum: Num = maximum
         self.exclusive_maximum = exclusive_maximum
         exclusive = " (exclusive)" if self.exclusive_maximum else ""
-        self._err = f"maximum allowed value{exclusive} is {self.maximum}"
+        super().__init__(f"maximum allowed value{exclusive} is {self.maximum}")
 
     def __call__(self, val: Num) -> bool:
         if self.exclusive_maximum:
@@ -115,22 +109,17 @@ class Max(Predicate[Num, Serializable]):
         else:
             return val <= self.maximum
 
-    def err(self, val: Num) -> str:
-        return self._err
 
-
-class MultipleOf(Predicate[Num, Serializable]):
+class MultipleOf(Predicate[Num]):
     __slots__ = ("factor",)
     __match_args__ = ("factor",)
 
     def __init__(self, factor: Num) -> None:
+        super().__init__(f"expected multiple of {self.factor}")
         self.factor: Num = factor
 
     def __call__(self, val: Num) -> bool:
         return val % self.factor == 0
-
-    def err(self, val: Num) -> str:
-        return f"expected multiple of {self.factor}"
 
 
 # todo: expand types?
@@ -149,7 +138,7 @@ ExactMatchT = TypeVar(
 )
 
 
-class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
+class ExactValidator(Validator[Any, ExactMatchT]):
     __slots__ = ("match", "preprocessors")
     __match_args__ = ("match", "preprocessors")
 
@@ -161,7 +150,7 @@ class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
         self.match: ExactMatchT = match
         self.preprocessors: Optional[List[Processor[ExactMatchT]]] = preprocessors
 
-    def __call__(self, val: Any) -> Validated[ExactMatchT, Serializable]:
+    def __call__(self, val: Any) -> Validated[ExactMatchT, ValidationErr]:
         if (match_type := type(self.match)) == type(val):
             if self.preprocessors:
                 for preprocess in self.preprocessors:
@@ -178,11 +167,11 @@ class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
 
         return Invalid([f"expected exactly {value_str} ({match_type.__name__})"])
 
-    async def validate_async(self, val: Any) -> Validated[ExactMatchT, Serializable]:
+    async def validate_async(self, val: Any) -> Validated[ExactMatchT, ValidationErr]:
         return self(val)
 
 
-class AlwaysValid(_ToTupleValidatorUnsafe[A, A, Serializable]):
+class AlwaysValid(_ToTupleValidatorUnsafe[A, A]):
     __match_args__ = ()
 
     def validate_to_tuple(self, val: A) -> _ResultTupleUnsafe:
@@ -192,4 +181,4 @@ class AlwaysValid(_ToTupleValidatorUnsafe[A, A, Serializable]):
         return True, val
 
 
-always_valid: _ToTupleValidatorUnsafe[Any, Any, Serializable] = AlwaysValid()
+always_valid: _ToTupleValidatorUnsafe[Any, Any] = AlwaysValid()

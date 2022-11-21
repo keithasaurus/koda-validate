@@ -14,40 +14,34 @@ from koda_validate.base import (
 )
 
 
-class MinItems(Predicate[List[Any], Serializable]):
-    __match_args__ = ("length",)
-    __slots__ = (
-        "_err",
-        "length",
-    )
-
-    def __init__(self, length: int) -> None:
-        self.length = length
-        self._err = f"minimum allowed length is {self.length}"
-
-    def __call__(self, val: List[Any]) -> bool:
-        return len(val) >= self.length
-
-    def err(self, val: List[Any]) -> str:
-        return self._err
-
-
-class MaxItems(Predicate[List[Any], Serializable]):
+class MinItems(Predicate[List[Any]]):
     __match_args__ = ("length",)
     __slots__ = ("length",)
 
     def __init__(self, length: int) -> None:
         self.length = length
-        self._err = f"maximum allowed length is {self.length}"
+        super().__init__(f"minimum allowed length is {self.length}")
+
+    def __call__(self, val: List[Any]) -> bool:
+        return len(val) >= self.length
+
+
+class MaxItems(Predicate[List[Any]]):
+    __match_args__ = ("length",)
+    __slots__ = ("length",)
+
+    def __init__(self, length: int) -> None:
+        self.length = length
+        super().__init__(f"maximum allowed length is {self.length}")
 
     def __call__(self, val: List[Any]) -> bool:
         return len(val) <= self.length
 
-    def err(self, val: List[Any]) -> str:
-        return self._err
 
+class UniqueItems(Predicate[List[Any]]):
+    def __init__(self) -> None:
+        super().__init__("all items must be unique")
 
-class UniqueItems(Predicate[List[Any], Serializable]):
     def __call__(self, val: List[Any]) -> bool:
         hashable_items: Set[Tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables
@@ -69,9 +63,6 @@ class UniqueItems(Predicate[List[Any], Serializable]):
         else:
             return True
 
-    def err(self, val: List[Any]) -> str:
-        return "all items must be unique"
-
 
 unique_items = UniqueItems()
 
@@ -80,7 +71,7 @@ EXPECTED_LIST_ERR: Final[Tuple[Literal[False], Serializable]] = False, {
 }
 
 
-class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
+class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
     __slots__ = (
         "_item_validator_is_tuple",
@@ -92,10 +83,10 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
 
     def __init__(
         self,
-        item_validator: Validator[Any, A, Serializable],
+        item_validator: Validator[Any, A],
         *,
-        predicates: Optional[List[Predicate[List[A], Serializable]]] = None,
-        predicates_async: Optional[List[PredicateAsync[List[A], Serializable]]] = None,
+        predicates: Optional[List[Predicate[List[A]]]] = None,
+        predicates_async: Optional[List[PredicateAsync[List[A]]]] = None,
         preprocessors: Optional[List[Processor[List[Any]]]] = None,
     ) -> None:
         self.item_validator = item_validator
@@ -175,7 +166,11 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
             return_list: List[A] = []
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
-                    is_valid, item_result = await self.item_validator.validate_to_tuple_async(  # type: ignore  # noqa: E501
+                    (
+                        is_valid,
+                        item_result,
+                    ) = await self.item_validator.validate_to_tuple_async(
+                        # type: ignore  # noqa: E501
                         item
                     )
                 else:

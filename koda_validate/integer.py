@@ -9,25 +9,25 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
-    ValidationError,
+    TypeErr,
+    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
-    type_error,
 )
 
-EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], List[ValidationError]]] = False, [
-    type_error("int", "expected an integer")
+EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], List[ValidationErr]]] = False, [
+    TypeErr(int, "expected an integer")
 ]
 
 
-class IntValidator(_ToTupleValidatorUnsafe[Any, int, Serializable]):
+class IntValidator(_ToTupleValidatorUnsafe[Any, int]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[int, Serializable],
-        predicates_async: Optional[List[PredicateAsync[int, Serializable]]] = None,
+        *predicates: Predicate[int],
+        predicates_async: Optional[List[PredicateAsync[int]]] = None,
         preprocessors: Optional[List[Processor[int]]] = None,
     ) -> None:
         self.predicates = predicates

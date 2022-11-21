@@ -1,5 +1,6 @@
 import asyncio
 import re
+from dataclasses import dataclass
 
 import pytest
 
@@ -42,9 +43,9 @@ def test_string_validator() -> None:
 
     min_len_3_not_blank_validator = StringValidator(MinLength(3), NotBlank())
 
-    assert min_len_3_not_blank_validator("") == Invalid([MinLength(3), "cannot be blank"])
+    assert min_len_3_not_blank_validator("") == Invalid([MinLength(3), not_blank])
 
-    assert min_len_3_not_blank_validator("   ") == Invalid(["cannot be blank"])
+    assert min_len_3_not_blank_validator("   ") == Invalid([not_blank])
 
     assert min_len_3_not_blank_validator("something") == Valid("something")
 
@@ -99,9 +100,10 @@ async def test_validate_fake_db_async() -> None:
 
     hit = []
 
+    @dataclass
     class CheckUsername(PredicateAsync[str]):
         def __init__(self) -> None:
-            super().__init__("not in db!")
+            self.err_message = "not in db!"
 
         async def validate_async(self, val: str) -> bool:
             hit.append("ok")
@@ -113,7 +115,7 @@ async def test_validate_fake_db_async() -> None:
         "bad username"
     )
     assert hit == ["ok"]
-    assert result == Invalid([CheckUsername])
+    assert result == Invalid([CheckUsername()])
     assert await StringValidator().validate_async(5) == Invalid(
         [TypeErr(str, "expected a string")]
     )

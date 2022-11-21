@@ -20,14 +20,14 @@ EXPECTED_UUID_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
 ]
 
 
-class UUIDValidator(_ToTupleValidatorUnsafe[Any, UUID, Serializable]):
+class UUIDValidator(_ToTupleValidatorUnsafe[Any, UUID]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[UUID, Serializable],
-        predicates_async: Optional[List[PredicateAsync[UUID, Serializable]]] = None,
+        *predicates: Predicate[UUID],
+        predicates_async: Optional[List[PredicateAsync[UUID]]] = None,
         preprocessors: Optional[List[Processor[UUID]]] = None,
     ) -> None:
         self.predicates = predicates

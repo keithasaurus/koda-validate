@@ -11,6 +11,7 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
+    ValidationErr,
     Validator,
 )
 from koda_validate.validated import Invalid, Validated
@@ -24,7 +25,7 @@ EXPECTED_ISO_DATESTRING: Final[Invalid[Serializable]] = Invalid(
 )
 
 
-class DateStringValidator(Validator[Any, date, Serializable]):
+class DateStringValidator(Validator[Any, date]):
     """
     Expects dates to be yyyy-mm-dd
     """
@@ -34,15 +35,15 @@ class DateStringValidator(Validator[Any, date, Serializable]):
 
     def __init__(
         self,
-        *predicates: Predicate[date, Serializable],
-        predicates_async: Optional[List[PredicateAsync[date, Serializable]]] = None,
+        *predicates: Predicate[date],
+        predicates_async: Optional[List[PredicateAsync[date]]] = None,
         preprocessors: Optional[List[Processor[date]]] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[date, Serializable]:
+    def __call__(self, val: Any) -> Validated[date, ValidationErr]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -55,7 +56,7 @@ class DateStringValidator(Validator[Any, date, Serializable]):
                 val, self.preprocessors, self.predicates
             )
 
-    async def validate_async(self, val: Any) -> Validated[date, Serializable]:
+    async def validate_async(self, val: Any) -> Validated[date, ValidationErr]:
         try:
             val = date.fromisoformat(val)
         except (ValueError, TypeError):
@@ -66,21 +67,21 @@ class DateStringValidator(Validator[Any, date, Serializable]):
             )
 
 
-class DatetimeStringValidator(Validator[Any, datetime, Serializable]):
+class DatetimeStringValidator(Validator[Any, datetime]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[datetime, Serializable],
-        predicates_async: Optional[List[PredicateAsync[datetime, Serializable]]] = None,
+        *predicates: Predicate[datetime],
+        predicates_async: Optional[List[PredicateAsync[datetime]]] = None,
         preprocessors: Optional[List[Processor[datetime]]] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[datetime, Serializable]:
+    def __call__(self, val: Any) -> Validated[datetime, ValidationErr]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -95,7 +96,7 @@ class DatetimeStringValidator(Validator[Any, datetime, Serializable]):
                 val_, self.preprocessors, self.predicates
             )
 
-    async def validate_async(self, val: Any) -> Validated[datetime, Serializable]:
+    async def validate_async(self, val: Any) -> Validated[datetime, ValidationErr]:
         try:
             # note isoparse from dateutil is more flexible if we want
             # to add the dependency at some point

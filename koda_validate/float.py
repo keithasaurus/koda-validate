@@ -9,24 +9,25 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
+    TypeErr,
+    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
-    type_error,
 )
 
-EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
-    type_error("float", "expected a float")
+EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
+    TypeErr(float, "expected a float")
 ]
 
 
-class FloatValidator(_ToTupleValidatorUnsafe[Any, float, Serializable]):
+class FloatValidator(_ToTupleValidatorUnsafe[Any, float]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[float, Serializable],
-        predicates_async: Optional[List[PredicateAsync[float, Serializable]]] = None,
+        *predicates: Predicate[float],
+        predicates_async: Optional[List[PredicateAsync[float]]] = None,
         preprocessors: Optional[List[Processor[float]]] = None,
     ) -> None:
         self.predicates = predicates
@@ -43,9 +44,7 @@ class FloatValidator(_ToTupleValidatorUnsafe[Any, float, Serializable]):
                     val = proc(val)
 
             if self.predicates:
-                if errors := [
-                    pred.err(val) for pred in self.predicates if not pred.__call__(val)
-                ]:
+                if errors := [pred for pred in self.predicates if not pred.__call__(val)]:
                     return False, errors
                 else:
                     return True, val

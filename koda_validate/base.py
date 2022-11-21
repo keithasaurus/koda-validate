@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, Generic, Hashable, List, Tuple, Type, Union
+from typing import Any, Dict, Generic, Hashable, List, Protocol, Tuple, Type, Union
 
 from koda_validate._generics import A, InputT, SuccessT
 from koda_validate.validated import Invalid, Valid, Validated
@@ -73,7 +73,7 @@ class Validator(Generic[InputT, SuccessT]):
         raise NotImplementedError  # pragma: no cover
 
 
-class Predicate(Generic[InputT]):
+class Predicate(Protocol[InputT]):
     """
     The important aspect of a `Predicate` is that it is not
     possible to change the data passed in (it is technically possible to mutate
@@ -84,8 +84,7 @@ class Predicate(Generic[InputT]):
     why we have PredicateAsync. Any IO needs should probably go there!
     """
 
-    def __init__(self, err_message: str) -> None:
-        self.err_message: str = err_message
+    err_message: str
 
     @abstractmethod
     def __call__(self, val: InputT) -> bool:  # pragma: no cover

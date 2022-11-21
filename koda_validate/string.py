@@ -1,4 +1,5 @@
 import re
+from dataclasses import dataclass
 from typing import Any, Final, List, Literal, Optional, Pattern, Tuple
 
 from koda_validate._internals import (
@@ -62,12 +63,12 @@ class StringValidator(_ToTupleValidatorUnsafe[Any, str]):
             return EXPECTED_STR_ERR
 
 
+@dataclass(init=False)
 class RegexPredicate(Predicate[str]):
-    __slots__ = ("pattern",)
-    __match_args__ = ("pattern", "err_message")
+    pattern: Pattern[str]
 
     def __init__(self, pattern: Pattern[str]) -> None:
-        super().__init__(rf"must match pattern {self.pattern.pattern}")
+        self.err_message = rf"must match pattern {pattern.pattern}"
         self.pattern: Pattern[str] = pattern
 
     def __call__(self, val: str) -> bool:
@@ -77,11 +78,10 @@ class RegexPredicate(Predicate[str]):
 EXPECTED_EMAIL_ADDRESS: Final[str] = "expected a valid email address"
 
 
+@dataclass
 class EmailPredicate(Predicate[str]):
+    err_message = EXPECTED_EMAIL_ADDRESS
     pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
-
-    def __init__(self) -> None:
-        super().__init__(EXPECTED_EMAIL_ADDRESS)
 
     def __call__(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
@@ -90,9 +90,9 @@ class EmailPredicate(Predicate[str]):
 BLANK_STRING_MSG: Final[str] = "cannot be blank"
 
 
+@dataclass
 class NotBlank(Predicate[str]):
-    def __init__(self) -> None:
-        super().__init__(BLANK_STRING_MSG)
+    err_message: str = BLANK_STRING_MSG
 
     def __call__(self, val: str) -> bool:
         return len(val.strip()) != 0
@@ -101,24 +101,24 @@ class NotBlank(Predicate[str]):
 not_blank = NotBlank()
 
 
+@dataclass(init=False)
 class MaxLength(Predicate[str]):
-    __match_args__ = ("length",)
-    __slots__ = ("length", "_err")
+    length: int
 
-    def __init__(self, length: int):
-        super().__init__(f"maximum allowed length is {length}")
+    def __init__(self, length: int) -> None:
+        self.err_message = f"maximum allowed length is {length}"
         self.length: int = length
 
     def __call__(self, val: str) -> bool:
         return len(val) <= self.length
 
 
+@dataclass(init=False)
 class MinLength(Predicate[str]):
-    __match_args__ = ("length",)
-    __slots__ = ("length", "_err")
+    length: int
 
     def __init__(self, length: int) -> None:
-        super().__init__(f"minimum allowed length is {length}")
+        self.err_message = f"minimum allowed length is {length}"
         self.length = length
 
     def __call__(self, val: str) -> bool:
