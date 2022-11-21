@@ -3,15 +3,9 @@ import re
 
 import pytest
 
-from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate, Serializable
+from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate
 from koda_validate._generics import A
-from koda_validate.errors import (
-    MaxStrLenErr,
-    MinStrLenErr,
-    TypeErr,
-    ValidationErr,
-    ValueErr,
-)
+from koda_validate.base import TypeErr
 from koda_validate.string import (
     BLANK_STRING_MSG,
     MaxLength,
@@ -44,20 +38,11 @@ def test_string_validator() -> None:
 
     assert StringValidator()("abc") == Valid("abc")
 
-    assert StringValidator(MaxLength(3))("something") == Invalid(
-        [
-            MaxStrLenErr(
-                default_message="maximum allowed length is 3",
-                limit=3,
-            )
-        ]
-    )
+    assert StringValidator(MaxLength(3))("something") == Invalid([MaxLength(3)])
 
     min_len_3_not_blank_validator = StringValidator(MinLength(3), NotBlank())
 
-    assert min_len_3_not_blank_validator("") == Invalid(
-        [MinStrLenErr("minimum allowed length is 3", 3), "cannot be blank"]
-    )
+    assert min_len_3_not_blank_validator("") == Invalid([MinLength(3), "cannot be blank"])
 
     assert min_len_3_not_blank_validator("   ") == Invalid(["cannot be blank"])
 
@@ -69,39 +54,43 @@ def test_string_validator() -> None:
 
 
 def test_max_string_length() -> None:
-    assert MaxLength(0)("") == Valid("")
+    assert MaxLength(0)("") is True
 
-    assert MaxLength(5)("abc") == Valid("abc")
+    assert MaxLength(5)("abc") is True
 
-    assert MaxLength(5)("something") == Invalid(
-        MaxStrLenErr("maximum allowed length is 5", 5)
-    )
+    assert MaxLength(5)("something") is False
+    assert MaxLength(5).err_message == "maximum allowed length is 5"
 
 
 def test_min_string_length() -> None:
-    assert MinLength(0)("") == Valid("")
+    assert MinLength(0)("") is True
 
-    assert MinLength(3)("abc") == Valid("abc")
+    assert MinLength(3)("abc") is True
 
-    assert MinLength(3)("zz") == Invalid(MinStrLenErr("minimum allowed length is 3", 3))
+    assert MinLength(3)("zz") is False
+    assert MinLength(3).err_message == "minimum allowed length is 3"
 
 
 def test_regex_validator() -> None:
-    assert RegexPredicate(re.compile(r".+"))("something") == Valid("something")
-    assert RegexPredicate(re.compile(r".+"))("") == Invalid("must match pattern .+")
+    v = RegexPredicate(re.compile(r".+"))
+    assert v("something") is True
+    assert v("") is False
+    assert v.err_message == "must match pattern .+"
 
 
 def test_not_blank() -> None:
-    assert NotBlank()("a") == Valid("a")
-    assert NotBlank()("") == Invalid(BLANK_STRING_MSG)
-    assert NotBlank()(" ") == Invalid(BLANK_STRING_MSG)
-    assert NotBlank()("\t") == Invalid(BLANK_STRING_MSG)
-    assert NotBlank()("\n") == Invalid(BLANK_STRING_MSG)
+    assert NotBlank()("a") is True
+    assert NotBlank()("") is False
+    assert NotBlank().err_message == BLANK_STRING_MSG
+    assert NotBlank()(" ") is False
+    assert NotBlank()("\t") is False
+    assert NotBlank()("\n") is False
 
 
 def test_email() -> None:
-    assert EmailPredicate()("notanemail") == Invalid("expected a valid email address")
-    assert EmailPredicate()("a@b.com") == Valid("a@b.com")
+    assert EmailPredicate()("notanemail") is False
+    assert EmailPredicate()("a@b.com") is True
+    assert EmailPredicate().err_message == "expected a valid email address"
 
 
 @pytest.mark.asyncio
@@ -110,34 +99,34 @@ async def test_validate_fake_db_async() -> None:
 
     hit = []
 
-    class CheckUsername(PredicateAsync[str, ValidationErr]):
-        async def is_valid_async(self, val: str) -> bool:
+    class CheckUsername(PredicateAsync[str]):
+        def __init__(self) -> None:
+            super().__init__("not in db!")
+
+        async def validate_async(self, val: str) -> bool:
             hit.append("ok")
             # fake db call
             await asyncio.sleep(0.001)
             return val == test_valid_username
 
-        async def err_async(self, val: str) -> ValidationErr:
-            return ValueErr("not in db!")
-
     result = await StringValidator(predicates_async=[CheckUsername()]).validate_async(
         "bad username"
     )
     assert hit == ["ok"]
-    assert result == Invalid([ValueErr("not in db!")])
+    assert result == Invalid([CheckUsername])
     assert await StringValidator().validate_async(5) == Invalid(
         [TypeErr(str, "expected a string")]
     )
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
-    class AsyncWait(PredicateAsync[A, Serializable]):
-        async def is_valid_async(self, val: A) -> bool:
+    class AsyncWait(PredicateAsync[A]):
+        def __init__(self) -> None:
+            super().__init__("should always succeed??")
+
+        async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
-
-        async def err_async(self, val: A) -> Serializable:
-            return "should always succeed??"
 
     str_validator = StringValidator(predicates_async=[AsyncWait()])
     with pytest.raises(AssertionError):

@@ -25,7 +25,7 @@ class MinItems(Predicate[List[Any], Serializable]):
         self.length = length
         self._err = f"minimum allowed length is {self.length}"
 
-    def is_valid(self, val: List[Any]) -> bool:
+    def __call__(self, val: List[Any]) -> bool:
         return len(val) >= self.length
 
     def err(self, val: List[Any]) -> str:
@@ -40,7 +40,7 @@ class MaxItems(Predicate[List[Any], Serializable]):
         self.length = length
         self._err = f"maximum allowed length is {self.length}"
 
-    def is_valid(self, val: List[Any]) -> bool:
+    def __call__(self, val: List[Any]) -> bool:
         return len(val) <= self.length
 
     def err(self, val: List[Any]) -> str:
@@ -48,7 +48,7 @@ class MaxItems(Predicate[List[Any], Serializable]):
 
 
 class UniqueItems(Predicate[List[Any], Serializable]):
-    def is_valid(self, val: List[Any]) -> bool:
+    def __call__(self, val: List[Any]) -> bool:
         hashable_items: Set[Tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables
         unhashable_items: List[Tuple[Type[Any], Any]] = []
@@ -119,7 +119,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
             errors: Optional[Dict[str, Serializable]] = None
             if self.predicates:
                 list_errors: List[Serializable] = [
-                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
+                    pred.err(val) for pred in self.predicates if not pred.__call__(val)
                 ]
 
                 # Not running async validators! They shouldn't be set!
@@ -159,7 +159,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A], Serializable]):
             list_errors: List[Serializable] = []
             if self.predicates:
                 list_errors.extend(
-                    [pred.err(val) for pred in self.predicates if not pred.is_valid(val)]
+                    [pred.err(val) for pred in self.predicates if not pred.__call__(val)]
                 )
 
             if self.predicates_async is not None:

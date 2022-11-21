@@ -8,29 +8,34 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_tuple,
 )
 from koda_validate.base import (
+    CoercionErr,
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
-    ValidationError,
+    TypeErr,
+    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
-    type_error,
 )
 
-EXPECTED_DECIMAL_ERR: Final[Tuple[Literal[False], List[ValidationError]]] = False, [
-    type_error("Decimal", "expected a Decimal, or a Decimal-compatible string or integer")
+EXPECTED_DECIMAL_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
+    CoercionErr(
+        allowed_types=[str, int, Decimal],
+        dest_type=Decimal,
+        default_message="expected a Decimal, or a Decimal-compatible string or integer",
+    )
 ]
 
 
-class DecimalValidator(_ToTupleValidatorUnsafe[Any, Decimal, Serializable]):
+class DecimalValidator(_ToTupleValidatorUnsafe[Any, Decimal]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[Decimal, Serializable],
-        predicates_async: Optional[List[PredicateAsync[Decimal, Serializable]]] = None,
+        *predicates: Predicate[Decimal],
+        predicates_async: Optional[List[PredicateAsync[Decimal]]] = None,
         preprocessors: Optional[List[Processor[Decimal]]] = None,
     ) -> None:
         self.predicates = predicates

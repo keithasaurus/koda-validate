@@ -252,7 +252,7 @@ class MinKeys(Predicate[Dict[Any, Any], Serializable]):
     def __init__(self, size: int) -> None:
         self.size = size
 
-    def is_valid(self, val: Dict[Any, Any]) -> bool:
+    def __call__(self, val: Dict[Any, Any]) -> bool:
         return len(val) >= self.size
 
     def err(self, val: Dict[Any, Any]) -> str:
@@ -266,7 +266,7 @@ class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
     def __init__(self, size: int) -> None:
         self.size = size
 
-    def is_valid(self, val: Dict[Any, Any]) -> bool:
+    def __call__(self, val: Dict[Any, Any]) -> bool:
         return len(val) <= self.size
 
     def err(self, val: Dict[Any, Any]) -> str:
@@ -932,7 +932,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
                 else:
                     success, new_val = (
                         (True, result_.val)
-                        if (result_ := validator(val)).is_valid  # type: ignore
+                        if (result_ := validator(val)).__call__  # type: ignore
                         else (False, result_.val)
                     )
 
@@ -950,7 +950,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
                 return True, obj
             else:
                 result = self.validate_object(obj)
-                if result.is_valid:
+                if result.__call__:
                     return True, result.val
                 else:
                     return False, result.val
@@ -985,7 +985,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
                 else:
                     success, new_val = (
                         (True, result_.val)
-                        if (result_ := await validator.validate_async(val)).is_valid  # type: ignore  # noqa: E501
+                        if (result_ := await validator.validate_async(val)).__call__  # type: ignore  # noqa: E501
                         else (False, result_.val)
                     )
 
@@ -1000,13 +1000,13 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret, Serializable]):
             obj = self.into(*args)
             if self.validate_object is not None:
                 result = self.validate_object(obj)
-                if result.is_valid:
+                if result.__call__:
                     return True, result.val
                 else:
                     return False, result.val
             elif self.validate_object_async is not None:
                 result = await self.validate_object_async(obj)
-                if result.is_valid:
+                if result.__call__:
                     return True, result.val
                 else:
                     return False, result.val

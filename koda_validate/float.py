@@ -44,7 +44,7 @@ class FloatValidator(_ToTupleValidatorUnsafe[Any, float, Serializable]):
 
             if self.predicates:
                 if errors := [
-                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
+                    pred.err(val) for pred in self.predicates if not pred.__call__(val)
                 ]:
                     return False, errors
                 else:

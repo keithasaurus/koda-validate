@@ -77,7 +77,7 @@ async def test_list_async() -> None:
 @pytest.mark.asyncio
 async def test_list_validator_with_async_predicate_validator() -> None:
     class SomeAyncListCheck(PredicateAsync[List[Any], Serializable]):
-        async def is_valid_async(self, val: List[Any]) -> bool:
+        async def validate_async(self, val: List[Any]) -> bool:
             await asyncio.sleep(0.001)
             return len(val) == 1
 
@@ -96,7 +96,7 @@ async def test_list_validator_with_async_predicate_validator() -> None:
 @pytest.mark.asyncio
 async def test_child_validator_async_is_used() -> None:
     class SomeIntDBCheck(PredicateAsync[int, Serializable]):
-        async def is_valid_async(self, val: int) -> bool:
+        async def validate_async(self, val: int) -> bool:
             await asyncio.sleep(0.001)
             return val == 3
 
@@ -154,7 +154,7 @@ def test_unique_items() -> None:
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     class AsyncWait(PredicateAsync[A, Serializable]):
-        async def is_valid_async(self, val: A) -> bool:
+        async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
 

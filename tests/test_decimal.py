@@ -53,7 +53,7 @@ async def test_decimal_async() -> None:
     )
 
     class LessThan4(PredicateAsync[Decimal, Serializable]):
-        async def is_valid_async(self, val: Decimal) -> bool:
+        async def validate_async(self, val: Decimal) -> bool:
             await asyncio.sleep(0.001)
             return val < Decimal(4)
 
@@ -79,7 +79,7 @@ async def test_decimal_async() -> None:
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     class AsyncWait(PredicateAsync[A, Serializable]):
-        async def is_valid_async(self, val: A) -> bool:
+        async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
 

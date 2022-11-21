@@ -35,7 +35,7 @@ def test_integer() -> None:
     assert IntValidator()(5.0) == Invalid(["expected an integer"])
 
     class DivisibleBy2(Predicate[int, Serializable]):
-        def is_valid(self, val: int) -> bool:
+        def __call__(self, val: int) -> bool:
             return val % 2 == 0
 
         def err(self, val: int) -> Serializable:
@@ -59,7 +59,7 @@ async def test_float_async() -> None:
             return val + 1
 
     class LessThan4(PredicateAsync[int, Serializable]):
-        async def is_valid_async(self, val: int) -> bool:
+        async def validate_async(self, val: int) -> bool:
             await asyncio.sleep(0.001)
             return val < 4.0
 
@@ -77,7 +77,7 @@ async def test_float_async() -> None:
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     class AsyncWait(PredicateAsync[A, Serializable]):
-        async def is_valid_async(self, val: A) -> bool:
+        async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
 

@@ -65,13 +65,14 @@ match string_validator("new string"):
 # prints: "new string is valid"
 ```
 You can also use `.is_valid` on python >= 3.8+:
+
 ```python3
 # continued from above
 
-if (result := string_validator("another string")).is_valid:
-    print(f"{result.val} is valid!")
-else:    
-    print(f"got error: {result.val}")
+if (result := string_validator("another string")).__call__:
+  print(f"{result.val} is valid!")
+else:
+  print(f"got error: {result.val}")
 # prints: "another string is valid"
 ```
 Mypy understands `.is_valid` and narrows the `Validated` type to `Valid` or `Invalid` appropriately.

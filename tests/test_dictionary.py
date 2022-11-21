@@ -98,7 +98,7 @@ def test_map_validator() -> None:
     class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         max: int
 
-        def is_valid(self, val: Dict[Any, Any]) -> bool:
+        def __call__(self, val: Dict[Any, Any]) -> bool:
             return len(val) <= self.max
 
         def err(self, val: Dict[Any, Any]) -> Serializable:
@@ -182,7 +182,7 @@ async def test_map_validator_async() -> None:
     class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
         max: int
 
-        def is_valid(self, val: Dict[Any, Any]) -> bool:
+        def __call__(self, val: Dict[Any, Any]) -> bool:
             return len(val) <= self.max
 
         def err(self, val: Dict[Any, Any]) -> Serializable:
@@ -232,7 +232,7 @@ async def test_map_validator_async() -> None:
 
 def test_map_validator_sync_call_with_async_predicates_raises_assertion_error() -> None:
     class AsyncWait(PredicateAsync[A, Serializable]):
-        async def is_valid_async(self, val: A) -> bool:
+        async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
 

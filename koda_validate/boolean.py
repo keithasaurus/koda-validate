@@ -9,32 +9,32 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
-    ValidationError,
+    TypeErr,
+    ValidationErr,
     Validator,
-    type_error,
 )
 from koda_validate.validated import Invalid, Valid, Validated
 
-EXPECTED_BOOL_ERR: Final[Invalid[List[ValidationError]]] = Invalid(
-    [type_error("bool", "expected a boolean")]
+EXPECTED_BOOL_ERR: Final[Invalid[ValidationErr]] = Invalid(
+    [TypeErr(bool, "expected a boolean")]
 )
 
 
-class BoolValidator(Validator[Any, bool, Serializable]):
+class BoolValidator(Validator[Any, bool]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[bool, Serializable],
-        predicates_async: Optional[List[PredicateAsync[bool, Serializable]]] = None,
+        *predicates: Predicate[bool],
+        predicates_async: Optional[List[PredicateAsync[bool]]] = None,
         preprocessors: Optional[List[Processor[bool]]] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[bool, Serializable]:
+    def __call__(self, val: Any) -> Validated[bool, ValidationErr]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -45,7 +45,7 @@ class BoolValidator(Validator[Any, bool, Serializable]):
 
             if self.predicates:
                 if errors := [
-                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
+                    pred.err(val) for pred in self.predicates if not pred.__call__(val)
                 ]:
                     return Invalid(errors)
                 else:
@@ -55,7 +55,7 @@ class BoolValidator(Validator[Any, bool, Serializable]):
         else:
             return EXPECTED_BOOL_ERR
 
-    async def validate_async(self, val: Any) -> Validated[bool, Serializable]:
+    async def validate_async(self, val: Any) -> Validated[bool, ValidationErr]:
         if type(val) is bool:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async

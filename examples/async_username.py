@@ -4,7 +4,7 @@ from koda_validate import *
 
 
 class IsActiveUsername(PredicateAsync[str, Serializable]):
-    async def is_valid_async(self, val: str) -> bool:
+    async def validate_async(self, val: str) -> bool:
         # add some latency to pretend we're calling the db
         await asyncio.sleep(0.01)
 

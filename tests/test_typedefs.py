@@ -13,7 +13,7 @@ async def test_async_predicate_works_as_expected() -> None:
     class ExampleStartsWithPredicate(PredicateAsync[str, str]):
         prefix: str
 
-        async def is_valid_async(self, val: str) -> bool:
+        async def validate_async(self, val: str) -> bool:
             await asyncio.sleep(0.001)
             return val.startswith(self.prefix)
 

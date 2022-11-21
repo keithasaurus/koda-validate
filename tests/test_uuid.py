@@ -36,7 +36,7 @@ def test_UUID() -> None:
     ) == Valid(UUID("8309b7b7-728a-253a-3f54-54f07810bf73"))
 
     class HexStartsWithD(Predicate[UUID, Serializable]):
-        def is_valid(self, val: UUID) -> bool:
+        def __call__(self, val: UUID) -> bool:
             return val.hex.startswith("d")
 
         def err(self, val: UUID) -> Serializable:
@@ -66,7 +66,7 @@ async def test_UUID_async() -> None:
     ) == Valid(UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222"))
 
     class HexStartsWithF(PredicateAsync[UUID, Serializable]):
-        async def is_valid_async(self, val: UUID) -> bool:
+        async def validate_async(self, val: UUID) -> bool:
             await asyncio.sleep(0.001)
             return val.hex.startswith("f")
 
@@ -81,7 +81,7 @@ async def test_UUID_async() -> None:
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     class AsyncWait(PredicateAsync[A, Serializable]):
-        async def is_valid_async(self, val: A) -> bool:
+        async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
 

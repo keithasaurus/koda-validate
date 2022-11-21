@@ -9,7 +9,7 @@ class IsClose(Predicate[float, Serializable]):
     compare_to: float
     tolerance: float
 
-    def is_valid(self, val: float) -> bool:
+    def __call__(self, val: float) -> bool:
         return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
 
     def err(self, val: float) -> Serializable:

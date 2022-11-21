@@ -27,7 +27,7 @@ def test_boolean() -> None:
     assert BoolValidator()(False) == Valid(False)
 
     class RequireTrue(Predicate[bool, Serializable]):
-        def is_valid(self, val: bool) -> bool:
+        def __call__(self, val: bool) -> bool:
             return val is True
 
         def err(self, val: bool) -> Serializable:
@@ -38,7 +38,7 @@ def test_boolean() -> None:
     assert BoolValidator()(1) == Invalid(["expected a boolean"])
 
     class IsTrue(Predicate[bool, Serializable]):
-        def is_valid(self, val: bool) -> bool:
+        def __call__(self, val: bool) -> bool:
             return val is True
 
         def err(self, val: bool) -> Serializable:
@@ -54,7 +54,7 @@ def test_boolean() -> None:
 @pytest.mark.asyncio
 async def test_boolean_validator_async() -> None:
     class IsTrue(PredicateAsync[bool, Serializable]):
-        async def is_valid_async(self, val: bool) -> bool:
+        async def validate_async(self, val: bool) -> bool:
             await asyncio.sleep(0.001)
             return val is True
 
@@ -75,7 +75,7 @@ async def test_boolean_validator_async() -> None:
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     class AsyncWait(PredicateAsync[A, Serializable]):
-        async def is_valid_async(self, val: A) -> bool:
+        async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
 

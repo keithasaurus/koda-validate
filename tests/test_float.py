@@ -32,7 +32,7 @@ def test_float() -> None:
     assert FloatValidator(Min(5.0))(5.0) == Valid(5.0)
 
     class MustHaveAZeroSomewhere(Predicate[float, Serializable]):
-        def is_valid(self, val: float) -> bool:
+        def __call__(self, val: float) -> bool:
             for char in str(val):
                 if char == "0":
                     return True
@@ -54,7 +54,7 @@ def test_float() -> None:
 @pytest.mark.asyncio
 async def test_float_async() -> None:
     class LessThan4(PredicateAsync[float, Serializable]):
-        async def is_valid_async(self, val: float) -> bool:
+        async def validate_async(self, val: float) -> bool:
             await asyncio.sleep(0.001)
             return val < 4.0
 
@@ -72,7 +72,7 @@ async def test_float_async() -> None:
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     class AsyncWait(PredicateAsync[A, Serializable]):
-        async def is_valid_async(self, val: A) -> bool:
+        async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
 

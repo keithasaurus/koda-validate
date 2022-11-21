@@ -9,25 +9,25 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
+    TypeErr,
+    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
-from koda_validate.errors import MaxStrLenErr, MinStrLenErr, TypeErr, ValidationErr
 
 EXPECTED_STR_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
     TypeErr(str, "expected a string")
 ]
 
 
-class StringValidator(_ToTupleValidatorUnsafe[Any, str, Serializable]):
+class StringValidator(_ToTupleValidatorUnsafe[Any, str]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[str, Serializable],
-        predicates_async: Optional[List[PredicateAsync[str, Serializable]]] = None,
+        *predicates: Predicate[str],
+        predicates_async: Optional[List[PredicateAsync[str]]] = None,
         preprocessors: Optional[List[Processor[str]]] = None,
     ) -> None:
         self.predicates = predicates
@@ -44,9 +44,7 @@ class StringValidator(_ToTupleValidatorUnsafe[Any, str, Serializable]):
                     val = proc(val)
 
             if self.predicates:
-                if errors := [
-                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
-                ]:
+                if errors := [pred for pred in self.predicates if not pred(val)]:
                     return False, errors
                 else:
                     return True, val
@@ -64,78 +62,67 @@ class StringValidator(_ToTupleValidatorUnsafe[Any, str, Serializable]):
             return EXPECTED_STR_ERR
 
 
-class RegexPredicate(Predicate[str, Serializable]):
+class RegexPredicate(Predicate[str]):
     __slots__ = ("pattern",)
-    __match_args__ = ("pattern", "_err")
+    __match_args__ = ("pattern", "err_message")
 
     def __init__(self, pattern: Pattern[str]) -> None:
+        super().__init__(rf"must match pattern {self.pattern.pattern}")
         self.pattern: Pattern[str] = pattern
-        self._err = rf"must match pattern {self.pattern.pattern}"
 
-    def is_valid(self, val: str) -> bool:
+    def __call__(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
-
-    def err(self, val: str) -> str:
-        return self._err
 
 
 EXPECTED_EMAIL_ADDRESS: Final[str] = "expected a valid email address"
 
 
-class EmailPredicate(Predicate[str, Serializable]):
+class EmailPredicate(Predicate[str]):
     pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
 
-    def is_valid(self, val: str) -> bool:
-        return re.match(self.pattern, val) is not None
+    def __init__(self) -> None:
+        super().__init__(EXPECTED_EMAIL_ADDRESS)
 
-    def err(self, val: str) -> str:
-        return EXPECTED_EMAIL_ADDRESS
+    def __call__(self, val: str) -> bool:
+        return re.match(self.pattern, val) is not None
 
 
 BLANK_STRING_MSG: Final[str] = "cannot be blank"
 
 
-class NotBlank(Predicate[str, Serializable]):
-    def is_valid(self, val: str) -> bool:
-        return len(val.strip()) != 0
+class NotBlank(Predicate[str]):
+    def __init__(self) -> None:
+        super().__init__(BLANK_STRING_MSG)
 
-    def err(self, val: str) -> Serializable:
-        return BLANK_STRING_MSG
+    def __call__(self, val: str) -> bool:
+        return len(val.strip()) != 0
 
 
 not_blank = NotBlank()
 
 
-class MaxLength(Predicate[str, ValidationErr]):
+class MaxLength(Predicate[str]):
     __match_args__ = ("length",)
     __slots__ = ("length", "_err")
 
     def __init__(self, length: int):
-        self.length = length
-        self._err = MaxStrLenErr(
-            limit=length, default_message=f"maximum allowed length is {self.length}"
-        )
+        super().__init__(f"maximum allowed length is {length}")
+        self.length: int = length
 
-    def is_valid(self, val: str) -> bool:
+    def __call__(self, val: str) -> bool:
         return len(val) <= self.length
 
-    def err(self, val: str) -> ValidationErr:
-        return self._err
 
-
-class MinLength(Predicate[str, ValidationErr]):
+class MinLength(Predicate[str]):
     __match_args__ = ("length",)
     __slots__ = ("length", "_err")
 
-    def __init__(self, length: int):
+    def __init__(self, length: int) -> None:
+        super().__init__(f"minimum allowed length is {length}")
         self.length = length
-        self._err = MinStrLenErr(f"minimum allowed length is {self.length}", self.length)
 
-    def is_valid(self, val: str) -> bool:
+    def __call__(self, val: str) -> bool:
         return len(val) >= self.length
-
-    def err(self, val: str) -> ValidationErr:
-        return self._err
 
 
 class Strip(Processor[str]):

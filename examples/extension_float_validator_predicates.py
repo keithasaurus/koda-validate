@@ -23,7 +23,7 @@ class Range(Predicate[float, Serializable]):
     minimum: float
     maximum: float
 
-    def is_valid(self, val: float) -> bool:
+    def __call__(self, val: float) -> bool:
         return self.minimum <= val <= self.maximum
 
     def err(self, val: float) -> Serializable:

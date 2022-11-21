@@ -65,7 +65,7 @@ class Choices(Predicate[EnumT, Serializable]):
         self.choices: Set[EnumT] = choices
         self._err = f"expected one of {sorted(self.choices)}"
 
-    def is_valid(self, val: EnumT) -> bool:
+    def __call__(self, val: EnumT) -> bool:
         return val in self.choices
 
     def err(self, val: EnumT) -> Serializable:
@@ -89,7 +89,7 @@ class Min(Predicate[Num, Serializable]):
         exclusive = " (exclusive)" if self.exclusive_minimum else ""
         self._err = f"minimum allowed value{exclusive} is {self.minimum}"
 
-    def is_valid(self, val: Num) -> bool:
+    def __call__(self, val: Num) -> bool:
         if self.exclusive_minimum:
             return val > self.minimum
         else:
@@ -109,7 +109,7 @@ class Max(Predicate[Num, Serializable]):
         exclusive = " (exclusive)" if self.exclusive_maximum else ""
         self._err = f"maximum allowed value{exclusive} is {self.maximum}"
 
-    def is_valid(self, val: Num) -> bool:
+    def __call__(self, val: Num) -> bool:
         if self.exclusive_maximum:
             return val < self.maximum
         else:
@@ -126,7 +126,7 @@ class MultipleOf(Predicate[Num, Serializable]):
     def __init__(self, factor: Num) -> None:
         self.factor: Num = factor
 
-    def is_valid(self, val: Num) -> bool:
+    def __call__(self, val: Num) -> bool:
         return val % self.factor == 0
 
     def err(self, val: Num) -> str:
