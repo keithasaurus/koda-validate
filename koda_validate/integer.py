@@ -15,7 +15,7 @@ from koda_validate.base import (
 )
 
 EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], List[ValidationErr]]] = False, [
-    TypeErr(int, "expected an integer")
+    TypeErr([int], "expected an integer")
 ]
 
 

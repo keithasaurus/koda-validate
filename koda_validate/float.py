@@ -16,7 +16,7 @@ from koda_validate.base import (
 )
 
 EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
-    TypeErr(float, "expected a float")
+    TypeErr([float], "expected a float")
 ]
 
 

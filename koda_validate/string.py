@@ -17,7 +17,7 @@ from koda_validate.base import (
 )
 
 EXPECTED_STR_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
-    TypeErr(str, "expected a string")
+    TypeErr([str], "expected a string")
 ]
 
 

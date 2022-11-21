@@ -1,13 +1,23 @@
+from types import NoneType
 from typing import Any, Final, Optional
 
 from koda._generics import A
 
 from koda_validate._internals import _variant_errors
-from koda_validate.base import Serializable, ValidationErr, Validator
+from koda_validate.base import (
+    Serializable,
+    TypeErr,
+    ValidationErr,
+    Validator,
+    VariantErrs,
+)
 from koda_validate.validated import Invalid, Valid, Validated
 
 OK_NONE: Final[Valid[None]] = Valid(None)
 OK_NONE_OPTIONAL: Final[Valid[Optional[Any]]] = Valid(None)
+
+EXPECTED_NONE_ERR: Final[ValidationErr] = TypeErr([NoneType], "expected None")
+EXPECTED_NONE: Final[Invalid[ValidationErr]] = Invalid([EXPECTED_NONE_ERR])
 
 
 class OptionalValidator(Validator[Any, Optional[A]]):
@@ -25,13 +35,11 @@ class OptionalValidator(Validator[Any, Optional[A]]):
         if val is None:
             return OK_NONE_OPTIONAL
         else:
-            result: Validated[A, Serializable] = self.validator(val)
+            result: Validated[A, ValidationErr] = self.validator(val)
             if result.is_valid:
                 return Valid(result.val)
             else:
-                return result.map_err(
-                    lambda errs: _variant_errors(["must be None"], errs)
-                )
+                return Invalid(VariantErrs([EXPECTED_NONE_ERR, result.val]))
 
     async def validate_async(self, val: Any) -> Validated[Optional[A], ValidationErr]:
         if val is None:
@@ -41,12 +49,7 @@ class OptionalValidator(Validator[Any, Optional[A]]):
             if result.is_valid:
                 return Valid(result.val)
             else:
-                return result.map_err(
-                    lambda errs: _variant_errors(["must be None"], errs)
-                )
-
-
-EXPECTED_NONE: Final[Invalid[Serializable]] = Invalid(["expected None"])
+                return Invalid(VariantErrs([EXPECTED_NONE_ERR, result.val]))
 
 
 class NoneValidator(Validator[Any, None]):

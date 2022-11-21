@@ -23,7 +23,7 @@ class TypeErr:
     When an exact type is required but not found
     """
 
-    expected_type: Type[Any]
+    compatible_types: List[Type[Any]]
     default_message: str
 
 
@@ -35,13 +35,13 @@ class DictErrs:
 
 @dataclass
 class IterableErrs:
-    container: List["_ValidationErr"]
+    container: List["ValidationErr"]
     items: Dict[int, List["_ValidationErr"]]
 
 
 @dataclass
 class VariantErrs:
-    variants: List["_ValidationErr"]
+    variants: List["ValidationErr"]
 
 
 _ValidationErr = Union[
