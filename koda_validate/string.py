@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, Final, List, Literal, Optional, Pattern, Tuple, TypedDict
+from typing import Any, Final, List, Literal, Optional, Pattern, Tuple
 
 from koda_validate._internals import (
     _async_predicates_warning,
@@ -10,15 +10,13 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
-    ValidationError,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
-    type_error,
-    validation_error,
 )
+from koda_validate.errors import MaxStrLenErr, MinStrLenErr, TypeErr, ValidationErr
 
-EXPECTED_STR_ERR: Final[Tuple[Literal[False], List[ValidationError]]] = False, [
-    type_error("str", "expected a string")
+EXPECTED_STR_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
+    TypeErr(str, "expected a string")
 ]
 
 
@@ -108,33 +106,35 @@ class NotBlank(Predicate[str, Serializable]):
 not_blank = NotBlank()
 
 
-class MaxLength(Predicate[str, Serializable]):
+class MaxLength(Predicate[str, ValidationErr]):
     __match_args__ = ("length",)
     __slots__ = ("length", "_err")
 
     def __init__(self, length: int):
         self.length = length
-        self._err = f"maximum allowed length is {self.length}"
+        self._err = MaxStrLenErr(
+            limit=length, default_message=f"maximum allowed length is {self.length}"
+        )
 
     def is_valid(self, val: str) -> bool:
         return len(val) <= self.length
 
-    def err(self, val: str) -> Serializable:
+    def err(self, val: str) -> ValidationErr:
         return self._err
 
 
-class MinLength(Predicate[str, Serializable]):
+class MinLength(Predicate[str, ValidationErr]):
     __match_args__ = ("length",)
     __slots__ = ("length", "_err")
 
     def __init__(self, length: int):
         self.length = length
-        self._err = f"minimum allowed length is {self.length}"
+        self._err = MinStrLenErr(f"minimum allowed length is {self.length}", self.length)
 
     def is_valid(self, val: str) -> bool:
         return len(val) >= self.length
 
-    def err(self, val: str) -> str:
+    def err(self, val: str) -> ValidationErr:
         return self._err
 
 

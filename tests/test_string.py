@@ -5,6 +5,13 @@ import pytest
 
 from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate, Serializable
 from koda_validate._generics import A
+from koda_validate.errors import (
+    MaxStrLenErr,
+    MinStrLenErr,
+    TypeErr,
+    ValidationErr,
+    ValueErr,
+)
 from koda_validate.string import (
     BLANK_STRING_MSG,
     MaxLength,
@@ -33,18 +40,23 @@ def test_lower_case() -> None:
 
 
 def test_string_validator() -> None:
-    assert StringValidator()(False) == Invalid(["expected a string"])
+    assert StringValidator()(False) == Invalid([TypeErr(str, "expected a string")])
 
     assert StringValidator()("abc") == Valid("abc")
 
     assert StringValidator(MaxLength(3))("something") == Invalid(
-        ["maximum allowed length is 3"]
+        [
+            MaxStrLenErr(
+                default_message="maximum allowed length is 3",
+                limit=3,
+            )
+        ]
     )
 
     min_len_3_not_blank_validator = StringValidator(MinLength(3), NotBlank())
 
     assert min_len_3_not_blank_validator("") == Invalid(
-        ["minimum allowed length is 3", "cannot be blank"]
+        [MinStrLenErr("minimum allowed length is 3", 3), "cannot be blank"]
     )
 
     assert min_len_3_not_blank_validator("   ") == Invalid(["cannot be blank"])
@@ -61,7 +73,9 @@ def test_max_string_length() -> None:
 
     assert MaxLength(5)("abc") == Valid("abc")
 
-    assert MaxLength(5)("something") == Invalid("maximum allowed length is 5")
+    assert MaxLength(5)("something") == Invalid(
+        MaxStrLenErr("maximum allowed length is 5", 5)
+    )
 
 
 def test_min_string_length() -> None:
@@ -69,7 +83,7 @@ def test_min_string_length() -> None:
 
     assert MinLength(3)("abc") == Valid("abc")
 
-    assert MinLength(3)("zz") == Invalid("minimum allowed length is 3")
+    assert MinLength(3)("zz") == Invalid(MinStrLenErr("minimum allowed length is 3", 3))
 
 
 def test_regex_validator() -> None:
@@ -96,22 +110,24 @@ async def test_validate_fake_db_async() -> None:
 
     hit = []
 
-    class CheckUsername(PredicateAsync[str, Serializable]):
+    class CheckUsername(PredicateAsync[str, ValidationErr]):
         async def is_valid_async(self, val: str) -> bool:
             hit.append("ok")
             # fake db call
             await asyncio.sleep(0.001)
             return val == test_valid_username
 
-        async def err_async(self, val: str) -> Serializable:
-            return "not in db!"
+        async def err_async(self, val: str) -> ValidationErr:
+            return ValueErr("not in db!")
 
     result = await StringValidator(predicates_async=[CheckUsername()]).validate_async(
         "bad username"
     )
     assert hit == ["ok"]
-    assert result == Invalid(["not in db!"])
-    assert await StringValidator().validate_async(5) == Invalid(["expected a string"])
+    assert result == Invalid([ValueErr("not in db!")])
+    assert await StringValidator().validate_async(5) == Invalid(
+        [TypeErr(str, "expected a string")]
+    )
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
