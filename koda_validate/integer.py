@@ -8,7 +8,6 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
     TypeErr,
     ValidationErr,
     _ResultTupleUnsafe,
@@ -44,9 +43,7 @@ class IntValidator(_ToTupleValidatorUnsafe[Any, int]):
                     val = proc(val)
 
             if self.predicates:
-                if errors := [
-                    pred.err(val) for pred in self.predicates if not pred.__call__(val)
-                ]:
+                if errors := [pred for pred in self.predicates if not pred.__call__(val)]:
                     return False, errors
                 else:
                     return True, val

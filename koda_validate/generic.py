@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, List, Optional, Set, TypeVar
@@ -73,18 +74,16 @@ class Choices(Predicate[EnumT]):
 Num = TypeVar("Num", int, float, Decimal)
 
 
+@dataclass(init=False)
 class Min(Predicate[Num]):
-    __slots__ = (
-        "minimum",
-        "exclusive_minimum",
-    )
-    __match_args__ = ("minimum", "exclusive_minimum")
+    minimum: Num
+    exclusive_minimum: bool
 
     def __init__(self, minimum: Num, exclusive_minimum: bool = False) -> None:
         self.minimum: Num = minimum
         self.exclusive_minimum = exclusive_minimum
         exclusive = " (exclusive)" if self.exclusive_minimum else ""
-        super().__init__(f"minimum allowed value{exclusive} is {self.minimum}")
+        self.err_message = f"minimum allowed value{exclusive} is {self.minimum}"
 
     def __call__(self, val: Num) -> bool:
         if self.exclusive_minimum:
@@ -93,15 +92,16 @@ class Min(Predicate[Num]):
             return val >= self.minimum
 
 
+@dataclass(init=False)
 class Max(Predicate[Num]):
-    __slots__ = ("maximum", "exclusive_maximum")
-    __match_args__ = ("maximum", "exclusive_maximum")
+    maximum: Num
+    exclusive_maximum: bool
 
     def __init__(self, maximum: Num, exclusive_maximum: bool = False) -> None:
         self.maximum: Num = maximum
         self.exclusive_maximum = exclusive_maximum
         exclusive = " (exclusive)" if self.exclusive_maximum else ""
-        super().__init__(f"maximum allowed value{exclusive} is {self.maximum}")
+        self.err_message = f"maximum allowed value{exclusive} is {self.maximum}"
 
     def __call__(self, val: Num) -> bool:
         if self.exclusive_maximum:
