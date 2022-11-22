@@ -7,18 +7,18 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_tuple,
 )
 from koda_validate.base import (
+    CoercionErr,
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
-    TypeErr,
     ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
 
 EXPECTED_UUID_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
-    TypeErr([str, UUID], "expected a UUID, or a UUID-compatible string")
+    CoercionErr([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")
 ]
 
 

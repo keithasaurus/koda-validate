@@ -26,7 +26,7 @@ __all__ = (
     "Min",
     "Max",
     "MultipleOf",
-    "ExactValidator",
+    "EqualsValidator",
     "always_valid",
     "AlwaysValid",
     # integer.py
@@ -92,7 +92,7 @@ from koda_validate.float import FloatValidator
 from koda_validate.generic import (
     AlwaysValid,
     Choices,
-    ExactValidator,
+    EqualsValidator,
     Lazy,
     Max,
     Min,

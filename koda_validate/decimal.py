@@ -12,16 +12,16 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
-    TypeErr,
     ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
 
 EXPECTED_DECIMAL_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
-    TypeErr(
+    CoercionErr(
         compatible_types=[str, int, Decimal],
-        default_message="expected a Decimal, or a Decimal-compatible string or integer",
+        dest_type=Decimal,
+        message="expected a Decimal, or a Decimal-compatible string or integer",
     )
 ]
 

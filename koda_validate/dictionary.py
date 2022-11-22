@@ -40,6 +40,7 @@ from koda_validate._generics import (
 )
 from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
+    CoercionErr,
     Predicate,
     PredicateAsync,
     Processor,

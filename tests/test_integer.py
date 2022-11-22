@@ -13,7 +13,7 @@ from koda_validate import (
     Processor,
     Serializable,
 )
-from koda_validate.base import TypeErr
+from koda_validate.base import CoercionErr
 from koda_validate.validated import Invalid, Valid
 
 
@@ -23,18 +23,20 @@ class Add1Int(Processor[int]):
 
 
 def test_integer() -> None:
-    assert IntValidator()("a string") == Invalid([TypeErr(int, "expected an integer")])
+    assert IntValidator()("a string") == Invalid(
+        [CoercionErr(int, "expected an integer")]
+    )
 
     assert IntValidator()(5) == Valid(5)
 
-    assert IntValidator()(True) == Invalid([TypeErr(int, "expected an integer")]), (
+    assert IntValidator()(True) == Invalid([CoercionErr(int, "expected an integer")]), (
         "even though `bool`s are subclasses of ints in python, we wouldn't "
         "want to validate incoming data as ints if they are bools"
     )
 
-    assert IntValidator()("5") == Invalid([TypeErr(int, "expected an integer")])
+    assert IntValidator()("5") == Invalid([CoercionErr(int, "expected an integer")])
 
-    assert IntValidator()(5.0) == Invalid([TypeErr(int, "expected an integer")])
+    assert IntValidator()(5.0) == Invalid([CoercionErr(int, "expected an integer")])
 
     @dataclass
     class DivisibleBy2(Predicate[int]):

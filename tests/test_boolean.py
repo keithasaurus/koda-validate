@@ -16,7 +16,7 @@ class Flip(Processor[bool]):
 
 
 def test_boolean() -> None:
-    assert BoolValidator()("a string") == Invalid([TypeErr([bool], "expected a boolean")])
+    assert BoolValidator()("a string") == Invalid([TypeErr(bool, "expected a boolean")])
 
     assert BoolValidator()(True) == Valid(True)
 
@@ -31,7 +31,7 @@ def test_boolean() -> None:
 
     assert BoolValidator(RequireTrue())(False) == Invalid([RequireTrue()])
 
-    assert BoolValidator()(1) == Invalid([TypeErr([bool], "expected a boolean")])
+    assert BoolValidator()(1) == Invalid([TypeErr(bool, "expected a boolean")])
 
     @dataclass
     class IsTrue(Predicate[bool]):
@@ -42,9 +42,7 @@ def test_boolean() -> None:
 
     assert BoolValidator(IsTrue(), preprocessors=[Flip()])(False) == Valid(True)
 
-    assert BoolValidator(IsTrue(),)(
-        False
-    ) == Invalid(IsTrue)
+    assert BoolValidator(IsTrue())(False) == Invalid([IsTrue()])
 
 
 @pytest.mark.asyncio
@@ -61,7 +59,7 @@ async def test_boolean_validator_async() -> None:
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(True)
 
-    assert result == Invalid(IsTrue())
+    assert result == Invalid([IsTrue()])
     assert await BoolValidator(
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(False) == Valid(True)

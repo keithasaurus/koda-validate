@@ -10,7 +10,7 @@ from koda_validate import (
     DateStringValidator,
     DatetimeStringValidator,
     DecimalValidator,
-    ExactValidator,
+    EqualsValidator,
     FloatValidator,
     IntValidator,
     IsDictValidator,
@@ -211,8 +211,8 @@ def test_lazy_match_args() -> None:
         case _:
             assert False
 
-    match ExactValidator("abc"):
-        case ExactValidator(match, preprocessors_exact):
+    match EqualsValidator("abc"):
+        case EqualsValidator(match, preprocessors_exact):
             assert match == "abc"
             assert preprocessors_exact is None
 

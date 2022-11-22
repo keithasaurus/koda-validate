@@ -9,22 +9,18 @@ from koda_validate.validated import Invalid, Valid, Validated
 @dataclass
 class CoercionErr:
     """
-    When one or more types might be valid for a given destination type
-    """
-
-    allowed_types: List[Type[Any]]
-    dest_type: Type[Any]
-    default_message: str
-
-
-@dataclass
-class TypeErr:
-    """
     When an exact type is required but not found
     """
 
     compatible_types: List[Type[Any]]
-    default_message: str
+    dest_type: Type[Any]
+    message: str
+
+
+@dataclass
+class TypeErr:
+    type: Type[Any]
+    message: str
 
 
 @dataclass

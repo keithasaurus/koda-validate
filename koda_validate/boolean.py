@@ -15,7 +15,7 @@ from koda_validate.base import (
 from koda_validate.validated import Invalid, Valid, Validated
 
 EXPECTED_BOOL_ERR: Final[Invalid[ValidationErr]] = Invalid(
-    [TypeErr([bool], "expected a boolean")]
+    [TypeErr(bool, "expected a boolean")]
 )
 
 
@@ -43,9 +43,7 @@ class BoolValidator(Validator[Any, bool]):
                     val = proc(val)
 
             if self.predicates:
-                if errors := [
-                    pred.err(val) for pred in self.predicates if not pred.__call__(val)
-                ]:
+                if errors := [pred for pred in self.predicates if not pred(val)]:
                     return Invalid(errors)
                 else:
                     return Valid(val)

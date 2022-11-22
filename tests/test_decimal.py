@@ -6,7 +6,7 @@ import pytest
 
 from koda_validate import DecimalValidator, Max, Min, PredicateAsync, Processor
 from koda_validate._generics import A
-from koda_validate.base import TypeErr
+from koda_validate.base import CoercionErr
 from koda_validate.validated import Invalid, Valid
 
 
@@ -18,8 +18,9 @@ class Add1Decimal(Processor[Decimal]):
 def test_decimal() -> None:
     assert DecimalValidator()("a string") == Invalid(
         [
-            TypeErr(
+            CoercionErr(
                 [str, int, Decimal],
+                Decimal,
                 "expected a Decimal, or a Decimal-compatible string or integer",
             )
         ]
@@ -27,8 +28,9 @@ def test_decimal() -> None:
 
     assert DecimalValidator()(5.5) == Invalid(
         [
-            TypeErr(
+            CoercionErr(
                 [str, int, Decimal],
+                Decimal,
                 "expected a Decimal, or a Decimal-compatible string or integer",
             )
         ]
@@ -51,8 +53,9 @@ def test_decimal() -> None:
 async def test_decimal_async() -> None:
     assert await DecimalValidator().validate_async("abc") == Invalid(
         [
-            TypeErr(
+            CoercionErr(
                 [str, int, Decimal],
+                Decimal,
                 "expected a Decimal, or a Decimal-compatible string or integer",
             )
         ]
@@ -60,8 +63,9 @@ async def test_decimal_async() -> None:
 
     assert await DecimalValidator().validate_async(5.5) == Invalid(
         [
-            TypeErr(
+            CoercionErr(
                 [str, int, Decimal],
+                Decimal,
                 "expected a Decimal, or a Decimal-compatible string or integer",
             )
         ]

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import pytest
 from koda._generics import A
 
-from koda_validate.base import Predicate, PredicateAsync, Processor, TypeErr
+from koda_validate.base import CoercionErr, Predicate, PredicateAsync, Processor, TypeErr
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Max, Min
 from koda_validate.validated import Invalid, Valid
@@ -16,11 +16,11 @@ class Add1Float(Processor[float]):
 
 
 def test_float() -> None:
-    assert FloatValidator()("a string") == Invalid([TypeErr([float], "expected a float")])
+    assert FloatValidator()("a string") == Invalid([TypeErr(float, "expected a float")])
 
     assert FloatValidator()(5.5) == Valid(5.5)
 
-    assert FloatValidator()(4) == Invalid([TypeErr([float], "expected a float")])
+    assert FloatValidator()(4) == Invalid([TypeErr(float, "expected a float")])
 
     assert FloatValidator(Max(500.0))(503.0) == Invalid([Max(500.0)])
 

@@ -54,17 +54,15 @@ class Lazy(Validator[A, Ret]):
         return await self.validator().validate_async(data)
 
 
+@dataclass(init=False)
 class Choices(Predicate[EnumT]):
     """
     This only exists separately from a more generic form because
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
-    __slots__ = ("choices",)
-    __match_args__ = ("choices",)
-
     def __init__(self, choices: Set[EnumT]) -> None:
-        super().__init__(f"expected one of {sorted(choices)}")
+        self.err_message = f"expected one of {sorted(choices)}"
         self.choices: Set[EnumT] = choices
 
     def __call__(self, val: EnumT) -> bool:
@@ -110,12 +108,10 @@ class Max(Predicate[Num]):
             return val <= self.maximum
 
 
+@dataclass(init=False)
 class MultipleOf(Predicate[Num]):
-    __slots__ = ("factor",)
-    __match_args__ = ("factor",)
-
     def __init__(self, factor: Num) -> None:
-        super().__init__(f"expected multiple of {self.factor}")
+        self.err_message = f"expected multiple of {factor}"
         self.factor: Num = factor
 
     def __call__(self, val: Num) -> bool:
@@ -138,7 +134,7 @@ ExactMatchT = TypeVar(
 )
 
 
-class ExactValidator(Validator[Any, ExactMatchT]):
+class EqualsValidator(Validator[Any, ExactMatchT]):
     __slots__ = ("match", "preprocessors")
     __match_args__ = ("match", "preprocessors")
 
