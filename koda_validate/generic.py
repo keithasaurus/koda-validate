@@ -134,10 +134,32 @@ ExactMatchT = TypeVar(
 )
 
 
-@dataclass
+@dataclass(init=False)
+class EqualTo(Predicate[ExactMatchT]):
+    match: ExactMatchT
+    err_message: str
+
+    def __init__(self, match: ExactMatchT) -> None:
+        self.match = match
+        self.err_message = f"must equal {repr(match)}"
+
+    def __call__(self, val: A) -> bool:
+        return val == self.match
+
+
+@dataclass(init=False)
 class EqualsValidator(Validator[Any, ExactMatchT]):
     match: ExactMatchT
     preprocessors: Optional[List[Processor[ExactMatchT]]] = None
+
+    def __init__(
+        self,
+        match: ExactMatchT,
+        preprocessors: Optional[List[Processor[ExactMatchT]]] = None,
+    ) -> None:
+        self.match = match
+        self.preprocessors = preprocessors
+        self.predicate = EqualTo(match)
 
     def __call__(self, val: Any) -> Validated[ExactMatchT, ValidationErr]:
         if (match_type := type(self.match)) == type(val):
@@ -145,22 +167,12 @@ class EqualsValidator(Validator[Any, ExactMatchT]):
                 for preprocess in self.preprocessors:
                     val = preprocess(val)
 
-            if self.match == val:
+            if self.predicate(val):
                 return Valid(val)
-        else:
-            # ok, we've failed
-            if isinstance(self.match, str):
-                value_str = f'"{self.match}"'
             else:
-                value_str = str(self.match)
-
-            return Invalid(
-                [
-                    TypeErr(
-                        match_type, f"expected {match_type.__name__} equal to {value_str}"
-                    )
-                ]
-            )
+                return Invalid([self.predicate])
+        else:
+            return Invalid(TypeErr(match_type, f"expected a {match_type.__name__}"))
 
     async def validate_async(self, val: Any) -> Validated[ExactMatchT, ValidationErr]:
         return self(val)
