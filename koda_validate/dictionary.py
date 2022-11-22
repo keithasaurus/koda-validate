@@ -17,7 +17,7 @@ from typing import (
     overload,
 )
 
-from koda import Just, Maybe, mapping_get, nothing
+from koda import Just, Maybe, nothing
 
 from koda_validate._generics import (
     T1,
@@ -41,9 +41,8 @@ from koda_validate._generics import (
 )
 from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
-    CoercionErr,
     DictErrs,
-    ExtraKeys,
+    ExtraKeysErr,
     KeyValErrs,
     MapErrs,
     Predicate,
@@ -55,11 +54,11 @@ from koda_validate.base import (
     Validator,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
-    key_missing,
+    key_missing_err,
 )
 from koda_validate.validated import Invalid, Valid, Validated
 
-DICT_TYPE_ERR: Final[ValidationErr] = [TypeErr(dict, "expected a dictionary")]
+DICT_TYPE_ERR: Final[ValidationErr] = TypeErr(dict, "expected a dictionary")
 
 EXPECTED_DICT_ERR: Final[Dict[str, ValidationErr]] = {OBJECT_ERRORS_FIELD: DICT_TYPE_ERR}
 EXPECTED_DICT_ERR_TUPLE: Final[Tuple[Literal[False], ValidationErr]] = (
@@ -876,11 +875,10 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 val,
                 not isinstance(val, KeyNotRequired),
                 isinstance(val, _ToTupleValidatorUnsafe),
-                str(key),
             )
             for key, val in keys
         ]
-        self._unknown_keys_err = False, _make_keys_err(_key_set)
+        self._unknown_keys_err = False, ExtraKeysErr(_key_set)
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
         if not isinstance(data, dict):
@@ -893,16 +891,16 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return False, ExtraKeys(self._key_set)
+                return False, ExtraKeysErr(self._key_set)
 
         args: List[Any] = []
-        errs: DictErrs = DictErrs([], {})
-        for key_, validator, key_required, is_tuple_validator, str_key in self._fast_keys:
+        errs: DictErrs = DictErrs({})
+        for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = key_missing
+                    errs.keys[key_] = key_missing_err
                 else:
                     args.append(nothing)
             else:
@@ -922,7 +920,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 else:
                     args.append(new_val)
 
-        if errs.keys or errs.container:
+        if errs.keys:
             return False, errs
         else:
             # we know this should be ret
@@ -950,13 +948,13 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 return self._unknown_keys_err
 
         args: List[Any] = []
-        errs: List[Tuple[str, Serializable]] = []
-        for key_, validator, key_required, is_tuple_validator, str_key in self._fast_keys:
+        errs: DictErrs = DictErrs({})
+        for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.append((str_key, KEY_MISSING_MSG))
+                    errs.keys[key_] = key_missing_err
                 else:
                     args.append(nothing)
             else:
@@ -965,28 +963,28 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 else:
                     success, new_val = (
                         (True, result_.val)
-                        if (result_ := await validator.validate_async(val)).__call__  # type: ignore  # noqa: E501
+                        if (result_ := await validator.validate_async(val)).is_valid  # type: ignore  # noqa: E501
                         else (False, result_.val)
                     )
 
                 if not success:
-                    errs.append((str_key, new_val))
-                elif not errs:
+                    errs.keys[key_] = new_val
+                else:
                     args.append(new_val)
 
-        if errs:
-            return False, dict(errs)
+        if errs.keys:
+            return False, errs
         else:
             obj = self.into(*args)
             if self.validate_object is not None:
                 result = self.validate_object(obj)
-                if result.__call__:
+                if result.is_valid:
                     return True, result.val
                 else:
                     return False, result.val
             elif self.validate_object_async is not None:
                 result = await self.validate_object_async(obj)
-                if result.__call__:
+                if result.is_valid:
                     return True, result.val
                 else:
                     return False, result.val
@@ -1060,12 +1058,11 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                 val,
                 not isinstance(val, KeyNotRequired),
                 isinstance(val, _ToTupleValidatorUnsafe),
-                str(key),
             )
             for key, val in schema.items()
         ]
 
-        self._unknown_keys_err = False, _make_keys_err(schema.keys())
+        self._unknown_keys_err = False, ExtraKeysErr(set(schema.keys()))
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
 
@@ -1082,14 +1079,14 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                 return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
-        errs: List[Tuple[str, Serializable]] = []
-        for key_, validator, key_required, is_tuple_validator, str_key in self._fast_keys:
+        errs = DictErrs({})
+        for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.append((str_key, KEY_MISSING_MSG))
-                elif not errs:
+                    errs.keys[key_] = key_missing_err
+                elif not errs.keys:
                     success_dict[key_] = nothing
             else:
                 if is_tuple_validator:
@@ -1104,12 +1101,12 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                     )
 
                 if not success:
-                    errs.append((str_key, new_val))
-                elif not errs:
+                    errs.keys[key_] = new_val
+                elif not errs.keys:
                     success_dict[key_] = new_val
 
-        if errs:
-            return False, dict(errs)
+        if errs.keys:
+            return False, errs
         else:
             if self.validate_object is None:
                 return True, success_dict
@@ -1135,14 +1132,14 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                 return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
-        errs: List[Tuple[str, Serializable]] = []
-        for key_, validator, key_required, is_tuple_validator, str_key in self._fast_keys:
+        errs = DictErrs({})
+        for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.append((str_key, KEY_MISSING_MSG))
-                elif not errs:
+                    errs.keys[key_] = key_missing_err
+                elif not errs.keys:
                     success_dict[key_] = nothing
             else:
                 if is_tuple_validator:
@@ -1157,12 +1154,12 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                     )
 
                 if not success:
-                    errs.append((str_key, new_val))
-                elif not errs:
+                    errs.keys[key_] = new_val
+                elif not errs.keys:
                     success_dict[key_] = new_val
 
-        if errs:
-            return False, dict(errs)
+        if errs.keys:
+            return False, errs
         else:
             if self.validate_object is not None:
                 result = self.validate_object(success_dict)

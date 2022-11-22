@@ -35,7 +35,7 @@ def test_lower_case() -> None:
 
 
 def test_string_validator() -> None:
-    assert StringValidator()(False) == Invalid([TypeErr(str, "expected a string")])
+    assert StringValidator()(False) == Invalid(TypeErr(str, "expected a string"))
 
     assert StringValidator()("abc") == Valid("abc")
 
@@ -117,7 +117,7 @@ async def test_validate_fake_db_async() -> None:
     assert hit == ["ok"]
     assert result == Invalid([CheckUsername()])
     assert await StringValidator().validate_async(5) == Invalid(
-        [TypeErr(str, "expected a string")]
+        TypeErr(str, "expected a string")
     )
 
 

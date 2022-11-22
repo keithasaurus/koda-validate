@@ -14,9 +14,9 @@ from koda_validate.base import (
     _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], List[ValidationErr]]] = False, [
+EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, (
     TypeErr(int, "expected an integer")
-]
+)
 
 
 class IntValidator(_ToTupleValidatorUnsafe[Any, int]):

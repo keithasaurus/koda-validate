@@ -25,18 +25,18 @@ from koda_validate import (
     strip,
 )
 from koda_validate._generics import A
-from koda_validate._internals import OBJECT_ERRORS_FIELD
 from koda_validate.base import (
+    CustomErr,
     DictErrs,
-    ExtraKeys,
+    ExtraKeysErr,
     KeyValErrs,
     MapErrs,
     TypeErr,
-    key_missing,
+    ValidationErr,
+    key_missing_err,
 )
 from koda_validate.dictionary import (
     DICT_TYPE_ERR,
-    EXPECTED_DICT_ERR,
     DictValidatorAny,
     KeyNotRequired,
     RecordValidator,
@@ -50,14 +50,14 @@ class PersonLike(Protocol):
     eye_color: str
 
 
-_JONES_ERROR_MSG: Serializable = {
-    "__container__": ["can't have last_name of jones and eye color of brown"]
-}
+_JONES_ERROR_MSG: ValidationErr = CustomErr(
+    "can't have last_name of jones and eye color of brown"
+)
 
 
 def test_is_dict() -> None:
     assert is_dict_validator({}) == Valid({})
-    assert is_dict_validator(None) == Invalid([TypeErr(dict, "expected a dictionary")])
+    assert is_dict_validator(None) == Invalid(TypeErr(dict, "expected a dictionary"))
     assert is_dict_validator({"a": 1, "b": 2, 5: "whatever"}) == Valid(
         {"a": 1, "b": 2, 5: "whatever"}
     )
@@ -67,7 +67,7 @@ def test_is_dict() -> None:
 async def test_is_dict_async() -> None:
     assert await is_dict_validator.validate_async({}) == Valid({})
     assert await is_dict_validator.validate_async(None) == Invalid(
-        [TypeErr(dict, "expected a dictionary")]
+        TypeErr(dict, "expected a dictionary")
     )
     assert await is_dict_validator.validate_async(
         {"a": 1, "b": 2, 5: "whatever"}
@@ -96,8 +96,8 @@ def test_map_validator() -> None:
             container=[],
             keys={
                 5: KeyValErrs(
-                    key=[TypeErr(str, "expected a string")],
-                    val=[TypeErr(int, "expected an integer")],
+                    key=TypeErr(str, "expected a string"),
+                    val=TypeErr(int, "expected an integer"),
                 )
             },
         )
@@ -165,8 +165,8 @@ async def test_map_validator_async() -> None:
             container=[],
             keys={
                 5: KeyValErrs(
-                    key=[TypeErr(str, "expected a string")],
-                    val=[TypeErr(int, "expected an integer")],
+                    key=TypeErr(str, "expected a string"),
+                    val=TypeErr(int, "expected an integer"),
                 )
             },
         )
@@ -244,7 +244,7 @@ def test_min_keys() -> None:
     assert MinKeys(3).err_message == "minimum allowed properties is 3"
 
 
-def test_obj_1() -> None:
+def test_record_1() -> None:
     @dataclass
     class Person:
         name: str
@@ -253,18 +253,18 @@ def test_obj_1() -> None:
 
     assert validator("not a dict") == Invalid(DICT_TYPE_ERR)
 
-    assert validator({}) == Invalid(DictErrs([], {"name": key_missing}))
+    assert validator({}) == Invalid(DictErrs({"name": key_missing_err}))
 
     assert validator({"name": 5}) == Invalid(
-        DictErrs(container=[], keys={"name": [TypeErr(str, "expected a string")]})
+        DictErrs(keys={"name": TypeErr(str, "expected a string")})
     )
 
-    assert validator({"name": "bob", "age": 50}) == Invalid(ExtraKeys({"name"}))
+    assert validator({"name": "bob", "age": 50}) == Invalid(ExtraKeysErr({"name"}))
 
     assert validator({"name": "bob"}) == Valid(Person("bob"))
 
 
-def test_obj_2() -> None:
+def test_record_2() -> None:
     @dataclass
     class Person:
         name: str
@@ -275,25 +275,28 @@ def test_obj_2() -> None:
         keys=(("name", StringValidator()), ("age", KeyNotRequired(IntValidator()))),
     )
 
-    assert validator("not a dict") == Invalid(
-        {"__container__": ["expected a dictionary"]}
-    )
+    assert validator("not a dict") == Invalid(TypeErr(dict, "expected a dictionary"))
 
-    assert validator({}) == Invalid({"name": ["key missing"]})
+    assert validator({}) == Invalid(DictErrs({"name": key_missing_err}))
 
     assert validator({"name": 5, "age": "50"}) == Invalid(
-        {"name": ["expected a string"], "age": ["expected an integer"]}
+        DictErrs(
+            {
+                "name": TypeErr(str, "expected a string"),
+                "age": TypeErr(int, "expected an integer"),
+            }
+        )
     )
 
     assert validator({"name": "bob", "age": 50, "eye_color": "brown"}) == Invalid(
-        {"__container__": ["Received unknown keys. Only expected 'age', 'name'."]}
+        ExtraKeysErr({"name", "age"}),
     )
 
     assert validator({"name": "bob", "age": 50}) == Valid(Person("bob", Just(50)))
     assert validator({"name": "bob"}) == Valid(Person("bob", nothing))
 
 
-def test_obj_3() -> None:
+def test_record_3() -> None:
     @dataclass
     class Person:
         first_name: str
@@ -313,7 +316,7 @@ def test_obj_3() -> None:
         Person("bob", "smith", 50)
     )
 
-    assert validator("") == Invalid({"__container__": ["expected a dictionary"]})
+    assert validator("") == Invalid(TypeErr(dict, "expected a dictionary"))
 
 
 def _nobody_named_jones_has_brown_eyes(
@@ -325,7 +328,7 @@ def _nobody_named_jones_has_brown_eyes(
         return Valid(person)
 
 
-def test_obj_4() -> None:
+def test_record_4() -> None:
     @dataclass
     class Person:
         first_name: str
@@ -352,10 +355,10 @@ def test_obj_4() -> None:
         {"first_name": "bob", "last_name": "Jones", "age": 50, "eye color": "brown"}
     ) == Invalid(_JONES_ERROR_MSG)
 
-    assert validator("") == Invalid({"__container__": ["expected a dictionary"]})
+    assert validator("") == Invalid(TypeErr(dict, "expected a dictionary"))
 
 
-def test_obj_4_mix_and_match_key_types() -> None:
+def test_record_4_mix_and_match_key_types() -> None:
     @dataclass
     class Person:
         first_name: str
@@ -383,18 +386,20 @@ def test_obj_4_mix_and_match_key_types() -> None:
     ) == Invalid(_JONES_ERROR_MSG)
 
     assert validator({"bad field": 1}) == Invalid(
-        {
-            "__container__": [
-                "Received unknown keys. Only expected "
-                "'first_name', ('age', 'field'), 5, Decimal('6')."
-            ]
-        }
+        ExtraKeysErr(
+            {
+                "first_name",
+                5,
+                ("age", "field"),
+                Decimal(6),
+            }
+        )
     )
 
-    assert validator("") == Invalid({"__container__": ["expected a dictionary"]})
+    assert validator("") == Invalid(TypeErr(dict, "expected a dictionary"))
 
 
-def test_obj_5() -> None:
+def test_record_5() -> None:
     @dataclass
     class Person:
         first_name: str
@@ -435,10 +440,10 @@ def test_obj_5() -> None:
         }
     ) == Invalid(_JONES_ERROR_MSG)
 
-    assert validator("") == Invalid({"__container__": ["expected a dictionary"]})
+    assert validator("") == Invalid(TypeErr(dict, "expected a dictionary"))
 
 
-def test_obj_6() -> None:
+def test_record_6() -> None:
     @dataclass
     class Person:
         first_name: str
@@ -471,10 +476,10 @@ def test_obj_6() -> None:
         }
     ) == Valid(Person("bob", "smith", 50, "brown", True, 6.5))
 
-    assert validator("") == Invalid({"__container__": ["expected a dictionary"]})
+    assert validator("") == Invalid(TypeErr(dict, "expected a dictionary"))
 
 
-def test_obj_7() -> None:
+def test_record_7() -> None:
     @dataclass
     class Person:
         first_name: str
@@ -510,10 +515,10 @@ def test_obj_7() -> None:
         }
     ) == Valid(Person("bob", "smith", 50, "brown", True, 6.5, 9.8))
 
-    assert validator("") == Invalid({"__container__": ["expected a dictionary"]})
+    assert validator("") == Invalid(TypeErr(dict, "expected a dictionary"))
 
 
-def test_obj_8() -> None:
+def test_record_8() -> None:
     @dataclass
     class Person:
         first_name: str
@@ -578,10 +583,10 @@ def test_obj_8() -> None:
         }
     ) == Invalid(_JONES_ERROR_MSG)
 
-    assert validator("") == Invalid({"__container__": ["expected a dictionary"]})
+    assert validator("") == Invalid(TypeErr(dict, "expected a dictionary"))
 
 
-def test_obj_9() -> None:
+def test_record_9() -> None:
     @dataclass
     class Person:
         first_name: str
@@ -624,10 +629,10 @@ def test_obj_9() -> None:
         }
     ) == Valid(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, Just("blue"), None))
 
-    assert validator("") == Invalid({"__container__": ["expected a dictionary"]})
+    assert validator("") == Invalid(TypeErr(dict, "expected a dictionary"))
 
 
-def test_obj_10() -> None:
+def test_record_10() -> None:
     @dataclass
     class Person:
         first_name: str
@@ -686,10 +691,10 @@ def test_obj_10() -> None:
         )
     )
 
-    assert validator("") == Invalid({"__container__": ["expected a dictionary"]})
+    assert validator("") == Invalid(TypeErr(dict, "expected a dictionary"))
 
 
-def test_obj_int_keys() -> None:
+def test_record_int_keys() -> None:
     @dataclass
     class Person:
         name: str
@@ -714,7 +719,7 @@ def test_obj_int_keys() -> None:
     assert dv({10: test_age, 22: test_name}) == Valid(Person(test_name, test_age))
 
 
-def test_obj_tuple_str_keys() -> None:
+def test_record_tuple_str_keys() -> None:
     @dataclass
     class Person:
         name: str
@@ -738,7 +743,7 @@ def test_obj_tuple_str_keys() -> None:
     )
 
 
-def test_obj_decimal_keys() -> None:
+def test_record_decimal_keys() -> None:
     @dataclass
     class Person:
         name: str
@@ -785,9 +790,7 @@ def test_dict_validator_any_empty() -> None:
 
     assert empty_dict_validator({}).val == {}
 
-    assert empty_dict_validator({"oops": 5}).val == {
-        "__container__": ["Received unknown keys. Expected empty dictionary."]
-    }
+    assert empty_dict_validator({"oops": 5}) == Invalid(ExtraKeysErr(set()))
 
 
 def _nobody_named_jones_has_first_name_alice_dict(
@@ -858,7 +861,7 @@ def test_dict_validator_any() -> None:
         }
     )
 
-    assert validator("") == Invalid({"__container__": ["expected a dictionary"]})
+    assert validator("") == Invalid(TypeErr(dict, "expected a dictionary"))
 
 
 def test_dict_validator_any_key_missing() -> None:
@@ -882,7 +885,12 @@ def test_dict_validator_any_key_missing() -> None:
     )
 
     assert validator({"first_name": 5}) == Invalid(
-        {"last_name": ["key missing"], "first_name": ["expected a string"]}
+        DictErrs(
+            {
+                "last_name": key_missing_err,
+                "first_name": TypeErr(str, "expected a string"),
+            }
+        )
     )
 
 
@@ -909,7 +917,7 @@ async def test_validate_dictionary_any_async() -> None:
     )
 
     assert await validator.validate_async(None) == Invalid(
-        {"__container__": ["expected a dictionary"]}
+        TypeErr(dict, "expected a dictionary")
     )
 
     assert await validator.validate_async(
@@ -926,15 +934,16 @@ async def test_validate_dictionary_any_async() -> None:
     )
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
-        {"last_name": ["key missing"], "first_name": ["expected a string"]}
+        DictErrs(
+            {
+                "last_name": key_missing_err,
+                "first_name": TypeErr(str, "expected a string"),
+            }
+        )
     )
 
     assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Invalid(
-        {
-            "__container__": [
-                "Received unknown keys. Only expected 'first_name', 'last_name'."
-            ]
-        }
+        ExtraKeysErr({"first_name", "last_name"})
     )
 
 
@@ -989,7 +998,12 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
     )
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
-        {"last_name": ["key missing"], "first_name": ["expected a string"]}
+        DictErrs(
+            {
+                "last_name": key_missing_err,
+                "first_name": TypeErr(str, "expected a string"),
+            }
+        )
     )
 
     assert await validator.validate_async(
@@ -1067,9 +1081,9 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     def _nobody_named_jones_is_100(
         person: Person,
-    ) -> Validated[Person, Serializable]:
+    ) -> Validated[Person, ValidationErr]:
         if person.name.lower() == "jones" and person.age == 100:
-            return Invalid("Cannot be jones and 100")
+            return Invalid(CustomErr("Cannot be jones and 100"))
         else:
             return Valid(person)
 
@@ -1088,7 +1102,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     # calling sync validate_object, even within async context
     assert await validator_sync.validate_async({"name": "jones", "age": 100}) == Invalid(
-        "Cannot be jones and 100"
+        CustomErr("Cannot be jones and 100")
     )
 
     validator_async = RecordValidator(
@@ -1102,7 +1116,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     # calling sync validate_object_async within async context
     assert await validator_async.validate_async({"name": "jones", "age": 100}) == Invalid(
-        "Cannot be jones and 100"
+        CustomErr("Cannot be jones and 100")
     )
 
     # calling sync validate_object_async within async context
@@ -1127,7 +1141,7 @@ async def test_validate_dictionary_async() -> None:
     )
 
     assert await validator.validate_async(None) == Invalid(
-        {"__container__": ["expected a dictionary"]}
+        TypeErr(dict, "expected a dictionary")
     )
 
     assert await validator.validate_async(
@@ -1139,15 +1153,16 @@ async def test_validate_dictionary_async() -> None:
     )
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
-        {"last_name": ["key missing"], "first_name": ["expected a string"]}
+        DictErrs(
+            {
+                "last_name": key_missing_err,
+                "first_name": TypeErr(str, "expected a string"),
+            }
+        )
     )
 
     assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Invalid(
-        {
-            "__container__": [
-                "Received unknown keys. Only expected 'first_name', 'last_name'."
-            ]
-        }
+        ExtraKeysErr({"first_name", "last_name"})
     )
 
 

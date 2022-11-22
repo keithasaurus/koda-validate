@@ -2,6 +2,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import (
     Any,
+    ClassVar,
     Dict,
     Generic,
     Hashable,
@@ -35,21 +36,28 @@ class TypeErr:
     message: str
 
 
-class KeyMissing:
-    pass
+class KeyMissingErr:
+    _instance: ClassVar[Optional["KeyMissingErr"]] = None
+
+    def __new__(cls) -> "KeyMissingErr":
+        """
+        Make `KeyMissingErr` a singleton, so we can do `is` checks if we want.
+        """
+        if cls._instance is None:
+            cls._instance = super(KeyMissingErr, cls).__new__(cls)
+        return cls._instance
 
 
 @dataclass
-class ExtraKeys:
+class ExtraKeysErr:
     expected_keys: Set[Hashable]
 
 
-key_missing = KeyMissing()
+key_missing_err = KeyMissingErr()
 
 
 @dataclass
 class DictErrs:
-    container: "ValidationErr"
     keys: Dict[Hashable, "ValidationErr"]
 
 
@@ -67,8 +75,8 @@ class MapErrs:
 
 @dataclass
 class IterableErrs:
-    container: List["ValidationErr"]
-    items: Dict[int, List["ValidationErr"]]
+    container: "ValidationErr"
+    items: Dict[int, "ValidationErr"]
 
 
 @dataclass
@@ -76,18 +84,22 @@ class VariantErrs:
     variants: List["ValidationErr"]
 
 
+@dataclass
+class CustomErr:
+    message: str
+
+
 ValidationErr = Union[
     CoercionErr,
+    CustomErr,
     DictErrs,
-    ExtraKeys,
+    ExtraKeysErr,
     IterableErrs,
-    KeyMissing,
+    KeyMissingErr,
     MapErrs,
-    "Predicate",
-    "PredicateAsync",
     TypeErr,
     VariantErrs,
-    List["ValidationErr"],
+    List[Union["Predicate", "PredicateAsync"]],
 ]
 
 
@@ -139,23 +151,15 @@ class PredicateAsync(Generic[InputT]):
         raise NotImplementedError
 
 
-# When mypy enables recursive types by default
-# Serializable = Union[
-#    None, int, str, bool, float,
-#    List["Serializable"], Tuple["Serializable", ...], Dict[str, "Serializable"]
-# ]
-Serializable1 = Union[
-    None, int, str, bool, float, List[Any], Tuple[Any, ...], Dict[str, Any]
-]
 Serializable = Union[
     None,
     int,
     str,
     bool,
     float,
-    List[Serializable1],
-    Tuple[Serializable1, ...],
-    Dict[str, Serializable1],
+    List["Serializable"],
+    Tuple["Serializable", ...],
+    Dict[str, "Serializable"],
 ]
 
 

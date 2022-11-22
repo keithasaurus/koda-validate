@@ -17,9 +17,10 @@ from koda_validate.base import (
     _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_STR_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
-    TypeErr(str, "expected a string")
-]
+EXPECTED_STR_ERR: Final[Tuple[Literal[False], ValidationErr]] = (
+    False,
+    TypeErr(str, "expected a string"),
+)
 
 
 class StringValidator(_ToTupleValidatorUnsafe[Any, str]):
