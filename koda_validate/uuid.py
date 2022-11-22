@@ -11,12 +11,14 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
+    TypeErr,
+    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_UUID_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
-    "expected a UUID, or a UUID-compatible string"
+EXPECTED_UUID_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
+    TypeErr([str, UUID], "expected a UUID, or a UUID-compatible string")
 ]
 
 

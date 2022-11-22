@@ -11,17 +11,18 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Serializable,
+    TypeErr,
     ValidationErr,
     Validator,
 )
 from koda_validate.validated import Invalid, Validated
 
-EXPECTED_DATE_ERR: Final[Invalid[Serializable]] = Invalid(
-    ["expected date formatted as yyyy-mm-dd"]
+EXPECTED_DATE_ERR: Final[Invalid[ValidationErr]] = Invalid(
+    [TypeErr([str], "expected date formatted as yyyy-mm-dd")]
 )
 
-EXPECTED_ISO_DATESTRING: Final[Invalid[Serializable]] = Invalid(
-    ["expected iso8601-formatted string"]
+EXPECTED_ISO_DATESTRING: Final[Invalid[ValidationErr]] = Invalid(
+    [TypeErr([str], "expected iso8601-formatted string")]
 )
 
 
