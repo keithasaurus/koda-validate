@@ -1,46 +1,46 @@
-from typing import Any, Dict, Final, List, Literal, Optional, Set, Tuple, Type
+from dataclasses import dataclass
+from typing import Any, Dict, Final, List, Literal, Optional, Set, Tuple, Type, Union
 
 from koda._generics import A
 
 from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
+    IterableErrs,
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
+    TypeErr,
+    ValidationErr,
     Validator,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
 
 
+@dataclass(init=False)
 class MinItems(Predicate[List[Any]]):
-    __match_args__ = ("length",)
-    __slots__ = ("length",)
-
     def __init__(self, length: int) -> None:
         self.length = length
-        super().__init__(f"minimum allowed length is {self.length}")
+        self.err_message = f"minimum allowed length is {length}"
 
     def __call__(self, val: List[Any]) -> bool:
         return len(val) >= self.length
 
 
+@dataclass(init=False)
 class MaxItems(Predicate[List[Any]]):
-    __match_args__ = ("length",)
-    __slots__ = ("length",)
-
     def __init__(self, length: int) -> None:
         self.length = length
-        super().__init__(f"maximum allowed length is {self.length}")
+        self.err_message = f"maximum allowed length is {length}"
 
     def __call__(self, val: List[Any]) -> bool:
         return len(val) <= self.length
 
 
+@dataclass
 class UniqueItems(Predicate[List[Any]]):
-    def __init__(self) -> None:
-        super().__init__("all items must be unique")
+    err_message = "all items must be unique"
 
     def __call__(self, val: List[Any]) -> bool:
         hashable_items: Set[Tuple[Type[Any], Any]] = set()
@@ -66,9 +66,9 @@ class UniqueItems(Predicate[List[Any]]):
 
 unique_items = UniqueItems()
 
-EXPECTED_LIST_ERR: Final[Tuple[Literal[False], Serializable]] = False, {
-    OBJECT_ERRORS_FIELD: ["expected a list"]
-}
+EXPECTED_LIST_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, TypeErr(
+    list, "expected a list"
+)
 
 
 class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
@@ -107,18 +107,16 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                 for processor in self.preprocessors:
                     val = processor(val)
 
-            errors: Optional[Dict[str, Serializable]] = None
             if self.predicates:
-                list_errors: List[Serializable] = [
-                    pred.err(val) for pred in self.predicates if not pred.__call__(val)
+                list_errors: List[Predicate] = [
+                    pred for pred in self.predicates if not pred.__call__(val)
                 ]
 
-                # Not running async validators! They shouldn't be set!
                 if list_errors:
-                    errors = {OBJECT_ERRORS_FIELD: list_errors}
+                    return False, list_errors
 
             return_list: List[A] = []
-
+            index_errs: dict[int, ValidationErr] = {}
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
                     is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501
@@ -127,15 +125,12 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     is_valid, item_result = (_result.is_valid, _result.val)
 
                 if not is_valid:
-                    if errors is None:
-                        errors = {str(i): item_result}
-                    else:
-                        errors[str(i)] = item_result
-                elif not errors:
+                    index_errs[i] = item_result
+                elif not index_errs:
                     return_list.append(item_result)
 
-            if errors:
-                return False, errors
+            if index_errs:
+                return False, IterableErrs(index_errs)
             else:
                 return True, return_list
         else:
@@ -147,23 +142,22 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                 for processor in self.preprocessors:
                     val = processor(val)
 
-            list_errors: List[Serializable] = []
+            predicate_errors: List[Union[Predicate, PredicateAsync]] = []
             if self.predicates:
-                list_errors.extend(
-                    [pred.err(val) for pred in self.predicates if not pred.__call__(val)]
+                predicate_errors.extend(
+                    [pred for pred in self.predicates if not pred(val)]
                 )
 
             if self.predicates_async is not None:
                 for pred_async in self.predicates_async:
-                    result = await pred_async.validate_async(val)
-                    if not result.is_valid:
-                        list_errors.append(result.val)
+                    if not await pred_async.validate_async(val):
+                        predicate_errors.append(pred_async)
 
-            errors: Optional[Dict[str, Serializable]] = None
-            if list_errors:
-                errors = {OBJECT_ERRORS_FIELD: list_errors}
+            if predicate_errors:
+                return False, predicate_errors
 
             return_list: List[A] = []
+            index_errs = {}
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
                     (
@@ -178,15 +172,12 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     is_valid, item_result = (_result.is_valid, _result.val)
 
                 if not is_valid:
-                    if errors is None:
-                        errors = {str(i): item_result}
-                    else:
-                        errors[str(i)] = item_result
-                elif not errors:
+                    index_errs[i] = item_result
+                elif not index_errs:
                     return_list.append(item_result)
 
-            if errors:
-                return False, errors
+            if index_errs:
+                return False, IterableErrs(index_errs)
             else:
                 return True, return_list
         else:

@@ -16,9 +16,9 @@ from koda_validate.base import (
     _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
+EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, (
     TypeErr(float, "expected a float")
-]
+)
 
 
 class FloatValidator(_ToTupleValidatorUnsafe[Any, float]):

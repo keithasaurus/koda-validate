@@ -75,7 +75,6 @@ class MapErrs:
 
 @dataclass
 class IterableErrs:
-    container: "ValidationErr"
     items: Dict[int, "ValidationErr"]
 
 
