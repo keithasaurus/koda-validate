@@ -8,6 +8,7 @@ from typing import (
     List,
     Optional,
     Protocol,
+    Set,
     Tuple,
     Type,
     Union,
@@ -34,10 +35,22 @@ class TypeErr:
     message: str
 
 
+class KeyMissing:
+    pass
+
+
+@dataclass
+class ExtraKeys:
+    expected_keys: Set[Hashable]
+
+
+key_missing = KeyMissing()
+
+
 @dataclass
 class DictErrs:
-    container: List["ValidationErr"]
-    keys: Dict[Hashable, List["ValidationErr"]]
+    container: "ValidationErr"
+    keys: Dict[Hashable, "ValidationErr"]
 
 
 @dataclass
@@ -65,12 +78,14 @@ class VariantErrs:
 
 ValidationErr = Union[
     CoercionErr,
-    TypeErr,
+    DictErrs,
+    ExtraKeys,
+    IterableErrs,
+    KeyMissing,
+    MapErrs,
     "Predicate",
     "PredicateAsync",
-    DictErrs,
-    MapErrs,
-    IterableErrs,
+    TypeErr,
     VariantErrs,
     List["ValidationErr"],
 ]

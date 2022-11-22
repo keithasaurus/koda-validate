@@ -42,6 +42,8 @@ from koda_validate._generics import (
 from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
     CoercionErr,
+    DictErrs,
+    ExtraKeys,
     KeyValErrs,
     MapErrs,
     Predicate,
@@ -53,15 +55,16 @@ from koda_validate.base import (
     Validator,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
+    key_missing,
 )
 from koda_validate.validated import Invalid, Valid, Validated
 
 DICT_TYPE_ERR: Final[ValidationErr] = [TypeErr(dict, "expected a dictionary")]
 
 EXPECTED_DICT_ERR: Final[Dict[str, ValidationErr]] = {OBJECT_ERRORS_FIELD: DICT_TYPE_ERR}
-EXPECTED_DICT_ERR_TUPLE: Final[Tuple[Literal[False], Dict[str, List[ValidationErr]]]] = (
+EXPECTED_DICT_ERR_TUPLE: Final[Tuple[Literal[False], ValidationErr]] = (
     False,
-    EXPECTED_DICT_ERR,
+    DICT_TYPE_ERR,
 )
 
 KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
@@ -865,7 +868,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
         self.preprocessors = preprocessors
 
         # so we don't need to calculate each time we validate
-        _key_set = frozenset(k for k, _ in keys)
+        _key_set = {k for k, _ in keys}
         self._key_set = _key_set
         self._fast_keys = [
             (
@@ -880,7 +883,6 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
         self._unknown_keys_err = False, _make_keys_err(_key_set)
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
-
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR_TUPLE
 
@@ -891,16 +893,16 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return self._unknown_keys_err
+                return False, ExtraKeys(self._key_set)
 
         args: List[Any] = []
-        errs: List[Tuple[str, Serializable]] = []
+        errs: DictErrs = DictErrs([], {})
         for key_, validator, key_required, is_tuple_validator, str_key in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.append((str_key, KEY_MISSING_MSG))
+                    errs.keys[key_] = key_missing
                 else:
                     args.append(nothing)
             else:
@@ -911,17 +913,17 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 else:
                     success, new_val = (
                         (True, result_.val)
-                        if (result_ := validator(val)).__call__  # type: ignore
+                        if (result_ := validator(val)).is_valid  # type: ignore
                         else (False, result_.val)
                     )
 
                 if not success:
-                    errs.append((str_key, new_val))
-                elif not errs:
+                    errs.keys[key_] = new_val
+                else:
                     args.append(new_val)
 
-        if errs:
-            return False, dict(errs)
+        if errs.keys or errs.container:
+            return False, errs
         else:
             # we know this should be ret
             obj = self.into(*args)
@@ -929,13 +931,12 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 return True, obj
             else:
                 result = self.validate_object(obj)
-                if result.__call__:
+                if result.is_valid:
                     return True, result.val
                 else:
                     return False, result.val
 
     async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
-
         if not isinstance(data, dict):
             return EXPECTED_DICT_ERR_TUPLE
 

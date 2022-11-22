@@ -26,7 +26,14 @@ from koda_validate import (
 )
 from koda_validate._generics import A
 from koda_validate._internals import OBJECT_ERRORS_FIELD
-from koda_validate.base import KeyValErrs, MapErrs, TypeErr
+from koda_validate.base import (
+    DictErrs,
+    ExtraKeys,
+    KeyValErrs,
+    MapErrs,
+    TypeErr,
+    key_missing,
+)
 from koda_validate.dictionary import (
     DICT_TYPE_ERR,
     EXPECTED_DICT_ERR,
@@ -60,7 +67,7 @@ def test_is_dict() -> None:
 async def test_is_dict_async() -> None:
     assert await is_dict_validator.validate_async({}) == Valid({})
     assert await is_dict_validator.validate_async(None) == Invalid(
-        {"__container__": ["expected a dictionary"]}
+        [TypeErr(dict, "expected a dictionary")]
     )
     assert await is_dict_validator.validate_async(
         {"a": 1, "b": 2, 5: "whatever"}
@@ -135,16 +142,13 @@ def test_map_validator() -> None:
 
 @pytest.mark.asyncio
 async def test_map_validator_async() -> None:
-    assert (
-        await MapValidator(key=StringValidator(), value=FloatValidator()).validate_async(
-            None
-        )
-        == EXPECTED_DICT_ERR
-    )
+    assert await MapValidator(
+        key=StringValidator(), value=FloatValidator()
+    ).validate_async(None) == Invalid(MapErrs(DICT_TYPE_ERR, {}))
 
     assert await MapValidator(
         key=StringValidator(), value=StringValidator()
-    ).validate_async(5) == Invalid({"__container__": ["expected a map"]})
+    ).validate_async(5) == Invalid(MapErrs(DICT_TYPE_ERR, {}))
 
     assert await MapValidator(
         key=StringValidator(), value=StringValidator()
@@ -157,23 +161,28 @@ async def test_map_validator_async() -> None:
     assert await MapValidator(key=StringValidator(), value=IntValidator()).validate_async(
         {5: None}
     ) == Invalid(
-        {
-            "5": {
-                "key_error": ["expected a string"],
-                "value_error": ["expected an integer"],
-            }
-        }
+        MapErrs(
+            container=[],
+            keys={
+                5: KeyValErrs(
+                    key=[TypeErr(str, "expected a string")],
+                    val=[TypeErr(int, "expected an integer")],
+                )
+            },
+        )
     )
 
-    @dataclass(frozen=True)
-    class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
+    @dataclass(init=False)
+    class MaxKeys(Predicate[Dict[Any, Any]]):
         max: int
+        err_message: str
+
+        def __init__(self, max: int) -> None:
+            self.max = max
+            self.err_message = f"max {max} key(s) allowed"
 
         def __call__(self, val: Dict[Any, Any]) -> bool:
             return len(val) <= self.max
-
-        def err(self, val: Dict[Any, Any]) -> Serializable:
-            return f"max {self.max} key(s) allowed"
 
     complex_validator = MapValidator(
         key=StringValidator(MaxLength(4)),
@@ -181,29 +190,13 @@ async def test_map_validator_async() -> None:
         predicates=[MaxKeys(1)],
     )
     assert await complex_validator.validate_async({"key1": 10, "key1a": 2}) == Invalid(
-        {
-            "key1a": {
-                "value_error": ["minimum allowed value is 5"],
-                "key_error": ["maximum allowed length is 4"],
-            },
-            "__container__": ["max 1 key(s) allowed"],
-        }
+        MapErrs(
+            container=[MaxKeys(1)],
+            keys={"key1a": KeyValErrs(key=[MaxLength(4)], val=[Min(5)])},
+        )
     )
 
     assert await complex_validator.validate_async({"a": 100}) == Valid({"a": 100})
-
-    # we need to make sure that errors are not lost even if there are key naming
-    # collisions with the object field
-    assert MapValidator(
-        key=StringValidator(), value=IntValidator(), predicates=[MaxKeys(1)]
-    )({OBJECT_ERRORS_FIELD: "not an int", "b": 1}) == Invalid(
-        {
-            OBJECT_ERRORS_FIELD: [
-                "max 1 key(s) allowed",
-                {"value_error": ["expected an integer"]},
-            ]
-        }
-    )
 
     class AddVal(Processor[Dict[Any, Any]]):
         def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
@@ -218,13 +211,13 @@ async def test_map_validator_async() -> None:
 
 
 def test_map_validator_sync_call_with_async_predicates_raises_assertion_error() -> None:
-    class AsyncWait(PredicateAsync[A, Serializable]):
+    @dataclass
+    class AsyncWait(PredicateAsync[A]):
+        err_message = "should always succeed??"
+
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
-
-        async def err_async(self, val: A) -> Serializable:
-            return "should always succeed??"
 
     map_validator = MapValidator(
         key=StringValidator(), value=StringValidator(), predicates_async=[AsyncWait()]
@@ -234,19 +227,21 @@ def test_map_validator_sync_call_with_async_predicates_raises_assertion_error() 
 
 
 def test_max_keys() -> None:
-    assert MaxKeys(0)({}) == Valid({})
+    assert MaxKeys(0)({}) is True
 
-    assert MaxKeys(5)({"a": 1, "b": 2, "c": 3}) == Valid({"a": 1, "b": 2, "c": 3})
+    assert MaxKeys(5)({"a": 1, "b": 2, "c": 3}) is True
 
-    assert MaxKeys(1)({"a": 1, "b": 2}) == Invalid("maximum allowed properties is 1")
+    assert MaxKeys(1)({"a": 1, "b": 2}) is False
+    assert MaxKeys(1).err_message == "maximum allowed properties is 1"
 
 
 def test_min_keys() -> None:
-    assert MinKeys(0)({}) == Valid({})
+    assert MinKeys(0)({}) is True
 
-    assert MinKeys(3)({"a": 1, "b": 2, "c": 3}) == Valid({"a": 1, "b": 2, "c": 3})
+    assert MinKeys(3)({"a": 1, "b": 2, "c": 3}) is True
 
-    assert MinKeys(3)({"a": 1, "b": 2}) == Invalid("minimum allowed properties is 3")
+    assert MinKeys(3)({"a": 1, "b": 2}) is False
+    assert MinKeys(3).err_message == "minimum allowed properties is 3"
 
 
 def test_obj_1() -> None:
@@ -256,17 +251,15 @@ def test_obj_1() -> None:
 
     validator = RecordValidator(into=Person, keys=(("name", StringValidator()),))
 
-    assert validator("not a dict") == Invalid(
-        {"__container__": ["expected a dictionary"]}
+    assert validator("not a dict") == Invalid(DICT_TYPE_ERR)
+
+    assert validator({}) == Invalid(DictErrs([], {"name": key_missing}))
+
+    assert validator({"name": 5}) == Invalid(
+        DictErrs(container=[], keys={"name": [TypeErr(str, "expected a string")]})
     )
 
-    assert validator({}) == Invalid({"name": ["key missing"]})
-
-    assert validator({"name": 5}) == Invalid({"name": ["expected a string"]})
-
-    assert validator({"name": "bob", "age": 50}) == Invalid(
-        {"__container__": ["Received unknown keys. Only expected 'name'."]}
-    )
+    assert validator({"name": "bob", "age": 50}) == Invalid(ExtraKeys({"name"}))
 
     assert validator({"name": "bob"}) == Valid(Person("bob"))
 
