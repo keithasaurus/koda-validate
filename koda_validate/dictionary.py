@@ -1,3 +1,4 @@
+import dataclasses
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -53,9 +54,13 @@ from koda_validate.base import (
 )
 from koda_validate.validated import Invalid, Valid, Validated
 
-EXPECTED_DICT_ERR: Final[Tuple[Literal[False], Dict[str, List[ValidationErr]]]] = False, {
+EXPECTED_DICT_ERR: Final[Dict[str, ValidationErr]] = {
     OBJECT_ERRORS_FIELD: [TypeErr(dict, "expected a dictionary")]
 }
+EXPECTED_DICT_ERR_TUPLE: Final[Tuple[Literal[False], Dict[str, List[ValidationErr]]]] = (
+    False,
+    EXPECTED_DICT_ERR,
+)
 
 KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
 
@@ -123,7 +128,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                     val = preproc(val)
 
             return_dict: Dict[T1, T2] = {}
-            errors: Dict[str, Serializable] = {}
+            errors: Dict[str, ValidationErr] = {}
             for key, val_ in val.items():
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val_)
@@ -137,13 +142,13 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
 
                     if not val_result.is_valid:
                         err_dict = {"value_error": val_result.val}
-                        errs: Maybe[Serializable] = mapping_get(errors, err_key)
+                        errs: Maybe[ValidationErr] = mapping_get(errors, err_key)
                         if errs.is_just and isinstance(errs.val, dict):
                             errs.val.update(err_dict)
                         else:
                             errors[err_key] = err_dict
 
-            dict_validator_errors: List[Serializable] = []
+            dict_validator_errors: List[ValidationErr] = []
             if self.predicates is not None:
                 for predicate in self.predicates:
                     # Note that the expectation here is that validators will likely
@@ -151,9 +156,8 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                     # to be drilling down into specific keys and values. That may be
                     # an incorrect assumption; if so, some minor refactoring is probably
                     # necessary.
-                    result = predicate(val)
-                    if not result.is_valid:
-                        dict_validator_errors.append(result.val)
+                    if not predicate(val):
+                        dict_validator_errors.append(predicate)
 
             if len(dict_validator_errors) > 0:
                 # in case somehow there are already errors in this field
@@ -167,7 +171,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
             else:
                 return Valid(return_dict)
         else:
-            return EXPECTED_DICT_ERR
+            return Invalid(EXPECTED_DICT_ERR)
 
     async def validate_async(self, val: Any) -> Validated[Dict[T1, T2], ValidationErr]:
         if isinstance(val, dict):
@@ -235,7 +239,7 @@ class IsDictValidator(_ToTupleValidatorUnsafe[Any, Dict[Any, Any]]):
         if isinstance(val, dict):
             return True, val
         else:
-            return EXPECTED_DICT_ERR
+            return EXPECTED_DICT_ERR_TUPLE
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         return self.validate_to_tuple(val)
@@ -244,24 +248,26 @@ class IsDictValidator(_ToTupleValidatorUnsafe[Any, Dict[Any, Any]]):
 is_dict_validator = IsDictValidator()
 
 
+@dataclasses.dataclass(init=False)
 class MinKeys(Predicate[Dict[Any, Any]]):
-    __slots__ = ("size",)
-    __match_args__ = ("size",)
+    size: int
+    err_message: str
 
     def __init__(self, size: int) -> None:
-        super().__init__(f"minimum allowed properties is {self.size}")
+        self.err_message = f"minimum allowed properties is {size}"
         self.size = size
 
     def __call__(self, val: Dict[Any, Any]) -> bool:
         return len(val) >= self.size
 
 
+@dataclasses.dataclass(init=False)
 class MaxKeys(Predicate[Dict[Any, Any]]):
-    __slots__ = ("size",)
-    __match_args__ = ("size",)
+    size: int
+    err_message: str
 
     def __init__(self, size: int) -> None:
-        super().__init__(f"maximum allowed properties is {self.size}")
+        self.err_message = f"maximum allowed properties is {size}"
         self.size = size
 
     def __call__(self, val: Dict[Any, Any]) -> bool:
@@ -898,7 +904,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
 
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
+            return EXPECTED_DICT_ERR_TUPLE
 
         if self.preprocessors:
             for preproc in self.preprocessors:
@@ -953,7 +959,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
     async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
 
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
+            return EXPECTED_DICT_ERR_TUPLE
 
         if self.preprocessors:
             for preproc in self.preprocessors:
@@ -1085,7 +1091,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
 
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
+            return EXPECTED_DICT_ERR_TUPLE
 
         if self.preprocessors:
             for preproc in self.preprocessors:
@@ -1138,7 +1144,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
     async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
 
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR
+            return EXPECTED_DICT_ERR_TUPLE
 
         if self.preprocessors:
             for preproc in self.preprocessors:

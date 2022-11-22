@@ -11,7 +11,7 @@ from koda_validate._generics import Ret
 from koda_validate.base import (
     Predicate,
     Processor,
-    Serializable,
+    TypeErr,
     ValidationErr,
     Validator,
     _ResultTupleUnsafe,
@@ -134,17 +134,10 @@ ExactMatchT = TypeVar(
 )
 
 
+@dataclass
 class EqualsValidator(Validator[Any, ExactMatchT]):
-    __slots__ = ("match", "preprocessors")
-    __match_args__ = ("match", "preprocessors")
-
-    def __init__(
-        self,
-        match: ExactMatchT,
-        preprocessors: Optional[List[Processor[ExactMatchT]]] = None,
-    ) -> None:
-        self.match: ExactMatchT = match
-        self.preprocessors: Optional[List[Processor[ExactMatchT]]] = preprocessors
+    match: ExactMatchT
+    preprocessors: Optional[List[Processor[ExactMatchT]]] = None
 
     def __call__(self, val: Any) -> Validated[ExactMatchT, ValidationErr]:
         if (match_type := type(self.match)) == type(val):
@@ -154,14 +147,20 @@ class EqualsValidator(Validator[Any, ExactMatchT]):
 
             if self.match == val:
                 return Valid(val)
-
-        # ok, we've failed
-        if isinstance(self.match, str):
-            value_str = f'"{self.match}"'
         else:
-            value_str = str(self.match)
+            # ok, we've failed
+            if isinstance(self.match, str):
+                value_str = f'"{self.match}"'
+            else:
+                value_str = str(self.match)
 
-        return Invalid([f"expected exactly {value_str} ({match_type.__name__})"])
+            return Invalid(
+                [
+                    TypeErr(
+                        match_type, f"expected {match_type.__name__} equal to {value_str}"
+                    )
+                ]
+            )
 
     async def validate_async(self, val: Any) -> Validated[ExactMatchT, ValidationErr]:
         return self(val)

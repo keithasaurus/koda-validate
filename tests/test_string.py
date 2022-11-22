@@ -6,7 +6,7 @@ import pytest
 
 from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate
 from koda_validate._generics import A
-from koda_validate.base import CoercionErr
+from koda_validate.base import TypeErr
 from koda_validate.string import (
     BLANK_STRING_MSG,
     MaxLength,
