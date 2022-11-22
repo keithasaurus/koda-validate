@@ -26,7 +26,9 @@ from koda_validate import (
 )
 from koda_validate._generics import A
 from koda_validate._internals import OBJECT_ERRORS_FIELD
+from koda_validate.base import KeyValErrs, MapErrs, TypeErr
 from koda_validate.dictionary import (
+    DICT_TYPE_ERR,
     EXPECTED_DICT_ERR,
     DictValidatorAny,
     KeyNotRequired,
@@ -48,9 +50,7 @@ _JONES_ERROR_MSG: Serializable = {
 
 def test_is_dict() -> None:
     assert is_dict_validator({}) == Valid({})
-    assert is_dict_validator(None) == Invalid(
-        {"__container__": ["expected a dictionary"]}
-    )
+    assert is_dict_validator(None) == Invalid([TypeErr(dict, "expected a dictionary")])
     assert is_dict_validator({"a": 1, "b": 2, 5: "whatever"}) == Valid(
         {"a": 1, "b": 2, 5: "whatever"}
     )
@@ -68,13 +68,12 @@ async def test_is_dict_async() -> None:
 
 
 def test_map_validator() -> None:
-    assert (
-        MapValidator(key=StringValidator(), value=FloatValidator())(None)
-        == EXPECTED_DICT_ERR
+    assert MapValidator(key=StringValidator(), value=FloatValidator())(None) == Invalid(
+        MapErrs(DICT_TYPE_ERR, {})
     )
 
     assert MapValidator(key=StringValidator(), value=StringValidator())(5) == Invalid(
-        {"__container__": ["expected a map"]}
+        MapErrs(DICT_TYPE_ERR, {})
     )
 
     assert MapValidator(key=StringValidator(), value=StringValidator())({}) == Valid({})
@@ -86,23 +85,27 @@ def test_map_validator() -> None:
     assert MapValidator(key=StringValidator(), value=IntValidator())(
         {5: None}
     ) == Invalid(
-        {
-            "5": {
-                "key_error": ["expected a string"],
-                "value_error": ["expected an integer"],
-            }
-        }
+        MapErrs(
+            container=[],
+            keys={
+                5: KeyValErrs(
+                    key=[TypeErr(str, "expected a string")],
+                    val=[TypeErr(int, "expected an integer")],
+                )
+            },
+        )
     )
 
-    @dataclass(frozen=True)
-    class MaxKeys(Predicate[Dict[Any, Any], Serializable]):
+    @dataclass(init=False)
+    class MaxKeys(Predicate[Dict[Any, Any]]):
         max: int
+
+        def __init__(self, max: int) -> None:
+            self.max = max
+            self.err_message = f"max {max} key(s) allowed"
 
         def __call__(self, val: Dict[Any, Any]) -> bool:
             return len(val) <= self.max
-
-        def err(self, val: Dict[Any, Any]) -> Serializable:
-            return f"max {self.max} key(s) allowed"
 
     complex_validator = MapValidator(
         key=StringValidator(MaxLength(4)),
@@ -110,29 +113,13 @@ def test_map_validator() -> None:
         predicates=[MaxKeys(1)],
     )
     assert complex_validator({"key1": 10, "key1a": 2},) == Invalid(
-        {
-            "key1a": {
-                "value_error": ["minimum allowed value is 5"],
-                "key_error": ["maximum allowed length is 4"],
-            },
-            "__container__": ["max 1 key(s) allowed"],
-        }
+        MapErrs(
+            container=[MaxKeys(1)],
+            keys={"key1a": KeyValErrs(key=[MaxLength(4)], val=[Min(5)])},
+        )
     )
 
     assert complex_validator({"a": 100}) == Valid({"a": 100})
-
-    # we need to make sure that errors are not lost even if there are key naming
-    # collisions with the object field
-    assert MapValidator(
-        key=StringValidator(), value=IntValidator(), predicates=[MaxKeys(1)]
-    )({OBJECT_ERRORS_FIELD: "not an int", "b": 1}) == Invalid(
-        {
-            OBJECT_ERRORS_FIELD: [
-                "max 1 key(s) allowed",
-                {"value_error": ["expected an integer"]},
-            ]
-        }
-    )
 
     class AddVal(Processor[Dict[Any, Any]]):
         def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:

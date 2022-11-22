@@ -42,6 +42,8 @@ from koda_validate._generics import (
 from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
     CoercionErr,
+    KeyValErrs,
+    MapErrs,
     Predicate,
     PredicateAsync,
     Processor,
@@ -54,9 +56,9 @@ from koda_validate.base import (
 )
 from koda_validate.validated import Invalid, Valid, Validated
 
-EXPECTED_DICT_ERR: Final[Dict[str, ValidationErr]] = {
-    OBJECT_ERRORS_FIELD: [TypeErr(dict, "expected a dictionary")]
-}
+DICT_TYPE_ERR: Final[ValidationErr] = [TypeErr(dict, "expected a dictionary")]
+
+EXPECTED_DICT_ERR: Final[Dict[str, ValidationErr]] = {OBJECT_ERRORS_FIELD: DICT_TYPE_ERR}
 EXPECTED_DICT_ERR_TUPLE: Final[Tuple[Literal[False], Dict[str, List[ValidationErr]]]] = (
     False,
     EXPECTED_DICT_ERR,
@@ -128,7 +130,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                     val = preproc(val)
 
             return_dict: Dict[T1, T2] = {}
-            errors: Dict[str, ValidationErr] = {}
+            errors: MapErrs = MapErrs([], {})
             for key, val_ in val.items():
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val_)
@@ -136,17 +138,10 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 if key_result.is_valid and val_result.is_valid:
                     return_dict[key_result.val] = val_result.val
                 else:
-                    err_key = str(key)
-                    if not key_result.is_valid:
-                        errors[err_key] = {"key_error": key_result.val}
-
-                    if not val_result.is_valid:
-                        err_dict = {"value_error": val_result.val}
-                        errs: Maybe[ValidationErr] = mapping_get(errors, err_key)
-                        if errs.is_just and isinstance(errs.val, dict):
-                            errs.val.update(err_dict)
-                        else:
-                            errors[err_key] = err_dict
+                    errors.keys[key] = KeyValErrs(
+                        key=None if key_result.is_valid else key_result.val,
+                        val=None if val_result.is_valid else val_result.val,
+                    )
 
             dict_validator_errors: List[ValidationErr] = []
             if self.predicates is not None:
@@ -160,18 +155,14 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                         dict_validator_errors.append(predicate)
 
             if len(dict_validator_errors) > 0:
-                # in case somehow there are already errors in this field
-                if OBJECT_ERRORS_FIELD in errors:
-                    dict_validator_errors.append(errors[OBJECT_ERRORS_FIELD])
+                errors.container = dict_validator_errors
 
-                errors[OBJECT_ERRORS_FIELD] = dict_validator_errors
-
-            if errors:
+            if errors.container or errors.keys:
                 return Invalid(errors)
             else:
                 return Valid(return_dict)
         else:
-            return Invalid(EXPECTED_DICT_ERR)
+            return Invalid(MapErrs(DICT_TYPE_ERR, {}))
 
     async def validate_async(self, val: Any) -> Validated[Dict[T1, T2], ValidationErr]:
         if isinstance(val, dict):
@@ -180,7 +171,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                     val = preproc(val)
 
             return_dict: Dict[T1, T2] = {}
-            errors: Dict[str, Serializable] = {}
+            errors: MapErrs = MapErrs([], {})
 
             for key, val_ in val.items():
                 key_result = await self.key_validator.validate_async(key)
@@ -189,19 +180,12 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 if key_result.is_valid and val_result.is_valid:
                     return_dict[key_result.val] = val_result.val
                 else:
-                    err_key = str(key)
-                    if not key_result.is_valid:
-                        errors[err_key] = {"key_error": key_result.val}
+                    errors.keys[key] = KeyValErrs(
+                        key=None if key_result.is_valid else key_result.val,
+                        val=None if val_result.is_valid else val_result.val,
+                    )
 
-                    if not val_result.is_valid:
-                        err_dict = {"value_error": val_result.val}
-                        errs: Maybe[Serializable] = mapping_get(errors, err_key)
-                        if errs.is_just and isinstance(errs.val, dict):
-                            errs.val.update(err_dict)
-                        else:
-                            errors[err_key] = err_dict
-
-            dict_validator_errors: List[Serializable] = []
+            dict_validator_errors: List[ValidationErr] = []
             if self.predicates is not None:
                 for predicate in self.predicates:
                     # Note that the expectation here is that validators will likely
@@ -209,29 +193,23 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                     # to be drilling down into specific keys and values. That may be
                     # an incorrect assumption; if so, some minor refactoring is probably
                     # necessary.
-                    result = predicate(val)
-                    if not result.is_valid:
-                        dict_validator_errors.append(result.val)
+                    if not predicate(val):
+                        dict_validator_errors.append(predicate)
 
             if self.predicates_async is not None:
                 for pred_async in self.predicates_async:
-                    result = await pred_async.validate_async(val)
-                    if not result.is_valid:
-                        dict_validator_errors.append(result.val)
+                    if not await pred_async.validate_async(val):
+                        dict_validator_errors.append(pred_async)
 
             if len(dict_validator_errors) > 0:
-                # in case somehow there are already errors in this field
-                if OBJECT_ERRORS_FIELD in errors:
-                    dict_validator_errors.append(errors[OBJECT_ERRORS_FIELD])
+                errors.container = dict_validator_errors
 
-                errors[OBJECT_ERRORS_FIELD] = dict_validator_errors
-
-            if errors:
+            if errors.container or errors.keys:
                 return Invalid(errors)
             else:
                 return Valid(return_dict)
         else:
-            return EXPECTED_DICT_ERR
+            return Invalid(MapErrs(DICT_TYPE_ERR, {}))
 
 
 class IsDictValidator(_ToTupleValidatorUnsafe[Any, Dict[Any, Any]]):
@@ -239,7 +217,7 @@ class IsDictValidator(_ToTupleValidatorUnsafe[Any, Dict[Any, Any]]):
         if isinstance(val, dict):
             return True, val
         else:
-            return EXPECTED_DICT_ERR_TUPLE
+            return False, DICT_TYPE_ERR
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         return self.validate_to_tuple(val)

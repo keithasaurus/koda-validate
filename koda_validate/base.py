@@ -1,6 +1,17 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, Generic, Hashable, List, Protocol, Tuple, Type, Union
+from typing import (
+    Any,
+    Dict,
+    Generic,
+    Hashable,
+    List,
+    Optional,
+    Protocol,
+    Tuple,
+    Type,
+    Union,
+)
 
 from koda_validate._generics import A, InputT, SuccessT
 from koda_validate.validated import Invalid, Valid, Validated
@@ -25,14 +36,26 @@ class TypeErr:
 
 @dataclass
 class DictErrs:
-    container: List["_ValidationErr"]
-    keys: Dict[Hashable, List["_ValidationErr"]]
+    container: List["ValidationErr"]
+    keys: Dict[Hashable, List["ValidationErr"]]
+
+
+@dataclass
+class KeyValErrs:
+    key: Optional["ValidationErr"]
+    val: Optional["ValidationErr"]
+
+
+@dataclass
+class MapErrs:
+    container: "ValidationErr"
+    keys: Dict[Hashable, KeyValErrs]
 
 
 @dataclass
 class IterableErrs:
     container: List["ValidationErr"]
-    items: Dict[int, List["_ValidationErr"]]
+    items: Dict[int, List["ValidationErr"]]
 
 
 @dataclass
@@ -40,16 +63,17 @@ class VariantErrs:
     variants: List["ValidationErr"]
 
 
-_ValidationErr = Union[
+ValidationErr = Union[
     CoercionErr,
     TypeErr,
     "Predicate",
     "PredicateAsync",
     DictErrs,
+    MapErrs,
     IterableErrs,
     VariantErrs,
+    List["ValidationErr"],
 ]
-ValidationErr = Union[_ValidationErr, List[_ValidationErr]]
 
 
 class Validator(Generic[InputT, SuccessT]):
