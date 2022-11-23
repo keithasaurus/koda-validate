@@ -60,13 +60,10 @@ from koda_validate.validated import Invalid, Valid, Validated
 
 DICT_TYPE_ERR: Final[ValidationErr] = TypeErr(dict, "expected a dictionary")
 
-EXPECTED_DICT_ERR: Final[Dict[str, ValidationErr]] = {OBJECT_ERRORS_FIELD: DICT_TYPE_ERR}
 EXPECTED_DICT_ERR_TUPLE: Final[Tuple[Literal[False], ValidationErr]] = (
     False,
     DICT_TYPE_ERR,
 )
-
-KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
 
 
 class KeyNotRequired(Validator[Any, Maybe[A]]):
@@ -256,19 +253,6 @@ class MaxKeys(Predicate[Dict[Any, Any]]):
 
     def __call__(self, val: Dict[Any, Any]) -> bool:
         return len(val) <= self.size
-
-
-def _make_keys_err(keys: Union[FrozenSet[Hashable], KeysView[Hashable]]) -> Serializable:
-    return {
-        OBJECT_ERRORS_FIELD: [
-            "Received unknown keys. "
-            + (
-                "Expected empty dictionary."
-                if len(keys) == 0
-                else "Only expected " + ", ".join(sorted([repr(k) for k in keys])) + "."
-            )
-        ]
-    }
 
 
 class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
