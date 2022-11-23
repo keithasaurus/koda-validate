@@ -1,14 +1,15 @@
 from typing import Any
 
 from koda_validate import *
+from koda_validate.base import TypeErr, ValidationErr
 
 
-class SimpleFloatValidator(Validator[Any, float, Serializable]):
-    def __call__(self, val: Any) -> Validated[float, Serializable]:
+class SimpleFloatValidator(Validator[Any, float]):
+    def __call__(self, val: Any) -> Validated[float, ValidationErr]:
         if isinstance(val, float):
             return Valid(val)
         else:
-            return Invalid("expected a float")
+            return Invalid(TypeErr(float, "expected a float"))
 
 
 float_validator = SimpleFloatValidator()

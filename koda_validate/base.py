@@ -141,8 +141,7 @@ class PredicateAsync(Generic[InputT]):
     For async-only validation.
     """
 
-    def __init__(self, err_message: str) -> None:
-        self.err_message = err_message
+    err_message: str
 
     @abstractmethod
     async def validate_async(self, val: InputT) -> bool:  # pragma: no cover

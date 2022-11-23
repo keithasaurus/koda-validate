@@ -3,15 +3,14 @@ import asyncio
 from koda_validate import *
 
 
-class IsActiveUsername(PredicateAsync[str, Serializable]):
+class IsActiveUsername(PredicateAsync[str]):
+    err_message = "invalid_username"
+
     async def validate_async(self, val: str) -> bool:
         # add some latency to pretend we're calling the db
         await asyncio.sleep(0.01)
 
         return val in {"michael", "gob", "lindsay", "buster"}
-
-    async def err_async(self, val: str) -> Serializable:
-        return "invalid username"
 
 
 username_validator = StringValidator(MinLength(1), predicates_async=[IsActiveUsername()])
@@ -26,7 +25,6 @@ try:
     username_validator("michael")
 except AssertionError as e:
     print(e)
-
 
 username_list_validator = ListValidator(username_validator)
 

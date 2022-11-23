@@ -5,15 +5,17 @@ from koda_validate import *
 
 
 @dataclass
-class IsClose(Predicate[float, Serializable]):
+class IsClose(Predicate[float]):
     compare_to: float
     tolerance: float
 
+    def __post_init__(self) -> None:
+        self.err_message = (
+            f"expected a value within {self.tolerance} of {self.compare_to}"
+        )
+
     def __call__(self, val: float) -> bool:
         return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
-
-    def err(self, val: float) -> Serializable:
-        return f"expected a value within {self.tolerance} of {self.compare_to}"
 
 
 # let's use it

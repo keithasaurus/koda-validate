@@ -1,16 +1,17 @@
 from typing import Any, Dict, Hashable
 
 from koda_validate import *
+from koda_validate.base import CustomErr, ValidationErr
 
 
 def no_dwight_regional_manager(
     employee: Dict[Hashable, Any]
-) -> Validated[Dict[Hashable, Any], Serializable]:
+) -> Validated[Dict[Hashable, Any], ValidationErr]:
     if (
         "schrute" in employee["name"].lower()
         and employee["title"].lower() == "assistant regional manager"
     ):
-        return Invalid("Assistant TO THE Regional Manager!")
+        return Invalid(CustomErr("Assistant TO THE Regional Manager!"))
     else:
         return Valid(employee)
 
@@ -33,4 +34,4 @@ assert employee_validator(
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     }
-) == Invalid("Assistant TO THE Regional Manager!")
+) == Invalid(CustomErr("Assistant TO THE Regional Manager!"))
