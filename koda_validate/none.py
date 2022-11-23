@@ -1,4 +1,3 @@
-from types import NoneType
 from typing import Any, Final, Optional
 
 from koda._generics import A
@@ -15,7 +14,7 @@ from koda_validate.validated import Invalid, Valid
 OK_NONE: Final[Valid[None]] = Valid(None)
 OK_NONE_OPTIONAL: Final[Valid[Optional[Any]]] = Valid(None)
 
-EXPECTED_NONE_ERR: Final[ValidationErr] = TypeErr(NoneType, "expected None")
+EXPECTED_NONE_ERR: Final[ValidationErr] = TypeErr(type(None), "expected None")
 EXPECTED_NONE: Final[Invalid[ValidationErr]] = Invalid(EXPECTED_NONE_ERR)
 
 
