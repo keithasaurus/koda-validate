@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from koda_validate import Choices, EqualsValidator, Max, Min, MultipleOf, strip
-from koda_validate.base import TypeErr
+from koda_validate.base import InvalidType
 from koda_validate.generic import EqualTo, always_valid
 from koda_validate.validated import Invalid, Valid
 
@@ -18,11 +18,11 @@ def test_equals_validator() -> None:
     assert EqualsValidator(Decimal("1.1"))(Decimal("5")) == Invalid(
         [EqualTo(Decimal("1.1"))]
     )
-    assert EqualsValidator(4.4)("5.5") == Invalid(TypeErr(float, "expected a float"))
+    assert EqualsValidator(4.4)("5.5") == Invalid(InvalidType(float, "expected a float"))
     assert EqualsValidator(True)(True) == Valid(True)
     assert EqualsValidator(False)(False) == Valid(False)
     assert EqualsValidator(True)(False) == Invalid([EqualTo(True)])
-    assert EqualsValidator(4)(4.0) == Invalid(TypeErr(int, "expected a int"))
+    assert EqualsValidator(4)(4.0) == Invalid(InvalidType(int, "expected a int"))
 
 
 @pytest.mark.asyncio
@@ -43,13 +43,13 @@ async def test_equals_validator_async() -> None:
         [EqualTo(Decimal("1.1"))]
     )
     assert await EqualsValidator(4.4).validate_async("5.5") == Invalid(
-        TypeErr(float, "expected a float")
+        InvalidType(float, "expected a float")
     )
     assert await EqualsValidator(True).validate_async(True) == Valid(True)
     assert await EqualsValidator(False).validate_async(False) == Valid(False)
     assert await EqualsValidator(True).validate_async(False) == Invalid([EqualTo(True)])
     assert await EqualsValidator(4).validate_async(4.0) == Invalid(
-        TypeErr(int, "expected a int")
+        InvalidType(int, "expected a int")
     )
 
 

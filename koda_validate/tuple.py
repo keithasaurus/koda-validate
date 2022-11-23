@@ -10,8 +10,8 @@ from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
 from koda_validate._validate_and_map import validate_and_map
 from koda_validate.base import (
-    IndexErrs,
-    TypeErr,
+    InvalidIterable,
+    InvalidType,
     ValidationErr,
     ValidationResult,
     Validator,
@@ -20,15 +20,15 @@ from koda_validate.validated import Invalid, Validated
 
 
 def _tuple_to_dict_errors(errs: Tuple[ValidationErr, ...]) -> ValidationErr:
-    return IndexErrs({i: err for i, err in enumerate(errs)})
+    return InvalidIterable({i: err for i, err in enumerate(errs)})
 
 
 EXPECTED_TUPLE_TWO_ERROR: Final[Invalid[ValidationErr]] = Invalid(
-    TypeErr(tuple, "expected tuple (or list) of length 2")
+    InvalidType(tuple, "expected tuple (or list) of length 2")
 )
 
 EXPECTED_TUPLE_THREE_ERROR: Final[Invalid[ValidationErr]] = Invalid(
-    TypeErr(tuple, "expected tuple (or list) of length 3")
+    InvalidType(tuple, "expected tuple (or list) of length 3")
 )
 
 

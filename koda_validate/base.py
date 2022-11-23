@@ -19,7 +19,7 @@ from koda_validate.validated import Invalid, Valid, Validated
 
 
 @dataclass
-class CoercionErr:
+class InvalidCoercion:
     """
     When an exact type is required but not found
     """
@@ -30,72 +30,72 @@ class CoercionErr:
 
 
 @dataclass
-class TypeErr:
-    type: Type[Any]
+class InvalidType:
+    expected_type: Type[Any]
     message: str
 
 
-class KeyMissingErr:
-    _instance: ClassVar[Optional["KeyMissingErr"]] = None
+class InvalidKeyMissing:
+    _instance: ClassVar[Optional["InvalidKeyMissing"]] = None
 
-    def __new__(cls) -> "KeyMissingErr":
+    def __new__(cls) -> "InvalidKeyMissing":
         """
         Make `KeyMissingErr` a singleton, so we can do `is` checks if we want.
         """
         if cls._instance is None:
-            cls._instance = super(KeyMissingErr, cls).__new__(cls)
+            cls._instance = super(InvalidKeyMissing, cls).__new__(cls)
         return cls._instance
 
 
 @dataclass
-class ExtraKeysErr:
+class InvalidExtraKeys:
     expected_keys: Set[Hashable]
 
 
-key_missing_err = KeyMissingErr()
+invalid_key_missing = InvalidKeyMissing()
 
 
 @dataclass
-class DictErrs:
+class InvalidDict:
     keys: Dict[Hashable, "ValidationErr"]
 
 
 @dataclass
-class KeyValErrs:
+class InvalidKeyVal:
     key: Optional["ValidationErr"]
     val: Optional["ValidationErr"]
 
 
 @dataclass
-class MapErrs:
-    keys: Dict[Hashable, KeyValErrs]
+class InvalidMap:
+    keys: Dict[Hashable, InvalidKeyVal]
 
 
 @dataclass
-class IndexErrs:
+class InvalidIterable:
     indexes: Dict[int, "ValidationErr"]
 
 
 @dataclass
-class VariantErrs:
+class InvalidVariants:
     variants: List["ValidationErr"]
 
 
 @dataclass
-class CustomErr:
+class InvalidCustom:
     message: str
 
 
 ValidationErr = Union[
-    CoercionErr,
-    CustomErr,
-    DictErrs,
-    ExtraKeysErr,
-    IndexErrs,
-    KeyMissingErr,
-    MapErrs,
-    TypeErr,
-    VariantErrs,
+    InvalidCoercion,
+    InvalidCustom,
+    InvalidDict,
+    InvalidExtraKeys,
+    InvalidIterable,
+    InvalidKeyMissing,
+    InvalidMap,
+    InvalidType,
+    InvalidVariants,
     # to: consider properly parameterizing
     List[Union["Predicate[Any]", "PredicateAsync[Any]"]],
 ]

@@ -32,7 +32,7 @@ from koda_validate import (
     Validator,
     strip,
 )
-from koda_validate.base import CustomErr, ValidationResult
+from koda_validate.base import InvalidCustom, ValidationResult
 from koda_validate.dictionary import (
     DictValidatorAny,
     KeyNotRequired,
@@ -97,7 +97,7 @@ def test_match_args() -> None:
 def test_record_validator_match_args() -> None:
     def validate_person(p: Person) -> ValidationResult[Person]:
         if len(p.name) > p.age.get_or_else(100):
-            return Invalid(CustomErr("your name cannot be longer than your age"))
+            return Invalid(InvalidCustom("your name cannot be longer than your age"))
         else:
             return Valid(p)
 
@@ -133,7 +133,7 @@ def test_record_validator_match_args() -> None:
 def test_dict_any_match_args() -> None:
     def validate_person_dict_any(p: Dict[Any, Any]) -> ValidationResult[Dict[Any, Any]]:
         if len(p["name"]) > p["age"]:
-            return Invalid(CustomErr("your name cannot be longer than your name"))
+            return Invalid(InvalidCustom("your name cannot be longer than your name"))
         else:
             return Valid(p)
 

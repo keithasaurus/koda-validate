@@ -3,7 +3,7 @@ from typing import Any
 from koda import Either, Either3, First, Second, Third
 from koda._generics import A, B, C
 
-from koda_validate.base import ValidationResult, Validator, VariantErrs
+from koda_validate.base import InvalidVariants, ValidationResult, Validator
 from koda_validate.validated import Invalid, Valid
 
 
@@ -26,7 +26,7 @@ class OneOf2(Validator[Any, Either[A, B]]):
             if (v2_result := self.variant_2(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                return Invalid(VariantErrs([v1_result.val, v2_result.val]))
+                return Invalid(InvalidVariants([v1_result.val, v2_result.val]))
 
     async def validate_async(self, val: Any) -> ValidationResult[Either[A, B]]:
         if (v1_result := await self.variant_1.validate_async(val)).is_valid:
@@ -35,7 +35,7 @@ class OneOf2(Validator[Any, Either[A, B]]):
             if (v2_result := await self.variant_2.validate_async(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                return Invalid(VariantErrs([v1_result.val, v2_result.val]))
+                return Invalid(InvalidVariants([v1_result.val, v2_result.val]))
 
 
 class OneOf3(Validator[Any, Either3[A, B, C]]):
@@ -63,7 +63,7 @@ class OneOf3(Validator[Any, Either3[A, B, C]]):
                     return Valid(Third(v3_result.val))
                 else:
                     return Invalid(
-                        VariantErrs(
+                        InvalidVariants(
                             [
                                 v1_result.val,
                                 v2_result.val,
@@ -83,7 +83,7 @@ class OneOf3(Validator[Any, Either3[A, B, C]]):
                     return Valid(Third(v3_result.val))
                 else:
                     return Invalid(
-                        VariantErrs(
+                        InvalidVariants(
                             [
                                 v1_result.val,
                                 v2_result.val,

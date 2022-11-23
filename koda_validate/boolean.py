@@ -5,10 +5,10 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_async,
 )
 from koda_validate.base import (
+    InvalidType,
     Predicate,
     PredicateAsync,
     Processor,
-    TypeErr,
     ValidationErr,
     ValidationResult,
     Validator,
@@ -16,7 +16,7 @@ from koda_validate.base import (
 from koda_validate.validated import Invalid, Valid
 
 EXPECTED_BOOL_ERR: Final[Invalid[ValidationErr]] = Invalid(
-    TypeErr(bool, "expected a boolean")
+    InvalidType(bool, "expected a boolean")
 )
 
 

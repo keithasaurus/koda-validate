@@ -5,7 +5,7 @@ import pytest
 
 from koda_validate import BoolValidator, Predicate, PredicateAsync, Processor
 from koda_validate._generics import A
-from koda_validate.base import TypeErr
+from koda_validate.base import InvalidType
 from koda_validate.boolean import EXPECTED_BOOL_ERR
 from koda_validate.validated import Invalid, Valid
 
@@ -16,7 +16,7 @@ class Flip(Processor[bool]):
 
 
 def test_boolean() -> None:
-    assert BoolValidator()("a string") == Invalid(TypeErr(bool, "expected a boolean"))
+    assert BoolValidator()("a string") == Invalid(InvalidType(bool, "expected a boolean"))
 
     assert BoolValidator()(True) == Valid(True)
 
@@ -31,7 +31,7 @@ def test_boolean() -> None:
 
     assert BoolValidator(RequireTrue())(False) == Invalid([RequireTrue()])
 
-    assert BoolValidator()(1) == Invalid(TypeErr(bool, "expected a boolean"))
+    assert BoolValidator()(1) == Invalid(InvalidType(bool, "expected a boolean"))
 
     @dataclass
     class IsTrue(Predicate[bool]):

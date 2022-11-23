@@ -7,10 +7,10 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_async_tuple,
 )
 from koda_validate.base import (
+    InvalidType,
     Predicate,
     PredicateAsync,
     Processor,
-    TypeErr,
     ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
@@ -18,7 +18,7 @@ from koda_validate.base import (
 
 EXPECTED_STR_ERR: Final[Tuple[Literal[False], ValidationErr]] = (
     False,
-    TypeErr(str, "expected a string"),
+    InvalidType(str, "expected a string"),
 )
 
 

@@ -39,24 +39,24 @@ from koda_validate._generics import (
 )
 from koda_validate._internals import _async_predicates_warning
 from koda_validate.base import (
-    DictErrs,
-    ExtraKeysErr,
-    KeyValErrs,
-    MapErrs,
+    InvalidDict,
+    InvalidExtraKeys,
+    InvalidKeyVal,
+    InvalidMap,
+    InvalidType,
     Predicate,
     PredicateAsync,
     Processor,
-    TypeErr,
     ValidationErr,
     ValidationResult,
     Validator,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
-    key_missing_err,
+    invalid_key_missing,
 )
 from koda_validate.validated import Invalid, Valid
 
-DICT_TYPE_ERR: Final[ValidationErr] = TypeErr(dict, "expected a dictionary")
+DICT_TYPE_ERR: Final[ValidationErr] = InvalidType(dict, "expected a dictionary")
 
 EXPECTED_DICT_ERR_TUPLE: Final[Tuple[Literal[False], ValidationErr]] = (
     False,
@@ -143,7 +143,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 return Invalid(predicate_errors)
 
             return_dict: Dict[T1, T2] = {}
-            errors: MapErrs = MapErrs({})
+            errors: InvalidMap = InvalidMap({})
             for key, val_ in val.items():
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val_)
@@ -151,7 +151,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 if key_result.is_valid and val_result.is_valid:
                     return_dict[key_result.val] = val_result.val
                 else:
-                    errors.keys[key] = KeyValErrs(
+                    errors.keys[key] = InvalidKeyVal(
                         key=None if key_result.is_valid else key_result.val,
                         val=None if val_result.is_valid else val_result.val,
                     )
@@ -191,7 +191,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 return Invalid(predicate_errors)
 
             return_dict: Dict[T1, T2] = {}
-            errors: MapErrs = MapErrs({})
+            errors: InvalidMap = InvalidMap({})
 
             for key, val_ in val.items():
                 key_result = await self.key_validator.validate_async(key)
@@ -200,7 +200,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 if key_result.is_valid and val_result.is_valid:
                     return_dict[key_result.val] = val_result.val
                 else:
-                    errors.keys[key] = KeyValErrs(
+                    errors.keys[key] = InvalidKeyVal(
                         key=None if key_result.is_valid else key_result.val,
                         val=None if val_result.is_valid else val_result.val,
                     )
@@ -864,7 +864,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
             )
             for key, val in keys
         ]
-        self._unknown_keys_err = False, ExtraKeysErr(_key_set)
+        self._unknown_keys_err = False, InvalidExtraKeys(_key_set)
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
         if not isinstance(data, dict):
@@ -877,16 +877,16 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return False, ExtraKeysErr(self._key_set)
+                return False, InvalidExtraKeys(self._key_set)
 
         args: List[Any] = []
-        errs: DictErrs = DictErrs({})
+        errs: InvalidDict = InvalidDict({})
         for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = key_missing_err
+                    errs.keys[key_] = invalid_key_missing
                 else:
                     args.append(nothing)
             else:
@@ -934,13 +934,13 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 return self._unknown_keys_err
 
         args: List[Any] = []
-        errs: DictErrs = DictErrs({})
+        errs: InvalidDict = InvalidDict({})
         for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = key_missing_err
+                    errs.keys[key_] = invalid_key_missing
                 else:
                     args.append(nothing)
             else:
@@ -1048,7 +1048,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
             for key, val in schema.items()
         ]
 
-        self._unknown_keys_err = False, ExtraKeysErr(set(schema.keys()))
+        self._unknown_keys_err = False, InvalidExtraKeys(set(schema.keys()))
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
 
@@ -1065,13 +1065,13 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                 return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
-        errs = DictErrs({})
+        errs = InvalidDict({})
         for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = key_missing_err
+                    errs.keys[key_] = invalid_key_missing
                 elif not errs.keys:
                     success_dict[key_] = nothing
             else:
@@ -1118,13 +1118,13 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                 return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
-        errs = DictErrs({})
+        errs = InvalidDict({})
         for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = key_missing_err
+                    errs.keys[key_] = invalid_key_missing
                 elif not errs.keys:
                     success_dict[key_] = nothing
             else:

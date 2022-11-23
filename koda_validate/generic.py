@@ -9,9 +9,9 @@ from koda._generics import A
 
 from koda_validate._generics import Ret
 from koda_validate.base import (
+    InvalidType,
     Predicate,
     Processor,
-    TypeErr,
     ValidationResult,
     Validator,
     _ResultTupleUnsafe,
@@ -178,7 +178,7 @@ class EqualsValidator(Validator[Any, ExactMatchT]):
             else:
                 return Invalid([self.predicate])
         else:
-            return Invalid(TypeErr(match_type, f"expected a {match_type.__name__}"))
+            return Invalid(InvalidType(match_type, f"expected a {match_type.__name__}"))
 
     async def validate_async(self, val: Any) -> ValidationResult[ExactMatchT]:
         return self(val)

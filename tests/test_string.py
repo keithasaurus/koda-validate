@@ -6,7 +6,7 @@ import pytest
 
 from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate
 from koda_validate._generics import A
-from koda_validate.base import TypeErr
+from koda_validate.base import InvalidType
 from koda_validate.string import (
     BLANK_STRING_MSG,
     MaxLength,
@@ -35,7 +35,7 @@ def test_lower_case() -> None:
 
 
 def test_string_validator() -> None:
-    assert StringValidator()(False) == Invalid(TypeErr(str, "expected a string"))
+    assert StringValidator()(False) == Invalid(InvalidType(str, "expected a string"))
 
     assert StringValidator()("abc") == Valid("abc")
 
@@ -117,7 +117,7 @@ async def test_validate_fake_db_async() -> None:
     assert hit == ["ok"]
     assert result == Invalid([CheckUsername()])
     assert await StringValidator().validate_async(5) == Invalid(
-        TypeErr(str, "expected a string")
+        InvalidType(str, "expected a string")
     )
 
 

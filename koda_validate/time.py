@@ -7,7 +7,7 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_async,
 )
 from koda_validate.base import (
-    CoercionErr,
+    InvalidCoercion,
     Predicate,
     PredicateAsync,
     Processor,
@@ -18,11 +18,11 @@ from koda_validate.base import (
 from koda_validate.validated import Invalid
 
 EXPECTED_DATE_ERR: Final[Invalid[ValidationErr]] = Invalid(
-    CoercionErr([str], date, "expected date formatted as yyyy-mm-dd")
+    InvalidCoercion([str], date, "expected date formatted as yyyy-mm-dd")
 )
 
 EXPECTED_ISO_DATESTRING: Final[Invalid[ValidationErr]] = Invalid(
-    CoercionErr([str], datetime, "expected iso8601-formatted string")
+    InvalidCoercion([str], datetime, "expected iso8601-formatted string")
 )
 
 

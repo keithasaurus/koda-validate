@@ -8,7 +8,7 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_tuple,
 )
 from koda_validate.base import (
-    CoercionErr,
+    InvalidCoercion,
     Predicate,
     PredicateAsync,
     Processor,
@@ -17,7 +17,9 @@ from koda_validate.base import (
     _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_DECIMAL_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, CoercionErr(
+EXPECTED_DECIMAL_ERR: Final[
+    Tuple[Literal[False], ValidationErr]
+] = False, InvalidCoercion(
     compatible_types=[str, int, Decimal],
     dest_type=Decimal,
     message="expected a Decimal, or a Decimal-compatible string or integer",

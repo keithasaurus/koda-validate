@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 from koda_validate import *
-from koda_validate.base import TypeErr, ValidationResult
+from koda_validate.base import InvalidType, ValidationResult
 
 
 @dataclass
@@ -16,7 +16,7 @@ class SimpleFloatValidator2(Validator[Any, float]):
             else:
                 return Valid(val)
         else:
-            return Invalid(TypeErr(float, "expected a float"))
+            return Invalid(InvalidType(float, "expected a float"))
 
 
 @dataclass
@@ -56,7 +56,7 @@ class SimpleFloatValidator3(Validator[Any, float]):
             else:
                 return Valid(val)
         else:
-            return Invalid(TypeErr(float, "expected a float"))
+            return Invalid(InvalidType(float, "expected a float"))
 
 
 class AbsValue(Processor[float]):

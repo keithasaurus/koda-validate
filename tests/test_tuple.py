@@ -3,26 +3,34 @@ from typing import Tuple
 import pytest
 
 from koda_validate import BoolValidator, IntValidator, StringValidator
-from koda_validate.base import CustomErr, IndexErrs, TypeErr, ValidationResult
+from koda_validate.base import (
+    InvalidCustom,
+    InvalidIterable,
+    InvalidType,
+    ValidationResult,
+)
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.validated import Invalid, Valid
 
 
 def test_tuple2() -> None:
     assert Tuple2Validator(StringValidator(), IntValidator())({}) == Invalid(
-        TypeErr(tuple, "expected tuple (or list) of length 2")
+        InvalidType(tuple, "expected tuple (or list) of length 2")
     )
 
     assert Tuple2Validator(StringValidator(), IntValidator())([]) == Invalid(
-        TypeErr(tuple, "expected tuple (or list) of length 2")
+        InvalidType(tuple, "expected tuple (or list) of length 2")
     )
 
     assert Tuple2Validator(StringValidator(), IntValidator())(["a", 1]) == Valid(("a", 1))
     assert Tuple2Validator(StringValidator(), IntValidator())(("a", 1)) == Valid(("a", 1))
 
     assert Tuple2Validator(StringValidator(), IntValidator())([1, "a"]) == Invalid(
-        IndexErrs(
-            {0: TypeErr(str, "expected a string"), 1: TypeErr(int, "expected an integer")}
+        InvalidIterable(
+            {
+                0: InvalidType(str, "expected a string"),
+                1: InvalidType(int, "expected an integer"),
+            }
         )
     )
 
@@ -33,7 +41,7 @@ def test_tuple2() -> None:
             if ab[0] == "a":
                 return Valid(ab)
             else:
-                return Invalid(CustomErr("must be a if int is 1 and bool is True"))
+                return Invalid(InvalidCustom("must be a if int is 1 and bool is True"))
         else:
             return Valid(ab)
 
@@ -45,7 +53,7 @@ def test_tuple2() -> None:
 
     assert a1_validator(["a", 1]) == Valid(("a", 1))
     assert a1_validator(["b", 1]) == Invalid(
-        CustomErr("must be a if int is 1 and bool is True")
+        InvalidCustom("must be a if int is 1 and bool is True")
     )
     assert a1_validator(["b", 2]) == Valid(("b", 2))
 
@@ -54,11 +62,11 @@ def test_tuple2() -> None:
 async def test_tuple2_async() -> None:
     assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
         {}
-    ) == Invalid(TypeErr(tuple, "expected tuple (or list) of length 2"))
+    ) == Invalid(InvalidType(tuple, "expected tuple (or list) of length 2"))
 
     assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
         []
-    ) == Invalid(TypeErr(tuple, "expected tuple (or list) of length 2"))
+    ) == Invalid(InvalidType(tuple, "expected tuple (or list) of length 2"))
 
     assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
         ["a", 1]
@@ -70,8 +78,11 @@ async def test_tuple2_async() -> None:
     assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
         [1, "a"]
     ) == Invalid(
-        IndexErrs(
-            {0: TypeErr(str, "expected a string"), 1: TypeErr(int, "expected an integer")}
+        InvalidIterable(
+            {
+                0: InvalidType(str, "expected a string"),
+                1: InvalidType(int, "expected an integer"),
+            }
         )
     )
 
@@ -82,7 +93,7 @@ async def test_tuple2_async() -> None:
             if ab[0] == "a":
                 return Valid(ab)
             else:
-                return Invalid(CustomErr("must be a if int is 1"))
+                return Invalid(InvalidCustom("must be a if int is 1"))
         else:
             return Valid(ab)
 
@@ -94,7 +105,7 @@ async def test_tuple2_async() -> None:
 
     assert await a1_validator.validate_async(["a", 1]) == Valid(("a", 1))
     assert await a1_validator.validate_async(["b", 1]) == Invalid(
-        CustomErr("must be a if int is 1")
+        InvalidCustom("must be a if int is 1")
     )
     assert await a1_validator.validate_async(["b", 2]) == Valid(("b", 2))
 
@@ -102,11 +113,11 @@ async def test_tuple2_async() -> None:
 def test_tuple3() -> None:
     assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
         {}
-    ) == Invalid(TypeErr(tuple, "expected tuple (or list) of length 3"))
+    ) == Invalid(InvalidType(tuple, "expected tuple (or list) of length 3"))
 
     assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
         []
-    ) == Invalid(TypeErr(tuple, "expected tuple (or list) of length 3"))
+    ) == Invalid(InvalidType(tuple, "expected tuple (or list) of length 3"))
 
     assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
         ["a", 1, False]
@@ -119,11 +130,11 @@ def test_tuple3() -> None:
     assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
         [1, "a", 7.42]
     ) == Invalid(
-        IndexErrs(
+        InvalidIterable(
             {
-                0: TypeErr(str, "expected a string"),
-                1: TypeErr(int, "expected an integer"),
-                2: TypeErr(bool, "expected a boolean"),
+                0: InvalidType(str, "expected a string"),
+                1: InvalidType(int, "expected an integer"),
+                2: InvalidType(bool, "expected a boolean"),
             }
         )
     )
@@ -135,7 +146,7 @@ def test_tuple3() -> None:
             if abc[0] == "a":
                 return Valid(abc)
             else:
-                return Invalid(CustomErr("must be a if int is 1 and bool is True"))
+                return Invalid(InvalidCustom("must be a if int is 1 and bool is True"))
         else:
             return Valid(abc)
 
@@ -148,7 +159,7 @@ def test_tuple3() -> None:
 
     assert a1_validator(["a", 1, True]) == Valid(("a", 1, True))
     assert a1_validator(["b", 1, True]) == Invalid(
-        CustomErr("must be a if int is 1 and bool is True")
+        InvalidCustom("must be a if int is 1 and bool is True")
     )
     assert a1_validator(["b", 2, False]) == Valid(("b", 2, False))
 
@@ -158,13 +169,13 @@ async def test_tuple3_async() -> None:
     assert await Tuple3Validator(
         StringValidator(), IntValidator(), BoolValidator()
     ).validate_async({}) == Invalid(
-        TypeErr(tuple, "expected tuple (or list) of length 3")
+        InvalidType(tuple, "expected tuple (or list) of length 3")
     )
 
     assert await Tuple3Validator(
         StringValidator(), IntValidator(), BoolValidator()
     ).validate_async([]) == Invalid(
-        TypeErr(tuple, "expected tuple (or list) of length 3")
+        InvalidType(tuple, "expected tuple (or list) of length 3")
     )
 
     assert await Tuple3Validator(
@@ -178,11 +189,11 @@ async def test_tuple3_async() -> None:
     assert await Tuple3Validator(
         StringValidator(), IntValidator(), BoolValidator()
     ).validate_async([1, "a", 7.42]) == Invalid(
-        IndexErrs(
+        InvalidIterable(
             {
-                0: TypeErr(str, "expected a string"),
-                1: TypeErr(int, "expected an integer"),
-                2: TypeErr(bool, "expected a boolean"),
+                0: InvalidType(str, "expected a string"),
+                1: InvalidType(int, "expected an integer"),
+                2: InvalidType(bool, "expected a boolean"),
             }
         )
     )
@@ -194,7 +205,7 @@ async def test_tuple3_async() -> None:
             if abc[0] == "a":
                 return Valid(abc)
             else:
-                return Invalid(CustomErr("must be a if int is 1 and bool is True"))
+                return Invalid(InvalidCustom("must be a if int is 1 and bool is True"))
         else:
             return Valid(abc)
 
@@ -207,6 +218,6 @@ async def test_tuple3_async() -> None:
 
     assert await a1_validator.validate_async(["a", 1, True]) == Valid(("a", 1, True))
     assert await a1_validator.validate_async(["b", 1, True]) == Invalid(
-        CustomErr("must be a if int is 1 and bool is True")
+        InvalidCustom("must be a if int is 1 and bool is True")
     )
     assert await a1_validator.validate_async(["b", 2, False]) == Valid(("b", 2, False))

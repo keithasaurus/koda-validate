@@ -5,17 +5,17 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_async_tuple,
 )
 from koda_validate.base import (
+    InvalidType,
     Predicate,
     PredicateAsync,
     Processor,
-    TypeErr,
     ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
 
 EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, (
-    TypeErr(float, "expected a float")
+    InvalidType(float, "expected a float")
 )
 
 

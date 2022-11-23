@@ -6,7 +6,7 @@ import pytest
 from koda._generics import A
 
 from koda_validate import IntValidator, PredicateAsync, Processor, StringValidator
-from koda_validate.base import IndexErrs, TypeErr
+from koda_validate.base import InvalidIterable, InvalidType
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Min
 from koda_validate.list import ListValidator, MaxItems, MinItems, unique_items
@@ -15,12 +15,12 @@ from koda_validate.validated import Invalid, Valid
 
 def test_list_validator() -> None:
     assert ListValidator(FloatValidator())("a string") == Invalid(
-        TypeErr(list, "expected a list")
+        InvalidType(list, "expected a list")
     )
 
     assert ListValidator(FloatValidator())([5.5, "something else"]) == Invalid(
-        IndexErrs(
-            {1: TypeErr(float, "expected a float")},
+        InvalidIterable(
+            {1: InvalidType(float, "expected a float")},
         )
     )
 
@@ -42,14 +42,14 @@ def test_list_validator() -> None:
 @pytest.mark.asyncio
 async def test_list_async() -> None:
     assert await ListValidator(FloatValidator()).validate_async("a string") == Invalid(
-        TypeErr(list, "expected a list")
+        InvalidType(list, "expected a list")
     )
 
     assert await ListValidator(FloatValidator()).validate_async(
         [5.5, "something else"]
     ) == Invalid(
-        IndexErrs(
-            {1: TypeErr(float, "expected a float")},
+        InvalidIterable(
+            {1: InvalidType(float, "expected a float")},
         )
     )
 

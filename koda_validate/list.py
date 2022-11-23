@@ -5,11 +5,11 @@ from koda._generics import A
 
 from koda_validate._internals import _async_predicates_warning
 from koda_validate.base import (
-    IndexErrs,
+    InvalidIterable,
+    InvalidType,
     Predicate,
     PredicateAsync,
     Processor,
-    TypeErr,
     ValidationErr,
     Validator,
     _ResultTupleUnsafe,
@@ -71,7 +71,7 @@ class UniqueItems(Predicate[List[Any]]):
 
 unique_items = UniqueItems()
 
-EXPECTED_LIST_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, TypeErr(
+EXPECTED_LIST_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidType(
     list, "expected a list"
 )
 
@@ -135,7 +135,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, IndexErrs(index_errs)
+                return False, InvalidIterable(index_errs)
             else:
                 return True, return_list
         else:
@@ -183,7 +183,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, IndexErrs(index_errs)
+                return False, InvalidIterable(index_errs)
             else:
                 return True, return_list
         else:
