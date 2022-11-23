@@ -170,9 +170,9 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     (
                         is_valid,
                         item_result,
-                    ) = await self.item_validator.validate_to_tuple_async(
+                    ) = await self.item_validator.validate_to_tuple_async(  # type: ignore  # noqa: E501
                         item
-                    )  # type: ignore  # noqa: E501
+                    )
                 else:
                     _result = await self.item_validator.validate_async(item)
                     is_valid, item_result = (_result.is_valid, _result.val)

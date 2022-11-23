@@ -19,7 +19,6 @@ from koda_validate import (
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
     StringValidator,
     none_validator,
     strip,
@@ -313,7 +312,7 @@ def test_record_3() -> None:
 
 def _nobody_named_jones_has_brown_eyes(
     person: PersonLike,
-) -> Validated[PersonLike, Serializable]:
+) -> Validated[PersonLike, ValidationErr]:
     if person.last_name.lower() == "jones" and person.eye_color == "brown":
         return Invalid(_JONES_ERROR_MSG)
     else:
@@ -695,7 +694,7 @@ def test_record_int_keys() -> None:
     test_age = 10
     test_name = "bob"
 
-    def asserted_ok(p: Person) -> Validated[Person, Serializable]:
+    def asserted_ok(p: Person) -> Validated[Person, ValidationErr]:
         assert p.age == test_age
         assert p.name == test_name
         return Valid(p)
@@ -720,7 +719,7 @@ def test_record_tuple_str_keys() -> None:
     test_age = 10
     test_name = "bob"
 
-    def asserted_ok(p: Person) -> Validated[Person, Serializable]:
+    def asserted_ok(p: Person) -> Validated[Person, ValidationErr]:
         assert p.age == test_age
         assert p.name == test_name
         return Valid(p)
@@ -744,7 +743,7 @@ def test_record_decimal_keys() -> None:
     test_age = 10
     test_name = "bob"
 
-    def asserted_ok(p: Person) -> Validated[Person, Serializable]:
+    def asserted_ok(p: Person) -> Validated[Person, ValidationErr]:
         assert p.age == test_age
         assert p.name == test_name
         return Valid(p)
@@ -787,7 +786,7 @@ def test_dict_validator_any_empty() -> None:
 
 def _nobody_named_jones_has_first_name_alice_dict(
     person: Dict[Hashable, Any],
-) -> Validated[Dict[Hashable, Any], Serializable]:
+) -> Validated[Dict[Hashable, Any], ValidationErr]:
     if person["last_name"].lower() == "jones" and person["first_name"] == Just("alice"):
         return Invalid(_JONES_ERROR_MSG)
     else:
@@ -964,7 +963,7 @@ async def test_dict_validator_any_async_processor() -> None:
 async def test_dict_validator_any_with_validate_object_async() -> None:
     async def val_obj_async(
         obj: Dict[Hashable, Any]
-    ) -> Validated[Dict[Hashable, Any], Serializable]:
+    ) -> Validated[Dict[Hashable, Any], ValidationErr]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_has_first_name_alice_dict(obj)
 
@@ -1019,7 +1018,7 @@ async def test_dict_validator_any_no_validate_object() -> None:
 def test_dict_validator_any_cannot_have_validate_object_and_validate_object_async() -> None:  # noqa:m E501
     async def val_obj_async(
         obj: Dict[Hashable, Any]
-    ) -> Validated[Dict[Hashable, Any], Serializable]:
+    ) -> Validated[Dict[Hashable, Any], ValidationErr]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_has_first_name_alice_dict(obj)
 
@@ -1042,13 +1041,13 @@ def test_dict_validator_cannot_have_validate_object_and_validate_object_async() 
 
     def _nobody_named_jones_is_100(
         person: Person,
-    ) -> Validated[Person, Serializable]:
+    ) -> Validated[Person, ValidationErr]:
         if person.name.lower() == "jones" and person.age == 100:
-            return Invalid("Cannot be jones and 100")
+            return Invalid(CustomErr("Cannot be jones and 100"))
         else:
             return Valid(person)
 
-    async def val_obj_async(obj: Person) -> Validated[Person, Serializable]:
+    async def val_obj_async(obj: Person) -> Validated[Person, ValidationErr]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_is_100(obj)
 
@@ -1079,7 +1078,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
         else:
             return Valid(person)
 
-    async def val_obj_async(obj: Person) -> Validated[Person, Serializable]:
+    async def val_obj_async(obj: Person) -> Validated[Person, ValidationErr]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_is_100(obj)
 

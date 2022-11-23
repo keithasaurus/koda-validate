@@ -18,4 +18,4 @@ test_val = 5.5
 
 assert float_validator(test_val) == Valid(test_val)
 
-assert float_validator(5) == Invalid("expected a float")
+assert float_validator(5) == Invalid(TypeErr(float, "expected a float"))

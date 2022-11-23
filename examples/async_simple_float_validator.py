@@ -23,4 +23,6 @@ test_val = 5.5
 
 assert asyncio.run(float_validator.validate_async(test_val)) == Valid(test_val)
 
-assert asyncio.run(float_validator.validate_async(5)) == Invalid("expected a float")
+assert asyncio.run(float_validator.validate_async(5)) == Invalid(
+    TypeErr(float, "expected a float")
+)

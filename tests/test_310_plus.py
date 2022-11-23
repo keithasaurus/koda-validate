@@ -33,6 +33,7 @@ from koda_validate import (
     Validator,
     strip,
 )
+from koda_validate.base import CustomErr, ValidationErr
 from koda_validate.dictionary import (
     DictValidatorAny,
     KeyNotRequired,
@@ -95,9 +96,9 @@ def test_match_args() -> None:
 
 
 def test_record_validator_match_args() -> None:
-    def validate_person(p: Person) -> Validated[Person, Serializable]:
+    def validate_person(p: Person) -> Validated[Person, ValidationErr]:
         if len(p.name) > p.age.get_or_else(100):
-            return Invalid(["your name cannot be longer than your age"])
+            return Invalid(CustomErr("your name cannot be longer than your age"))
         else:
             return Valid(p)
 
@@ -133,13 +134,13 @@ def test_record_validator_match_args() -> None:
 def test_dict_any_match_args() -> None:
     def validate_person_dict_any(
         p: Dict[Any, Any]
-    ) -> Validated[Dict[Any, Any], Serializable]:
+    ) -> Validated[Dict[Any, Any], ValidationErr]:
         if len(p["name"]) > p["age"]:
-            return Invalid(["your name cannot be longer than your name"])
+            return Invalid(CustomErr("your name cannot be longer than your name"))
         else:
             return Valid(p)
 
-    schema_: Dict[Hashable, Validator[Any, Any, Serializable]] = {
+    schema_: Dict[Hashable, Validator[Any, Any]] = {
         "name": StringValidator(),
         "age": IntValidator(),
     }
@@ -159,6 +160,8 @@ def test_dict_any_match_args() -> None:
         case _:
             assert False
 
+
+def test_float_validator_match_args() -> None:
     match FloatValidator():
         case FloatValidator(preds):
             assert preds == ()

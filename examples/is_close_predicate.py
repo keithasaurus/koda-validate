@@ -22,4 +22,4 @@ class IsClose(Predicate[float]):
 close_to_validator = FloatValidator(IsClose(0.05, 0.02))
 a = 0.06
 assert close_to_validator(a) == Valid(a)
-assert close_to_validator(0.01) == Invalid(["expected a value within 0.02 of 0.05"])
+assert close_to_validator(0.01) == Invalid([IsClose(0.05, 0.02)])

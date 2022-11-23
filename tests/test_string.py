@@ -123,8 +123,7 @@ async def test_validate_fake_db_async() -> None:
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     class AsyncWait(PredicateAsync[A]):
-        def __init__(self) -> None:
-            super().__init__("should always succeed??")
+        err_message = "should always succeed??"
 
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
