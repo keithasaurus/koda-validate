@@ -17,13 +17,11 @@ from koda_validate.base import (
     _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_DECIMAL_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
-    CoercionErr(
-        compatible_types=[str, int, Decimal],
-        dest_type=Decimal,
-        message="expected a Decimal, or a Decimal-compatible string or integer",
-    )
-]
+EXPECTED_DECIMAL_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, CoercionErr(
+    compatible_types=[str, int, Decimal],
+    dest_type=Decimal,
+    message="expected a Decimal, or a Decimal-compatible string or integer",
+)
 
 
 class DecimalValidator(_ToTupleValidatorUnsafe[Any, Decimal]):

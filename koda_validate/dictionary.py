@@ -131,6 +131,22 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 for preproc in self.preprocessors:
                     val = preproc(val)
 
+            predicate_errors: List[
+                Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
+            ] = []
+            if self.predicates is not None:
+                for predicate in self.predicates:
+                    # Note that the expectation here is that validators will likely
+                    # be doing json like number of keys; they aren't expected
+                    # to be drilling down into specific keys and values. That may be
+                    # an incorrect assumption; if so, some minor refactoring is probably
+                    # necessary.
+                    if not predicate(val):
+                        predicate_errors.append(predicate)
+
+            if predicate_errors:
+                return Invalid(predicate_errors)
+
             return_dict: Dict[T1, T2] = {}
             errors: MapErrs = MapErrs([], {})
             for key, val_ in val.items():
@@ -145,21 +161,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                         val=None if val_result.is_valid else val_result.val,
                     )
 
-            dict_validator_errors: List[ValidationErr] = []
-            if self.predicates is not None:
-                for predicate in self.predicates:
-                    # Note that the expectation here is that validators will likely
-                    # be doing json like number of keys; they aren't expected
-                    # to be drilling down into specific keys and values. That may be
-                    # an incorrect assumption; if so, some minor refactoring is probably
-                    # necessary.
-                    if not predicate(val):
-                        dict_validator_errors.append(predicate)
-
-            if len(dict_validator_errors) > 0:
-                errors.container = dict_validator_errors
-
-            if errors.container or errors.keys:
+            if errors.keys:
                 return Invalid(errors)
             else:
                 return Valid(return_dict)
@@ -171,6 +173,27 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
             if self.preprocessors is not None:
                 for preproc in self.preprocessors:
                     val = preproc(val)
+
+            predicate_errors: List[
+                Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
+            ] = []
+            if self.predicates is not None:
+                for predicate in self.predicates:
+                    # Note that the expectation here is that validators will likely
+                    # be doing json like number of keys; they aren't expected
+                    # to be drilling down into specific keys and values. That may be
+                    # an incorrect assumption; if so, some minor refactoring is probably
+                    # necessary.
+                    if not predicate(val):
+                        predicate_errors.append(predicate)
+
+            if self.predicates_async is not None:
+                for pred_async in self.predicates_async:
+                    if not await pred_async.validate_async(val):
+                        predicate_errors.append(pred_async)
+
+            if predicate_errors:
+                return Invalid(predicate_errors)
 
             return_dict: Dict[T1, T2] = {}
             errors: MapErrs = MapErrs([], {})
@@ -187,26 +210,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                         val=None if val_result.is_valid else val_result.val,
                     )
 
-            dict_validator_errors: List[ValidationErr] = []
-            if self.predicates is not None:
-                for predicate in self.predicates:
-                    # Note that the expectation here is that validators will likely
-                    # be doing json like number of keys; they aren't expected
-                    # to be drilling down into specific keys and values. That may be
-                    # an incorrect assumption; if so, some minor refactoring is probably
-                    # necessary.
-                    if not predicate(val):
-                        dict_validator_errors.append(predicate)
-
-            if self.predicates_async is not None:
-                for pred_async in self.predicates_async:
-                    if not await pred_async.validate_async(val):
-                        dict_validator_errors.append(pred_async)
-
-            if len(dict_validator_errors) > 0:
-                errors.container = dict_validator_errors
-
-            if errors.container or errors.keys:
+            if errors.keys:
                 return Invalid(errors)
             else:
                 return Valid(return_dict)

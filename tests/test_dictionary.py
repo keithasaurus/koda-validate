@@ -119,12 +119,9 @@ def test_map_validator() -> None:
         value=IntValidator(Min(5)),
         predicates=[MaxKeys(1)],
     )
-    assert complex_validator({"key1": 10, "key1a": 2},) == Invalid(
-        MapErrs(
-            container=[MaxKeys(1)],
-            keys={"key1a": KeyValErrs(key=[MaxLength(4)], val=[Min(5)])},
-        )
-    )
+    assert complex_validator(
+        {"key1": 10, "key1a": 2},
+    ) == Invalid([MaxKeys(1)])
 
     assert complex_validator({"a": 100}) == Valid({"a": 100})
 
@@ -190,10 +187,7 @@ async def test_map_validator_async() -> None:
         predicates=[MaxKeys(1)],
     )
     assert await complex_validator.validate_async({"key1": 10, "key1a": 2}) == Invalid(
-        MapErrs(
-            container=[MaxKeys(1)],
-            keys={"key1a": KeyValErrs(key=[MaxLength(4)], val=[Min(5)])},
-        )
+        [MaxKeys(1)]
     )
 
     assert await complex_validator.validate_async({"a": 100}) == Valid({"a": 100})

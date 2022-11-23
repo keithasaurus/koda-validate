@@ -18,7 +18,7 @@ OK_NONE: Final[Valid[None]] = Valid(None)
 OK_NONE_OPTIONAL: Final[Valid[Optional[Any]]] = Valid(None)
 
 EXPECTED_NONE_ERR: Final[ValidationErr] = TypeErr(NoneType, "expected None")
-EXPECTED_NONE: Final[Invalid[ValidationErr]] = Invalid([EXPECTED_NONE_ERR])
+EXPECTED_NONE: Final[Invalid[ValidationErr]] = Invalid(EXPECTED_NONE_ERR)
 
 
 class OptionalValidator(Validator[Any, Optional[A]]):
@@ -46,7 +46,7 @@ class OptionalValidator(Validator[Any, Optional[A]]):
         if val is None:
             return OK_NONE_OPTIONAL
         else:
-            result: Validated[A, Serializable] = await self.validator.validate_async(val)
+            result: Validated[A, ValidationErr] = await self.validator.validate_async(val)
             if result.is_valid:
                 return Valid(result.val)
             else:

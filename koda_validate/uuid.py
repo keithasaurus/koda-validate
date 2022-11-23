@@ -17,9 +17,9 @@ from koda_validate.base import (
     _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_UUID_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, [
-    CoercionErr([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")
-]
+EXPECTED_UUID_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, CoercionErr(
+    [str, UUID], UUID, "expected a UUID, or a UUID-compatible string"
+)
 
 
 class UUIDValidator(_ToTupleValidatorUnsafe[Any, UUID]):

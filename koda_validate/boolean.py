@@ -43,7 +43,10 @@ class BoolValidator(Validator[Any, bool]):
                     val = proc(val)
 
             if self.predicates:
-                if errors := [pred for pred in self.predicates if not pred(val)]:
+                errors: ValidationErr = [
+                    pred for pred in self.predicates if not pred(val)
+                ]
+                if errors:
                     return Invalid(errors)
                 else:
                     return Valid(val)

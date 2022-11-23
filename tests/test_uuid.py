@@ -18,11 +18,11 @@ class ReverseUUID(Processor[UUID]):
 
 def test_UUID() -> None:
     assert UUIDValidator()("a string") == Invalid(
-        [CoercionErr([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")]
+        CoercionErr([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")
     )
 
     assert UUIDValidator()(5.5) == Invalid(
-        [CoercionErr([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")]
+        CoercionErr([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")
     )
 
     assert UUIDValidator()(UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222")) == Valid(
@@ -56,11 +56,11 @@ def test_UUID() -> None:
 @pytest.mark.asyncio
 async def test_UUID_async() -> None:
     assert await UUIDValidator().validate_async("abc") == Invalid(
-        [CoercionErr([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")]
+        CoercionErr([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")
     )
 
     assert await UUIDValidator().validate_async(5.5) == Invalid(
-        [CoercionErr([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")]
+        CoercionErr([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")
     )
 
     assert await UUIDValidator().validate_async(

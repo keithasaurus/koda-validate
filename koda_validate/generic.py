@@ -165,7 +165,7 @@ class EqualsValidator(Validator[Any, ExactMatchT]):
     ) -> None:
         self.match = match
         self.preprocessors = preprocessors
-        self.predicate = EqualTo(match)
+        self.predicate: EqualTo[ExactMatchT] = EqualTo(match)
 
     def __call__(self, val: Any) -> Validated[ExactMatchT, ValidationErr]:
         if (match_type := type(self.match)) == type(val):

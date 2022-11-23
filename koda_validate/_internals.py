@@ -71,7 +71,8 @@ def _handle_scalar_processors_and_predicates(
             val = proc(val)
 
     if predicates:
-        if errors := [pred for pred in predicates if not pred(val)]:
+        errors: ValidationErr = [pred for pred in predicates if not pred(val)]
+        if errors:
             return Invalid(errors)
         else:
             return Valid(val)
@@ -89,7 +90,7 @@ async def _handle_scalar_processors_and_predicates_async(
         for proc in preprocessors:
             val = proc(val)
 
-    errors: List[Union[Predicate, PredicateAsync]] = [
+    errors: List[Union[Predicate[A], PredicateAsync[A]]] = [
         pred for pred in predicates if not pred(val)
     ]
 
@@ -113,7 +114,7 @@ async def _handle_scalar_processors_and_predicates_async_tuple(
         for proc in preprocessors:
             val = proc(val)
 
-    errors: List[Union[Predicate, PredicateAsync]] = [
+    errors: List[Union[Predicate[A], PredicateAsync[A]]] = [
         pred for pred in predicates if not pred(val)
     ]
 

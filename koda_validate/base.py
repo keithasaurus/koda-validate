@@ -98,7 +98,8 @@ ValidationErr = Union[
     MapErrs,
     TypeErr,
     VariantErrs,
-    List[Union["Predicate", "PredicateAsync"]],
+    # to: consider properly parameterizing
+    List[Union["Predicate[Any]", "PredicateAsync[Any]"]],
 ]
 
 

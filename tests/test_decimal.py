@@ -17,23 +17,19 @@ class Add1Decimal(Processor[Decimal]):
 
 def test_decimal() -> None:
     assert DecimalValidator()("a string") == Invalid(
-        [
-            CoercionErr(
-                [str, int, Decimal],
-                Decimal,
-                "expected a Decimal, or a Decimal-compatible string or integer",
-            )
-        ]
+        CoercionErr(
+            [str, int, Decimal],
+            Decimal,
+            "expected a Decimal, or a Decimal-compatible string or integer",
+        )
     )
 
     assert DecimalValidator()(5.5) == Invalid(
-        [
-            CoercionErr(
-                [str, int, Decimal],
-                Decimal,
-                "expected a Decimal, or a Decimal-compatible string or integer",
-            )
-        ]
+        CoercionErr(
+            [str, int, Decimal],
+            Decimal,
+            "expected a Decimal, or a Decimal-compatible string or integer",
+        )
     )
 
     assert DecimalValidator()(Decimal("5.5")) == Valid(Decimal("5.5"))
@@ -52,23 +48,19 @@ def test_decimal() -> None:
 @pytest.mark.asyncio
 async def test_decimal_async() -> None:
     assert await DecimalValidator().validate_async("abc") == Invalid(
-        [
-            CoercionErr(
-                [str, int, Decimal],
-                Decimal,
-                "expected a Decimal, or a Decimal-compatible string or integer",
-            )
-        ]
+        CoercionErr(
+            [str, int, Decimal],
+            Decimal,
+            "expected a Decimal, or a Decimal-compatible string or integer",
+        )
     )
 
     assert await DecimalValidator().validate_async(5.5) == Invalid(
-        [
-            CoercionErr(
-                [str, int, Decimal],
-                Decimal,
-                "expected a Decimal, or a Decimal-compatible string or integer",
-            )
-        ]
+        CoercionErr(
+            [str, int, Decimal],
+            Decimal,
+            "expected a Decimal, or a Decimal-compatible string or integer",
+        )
     )
 
     @dataclass

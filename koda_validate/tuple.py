@@ -48,7 +48,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B]]):
 
     def __call__(self, data: Any) -> Validated[Tuple[A, B], ValidationErr]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
-            result: Validated[Tuple[A, B], Tuple[Serializable, ...]] = validate_and_map(
+            result: Validated[Tuple[A, B], Tuple[ValidationErr, ...]] = validate_and_map(
                 _typed_tuple,
                 self.slot1_validator(data[0]),
                 self.slot2_validator(data[1]),
@@ -66,7 +66,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B]]):
 
     async def validate_async(self, data: Any) -> Validated[Tuple[A, B], ValidationErr]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
-            result: Validated[Tuple[A, B], Tuple[Serializable, ...]] = validate_and_map(
+            result: Validated[Tuple[A, B], Tuple[ValidationErr, ...]] = validate_and_map(
                 _typed_tuple,
                 await self.slot1_validator.validate_async(data[0]),
                 await self.slot2_validator.validate_async(data[1]),
@@ -110,7 +110,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C]]):
     def __call__(self, data: Any) -> Validated[Tuple[A, B, C], ValidationErr]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
             result: Validated[
-                Tuple[A, B, C], Tuple[Serializable, ...]
+                Tuple[A, B, C], Tuple[ValidationErr, ...]
             ] = validate_and_map(
                 _typed_tuple,
                 self.slot1_validator(data[0]),
@@ -131,7 +131,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C]]):
     async def validate_async(self, data: Any) -> Validated[Tuple[A, B, C], ValidationErr]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
             result: Validated[
-                Tuple[A, B, C], Tuple[Serializable, ...]
+                Tuple[A, B, C], Tuple[ValidationErr, ...]
             ] = validate_and_map(
                 _typed_tuple,
                 await self.slot1_validator.validate_async(data[0]),

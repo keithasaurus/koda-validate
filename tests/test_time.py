@@ -13,7 +13,7 @@ from koda_validate.validated import Invalid, Valid
 def test_date_validator() -> None:
     assert DateStringValidator()("2021-03-21") == Valid(date(2021, 3, 21))
     assert DateStringValidator()("2021-3-21") == Invalid(
-        [CoercionErr([str], date, "expected date formatted as yyyy-mm-dd")]
+        CoercionErr([str], date, "expected date formatted as yyyy-mm-dd")
     )
 
 
@@ -23,13 +23,13 @@ async def test_date_validator_async() -> None:
         date(2021, 3, 21)
     )
     assert await DateStringValidator().validate_async("2021-3-21") == Invalid(
-        [CoercionErr([str], date, "expected date formatted as yyyy-mm-dd")]
+        CoercionErr([str], date, "expected date formatted as yyyy-mm-dd")
     )
 
 
 def test_datetime_validator() -> None:
     assert DatetimeStringValidator()("") == Invalid(
-        [CoercionErr([str], datetime, "expected iso8601-formatted string")]
+        CoercionErr([str], datetime, "expected iso8601-formatted string")
     )
     assert DatetimeStringValidator()("2011-11-04") == Valid(datetime(2011, 11, 4, 0, 0))
     assert DatetimeStringValidator()("2011-11-04T00:05:23") == Valid(
@@ -40,7 +40,7 @@ def test_datetime_validator() -> None:
 @pytest.mark.asyncio
 async def test_datetime_validator_async() -> None:
     assert await DatetimeStringValidator().validate_async("") == Invalid(
-        [CoercionErr([str], datetime, "expected iso8601-formatted string")]
+        CoercionErr([str], datetime, "expected iso8601-formatted string")
     )
     assert await DatetimeStringValidator().validate_async("2011-11-04") == Valid(
         datetime(2011, 11, 4, 0, 0)

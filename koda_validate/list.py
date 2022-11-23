@@ -114,7 +114,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     val = processor(val)
 
             if self.predicates:
-                list_errors: List[Predicate] = [
+                list_errors: List[Predicate[List[Any]]] = [
                     pred for pred in self.predicates if not pred.__call__(val)
                 ]
 
@@ -148,7 +148,9 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                 for processor in self.preprocessors:
                     val = processor(val)
 
-            predicate_errors: List[Union[Predicate, PredicateAsync]] = []
+            predicate_errors: List[
+                Union[Predicate[List[Any]], PredicateAsync[List[Any]]]
+            ] = []
             if self.predicates:
                 predicate_errors.extend(
                     [pred for pred in self.predicates if not pred(val)]
@@ -169,10 +171,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     (
                         is_valid,
                         item_result,
-                    ) = await self.item_validator.validate_to_tuple_async(
-                        # type: ignore  # noqa: E501
-                        item
-                    )
+                    ) = await self.item_validator.validate_to_tuple_async(item)
                 else:
                     _result = await self.item_validator.validate_async(item)
                     is_valid, item_result = (_result.is_valid, _result.val)
