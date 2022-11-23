@@ -10,9 +10,10 @@ from koda_validate.base import (
     Processor,
     TypeErr,
     ValidationErr,
+    ValidationResult,
     Validator,
 )
-from koda_validate.validated import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Valid
 
 EXPECTED_BOOL_ERR: Final[Invalid[ValidationErr]] = Invalid(
     TypeErr(bool, "expected a boolean")
@@ -33,7 +34,7 @@ class BoolValidator(Validator[Any, bool]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[bool, ValidationErr]:
+    def __call__(self, val: Any) -> ValidationResult[bool]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -55,7 +56,7 @@ class BoolValidator(Validator[Any, bool]):
         else:
             return EXPECTED_BOOL_ERR
 
-    async def validate_async(self, val: Any) -> Validated[bool, ValidationErr]:
+    async def validate_async(self, val: Any) -> ValidationResult[bool]:
         if type(val) is bool:
             return await _handle_scalar_processors_and_predicates_async(
                 val, self.preprocessors, self.predicates, self.predicates_async

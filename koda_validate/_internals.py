@@ -18,6 +18,7 @@ from koda_validate.base import (
     Processor,
     Serializable,
     ValidationErr,
+    ValidationResult,
     _ResultTupleUnsafe,
 )
 from koda_validate.validated import Invalid, Valid, Validated
@@ -65,7 +66,7 @@ def _handle_scalar_processors_and_predicates(
     val: A,
     preprocessors: Optional[List[Processor[A]]],
     predicates: Tuple[Predicate[A], ...],
-) -> Validated[A, ValidationErr]:
+) -> ValidationResult[A]:
     if preprocessors:
         for proc in preprocessors:
             val = proc(val)
@@ -85,7 +86,7 @@ async def _handle_scalar_processors_and_predicates_async(
     preprocessors: Optional[List[Processor[A]]],
     predicates: Tuple[Predicate[A], ...],
     predicates_async: Optional[List[PredicateAsync[A]]],
-) -> Validated[A, ValidationErr]:
+) -> ValidationResult[A]:
     if preprocessors:
         for proc in preprocessors:
             val = proc(val)

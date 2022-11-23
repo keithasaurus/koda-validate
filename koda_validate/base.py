@@ -101,6 +101,9 @@ ValidationErr = Union[
 ]
 
 
+ValidationResult = Validated[A, ValidationErr]
+
+
 class Validator(Generic[InputT, SuccessT]):
     """
     Essentially a `Callable[[A], Result[B, ValidationErr]]`, but allows us to
@@ -108,10 +111,10 @@ class Validator(Generic[InputT, SuccessT]):
     instance, we can later access `5` from something like `MaxLength(5)`.
     """
 
-    def __call__(self, val: InputT) -> Validated[SuccessT, ValidationErr]:
+    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
         raise NotImplementedError  # pragma: no cover
 
-    async def validate_async(self, val: InputT) -> Validated[SuccessT, ValidationErr]:
+    async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
         """
         make it possible for all validators to be async-compatible
         """
@@ -186,7 +189,7 @@ class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
     def validate_to_tuple(self, val: InputT) -> _ResultTupleUnsafe:
         raise NotImplementedError  # pragma: no cover
 
-    def __call__(self, val: InputT) -> Validated[SuccessT, ValidationErr]:
+    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
         valid, result_val = self.validate_to_tuple(val)
         if valid:
             return Valid(result_val)
@@ -196,7 +199,7 @@ class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
     async def validate_to_tuple_async(self, val: InputT) -> _ResultTupleUnsafe:
         raise NotImplementedError  # pragma: no cover
 
-    async def validate_async(self, val: InputT) -> Validated[SuccessT, ValidationErr]:
+    async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
         valid, result_val = await self.validate_to_tuple_async(val)
         if valid:
             return Valid(result_val)

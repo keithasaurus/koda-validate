@@ -3,9 +3,9 @@ from typing import Tuple
 import pytest
 
 from koda_validate import BoolValidator, IntValidator, StringValidator
-from koda_validate.base import CustomErr, IndexErrs, TypeErr, ValidationErr
+from koda_validate.base import CustomErr, IndexErrs, TypeErr, ValidationResult
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
-from koda_validate.validated import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Valid
 
 
 def test_tuple2() -> None:
@@ -28,7 +28,7 @@ def test_tuple2() -> None:
 
     def must_be_a_if_integer_is_1(
         ab: Tuple[str, int]
-    ) -> Validated[Tuple[str, int], ValidationErr]:
+    ) -> ValidationResult[Tuple[str, int]]:
         if ab[1] == 1:
             if ab[0] == "a":
                 return Valid(ab)
@@ -77,7 +77,7 @@ async def test_tuple2_async() -> None:
 
     def must_be_a_if_integer_is_1(
         ab: Tuple[str, int]
-    ) -> Validated[Tuple[str, int], ValidationErr]:
+    ) -> ValidationResult[Tuple[str, int]]:
         if ab[1] == 1:
             if ab[0] == "a":
                 return Valid(ab)
@@ -130,7 +130,7 @@ def test_tuple3() -> None:
 
     def must_be_a_if_1_and_true(
         abc: Tuple[str, int, bool]
-    ) -> Validated[Tuple[str, int, bool], ValidationErr]:
+    ) -> ValidationResult[Tuple[str, int, bool]]:
         if abc[1] == 1 and abc[2] is True:
             if abc[0] == "a":
                 return Valid(abc)
@@ -189,7 +189,7 @@ async def test_tuple3_async() -> None:
 
     def must_be_a_if_1_and_true(
         abc: Tuple[str, int, bool]
-    ) -> Validated[Tuple[str, int, bool], ValidationErr]:
+    ) -> ValidationResult[Tuple[str, int, bool]]:
         if abc[1] == 1 and abc[2] is True:
             if abc[0] == "a":
                 return Valid(abc)

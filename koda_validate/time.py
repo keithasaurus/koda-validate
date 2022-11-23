@@ -12,9 +12,10 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     ValidationErr,
+    ValidationResult,
     Validator,
 )
-from koda_validate.validated import Invalid, Validated
+from koda_validate.validated import Invalid
 
 EXPECTED_DATE_ERR: Final[Invalid[ValidationErr]] = Invalid(
     CoercionErr([str], date, "expected date formatted as yyyy-mm-dd")
@@ -43,7 +44,7 @@ class DateStringValidator(Validator[Any, date]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[date, ValidationErr]:
+    def __call__(self, val: Any) -> ValidationResult[date]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -56,7 +57,7 @@ class DateStringValidator(Validator[Any, date]):
                 val, self.preprocessors, self.predicates
             )
 
-    async def validate_async(self, val: Any) -> Validated[date, ValidationErr]:
+    async def validate_async(self, val: Any) -> ValidationResult[date]:
         try:
             val = date.fromisoformat(val)
         except (ValueError, TypeError):
@@ -81,7 +82,7 @@ class DatetimeStringValidator(Validator[Any, datetime]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[datetime, ValidationErr]:
+    def __call__(self, val: Any) -> ValidationResult[datetime]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -96,7 +97,7 @@ class DatetimeStringValidator(Validator[Any, datetime]):
                 val_, self.preprocessors, self.predicates
             )
 
-    async def validate_async(self, val: Any) -> Validated[datetime, ValidationErr]:
+    async def validate_async(self, val: Any) -> ValidationResult[datetime]:
         try:
             # note isoparse from dateutil is more flexible if we want
             # to add the dependency at some point

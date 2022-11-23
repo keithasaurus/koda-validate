@@ -32,7 +32,7 @@ from koda_validate import (
     Validator,
     strip,
 )
-from koda_validate.base import CustomErr, ValidationErr
+from koda_validate.base import CustomErr, ValidationResult
 from koda_validate.dictionary import (
     DictValidatorAny,
     KeyNotRequired,
@@ -43,7 +43,7 @@ from koda_validate.dictionary import (
 )
 from koda_validate.generic import AlwaysValid
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
-from koda_validate.validated import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Valid
 
 
 @dataclass
@@ -95,7 +95,7 @@ def test_match_args() -> None:
 
 
 def test_record_validator_match_args() -> None:
-    def validate_person(p: Person) -> Validated[Person, ValidationErr]:
+    def validate_person(p: Person) -> ValidationResult[Person]:
         if len(p.name) > p.age.get_or_else(100):
             return Invalid(CustomErr("your name cannot be longer than your age"))
         else:
@@ -131,9 +131,7 @@ def test_record_validator_match_args() -> None:
 
 
 def test_dict_any_match_args() -> None:
-    def validate_person_dict_any(
-        p: Dict[Any, Any]
-    ) -> Validated[Dict[Any, Any], ValidationErr]:
+    def validate_person_dict_any(p: Dict[Any, Any]) -> ValidationResult[Dict[Any, Any]]:
         if len(p["name"]) > p["age"]:
             return Invalid(CustomErr("your name cannot be longer than your name"))
         else:

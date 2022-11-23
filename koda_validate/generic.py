@@ -12,12 +12,12 @@ from koda_validate.base import (
     Predicate,
     Processor,
     TypeErr,
-    ValidationErr,
+    ValidationResult,
     Validator,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
-from koda_validate.validated import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Valid
 
 EnumT = TypeVar("EnumT", str, int)
 
@@ -47,10 +47,10 @@ class Lazy(Validator[A, Ret]):
         self.validator = validator
         self.recurrent = recurrent
 
-    def __call__(self, data: A) -> Validated[Ret, ValidationErr]:
+    def __call__(self, data: A) -> ValidationResult[Ret]:
         return self.validator()(data)
 
-    async def validate_async(self, data: A) -> Validated[Ret, ValidationErr]:
+    async def validate_async(self, data: A) -> ValidationResult[Ret]:
         return await self.validator().validate_async(data)
 
 
@@ -167,7 +167,7 @@ class EqualsValidator(Validator[Any, ExactMatchT]):
         self.preprocessors = preprocessors
         self.predicate: EqualTo[ExactMatchT] = EqualTo(match)
 
-    def __call__(self, val: Any) -> Validated[ExactMatchT, ValidationErr]:
+    def __call__(self, val: Any) -> ValidationResult[ExactMatchT]:
         if (match_type := type(self.match)) == type(val):
             if self.preprocessors:
                 for preprocess in self.preprocessors:
@@ -180,7 +180,7 @@ class EqualsValidator(Validator[Any, ExactMatchT]):
         else:
             return Invalid(TypeErr(match_type, f"expected a {match_type.__name__}"))
 
-    async def validate_async(self, val: Any) -> Validated[ExactMatchT, ValidationErr]:
+    async def validate_async(self, val: Any) -> ValidationResult[ExactMatchT]:
         return self(val)
 
 

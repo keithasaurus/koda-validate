@@ -9,7 +9,13 @@ from typing import Any, Callable, Final, Optional, Tuple
 from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
 from koda_validate._validate_and_map import validate_and_map
-from koda_validate.base import IndexErrs, TypeErr, ValidationErr, Validator
+from koda_validate.base import (
+    IndexErrs,
+    TypeErr,
+    ValidationErr,
+    ValidationResult,
+    Validator,
+)
 from koda_validate.validated import Invalid, Validated
 
 
@@ -38,14 +44,14 @@ class Tuple2Validator(Validator[Any, Tuple[A, B]]):
         slot1_validator: Validator[Any, A],
         slot2_validator: Validator[Any, B],
         tuple_validator: Optional[
-            Callable[[Tuple[A, B]], Validated[Tuple[A, B], ValidationErr]]
+            Callable[[Tuple[A, B]], ValidationResult[Tuple[A, B]]]
         ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator
         self.tuple_validator = tuple_validator
 
-    def __call__(self, data: Any) -> Validated[Tuple[A, B], ValidationErr]:
+    def __call__(self, data: Any) -> ValidationResult[Tuple[A, B]]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
             result: Validated[Tuple[A, B], Tuple[ValidationErr, ...]] = validate_and_map(
                 _typed_tuple,
@@ -63,7 +69,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B]]):
         else:
             return EXPECTED_TUPLE_TWO_ERROR
 
-    async def validate_async(self, data: Any) -> Validated[Tuple[A, B], ValidationErr]:
+    async def validate_async(self, data: Any) -> ValidationResult[Tuple[A, B]]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
             result: Validated[Tuple[A, B], Tuple[ValidationErr, ...]] = validate_and_map(
                 _typed_tuple,
@@ -98,7 +104,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C]]):
         slot2_validator: Validator[Any, B],
         slot3_validator: Validator[Any, C],
         tuple_validator: Optional[
-            Callable[[Tuple[A, B, C]], Validated[Tuple[A, B, C], ValidationErr]]
+            Callable[[Tuple[A, B, C]], ValidationResult[Tuple[A, B, C]]]
         ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
@@ -106,7 +112,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C]]):
         self.slot3_validator = slot3_validator
         self.tuple_validator = tuple_validator
 
-    def __call__(self, data: Any) -> Validated[Tuple[A, B, C], ValidationErr]:
+    def __call__(self, data: Any) -> ValidationResult[Tuple[A, B, C]]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
             result: Validated[
                 Tuple[A, B, C], Tuple[ValidationErr, ...]
@@ -127,7 +133,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C]]):
         else:
             return EXPECTED_TUPLE_THREE_ERROR
 
-    async def validate_async(self, data: Any) -> Validated[Tuple[A, B, C], ValidationErr]:
+    async def validate_async(self, data: Any) -> ValidationResult[Tuple[A, B, C]]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
             result: Validated[
                 Tuple[A, B, C], Tuple[ValidationErr, ...]

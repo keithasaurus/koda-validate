@@ -1,11 +1,11 @@
 from typing import Any
 
 from koda_validate import *
-from koda_validate.base import TypeErr, ValidationErr
+from koda_validate.base import TypeErr, ValidationResult
 
 
 class SimpleFloatValidator(Validator[Any, float]):
-    def __call__(self, val: Any) -> Validated[float, ValidationErr]:
+    def __call__(self, val: Any) -> ValidationResult[float]:
         if isinstance(val, float):
             return Valid(val)
         else:

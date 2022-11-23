@@ -3,8 +3,14 @@ from typing import Any, Final, Optional
 
 from koda._generics import A
 
-from koda_validate.base import TypeErr, ValidationErr, Validator, VariantErrs
-from koda_validate.validated import Invalid, Valid, Validated
+from koda_validate.base import (
+    TypeErr,
+    ValidationErr,
+    ValidationResult,
+    Validator,
+    VariantErrs,
+)
+from koda_validate.validated import Invalid, Valid
 
 OK_NONE: Final[Valid[None]] = Valid(None)
 OK_NONE_OPTIONAL: Final[Valid[Optional[Any]]] = Valid(None)
@@ -24,21 +30,21 @@ class OptionalValidator(Validator[Any, Optional[A]]):
     def __init__(self, validator: Validator[Any, A]) -> None:
         self.validator = validator
 
-    def __call__(self, val: Any) -> Validated[Optional[A], ValidationErr]:
+    def __call__(self, val: Any) -> ValidationResult[Optional[A]]:
         if val is None:
             return OK_NONE_OPTIONAL
         else:
-            result: Validated[A, ValidationErr] = self.validator(val)
+            result: ValidationResult[A] = self.validator(val)
             if result.is_valid:
                 return Valid(result.val)
             else:
                 return Invalid(VariantErrs([EXPECTED_NONE_ERR, result.val]))
 
-    async def validate_async(self, val: Any) -> Validated[Optional[A], ValidationErr]:
+    async def validate_async(self, val: Any) -> ValidationResult[Optional[A]]:
         if val is None:
             return OK_NONE_OPTIONAL
         else:
-            result: Validated[A, ValidationErr] = await self.validator.validate_async(val)
+            result: ValidationResult[A] = await self.validator.validate_async(val)
             if result.is_valid:
                 return Valid(result.val)
             else:
@@ -46,13 +52,13 @@ class OptionalValidator(Validator[Any, Optional[A]]):
 
 
 class NoneValidator(Validator[Any, None]):
-    def __call__(self, val: Any) -> Validated[None, ValidationErr]:
+    def __call__(self, val: Any) -> ValidationResult[None]:
         if val is None:
             return OK_NONE
         else:
             return EXPECTED_NONE
 
-    async def validate_async(self, val: Any) -> Validated[None, ValidationErr]:
+    async def validate_async(self, val: Any) -> ValidationResult[None]:
         return self(val)
 
 
