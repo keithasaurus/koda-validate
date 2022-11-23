@@ -148,7 +148,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 return Invalid(predicate_errors)
 
             return_dict: Dict[T1, T2] = {}
-            errors: MapErrs = MapErrs([], {})
+            errors: MapErrs = MapErrs({})
             for key, val_ in val.items():
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val_)
@@ -166,7 +166,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
             else:
                 return Valid(return_dict)
         else:
-            return Invalid(MapErrs(DICT_TYPE_ERR, {}))
+            return Invalid(DICT_TYPE_ERR)
 
     async def validate_async(self, val: Any) -> Validated[Dict[T1, T2], ValidationErr]:
         if isinstance(val, dict):
@@ -196,7 +196,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 return Invalid(predicate_errors)
 
             return_dict: Dict[T1, T2] = {}
-            errors: MapErrs = MapErrs([], {})
+            errors: MapErrs = MapErrs({})
 
             for key, val_ in val.items():
                 key_result = await self.key_validator.validate_async(key)
@@ -215,7 +215,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
             else:
                 return Valid(return_dict)
         else:
-            return Invalid(MapErrs(DICT_TYPE_ERR, {}))
+            return Invalid(DICT_TYPE_ERR)
 
 
 class IsDictValidator(_ToTupleValidatorUnsafe[Any, Dict[Any, Any]]):

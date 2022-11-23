@@ -76,11 +76,11 @@ async def test_is_dict_async() -> None:
 
 def test_map_validator() -> None:
     assert MapValidator(key=StringValidator(), value=FloatValidator())(None) == Invalid(
-        MapErrs(DICT_TYPE_ERR, {})
+        DICT_TYPE_ERR
     )
 
     assert MapValidator(key=StringValidator(), value=StringValidator())(5) == Invalid(
-        MapErrs(DICT_TYPE_ERR, {})
+        DICT_TYPE_ERR
     )
 
     assert MapValidator(key=StringValidator(), value=StringValidator())({}) == Valid({})
@@ -93,13 +93,12 @@ def test_map_validator() -> None:
         {5: None}
     ) == Invalid(
         MapErrs(
-            container=[],
-            keys={
+            {
                 5: KeyValErrs(
                     key=TypeErr(str, "expected a string"),
                     val=TypeErr(int, "expected an integer"),
                 )
-            },
+            }
         )
     )
 
@@ -141,11 +140,11 @@ def test_map_validator() -> None:
 async def test_map_validator_async() -> None:
     assert await MapValidator(
         key=StringValidator(), value=FloatValidator()
-    ).validate_async(None) == Invalid(MapErrs(DICT_TYPE_ERR, {}))
+    ).validate_async(None) == Invalid(DICT_TYPE_ERR)
 
     assert await MapValidator(
         key=StringValidator(), value=StringValidator()
-    ).validate_async(5) == Invalid(MapErrs(DICT_TYPE_ERR, {}))
+    ).validate_async(5) == Invalid(DICT_TYPE_ERR)
 
     assert await MapValidator(
         key=StringValidator(), value=StringValidator()
@@ -159,13 +158,12 @@ async def test_map_validator_async() -> None:
         {5: None}
     ) == Invalid(
         MapErrs(
-            container=[],
-            keys={
+            {
                 5: KeyValErrs(
                     key=TypeErr(str, "expected a string"),
                     val=TypeErr(int, "expected an integer"),
                 )
-            },
+            }
         )
     )
 

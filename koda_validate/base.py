@@ -69,7 +69,6 @@ class KeyValErrs:
 
 @dataclass
 class MapErrs:
-    container: "ValidationErr"
     keys: Dict[Hashable, KeyValErrs]
 
 
