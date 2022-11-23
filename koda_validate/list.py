@@ -1,15 +1,14 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Final, List, Literal, Optional, Set, Tuple, Type, Union
+from typing import Any, Final, List, Literal, Optional, Set, Tuple, Type, Union
 
 from koda._generics import A
 
-from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
+from koda_validate._internals import _async_predicates_warning
 from koda_validate.base import (
     IndexErrs,
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
     TypeErr,
     ValidationErr,
     Validator,
@@ -171,7 +170,9 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     (
                         is_valid,
                         item_result,
-                    ) = await self.item_validator.validate_to_tuple_async(item)
+                    ) = await self.item_validator.validate_to_tuple_async(
+                        item
+                    )  # type: ignore  # noqa: E501
                 else:
                     _result = await self.item_validator.validate_async(item)
                     is_valid, item_result = (_result.is_valid, _result.val)

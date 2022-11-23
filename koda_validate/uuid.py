@@ -11,7 +11,6 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
     ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,

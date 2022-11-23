@@ -8,7 +8,6 @@ from typing import (
     Hashable,
     List,
     Optional,
-    Protocol,
     Set,
     Tuple,
     Type,
@@ -119,7 +118,7 @@ class Validator(Generic[InputT, SuccessT]):
         raise NotImplementedError  # pragma: no cover
 
 
-class Predicate(Protocol[InputT]):
+class Predicate(Generic[InputT]):
     """
     The important aspect of a `Predicate` is that it is not
     possible to change the data passed in (it is technically possible to mutate
