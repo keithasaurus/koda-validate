@@ -121,7 +121,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     return False, list_errors
 
             return_list: List[A] = []
-            index_errs: dict[int, ValidationErr] = {}
+            index_errs: Dict[int, ValidationErr] = {}
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
                     is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501

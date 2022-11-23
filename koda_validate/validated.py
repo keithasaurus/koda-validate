@@ -23,13 +23,15 @@ class Valid(Generic[A]):
     def flat_map(self, fn: Callable[[A], "Validated[B, FailT]"]) -> "Validated[B, FailT]":
         return fn(self.val)
 
-    def flat_map_err(self, fn: Callable[[Any], "Validated[A, B]"]) -> "Validated[A, B]":
+    def flat_map_invalid(
+        self, fn: Callable[[Any], "Validated[A, B]"]
+    ) -> "Validated[A, B]":
         return self
 
     def map(self, fn: Callable[[A], B]) -> "Validated[B, FailT]":
         return Valid(fn(self.val))
 
-    def map_err(self, fn: Callable[[Any], "B"]) -> "Validated[A, B]":
+    def map_invalid(self, fn: Callable[[Any], "B"]) -> "Validated[A, B]":
         return self
 
     @property
@@ -60,10 +62,12 @@ class Invalid(Generic[FailT]):
     ) -> "Validated[B, FailT]":
         return self
 
-    def flat_map_err(self, fn: Callable[[FailT], "Validated[A, B]"]) -> "Validated[A, B]":
+    def flat_map_invalid(
+        self, fn: Callable[[FailT], "Validated[A, B]"]
+    ) -> "Validated[A, B]":
         return fn(self.val)
 
-    def map_err(self, fn: Callable[[FailT], B]) -> "Validated[A, B]":
+    def map_invalid(self, fn: Callable[[FailT], B]) -> "Validated[A, B]":
         return Invalid(fn(self.val))
 
     @property

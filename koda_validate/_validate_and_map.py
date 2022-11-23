@@ -77,7 +77,7 @@ def tupled_err_func(
         if validate_object is None:
             return Valid(obj)
         else:
-            return validate_object(obj).map_err(_tupled)
+            return validate_object(obj).map_invalid(_tupled)
 
     return inner
 

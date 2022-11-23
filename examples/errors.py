@@ -18,7 +18,7 @@ assert StringValidator()(None) == Invalid(InvalidType(str, "expected a string"))
 str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
 assert str_choice_validator("") == Invalid([MinLength(2), Choices({"abc", "yz"})])
 
-print(str_choice_validator("no").map_err(serializable_validation_err))
+print(str_choice_validator("no").map_invalid(serializable_validation_err))
 
 
 @dataclass
@@ -42,7 +42,7 @@ assert city_validator(None) == Invalid(InvalidType(dict, "expected a dictionary"
 print(city_validator({}))
 assert city_validator({}) == Invalid(InvalidDict({"name": invalid_key_missing}))
 
-print(city_validator({}).map_err(serializable_validation_err))
+print(city_validator({}).map_invalid(serializable_validation_err))
 
 # Extra keys are also errors
 assert city_validator(
@@ -67,7 +67,7 @@ assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Invalid(
 )
 
 print(
-    neighborhood_validator({"name": "Bushwick", "city": {}}).map_err(
+    neighborhood_validator({"name": "Bushwick", "city": {}}).map_invalid(
         serializable_validation_err
     )
 )

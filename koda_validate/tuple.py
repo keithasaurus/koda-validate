@@ -60,7 +60,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B]]):
             )
 
             if not result.is_valid:
-                return result.map_err(_tuple_to_dict_errors)
+                return result.map_invalid(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
                     return result
@@ -78,7 +78,7 @@ class Tuple2Validator(Validator[Any, Tuple[A, B]]):
             )
 
             if not result.is_valid:
-                return result.map_err(_tuple_to_dict_errors)
+                return result.map_invalid(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
                     return result
@@ -124,7 +124,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C]]):
             )
 
             if not result.is_valid:
-                return result.map_err(_tuple_to_dict_errors)
+                return result.map_invalid(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
                     return result
@@ -145,7 +145,7 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C]]):
             )
 
             if not result.is_valid:
-                return result.map_err(_tuple_to_dict_errors)
+                return result.map_invalid(_tuple_to_dict_errors)
             else:
                 if self.tuple_validator is None:
                     return result

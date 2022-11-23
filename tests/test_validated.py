@@ -14,14 +14,14 @@ def test_valid_flat_map_err() -> None:
     def fn(_: Any) -> Any:
         return Valid(5)
 
-    assert Valid("abc").flat_map_err(fn) == Valid("abc")
+    assert Valid("abc").flat_map_invalid(fn) == Valid("abc")
 
 
 def test_valid_map_err() -> None:
     def fn(_: Any) -> Any:
         return 5
 
-    assert Valid("abc").map_err(fn) == Valid("abc")
+    assert Valid("abc").map_invalid(fn) == Valid("abc")
 
 
 def test_valid_as_result() -> None:
@@ -43,7 +43,7 @@ def test_invalid_flat_map_err() -> None:
     def fn(_: Any) -> Any:
         return Valid(5)
 
-    assert Invalid("abc").flat_map_err(fn) == Valid(5)
+    assert Invalid("abc").flat_map_invalid(fn) == Valid(5)
 
 
 def test_valid_map() -> None:
