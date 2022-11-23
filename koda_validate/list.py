@@ -5,7 +5,7 @@ from koda._generics import A
 
 from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
-    IterableErrs,
+    IndexErrs,
     Predicate,
     PredicateAsync,
     Processor,
@@ -20,6 +20,9 @@ from koda_validate.base import (
 
 @dataclass(init=False)
 class MinItems(Predicate[List[Any]]):
+    length: int
+    err_message: str
+
     def __init__(self, length: int) -> None:
         self.length = length
         self.err_message = f"minimum allowed length is {length}"
@@ -30,6 +33,9 @@ class MinItems(Predicate[List[Any]]):
 
 @dataclass(init=False)
 class MaxItems(Predicate[List[Any]]):
+    length: int
+    err_message: str
+
     def __init__(self, length: int) -> None:
         self.length = length
         self.err_message = f"maximum allowed length is {length}"
@@ -130,7 +136,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, IterableErrs(index_errs)
+                return False, IndexErrs(index_errs)
             else:
                 return True, return_list
         else:
@@ -177,7 +183,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, IterableErrs(index_errs)
+                return False, IndexErrs(index_errs)
             else:
                 return True, return_list
         else:

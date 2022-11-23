@@ -12,7 +12,7 @@ from koda_validate import (
     Serializable,
     StringValidator,
 )
-from koda_validate.base import IterableErrs, TypeErr
+from koda_validate.base import IndexErrs, TypeErr
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Min
 from koda_validate.list import ListValidator, MaxItems, MinItems, unique_items
@@ -25,7 +25,7 @@ def test_list_validator() -> None:
     )
 
     assert ListValidator(FloatValidator())([5.5, "something else"]) == Invalid(
-        IterableErrs(
+        IndexErrs(
             {1: TypeErr(float, "expected a float")},
         )
     )
@@ -54,7 +54,7 @@ async def test_list_async() -> None:
     assert await ListValidator(FloatValidator()).validate_async(
         [5.5, "something else"]
     ) == Invalid(
-        IterableErrs(
+        IndexErrs(
             {1: TypeErr(float, "expected a float")},
         )
     )

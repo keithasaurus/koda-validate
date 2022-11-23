@@ -32,7 +32,7 @@ async def test_none_async() -> None:
 def test_optional_validator() -> None:
     assert OptionalValidator(StringValidator())(None) == Valid(None)
     assert OptionalValidator(StringValidator())(5) == Invalid(
-        VariantErrs([EXPECTED_NONE_ERR, [TypeErr(str, "expected a string")]])
+        VariantErrs([EXPECTED_NONE_ERR, TypeErr(str, "expected a string")])
     )
     assert OptionalValidator(StringValidator())("okok") == Valid("okok")
 
@@ -41,7 +41,7 @@ def test_optional_validator() -> None:
 async def test_optional_validator_async() -> None:
     assert await OptionalValidator(StringValidator()).validate_async(None) == Valid(None)
     assert await OptionalValidator(StringValidator()).validate_async(5) == Invalid(
-        VariantErrs([EXPECTED_NONE_ERR, [TypeErr(str, "expected a string")]])
+        VariantErrs([EXPECTED_NONE_ERR, TypeErr(str, "expected a string")])
     )
     assert await OptionalValidator(StringValidator()).validate_async("okok") == Valid(
         "okok"

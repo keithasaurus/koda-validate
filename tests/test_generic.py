@@ -3,56 +3,53 @@ from decimal import Decimal
 import pytest
 
 from koda_validate import Choices, EqualsValidator, Max, Min, MultipleOf, strip
-from koda_validate.generic import always_valid
+from koda_validate.base import TypeErr
+from koda_validate.generic import EqualTo, always_valid
 from koda_validate.validated import Invalid, Valid
 
 
-def test_exactly() -> None:
+def test_equals_validator() -> None:
     assert EqualsValidator(5)(5) == Valid(5)
-    assert EqualsValidator(5)(4) == Invalid(["expected exactly 5 (int)"])
+    assert EqualsValidator(5)(4) == Invalid([EqualTo(5)])
     assert EqualsValidator("ok")("ok") == Valid("ok")
     assert EqualsValidator("ok", preprocessors=[strip])(" ok ") == Valid("ok")
-    assert EqualsValidator("ok")("not ok") == Invalid(['expected exactly "ok" (str)'])
+    assert EqualsValidator("ok")("not ok") == Invalid([EqualTo("ok")])
     assert EqualsValidator(Decimal("1.25"))(Decimal("1.25")) == Valid(Decimal("1.25"))
     assert EqualsValidator(Decimal("1.1"))(Decimal("5")) == Invalid(
-        ["expected exactly 1.1 (Decimal)"]
+        [EqualTo(Decimal("1.1"))]
     )
-    assert EqualsValidator(4.4)("5.5") == Invalid(["expected exactly 4.4 (float)"])
+    assert EqualsValidator(4.4)("5.5") == Invalid(TypeErr(float, "expected a float"))
     assert EqualsValidator(True)(True) == Valid(True)
     assert EqualsValidator(False)(False) == Valid(False)
-    assert EqualsValidator(True)(False) == Invalid(["expected exactly True (bool)"])
-    assert EqualsValidator(4)(4.0) == Invalid(["expected exactly 4 (int)"])
+    assert EqualsValidator(True)(False) == Invalid([EqualTo(True)])
+    assert EqualsValidator(4)(4.0) == Invalid(TypeErr(int, "expected a int"))
 
 
 @pytest.mark.asyncio
-async def test_exactly_async() -> None:
+async def test_equals_validator_async() -> None:
     assert await EqualsValidator(5).validate_async(5) == Valid(5)
-    assert await EqualsValidator(5).validate_async(4) == Invalid(
-        ["expected exactly 5 (int)"]
-    )
+    assert await EqualsValidator(5).validate_async(4) == Invalid([EqualTo(5)])
     assert await EqualsValidator("ok").validate_async("ok") == Valid("ok")
     assert await EqualsValidator("ok", preprocessors=[strip]).validate_async(
         " ok "
     ) == Valid("ok")
     assert await EqualsValidator("ok").validate_async("not ok") == Invalid(
-        ['expected exactly "ok" (str)']
+        [EqualTo("ok")]
     )
     assert await EqualsValidator(Decimal("1.25")).validate_async(
         Decimal("1.25")
     ) == Valid(Decimal("1.25"))
     assert await EqualsValidator(Decimal("1.1")).validate_async(Decimal("5")) == Invalid(
-        ["expected exactly 1.1 (Decimal)"]
+        [EqualTo(Decimal("1.1"))]
     )
     assert await EqualsValidator(4.4).validate_async("5.5") == Invalid(
-        ["expected exactly 4.4 (float)"]
+        TypeErr(float, "expected a float")
     )
     assert await EqualsValidator(True).validate_async(True) == Valid(True)
     assert await EqualsValidator(False).validate_async(False) == Valid(False)
-    assert await EqualsValidator(True).validate_async(False) == Invalid(
-        ["expected exactly True (bool)"]
-    )
+    assert await EqualsValidator(True).validate_async(False) == Invalid([EqualTo(True)])
     assert await EqualsValidator(4).validate_async(4.0) == Invalid(
-        ["expected exactly 4 (int)"]
+        TypeErr(int, "expected a int")
     )
 
 

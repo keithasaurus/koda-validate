@@ -61,6 +61,9 @@ class Choices(Predicate[EnumT]):
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
+    choices: Set[EnumT]
+    err_message: str
+
     def __init__(self, choices: Set[EnumT]) -> None:
         self.err_message = f"expected one of {sorted(choices)}"
         self.choices: Set[EnumT] = choices
@@ -110,6 +113,9 @@ class Max(Predicate[Num]):
 
 @dataclass(init=False)
 class MultipleOf(Predicate[Num]):
+    factor: Num
+    err_message: str
+
     def __init__(self, factor: Num) -> None:
         self.err_message = f"expected multiple of {factor}"
         self.factor: Num = factor

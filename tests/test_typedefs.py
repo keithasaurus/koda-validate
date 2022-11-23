@@ -22,5 +22,5 @@ async def test_async_predicate_works_as_expected() -> None:
             return val.startswith(self.prefix)
 
     obj = ExampleStartsWithPredicate("abc")
-    assert await obj.validate_async("def") == Invalid(ExampleStartsWithPredicate)
-    assert await obj.validate_async("abc123") == Valid("abc123")
+    assert await obj.validate_async("def") is False
+    assert await obj.validate_async("abc123") is True

@@ -74,8 +74,8 @@ class MapErrs:
 
 
 @dataclass
-class IterableErrs:
-    items: Dict[int, "ValidationErr"]
+class IndexErrs:
+    indexes: Dict[int, "ValidationErr"]
 
 
 @dataclass
@@ -93,7 +93,7 @@ ValidationErr = Union[
     CustomErr,
     DictErrs,
     ExtraKeysErr,
-    IterableErrs,
+    IndexErrs,
     KeyMissingErr,
     MapErrs,
     TypeErr,

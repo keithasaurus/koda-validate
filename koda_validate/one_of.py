@@ -3,7 +3,7 @@ from typing import Any
 from koda import Either, Either3, First, Second, Third
 from koda._generics import A, B, C
 
-from koda_validate.base import Serializable, ValidationErr, Validator
+from koda_validate.base import ValidationErr, Validator, VariantErrs
 from koda_validate.validated import Invalid, Valid, Validated
 
 
@@ -26,26 +26,16 @@ class OneOf2(Validator[Any, Either[A, B]]):
             if (v2_result := self.variant_2(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                return Invalid(
-                    {
-                        "variant 1": v1_result.val,
-                        "variant 2": v2_result.val,
-                    }
-                )
+                return Invalid(VariantErrs([v1_result.val, v2_result.val]))
 
-    async def validate_async(self, val: Any) -> Validated[Either[A, B], Serializable]:
+    async def validate_async(self, val: Any) -> Validated[Either[A, B], ValidationErr]:
         if (v1_result := await self.variant_1.validate_async(val)).is_valid:
             return Valid(First(v1_result.val))
         else:
             if (v2_result := await self.variant_2.validate_async(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                return Invalid(
-                    {
-                        "variant 1": v1_result.val,
-                        "variant 2": v2_result.val,
-                    }
-                )
+                return Invalid(VariantErrs([v1_result.val, v2_result.val]))
 
 
 class OneOf3(Validator[Any, Either3[A, B, C]]):
@@ -73,11 +63,13 @@ class OneOf3(Validator[Any, Either3[A, B, C]]):
                     return Valid(Third(v3_result.val))
                 else:
                     return Invalid(
-                        {
-                            "variant 1": v1_result.val,
-                            "variant 2": v2_result.val,
-                            "variant 3": v3_result.val,
-                        }
+                        VariantErrs(
+                            [
+                                v1_result.val,
+                                v2_result.val,
+                                v3_result.val,
+                            ]
+                        )
                     )
 
     async def validate_async(
@@ -93,9 +85,11 @@ class OneOf3(Validator[Any, Either3[A, B, C]]):
                     return Valid(Third(v3_result.val))
                 else:
                     return Invalid(
-                        {
-                            "variant 1": v1_result.val,
-                            "variant 2": v2_result.val,
-                            "variant 3": v3_result.val,
-                        }
+                        VariantErrs(
+                            [
+                                v1_result.val,
+                                v2_result.val,
+                                v3_result.val,
+                            ]
+                        )
                     )

@@ -15,7 +15,7 @@ from koda_validate.base import (
 from koda_validate.validated import Invalid, Valid, Validated
 
 EXPECTED_BOOL_ERR: Final[Invalid[ValidationErr]] = Invalid(
-    [TypeErr(bool, "expected a boolean")]
+    TypeErr(bool, "expected a boolean")
 )
 
 
