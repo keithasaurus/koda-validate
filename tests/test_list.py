@@ -5,13 +5,7 @@ from typing import Any, List
 import pytest
 from koda._generics import A
 
-from koda_validate import (
-    IntValidator,
-    PredicateAsync,
-    Processor,
-    Serializable,
-    StringValidator,
-)
+from koda_validate import IntValidator, PredicateAsync, Processor, StringValidator
 from koda_validate.base import IndexErrs, TypeErr
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Min

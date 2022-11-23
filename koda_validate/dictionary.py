@@ -6,9 +6,7 @@ from typing import (
     Callable,
     Dict,
     Final,
-    FrozenSet,
     Hashable,
-    KeysView,
     List,
     Literal,
     Optional,
@@ -39,7 +37,7 @@ from koda_validate._generics import (
     A,
     Ret,
 )
-from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
+from koda_validate._internals import _async_predicates_warning
 from koda_validate.base import (
     DictErrs,
     ExtraKeysErr,
@@ -48,7 +46,6 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
     TypeErr,
     ValidationErr,
     Validator,

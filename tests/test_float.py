@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import pytest
 from koda._generics import A
 
-from koda_validate.base import CoercionErr, Predicate, PredicateAsync, Processor, TypeErr
+from koda_validate.base import Predicate, PredicateAsync, Processor, TypeErr
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Max, Min
 from koda_validate.validated import Invalid, Valid

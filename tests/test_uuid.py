@@ -4,7 +4,7 @@ from uuid import UUID
 
 import pytest
 
-from koda_validate import Predicate, PredicateAsync, Processor, Serializable
+from koda_validate import Predicate, PredicateAsync, Processor
 from koda_validate._generics import A
 from koda_validate.base import CoercionErr
 from koda_validate.uuid import UUIDValidator

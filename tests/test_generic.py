@@ -58,14 +58,14 @@ def test_choices() -> None:
 
     assert validator("bc") is True
     assert validator("not present") is False
-    assert validator.err_message == f"expected one of ['a', 'bc', 'def']"
+    assert validator.err_message == "expected one of ['a', 'bc', 'def']"
 
 
 def test_multiple_of() -> None:
     assert MultipleOf(5)(10) is True
     assert MultipleOf(5)(11) is False
     assert MultipleOf(2.2)(4.40) is True
-    assert MultipleOf(2.2).err_message == f"expected multiple of 2.2"
+    assert MultipleOf(2.2).err_message == "expected multiple of 2.2"
 
 
 def test_min() -> None:

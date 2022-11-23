@@ -28,7 +28,6 @@ from koda_validate import (
     OneOf3,
     OptionalValidator,
     RegexPredicate,
-    Serializable,
     StringValidator,
     Validator,
     strip,
@@ -214,7 +213,7 @@ def test_generic_match() -> None:
     match MultipleOf(3):
         case MultipleOf(num, err_message):
             assert num == 3
-            assert err_message == f"expected multiple of 3"
+            assert err_message == "expected multiple of 3"
         case _:
             assert False
 
@@ -244,7 +243,7 @@ def test_generic_match() -> None:
     match MinItems(2):
         case MinItems(length, err_message):
             assert length == 2
-            assert err_message == f"minimum allowed length is 2"
+            assert err_message == "minimum allowed length is 2"
         case _:
             assert False
 

@@ -2,7 +2,7 @@ from typing import Tuple
 
 import pytest
 
-from koda_validate import BoolValidator, IntValidator, Serializable, StringValidator
+from koda_validate import BoolValidator, IntValidator, StringValidator
 from koda_validate.base import CustomErr, IndexErrs, TypeErr, ValidationErr
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.validated import Invalid, Valid, Validated
