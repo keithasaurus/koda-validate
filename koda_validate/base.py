@@ -26,13 +26,13 @@ class InvalidCoercion:
 
     compatible_types: List[Type[Any]]
     dest_type: Type[Any]
-    message: str
+    err_message: str
 
 
 @dataclass
 class InvalidType:
     expected_type: Type[Any]
-    message: str
+    err_message: str
 
 
 class InvalidKeyMissing:
@@ -47,9 +47,20 @@ class InvalidKeyMissing:
         return cls._instance
 
 
-@dataclass
+@dataclass(init=False)
 class InvalidExtraKeys:
     expected_keys: Set[Hashable]
+    err_message: str
+
+    def __init__(self, expected_keys: Set[Hashable]) -> None:
+        self.expected_keys = expected_keys
+        self.err_message = "Received unknown keys. " + (
+            "Expected empty dictionary."
+            if len(expected_keys) == 0
+            else "Only expected "
+            + ", ".join(sorted([repr(k) for k in expected_keys]))
+            + "."
+        )
 
 
 invalid_key_missing = InvalidKeyMissing()
@@ -83,7 +94,7 @@ class InvalidVariants:
 
 @dataclass
 class InvalidCustom:
-    message: str
+    err_message: str
 
 
 ValidationErr = Union[
@@ -99,7 +110,6 @@ ValidationErr = Union[
     # to: consider properly parameterizing
     List[Union["Predicate[Any]", "PredicateAsync[Any]"]],
 ]
-
 
 ValidationResult = Validated[A, ValidationErr]
 

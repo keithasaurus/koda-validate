@@ -22,7 +22,7 @@ EXPECTED_DECIMAL_ERR: Final[
 ] = False, InvalidCoercion(
     compatible_types=[str, int, Decimal],
     dest_type=Decimal,
-    message="expected a Decimal, or a Decimal-compatible string or integer",
+    err_message="expected a Decimal, or a Decimal-compatible string or integer",
 )
 
 

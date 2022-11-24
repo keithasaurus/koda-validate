@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Final, List, Literal, Optional, Set, Tuple, Type, Union
+from typing import Any, Dict, Final, List, Literal, Optional, Set, Tuple, Type, Union
 
 from koda._generics import A
 
