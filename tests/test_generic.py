@@ -92,14 +92,14 @@ def test_max() -> None:
     )
 
 
-def test_any() -> None:
+def test_always_valid() -> None:
     assert always_valid(5) == Valid(5)
     assert always_valid([1, 2, 3]) == Valid([1, 2, 3])
     assert always_valid(False) == Valid(False)
 
 
 @pytest.mark.asyncio
-async def test_any_async() -> None:
+async def test_always_valid_async() -> None:
     assert always_valid(5) == Valid(5)
     assert always_valid([1, 2, 3]) == Valid([1, 2, 3])
     assert always_valid(False) == Valid(False)
