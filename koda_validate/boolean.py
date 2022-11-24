@@ -1,8 +1,8 @@
-from typing import Any, Final, List, Optional
+from typing import Any, Final, List, Literal, Optional, Tuple
 
 from koda_validate._internals import (
     _async_predicates_warning,
-    _handle_scalar_processors_and_predicates_async,
+    _handle_scalar_processors_and_predicates_async_tuple,
 )
 from koda_validate.base import (
     InvalidType,
@@ -10,17 +10,16 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     ValidationErr,
-    ValidationResult,
-    Validator,
-)
-from koda_validate.validated import Invalid, Valid
-
-EXPECTED_BOOL_ERR: Final[Invalid[ValidationErr]] = Invalid(
-    InvalidType(bool, "expected a boolean")
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
 )
 
+EXPECTED_BOOL_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidType(
+    bool, "expected a boolean"
+)
 
-class BoolValidator(Validator[Any, bool]):
+
+class BoolValidator(_ToTupleValidatorUnsafe[Any, bool]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
@@ -34,7 +33,7 @@ class BoolValidator(Validator[Any, bool]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> ValidationResult[bool]:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -48,17 +47,17 @@ class BoolValidator(Validator[Any, bool]):
                     pred for pred in self.predicates if not pred(val)
                 ]
                 if errors:
-                    return Invalid(errors)
+                    return False, errors
                 else:
-                    return Valid(val)
+                    return True, val
             else:
-                return Valid(val)
+                return True, val
         else:
             return EXPECTED_BOOL_ERR
 
-    async def validate_async(self, val: Any) -> ValidationResult[bool]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is bool:
-            return await _handle_scalar_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async_tuple(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:

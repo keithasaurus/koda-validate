@@ -64,7 +64,7 @@ async def test_boolean_validator_async() -> None:
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(False) == Valid(True)
 
-    assert await BoolValidator().validate_async("abc") == EXPECTED_BOOL_ERR
+    assert await BoolValidator().validate_async("abc") == Invalid(EXPECTED_BOOL_ERR[1])
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
