@@ -5,19 +5,21 @@ from koda_validate import *
 
 
 @dataclass
-class IsClose(Predicate[float, Serializable]):
+class IsClose(Predicate[float]):
     compare_to: float
     tolerance: float
 
-    def is_valid(self, val: float) -> bool:
-        return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
+    def __post_init__(self) -> None:
+        self.err_message = (
+            f"expected a value within {self.tolerance} of {self.compare_to}"
+        )
 
-    def err(self, val: float) -> Serializable:
-        return f"expected a value within {self.tolerance} of {self.compare_to}"
+    def __call__(self, val: float) -> bool:
+        return math.isclose(self.compare_to, val, abs_tol=self.tolerance)
 
 
 # let's use it
 close_to_validator = FloatValidator(IsClose(0.05, 0.02))
 a = 0.06
 assert close_to_validator(a) == Valid(a)
-assert close_to_validator(0.01) == Invalid(["expected a value within 0.02 of 0.05"])
+assert close_to_validator(0.01) == Invalid([IsClose(0.05, 0.02)])

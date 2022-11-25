@@ -10,7 +10,7 @@ from koda_validate import (
     DateStringValidator,
     DatetimeStringValidator,
     DecimalValidator,
-    ExactValidator,
+    EqualsValidator,
     FloatValidator,
     IntValidator,
     IsDictValidator,
@@ -28,11 +28,11 @@ from koda_validate import (
     OneOf3,
     OptionalValidator,
     RegexPredicate,
-    Serializable,
     StringValidator,
     Validator,
     strip,
 )
+from koda_validate.base import InvalidCustom, ValidationResult
 from koda_validate.dictionary import (
     DictValidatorAny,
     KeyNotRequired,
@@ -43,7 +43,7 @@ from koda_validate.dictionary import (
 )
 from koda_validate.generic import AlwaysValid
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
-from koda_validate.validated import Invalid, Valid, Validated
+from koda_validate.validated import Invalid, Valid
 
 
 @dataclass
@@ -95,9 +95,9 @@ def test_match_args() -> None:
 
 
 def test_record_validator_match_args() -> None:
-    def validate_person(p: Person) -> Validated[Person, Serializable]:
+    def validate_person(p: Person) -> ValidationResult[Person]:
         if len(p.name) > p.age.get_or_else(100):
-            return Invalid(["your name cannot be longer than your age"])
+            return Invalid(InvalidCustom("your name cannot be longer than your age"))
         else:
             return Valid(p)
 
@@ -131,15 +131,13 @@ def test_record_validator_match_args() -> None:
 
 
 def test_dict_any_match_args() -> None:
-    def validate_person_dict_any(
-        p: Dict[Any, Any]
-    ) -> Validated[Dict[Any, Any], Serializable]:
+    def validate_person_dict_any(p: Dict[Any, Any]) -> ValidationResult[Dict[Any, Any]]:
         if len(p["name"]) > p["age"]:
-            return Invalid(["your name cannot be longer than your name"])
+            return Invalid(InvalidCustom("your name cannot be longer than your name"))
         else:
             return Valid(p)
 
-    schema_: Dict[Hashable, Validator[Any, Any, Serializable]] = {
+    schema_: Dict[Hashable, Validator[Any, Any]] = {
         "name": StringValidator(),
         "age": IntValidator(),
     }
@@ -159,6 +157,8 @@ def test_dict_any_match_args() -> None:
         case _:
             assert False
 
+
+def test_float_validator_match_args() -> None:
     match FloatValidator():
         case FloatValidator(preds):
             assert preds == ()
@@ -185,9 +185,12 @@ def test_lazy_match_args() -> None:
         case _:
             assert False
 
+
+def test_generic_match() -> None:
     match Choices({1, 2, 3}):
-        case Choices(choices):
+        case Choices(choices, err_message):
             assert choices == {1, 2, 3}
+            assert err_message == f"expected one of {sorted({1,2,3})}"
         case _:
             assert False
 
@@ -206,13 +209,14 @@ def test_lazy_match_args() -> None:
             assert False
 
     match MultipleOf(3):
-        case MultipleOf(num):
+        case MultipleOf(num, err_message):
             assert num == 3
+            assert err_message == "expected multiple of 3"
         case _:
             assert False
 
-    match ExactValidator("abc"):
-        case ExactValidator(match, preprocessors_exact):
+    match EqualsValidator("abc"):
+        case EqualsValidator(match, preprocessors_exact):
             assert match == "abc"
             assert preprocessors_exact is None
 
@@ -235,17 +239,21 @@ def test_lazy_match_args() -> None:
             assert False
 
     match MinItems(2):
-        case MinItems(length):
+        case MinItems(length, err_message):
             assert length == 2
+            assert err_message == "minimum allowed length is 2"
         case _:
             assert False
 
     match MaxItems(2):
-        case MaxItems(length):
+        case MaxItems(length, err_message):
             assert length == 2
+            assert err_message == f"maximum allowed length is {length}"
         case _:
             assert False
 
+
+def test_list_validator_match() -> None:
     match ListValidator(
         (str_vldtr := StringValidator()), predicates=[min_items_ := MinItems(2)]
     ):
@@ -255,6 +263,8 @@ def test_lazy_match_args() -> None:
             assert preds_async_1 is None
             assert preprocess_1 is None
 
+
+def test_optional_validator_match() -> None:
     match OptionalValidator(str_3 := StringValidator()):
         case OptionalValidator(opt_validator):
             assert opt_validator is str_3
@@ -262,6 +272,8 @@ def test_lazy_match_args() -> None:
         case _:
             assert False
 
+
+def test_one_of_two_match() -> None:
     match OneOf2(
         s_3 := StringValidator(),
         i_3 := IntValidator(),
@@ -272,6 +284,8 @@ def test_lazy_match_args() -> None:
         case _:
             assert False
 
+
+def test_one_of_3_match() -> None:
     match OneOf3(
         s_4 := StringValidator(), i_4 := IntValidator(), f_4 := FloatValidator()
     ):
@@ -282,6 +296,8 @@ def test_lazy_match_args() -> None:
         case _:
             assert False
 
+
+def test_string_validator_match() -> None:
     match StringValidator(preprocessors=[strip]):
         case StringValidator(preds_6, preds_async, preproc_6):
             assert preds_6 == ()
@@ -290,24 +306,32 @@ def test_lazy_match_args() -> None:
         case _:
             assert False
 
+
+def test_regex_predicate_match() -> None:
     match RegexPredicate(ptrn := re.compile("abc")):
         case RegexPredicate(pattern):
             assert pattern is ptrn
         case _:
             assert False
 
+
+def test_date_string_validator() -> None:
     match DateStringValidator():
         case DateStringValidator(pred_7):
             assert pred_7 == ()
         case _:
             assert False
 
+
+def test_datetime_string_validator() -> None:
     match DatetimeStringValidator():
         case DatetimeStringValidator(pred_8):
             assert pred_8 == ()
         case _:
             assert False
 
+
+def test_tuple_match() -> None:
     match Tuple2Validator(
         s_8 := StringValidator(),
         i_8 := IntValidator(),
@@ -329,6 +353,8 @@ def test_lazy_match_args() -> None:
         case _:
             assert False
 
+
+def test_always_valid_match() -> None:
     match AlwaysValid():
         case AlwaysValid():
             assert True

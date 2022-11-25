@@ -16,6 +16,15 @@ from koda_validate import (
     StringValidator,
     Valid,
 )
+from koda_validate.base import (
+    InvalidCoercion,
+    InvalidDict,
+    InvalidKeyVal,
+    InvalidMap,
+    InvalidType,
+    InvalidVariants,
+    invalid_key_missing,
+)
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
 from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny
@@ -29,7 +38,9 @@ class PersonSimple:
 
 def test_will_fail_if_not_dataclass() -> None:
     assert DataclassValidator(PersonSimple)(None) == Invalid(
-        ["expected a dict or PersonSimple instance"]
+        InvalidCoercion(
+            [dict, PersonSimple], PersonSimple, "expected a dict or PersonSimple instance"
+        )
     )
 
 
@@ -40,7 +51,9 @@ def test_wrong_dataclass_is_invalid() -> None:
         age: int
 
     assert DataclassValidator(PersonSimple)(Other("ok", 5)) == Invalid(
-        ["expected a dict or PersonSimple instance"]
+        InvalidCoercion(
+            [dict, PersonSimple], PersonSimple, "expected a dict or PersonSimple instance"
+        )
     )
 
 
@@ -66,8 +79,8 @@ def test_validates_proper_string_type() -> None:
     assert dc_validator(Example("ok")) == Valid(Example("ok"))
 
     # not type-safe, but still validate
-    assert dc_validator(Example(5)) == Invalid(  # type: ignore
-        {"name": ["expected a string"]}
+    assert dc_validator(Example(5)) == Invalid(
+        InvalidDict({"name": InvalidType(str, "expected a string")})
     )
 
 
@@ -81,7 +94,7 @@ def test_validates_proper_int_type() -> None:
     assert dc_validator(Example(5)) == Valid(Example(5))
     # not type-safe, but still validate
     assert dc_validator(Example("bad")) == Invalid(  # type: ignore
-        {"name": ["expected an integer"]}
+        InvalidDict({"name": InvalidType(int, "expected an integer")})
     )
 
 
@@ -93,7 +106,9 @@ def test_validates_proper_float_type() -> None:
     dc_validator = DataclassValidator(Example)
 
     assert dc_validator(Example(5.0)) == Valid(Example(5.0))
-    assert dc_validator(Example(5)) == Invalid({"name": ["expected a float"]})
+    assert dc_validator(Example(5)) == Invalid(
+        InvalidDict({"name": InvalidType(float, "expected a float")})
+    )
 
 
 def test_validates_proper_bool_type() -> None:
@@ -105,8 +120,8 @@ def test_validates_proper_bool_type() -> None:
 
     assert dc_validator(Example(False)) == Valid(Example(False))
     # not type-safe, but still validate
-    assert dc_validator(Example(1)) == Invalid(  # type: ignore
-        {"name": ["expected a boolean"]}
+    assert dc_validator(Example(1)) == Invalid(
+        InvalidDict({"name": InvalidType(bool, "expected a boolean")})
     )
 
 
@@ -121,7 +136,15 @@ def test_validates_proper_decimal_type() -> None:
 
     # not type-safe, but still validate
     assert dc_validator(Example(5.6)) == Invalid(  # type: ignore
-        {"name": ["expected a Decimal, or a Decimal-compatible string or integer"]}
+        InvalidDict(
+            {
+                "name": InvalidCoercion(
+                    [str, int, Decimal],
+                    Decimal,
+                    "expected a Decimal, or a Decimal-compatible string or integer",
+                )
+            }
+        )
     )
 
 
@@ -138,8 +161,15 @@ def test_validates_proper_uuid_type() -> None:
     assert dc_validator(Example(str(test_uuid))) == Valid(  # type: ignore
         Example(test_uuid)
     )
+
     assert dc_validator(Example(123)) == Invalid(  # type: ignore
-        {"name": ["expected a UUID, or a UUID-compatible string"]}
+        InvalidDict(
+            {
+                "name": InvalidCoercion(
+                    [str, UUID], UUID, "expected a UUID, or a UUID-compatible string"
+                )
+            }
+        )
     )
 
 
@@ -149,7 +179,9 @@ def test_will_fail_if_not_exact_dataclass() -> None:
         name: str
 
     assert DataclassValidator(PersonSimple)(Bad("hmm")) == Invalid(
-        ["expected a dict or PersonSimple instance"]
+        InvalidCoercion(
+            [dict, PersonSimple], PersonSimple, "expected a dict or PersonSimple instance"
+        )
     )
 
 
@@ -197,7 +229,7 @@ def test_nested_dataclass() -> None:
                 "something": {},
             },
         }
-    ) == Invalid({"name": ["key missing"]})
+    ) == Invalid(InvalidDict({"name": invalid_key_missing}))
 
     assert b_validator(
         {
@@ -210,7 +242,23 @@ def test_nested_dataclass() -> None:
                 "something": {5: 5},
             },
         }
-    ) == Invalid({"a": {"something": {"5": {"key_error": ["expected a string"]}}}})
+    ) == Invalid(
+        InvalidDict(
+            {
+                "a": InvalidDict(
+                    {
+                        "something": InvalidMap(
+                            {
+                                5: InvalidKeyVal(
+                                    key=InvalidType(str, "expected a string"), val=None
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+    )
 
 
 def test_complex_union_dataclass() -> None:
@@ -224,14 +272,18 @@ def test_complex_union_dataclass() -> None:
     assert example_validator({"a": 1.1}) == Valid(Example(1.1))
     assert example_validator({"a": 5}) == Valid(Example(5))
     assert example_validator({"a": False}) == Invalid(
-        {
-            "a": {
-                "variant 1": ["expected a string"],
-                "variant 2": ["expected None"],
-                "variant 3": ["expected a float"],
-                "variant 4": ["expected an integer"],
+        InvalidDict(
+            {
+                "a": InvalidVariants(
+                    [
+                        InvalidType(str, "expected a string"),
+                        InvalidType(type(None), "expected None"),
+                        InvalidType(float, "expected a float"),
+                        InvalidType(int, "expected an integer"),
+                    ]
+                )
             }
-        }
+        )
     )
 
 

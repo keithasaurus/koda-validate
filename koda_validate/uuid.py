@@ -7,27 +7,28 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_tuple,
 )
 from koda_validate.base import (
+    InvalidCoercion,
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
+    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_UUID_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
-    "expected a UUID, or a UUID-compatible string"
-]
+EXPECTED_UUID_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidCoercion(
+    [str, UUID], UUID, "expected a UUID, or a UUID-compatible string"
+)
 
 
-class UUIDValidator(_ToTupleValidatorUnsafe[Any, UUID, Serializable]):
+class UUIDValidator(_ToTupleValidatorUnsafe[Any, UUID]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[UUID, Serializable],
-        predicates_async: Optional[List[PredicateAsync[UUID, Serializable]]] = None,
+        *predicates: Predicate[UUID],
+        predicates_async: Optional[List[PredicateAsync[UUID]]] = None,
         preprocessors: Optional[List[Processor[UUID]]] = None,
     ) -> None:
         self.predicates = predicates

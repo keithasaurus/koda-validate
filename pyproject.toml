@@ -14,15 +14,15 @@ koda = "1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "7.2.0"
-pyright = "1.1.277"
+pyright = "1.1.281"
 pytest-cov = "4.0.0"
 isort = "5.10.1"
 black = "22.10.0"
 flake8 = "5.0.4"
 pre-commit = "2.20.0"
-mypy = "0.990"
+mypy = "0.991"
 pydantic = "1.10.2"
-pytest-asyncio = "0.20.1"
+pytest-asyncio = "0.20.2"
 voluptuous = "0.13.1"
 
 [tool.mypy]

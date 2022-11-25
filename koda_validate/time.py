@@ -1,30 +1,31 @@
 from datetime import date, datetime
-from typing import Any, Final, List, Optional
+from typing import Any, Final, List, Literal, Optional, Tuple
 
 from koda_validate._internals import (
     _async_predicates_warning,
-    _handle_scalar_processors_and_predicates,
-    _handle_scalar_processors_and_predicates_async,
+    _handle_scalar_processors_and_predicates_async_tuple,
+    _handle_scalar_processors_and_predicates_tuple,
 )
 from koda_validate.base import (
+    InvalidCoercion,
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
-    Validator,
-)
-from koda_validate.validated import Invalid, Validated
-
-EXPECTED_DATE_ERR: Final[Invalid[Serializable]] = Invalid(
-    ["expected date formatted as yyyy-mm-dd"]
+    ValidationErr,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_ISO_DATESTRING: Final[Invalid[Serializable]] = Invalid(
-    ["expected iso8601-formatted string"]
+EXPECTED_DATE_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidCoercion(
+    [str], date, "expected date formatted as yyyy-mm-dd"
 )
 
+EXPECTED_ISO_DATESTRING: Final[
+    Tuple[Literal[False], ValidationErr]
+] = False, InvalidCoercion([str], datetime, "expected iso8601-formatted string")
 
-class DateStringValidator(Validator[Any, date, Serializable]):
+
+class DateStringValidator(_ToTupleValidatorUnsafe[Any, date]):
     """
     Expects dates to be yyyy-mm-dd
     """
@@ -34,15 +35,15 @@ class DateStringValidator(Validator[Any, date, Serializable]):
 
     def __init__(
         self,
-        *predicates: Predicate[date, Serializable],
-        predicates_async: Optional[List[PredicateAsync[date, Serializable]]] = None,
+        *predicates: Predicate[date],
+        predicates_async: Optional[List[PredicateAsync[date]]] = None,
         preprocessors: Optional[List[Processor[date]]] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[date, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -51,36 +52,36 @@ class DateStringValidator(Validator[Any, date, Serializable]):
         except (ValueError, TypeError):
             return EXPECTED_DATE_ERR
         else:
-            return _handle_scalar_processors_and_predicates(
+            return _handle_scalar_processors_and_predicates_tuple(
                 val, self.preprocessors, self.predicates
             )
 
-    async def validate_async(self, val: Any) -> Validated[date, Serializable]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         try:
             val = date.fromisoformat(val)
         except (ValueError, TypeError):
             return EXPECTED_DATE_ERR
         else:
-            return await _handle_scalar_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async_tuple(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
 
 
-class DatetimeStringValidator(Validator[Any, datetime, Serializable]):
+class DatetimeStringValidator(_ToTupleValidatorUnsafe[Any, datetime]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[datetime, Serializable],
-        predicates_async: Optional[List[PredicateAsync[datetime, Serializable]]] = None,
+        *predicates: Predicate[datetime],
+        predicates_async: Optional[List[PredicateAsync[datetime]]] = None,
         preprocessors: Optional[List[Processor[datetime]]] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[datetime, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -91,11 +92,11 @@ class DatetimeStringValidator(Validator[Any, datetime, Serializable]):
         except (ValueError, TypeError):
             return EXPECTED_ISO_DATESTRING
         else:
-            return _handle_scalar_processors_and_predicates(
+            return _handle_scalar_processors_and_predicates_tuple(
                 val_, self.preprocessors, self.predicates
             )
 
-    async def validate_async(self, val: Any) -> Validated[datetime, Serializable]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         try:
             # note isoparse from dateutil is more flexible if we want
             # to add the dependency at some point
@@ -103,6 +104,6 @@ class DatetimeStringValidator(Validator[Any, datetime, Serializable]):
         except (ValueError, TypeError):
             return EXPECTED_ISO_DATESTRING
         else:
-            return await _handle_scalar_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async_tuple(
                 val_, self.preprocessors, self.predicates, self.predicates_async
             )

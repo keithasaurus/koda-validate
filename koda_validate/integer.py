@@ -5,27 +5,28 @@ from koda_validate._internals import (
     _handle_scalar_processors_and_predicates_async_tuple,
 )
 from koda_validate.base import (
+    InvalidType,
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
+    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
 
-EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
-    "expected an integer"
-]
+EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, (
+    InvalidType(int, "expected an integer")
+)
 
 
-class IntValidator(_ToTupleValidatorUnsafe[Any, int, Serializable]):
+class IntValidator(_ToTupleValidatorUnsafe[Any, int]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[int, Serializable],
-        predicates_async: Optional[List[PredicateAsync[int, Serializable]]] = None,
+        *predicates: Predicate[int],
+        predicates_async: Optional[List[PredicateAsync[int]]] = None,
         preprocessors: Optional[List[Processor[int]]] = None,
     ) -> None:
         self.predicates = predicates
@@ -42,9 +43,7 @@ class IntValidator(_ToTupleValidatorUnsafe[Any, int, Serializable]):
                     val = proc(val)
 
             if self.predicates:
-                if errors := [
-                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
-                ]:
+                if errors := [pred for pred in self.predicates if not pred.__call__(val)]:
                     return False, errors
                 else:
                     return True, val

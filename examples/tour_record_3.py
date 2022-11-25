@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from koda_validate import *
+from koda_validate.base import InvalidCustom, ValidationResult
 
 
 @dataclass
@@ -9,12 +10,12 @@ class Employee:
     name: str
 
 
-def no_dwight_regional_manager(employee: Employee) -> Validated[Employee, Serializable]:
+def no_dwight_regional_manager(employee: Employee) -> ValidationResult[Employee]:
     if (
         "schrute" in employee.name.lower()
         and employee.title.lower() == "assistant regional manager"
     ):
-        return Invalid("Assistant TO THE Regional Manager!")
+        return Invalid(InvalidCustom("Assistant TO THE Regional Manager!"))
     else:
         return Valid(employee)
 
@@ -36,4 +37,4 @@ assert employee_validator(
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     }
-) == Invalid("Assistant TO THE Regional Manager!")
+) == Invalid(InvalidCustom("Assistant TO THE Regional Manager!"))

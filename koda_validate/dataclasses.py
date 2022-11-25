@@ -27,14 +27,13 @@ from koda_validate import (
     ListValidator,
     MapValidator,
     NoneValidator,
-    Serializable,
     StringValidator,
     UUIDValidator,
     Valid,
-    Validated,
     Validator,
     always_valid,
 )
+from koda_validate.base import InvalidCoercion, ValidationResult
 from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny
 
@@ -47,7 +46,7 @@ _DCT = TypeVar("_DCT", bound=DataclassLike)
 
 
 # todo: evolve into general-purpose type-hint driven validator
-def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Serializable]:
+def get_typehint_validator(annotations: Any) -> Validator[Any, Any]:
     if annotations is str:
         return StringValidator()
     elif annotations is int:
@@ -92,7 +91,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any, Serializable
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
 
-class DataclassValidator(Validator[Any, _DCT, Serializable]):
+class DataclassValidator(Validator[Any, _DCT]):
     def __init__(self, data_cls: Type[_DCT]) -> None:
         self.data_cls = data_cls
         self.validator = DictValidatorAny(
@@ -102,7 +101,7 @@ class DataclassValidator(Validator[Any, _DCT, Serializable]):
             }
         )
 
-    def __call__(self, val: Any) -> Validated[_DCT, Serializable]:
+    def __call__(self, val: Any) -> ValidationResult[_DCT]:
         if isinstance(val, dict):
             result = self.validator(val)
             if result.is_valid:
@@ -117,4 +116,10 @@ class DataclassValidator(Validator[Any, _DCT, Serializable]):
                 return result
 
         else:
-            return Invalid([f"expected a dict or {self.data_cls.__name__} instance"])
+            return Invalid(
+                InvalidCoercion(
+                    [dict, self.data_cls],
+                    self.data_cls,
+                    f"expected a dict or {self.data_cls.__name__} instance",
+                )
+            )

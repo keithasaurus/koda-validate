@@ -1,18 +1,19 @@
-from typing import Any, Callable, ClassVar, Final, List, NoReturn, Optional, Tuple, Type
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Final,
+    List,
+    NoReturn,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 from koda_validate._generics import A, FailT
-from koda_validate.base import (
-    Predicate,
-    PredicateAsync,
-    Processor,
-    Serializable,
-    _ResultTupleUnsafe,
-)
-from koda_validate.validated import Invalid, Valid, Validated
-
-
-def _variant_errors(*variants: Serializable) -> Serializable:
-    return {f"variant {i + 1}": v for i, v in enumerate(variants)}
+from koda_validate.base import Predicate, PredicateAsync, Processor, _ResultTupleUnsafe
+from koda_validate.validated import Validated
 
 
 def _flat_map_same_type_if_not_none(
@@ -34,14 +35,14 @@ OBJECT_ERRORS_FIELD: Final[str] = "__container__"
 def _handle_scalar_processors_and_predicates_tuple(
     val: A,
     preprocessors: Optional[List[Processor[A]]],
-    predicates: Tuple[Predicate[A, Serializable], ...],
+    predicates: Tuple[Predicate[A], ...],
 ) -> _ResultTupleUnsafe:
     if preprocessors:
         for proc in preprocessors:
             val = proc(val)
 
     if predicates:
-        if errors := [pred.err(val) for pred in predicates if not pred.is_valid(val)]:
+        if errors := [pred for pred in predicates if not pred(val)]:
             return False, errors
         else:
             return True, val
@@ -49,69 +50,23 @@ def _handle_scalar_processors_and_predicates_tuple(
         return True, val
 
 
-def _handle_scalar_processors_and_predicates(
-    val: A,
-    preprocessors: Optional[List[Processor[A]]],
-    predicates: Tuple[Predicate[A, Serializable], ...],
-) -> Validated[A, Serializable]:
-    if preprocessors:
-        for proc in preprocessors:
-            val = proc(val)
-
-    if predicates:
-        if errors := [pred.err(val) for pred in predicates if not pred.is_valid(val)]:
-            return Invalid(errors)
-        else:
-            return Valid(val)
-    else:
-        return Valid(val)
-
-
-async def _handle_scalar_processors_and_predicates_async(
-    val: A,
-    preprocessors: Optional[List[Processor[A]]],
-    predicates: Tuple[Predicate[A, Serializable], ...],
-    predicates_async: Optional[List[PredicateAsync[A, Serializable]]],
-) -> Validated[A, Serializable]:
-    if preprocessors:
-        for proc in preprocessors:
-            val = proc(val)
-
-    errors = [pred.err(val) for pred in predicates if not pred.is_valid(val)]
-
-    if predicates_async:
-        errors.extend(
-            [
-                await pred.err_async(val)
-                for pred in predicates_async
-                if not await pred.is_valid_async(val)
-            ]
-        )
-    if errors:
-        return Invalid(errors)
-    else:
-        return Valid(val)
-
-
 async def _handle_scalar_processors_and_predicates_async_tuple(
     val: A,
     preprocessors: Optional[List[Processor[A]]],
-    predicates: Tuple[Predicate[A, Serializable], ...],
-    predicates_async: Optional[List[PredicateAsync[A, Serializable]]],
+    predicates: Tuple[Predicate[A], ...],
+    predicates_async: Optional[List[PredicateAsync[A]]],
 ) -> _ResultTupleUnsafe:
     if preprocessors:
         for proc in preprocessors:
             val = proc(val)
 
-    errors = [pred.err(val) for pred in predicates if not pred.is_valid(val)]
+    errors: List[Union[Predicate[A], PredicateAsync[A]]] = [
+        pred for pred in predicates if not pred(val)
+    ]
 
     if predicates_async:
         errors.extend(
-            [
-                await pred.err_async(val)
-                for pred in predicates_async
-                if not await pred.is_valid_async(val)
-            ]
+            [pred for pred in predicates_async if not await pred.validate_async(val)]
         )
     if errors:
         return False, errors

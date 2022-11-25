@@ -25,21 +25,21 @@ def generate_code(num_keys: int) -> str:
     dict_validator_fields_final: List[str] = []
     type_vars = get_type_vars(num_keys)
     ret = """from typing import (
+    TYPE_CHECKING,
     Any,
+    Awaitable,
     Callable,
     Dict,
     Final,
     FrozenSet,
     Hashable,
+    KeysView,
     List,
     Literal,
     Optional,
     Tuple,
-    TYPE_CHECKING,
     Union,
     overload,
-    Awaitable,
-    KeysView,
 )
 
 from koda import Just, Maybe, mapping_get, nothing
@@ -57,28 +57,24 @@ from koda_validate._generics import (
         + """
 from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
 from koda_validate.base import (
-    _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
     Predicate,
     PredicateAsync,
     Processor,
     Serializable,
     Validator,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe, ValidationError, type_error,
 )
 from koda_validate.validated import Invalid, Valid, Validated
 
 
-EXPECTED_DICT_MSG: Final[Serializable] = {OBJECT_ERRORS_FIELD: ["expected a dictionary"]}
-EXPECTED_DICT_ERR: Final[Tuple[Literal[False], Serializable]] = False, EXPECTED_DICT_MSG
 
-EXPECTED_MAP_ERR: Final[Invalid[Serializable]] = Invalid(
-    {OBJECT_ERRORS_FIELD: ["expected a map"]}
-)
-
-VALID_NOTHING: Final[Validated[Maybe[Any], Any]] = Valid(nothing)
+EXPECTED_DICT_ERR: Final[Tuple[Literal[False], Dict[str, List[ValidationError]]]] = False, {
+    OBJECT_ERRORS_FIELD: [type_error("dict", "expected a dictionary")]
+}
 
 KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
-KEY_MISSING_ERR: Final[Invalid[Serializable]] = Invalid(KEY_MISSING_MSG)
+
 
 class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):
     def __init__(self, validator: Validator[Any, A, Serializable]):

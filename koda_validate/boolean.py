@@ -1,36 +1,39 @@
-from typing import Any, Final, List, Optional
+from typing import Any, Final, List, Literal, Optional, Tuple
 
 from koda_validate._internals import (
     _async_predicates_warning,
-    _handle_scalar_processors_and_predicates_async,
+    _handle_scalar_processors_and_predicates_async_tuple,
 )
 from koda_validate.base import (
+    InvalidType,
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
-    Validator,
+    ValidationErr,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
 )
-from koda_validate.validated import Invalid, Valid, Validated
 
-EXPECTED_BOOL_ERR: Final[Invalid[Serializable]] = Invalid(["expected a boolean"])
+EXPECTED_BOOL_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidType(
+    bool, "expected a boolean"
+)
 
 
-class BoolValidator(Validator[Any, bool, Serializable]):
+class BoolValidator(_ToTupleValidatorUnsafe[Any, bool]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        *predicates: Predicate[bool, Serializable],
-        predicates_async: Optional[List[PredicateAsync[bool, Serializable]]] = None,
+        *predicates: Predicate[bool],
+        predicates_async: Optional[List[PredicateAsync[bool]]] = None,
         preprocessors: Optional[List[Processor[bool]]] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def __call__(self, val: Any) -> Validated[bool, Serializable]:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -40,20 +43,21 @@ class BoolValidator(Validator[Any, bool, Serializable]):
                     val = proc(val)
 
             if self.predicates:
-                if errors := [
-                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
-                ]:
-                    return Invalid(errors)
+                errors: ValidationErr = [
+                    pred for pred in self.predicates if not pred(val)
+                ]
+                if errors:
+                    return False, errors
                 else:
-                    return Valid(val)
+                    return True, val
             else:
-                return Valid(val)
+                return True, val
         else:
             return EXPECTED_BOOL_ERR
 
-    async def validate_async(self, val: Any) -> Validated[bool, Serializable]:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is bool:
-            return await _handle_scalar_processors_and_predicates_async(
+            return await _handle_scalar_processors_and_predicates_async_tuple(
                 val, self.preprocessors, self.predicates, self.predicates_async
             )
         else:
