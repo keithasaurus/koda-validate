@@ -2,13 +2,13 @@ from typing import Any
 
 from koda import Just, Maybe, nothing
 
-from koda_validate import Serializable, Validator
+from koda_validate import Validator
 from koda_validate._generics import A
 from koda_validate.base import _ResultTupleUnsafe, _ToTupleValidatorUnsafe
 
 
-class MaybeValidator(_ToTupleValidatorUnsafe[Any, Maybe[A], Serializable]):
-    def __init__(self, validator: Validator[Any, A, Serializable]):
+class MaybeValidator(_ToTupleValidatorUnsafe[Any, Maybe[A]]):
+    def __init__(self, validator: Validator[Any, A]):
         self.validator = validator
 
     def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:

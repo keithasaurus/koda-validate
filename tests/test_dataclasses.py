@@ -79,7 +79,7 @@ def test_validates_proper_string_type() -> None:
     assert dc_validator(Example("ok")) == Valid(Example("ok"))
 
     # not type-safe, but still validate
-    assert dc_validator(Example(5)) == Invalid(
+    assert dc_validator(Example(5)) == Invalid(  # type: ignore
         InvalidDict({"name": InvalidType(str, "expected a string")})
     )
 
@@ -120,7 +120,7 @@ def test_validates_proper_bool_type() -> None:
 
     assert dc_validator(Example(False)) == Valid(Example(False))
     # not type-safe, but still validate
-    assert dc_validator(Example(1)) == Invalid(
+    assert dc_validator(Example(1)) == Invalid(  # type: ignore
         InvalidDict({"name": InvalidType(bool, "expected a boolean")})
     )
 

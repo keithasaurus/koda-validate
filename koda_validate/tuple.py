@@ -4,14 +4,13 @@ with a generic TupleValidator... (2 and 3 can still use the new one
 under the hood, if needed)
 """
 
-from typing import Any, Callable, Final, List, Literal, Optional, Tuple
+from typing import Any, Callable, Dict, Final, List, Literal, Optional, Tuple
 
 from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
-from koda_validate._internals import OBJECT_ERRORS_FIELD, _async_predicates_warning
+from koda_validate._internals import _async_predicates_warning
 from koda_validate._validate_and_map import validate_and_map
 from koda_validate.base import (
-    InvalidDict,
     InvalidIterable,
     InvalidType,
     InvalidVariants,
@@ -205,18 +204,17 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
                 for processor in self.preprocessors:
                     val = processor(val)
 
-            errors = InvalidDict({})
             if self.predicates:
-                tuple_errors: List[Predicate] = [
+                tuple_errors: List[Predicate[Tuple[A, ...]]] = [
                     pred for pred in self.predicates if not pred(val)
                 ]
 
                 # Not running async validators! They shouldn't be set!
                 if tuple_errors:
-                    errors = {OBJECT_ERRORS_FIELD: tuple_errors}
+                    return False, tuple_errors
 
             return_list: List[A] = []
-
+            index_errors: Dict[int, ValidationErr] = {}
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
                     is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501
@@ -225,15 +223,12 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
                     is_valid, item_result = (_result.is_valid, _result.val)
 
                 if not is_valid:
-                    if errors is None:
-                        errors = {str(i): item_result}
-                    else:
-                        errors[str(i)] = item_result
-                elif not errors:
+                    index_errors[i] = item_result
+                elif not index_errors:
                     return_list.append(item_result)
 
-            if errors:
-                return False, errors
+            if index_errors:
+                return False, index_errors
             else:
                 return True, tuple(return_list)
         else:
