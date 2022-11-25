@@ -8,7 +8,7 @@ from koda_validate.base import (
     Processor,
     ValidationErr,
     _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
+    _ToTupleValidatorUnsafeScalar,
 )
 
 STRING_TYPE_ERR: Final[InvalidType] = InvalidType(str, "expected a string")
@@ -16,12 +16,12 @@ STRING_TYPE_ERR: Final[InvalidType] = InvalidType(str, "expected a string")
 EXPECTED_STR_ERR: Final[Tuple[Literal[False], ValidationErr]] = (False, STRING_TYPE_ERR)
 
 
-class StringValidator(_ToTupleValidatorUnsafe[Any, str]):
+class StringValidator(_ToTupleValidatorUnsafeScalar[Any, str]):
     def coerce_to_type(self, val: str) -> _ResultTupleUnsafe:
         if type(val) is str:
             return True, val
         else:
-            return False, STRING_TYPE_ERR
+            return EXPECTED_STR_ERR
 
 
 @dataclass(init=False)

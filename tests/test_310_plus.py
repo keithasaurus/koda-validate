@@ -7,8 +7,8 @@ from koda import Maybe
 from koda_validate import (
     BoolValidator,
     Choices,
-    DateStringValidator,
     DatetimeStringValidator,
+    DateValidator,
     DecimalValidator,
     EqualsValidator,
     FloatValidator,
@@ -316,8 +316,8 @@ def test_regex_predicate_match() -> None:
 
 
 def test_date_string_validator() -> None:
-    match DateStringValidator():
-        case DateStringValidator(pred_7):
+    match DateValidator():
+        case DateValidator(pred_7):
             assert pred_7 == ()
         case _:
             assert False

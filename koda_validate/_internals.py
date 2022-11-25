@@ -1,13 +1,6 @@
-from typing import Callable, ClassVar, Final, List, Optional, Tuple, Union
+from typing import Callable, ClassVar, Final, Optional
 
 from koda_validate._generics import A, FailT
-from koda_validate.base import (
-    Predicate,
-    PredicateAsync,
-    Processor,
-    _async_predicates_warning,
-    _ResultTupleUnsafe,
-)
 from koda_validate.validated import Validated
 
 
@@ -25,48 +18,6 @@ def _flat_map_same_type_if_not_none(
 
 
 OBJECT_ERRORS_FIELD: Final[str] = "__container__"
-
-
-def _handle_scalar_processors_and_predicates_tuple(
-    val: A,
-    preprocessors: Optional[List[Processor[A]]],
-    predicates: Tuple[Predicate[A], ...],
-) -> _ResultTupleUnsafe:
-    if preprocessors:
-        for proc in preprocessors:
-            val = proc(val)
-
-    if predicates:
-        if errors := [pred for pred in predicates if not pred(val)]:
-            return False, errors
-        else:
-            return True, val
-    else:
-        return True, val
-
-
-async def _handle_scalar_processors_and_predicates_async_tuple(
-    val: A,
-    preprocessors: Optional[List[Processor[A]]],
-    predicates: Tuple[Predicate[A], ...],
-    predicates_async: Optional[List[PredicateAsync[A]]],
-) -> _ResultTupleUnsafe:
-    if preprocessors:
-        for proc in preprocessors:
-            val = proc(val)
-
-    errors: List[Union[Predicate[A], PredicateAsync[A]]] = [
-        pred for pred in predicates if not pred(val)
-    ]
-
-    if predicates_async:
-        errors.extend(
-            [pred for pred in predicates_async if not await pred.validate_async(val)]
-        )
-    if errors:
-        return False, errors
-    else:
-        return True, val
 
 
 class _NotSet:

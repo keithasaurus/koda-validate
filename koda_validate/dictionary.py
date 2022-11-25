@@ -37,7 +37,6 @@ from koda_validate._generics import (
     A,
     Ret,
 )
-from koda_validate._internals import _async_predicates_warning
 from koda_validate.base import (
     InvalidDict,
     InvalidExtraKeys,
@@ -50,6 +49,7 @@ from koda_validate.base import (
     ValidationErr,
     ValidationResult,
     Validator,
+    _async_predicates_warning,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
     invalid_key_missing,

@@ -1,20 +1,12 @@
 import decimal
 from decimal import Decimal as Decimal
-from typing import Any, Final, List, Literal, Optional, Tuple
+from typing import Any, Final, Literal, Tuple
 
-from koda_validate._internals import (
-    _async_predicates_warning,
-    _handle_scalar_processors_and_predicates_async_tuple,
-    _handle_scalar_processors_and_predicates_tuple,
-)
 from koda_validate.base import (
     InvalidCoercion,
-    Predicate,
-    PredicateAsync,
-    Processor,
     ValidationErr,
     _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
+    _ToTupleValidatorUnsafeScalar,
 )
 
 EXPECTED_DECIMAL_ERR: Final[
@@ -26,57 +18,14 @@ EXPECTED_DECIMAL_ERR: Final[
 )
 
 
-class DecimalValidator(_ToTupleValidatorUnsafe[Any, Decimal]):
-    __match_args__ = ("predicates", "predicates_async", "preprocessors")
-    __slots__ = ("predicates", "predicates_async", "preprocessors")
-
-    def __init__(
-        self,
-        *predicates: Predicate[Decimal],
-        predicates_async: Optional[List[PredicateAsync[Decimal]]] = None,
-        preprocessors: Optional[List[Processor[Decimal]]] = None,
-    ) -> None:
-        self.predicates = predicates
-        self.predicates_async = predicates_async
-        self.preprocessors = preprocessors
-
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
-        if self.predicates_async:
-            _async_predicates_warning(self.__class__)
-
+class DecimalValidator(_ToTupleValidatorUnsafeScalar[Any, Decimal]):
+    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is Decimal:
-            return _handle_scalar_processors_and_predicates_tuple(
-                val, self.preprocessors, self.predicates
-            )
-
+            return True, val
         elif isinstance(val, (str, int)):
             try:
-                dec = Decimal(val)
+                return True, Decimal(val)
             except decimal.InvalidOperation:
                 return EXPECTED_DECIMAL_ERR
-            else:
-                return _handle_scalar_processors_and_predicates_tuple(
-                    dec, self.preprocessors, self.predicates
-                )
-
-        else:
-            return EXPECTED_DECIMAL_ERR
-
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
-        if type(val) is Decimal:
-            return await _handle_scalar_processors_and_predicates_async_tuple(
-                val, self.preprocessors, self.predicates, self.predicates_async
-            )
-
-        elif isinstance(val, (str, int)):
-            try:
-                dec = Decimal(val)
-            except decimal.InvalidOperation:
-                return EXPECTED_DECIMAL_ERR
-            else:
-                return await _handle_scalar_processors_and_predicates_async_tuple(
-                    dec, self.preprocessors, self.predicates, self.predicates_async
-                )
-
         else:
             return EXPECTED_DECIMAL_ERR

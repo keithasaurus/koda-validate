@@ -8,7 +8,6 @@ from typing import Any, Callable, Dict, Final, List, Literal, Optional, Tuple
 
 from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
-from koda_validate._internals import _async_predicates_warning
 from koda_validate._validate_and_map import validate_and_map
 from koda_validate.base import (
     InvalidIterable,
@@ -21,6 +20,7 @@ from koda_validate.base import (
     ValidationErr,
     ValidationResult,
     Validator,
+    _async_predicates_warning,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )

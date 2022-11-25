@@ -205,6 +205,39 @@ class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
 
+    def validate_to_tuple(self, val: InputT) -> _ResultTupleUnsafe:
+        raise NotImplementedError()
+
+    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
+        valid, result_val = self.validate_to_tuple(val)
+        if valid:
+            return Valid(result_val)
+        else:
+            return Invalid(result_val)
+
+    async def validate_to_tuple_async(self, val: InputT) -> _ResultTupleUnsafe:
+        raise NotImplementedError()
+
+    async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
+        valid, result_val = await self.validate_to_tuple_async(val)
+        if valid:
+            return Valid(result_val)
+        else:
+            return Invalid(result_val)
+
+
+class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):
+    """
+    This `Validator` subclass exists for optimization. When we call
+    nested validators it's much less computation to deal with simple
+    tuples and bools, instead of Valid and Invalid instances.
+    This class may go away!
+
+    DO NOT USE THIS UNLESS YOU:
+    - ARE OK WITH THIS DISAPPEARING IN A FUTURE RELEASE
+    - ARE GOING TO TEST YOUR CODE EXTENSIVELY
+    """
+
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
 
@@ -243,13 +276,6 @@ class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
                 return True, val_or_type_err
         return False, val_or_type_err
 
-    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
-        valid, result_val = self.validate_to_tuple(val)
-        if valid:
-            return Valid(result_val)
-        else:
-            return Invalid(result_val)
-
     async def validate_to_tuple_async(self, val: InputT) -> _ResultTupleUnsafe:
         succeeded, val_or_type_err = self.coerce_to_type(val)
         if succeeded:
@@ -274,10 +300,3 @@ class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
             else:
                 return True, val_or_type_err
         return False, val_or_type_err
-
-    async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
-        valid, result_val = await self.validate_to_tuple_async(val)
-        if valid:
-            return Valid(result_val)
-        else:
-            return Invalid(result_val)

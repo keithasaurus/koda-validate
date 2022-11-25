@@ -3,7 +3,6 @@ from typing import Any, Dict, Final, List, Literal, Optional, Set, Tuple, Type, 
 
 from koda._generics import A
 
-from koda_validate._internals import _async_predicates_warning
 from koda_validate.base import (
     InvalidIterable,
     InvalidType,
@@ -12,6 +11,7 @@ from koda_validate.base import (
     Processor,
     ValidationErr,
     Validator,
+    _async_predicates_warning,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
