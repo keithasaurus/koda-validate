@@ -122,13 +122,13 @@ class Validator(Generic[InputT, SuccessT]):
     instance, we can later access `5` from something like `MaxLength(5)`.
     """
 
-    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
-        raise NotImplementedError  # pragma: no cover
-
     async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
         """
         make it possible for all validators to be async-compatible
         """
+        raise NotImplementedError  # pragma: no cover
+
+    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
         raise NotImplementedError  # pragma: no cover
 
 
@@ -208,18 +208,18 @@ class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
     def validate_to_tuple(self, val: InputT) -> _ResultTupleUnsafe:
         raise NotImplementedError()
 
-    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
-        valid, result_val = self.validate_to_tuple(val)
-        if valid:
-            return Valid(result_val)
-        else:
-            return Invalid(result_val)
-
     async def validate_to_tuple_async(self, val: InputT) -> _ResultTupleUnsafe:
         raise NotImplementedError()
 
     async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
         valid, result_val = await self.validate_to_tuple_async(val)
+        if valid:
+            return Valid(result_val)
+        else:
+            return Invalid(result_val)
+
+    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
+        valid, result_val = self.validate_to_tuple(val)
         if valid:
             return Valid(result_val)
         else:
@@ -238,8 +238,9 @@ class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
 
-    __match_args__ = ("predicates", "predicates_async", "preprocessors")
     __slots__ = ("predicates", "predicates_async", "preprocessors")
+
+    __match_args__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,

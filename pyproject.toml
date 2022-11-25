@@ -24,6 +24,7 @@ mypy = "0.991"
 pydantic = "1.10.2"
 pytest-asyncio = "0.20.2"
 voluptuous = "0.13.1"
+ssort = "^0.11.6"
 
 [tool.mypy]
 exclude = ["build", "bench"]

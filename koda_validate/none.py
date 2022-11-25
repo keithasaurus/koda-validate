@@ -29,16 +29,6 @@ class OptionalValidator(Validator[Any, Optional[A]]):
     def __init__(self, validator: Validator[Any, A]) -> None:
         self.validator = validator
 
-    def __call__(self, val: Any) -> ValidationResult[Optional[A]]:
-        if val is None:
-            return OK_NONE_OPTIONAL
-        else:
-            result: ValidationResult[A] = self.validator(val)
-            if result.is_valid:
-                return Valid(result.val)
-            else:
-                return Invalid(InvalidVariants([EXPECTED_NONE_ERR, result.val]))
-
     async def validate_async(self, val: Any) -> ValidationResult[Optional[A]]:
         if val is None:
             return OK_NONE_OPTIONAL
@@ -49,16 +39,26 @@ class OptionalValidator(Validator[Any, Optional[A]]):
             else:
                 return Invalid(InvalidVariants([EXPECTED_NONE_ERR, result.val]))
 
+    def __call__(self, val: Any) -> ValidationResult[Optional[A]]:
+        if val is None:
+            return OK_NONE_OPTIONAL
+        else:
+            result: ValidationResult[A] = self.validator(val)
+            if result.is_valid:
+                return Valid(result.val)
+            else:
+                return Invalid(InvalidVariants([EXPECTED_NONE_ERR, result.val]))
+
 
 class NoneValidator(Validator[Any, None]):
+    async def validate_async(self, val: Any) -> ValidationResult[None]:
+        return self(val)
+
     def __call__(self, val: Any) -> ValidationResult[None]:
         if val is None:
             return OK_NONE
         else:
             return EXPECTED_NONE
-
-    async def validate_async(self, val: Any) -> ValidationResult[None]:
-        return self(val)
 
 
 none_validator = NoneValidator()

@@ -6,19 +6,13 @@ from koda_validate._generics import A, B, FailT
 
 
 class Valid(Generic[A]):
-    __match_args__ = ("val",)
     __slots__ = ("val",)
+    __match_args__ = ("val",)
 
     is_valid: ClassVar[Literal[True]] = True
 
     def __init__(self, val: A) -> None:
         self.val: A = val
-
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Valid) and other.val == self.val
-
-    def __repr__(self) -> str:
-        return f"Valid({repr(self.val)})"
 
     def flat_map(self, fn: Callable[[A], "Validated[B, FailT]"]) -> "Validated[B, FailT]":
         return fn(self.val)
@@ -38,21 +32,21 @@ class Valid(Generic[A]):
     def as_result(self) -> Result[A, Any]:
         return Ok(self.val)
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Valid) and other.val == self.val
+
+    def __repr__(self) -> str:
+        return f"Valid({repr(self.val)})"
+
 
 class Invalid(Generic[FailT]):
-    __match_args__ = ("val",)
     __slots__ = ("val",)
+    __match_args__ = ("val",)
 
     is_valid: ClassVar[Literal[False]] = False
 
     def __init__(self, val: FailT) -> None:
         self.val: FailT = val
-
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Invalid) and other.val == self.val
-
-    def __repr__(self) -> str:
-        return f"Invalid({repr(self.val)})"
 
     def map(self, _: Callable[[Any], B]) -> "Validated[B, FailT]":
         return self
@@ -73,6 +67,12 @@ class Invalid(Generic[FailT]):
     @property
     def as_result(self) -> Result[Any, FailT]:
         return Err(self.val)
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Invalid) and other.val == self.val
+
+    def __repr__(self) -> str:
+        return f"Invalid({repr(self.val)})"
 
 
 Validated = Union[Valid[A], Invalid[FailT]]

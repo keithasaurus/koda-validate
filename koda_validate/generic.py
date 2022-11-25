@@ -23,11 +23,11 @@ EnumT = TypeVar("EnumT", str, int)
 
 
 class Lazy(Validator[A, Ret]):
-    __match_args__ = (
+    __slots__ = (
         "validator",
         "recurrent",
     )
-    __slots__ = (
+    __match_args__ = (
         "validator",
         "recurrent",
     )
@@ -47,11 +47,11 @@ class Lazy(Validator[A, Ret]):
         self.validator = validator
         self.recurrent = recurrent
 
-    def __call__(self, data: A) -> ValidationResult[Ret]:
-        return self.validator()(data)
-
     async def validate_async(self, data: A) -> ValidationResult[Ret]:
         return await self.validator().validate_async(data)
+
+    def __call__(self, data: A) -> ValidationResult[Ret]:
+        return self.validator()(data)
 
 
 @dataclass(init=False)
@@ -167,6 +167,9 @@ class EqualsValidator(Validator[Any, ExactMatchT]):
         self.preprocessors = preprocessors
         self.predicate: EqualTo[ExactMatchT] = EqualTo(match)
 
+    async def validate_async(self, val: Any) -> ValidationResult[ExactMatchT]:
+        return self(val)
+
     def __call__(self, val: Any) -> ValidationResult[ExactMatchT]:
         if (match_type := type(self.match)) == type(val):
             if self.preprocessors:
@@ -179,9 +182,6 @@ class EqualsValidator(Validator[Any, ExactMatchT]):
                 return Invalid([self.predicate])
         else:
             return Invalid(InvalidType(match_type, f"expected a {match_type.__name__}"))
-
-    async def validate_async(self, val: Any) -> ValidationResult[ExactMatchT]:
-        return self(val)
 
 
 class AlwaysValid(_ToTupleValidatorUnsafe[A, A]):

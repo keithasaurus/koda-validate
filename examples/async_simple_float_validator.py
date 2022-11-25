@@ -6,15 +6,16 @@ from koda_validate.base import InvalidType, ValidationResult
 
 
 class SimpleFloatValidator(Validator[Any, float]):
+
+    # this validator doesn't do any IO, so we can just use the `__call__` method
+    async def validate_async(self, val: Any) -> ValidationResult[float]:
+        return self(val)
+
     def __call__(self, val: Any) -> ValidationResult[float]:
         if isinstance(val, float):
             return Valid(val)
         else:
             return Invalid(InvalidType(float, "expected a float"))
-
-    # this validator doesn't do any IO, so we can just use the `__call__` method
-    async def validate_async(self, val: Any) -> ValidationResult[float]:
-        return self(val)
 
 
 float_validator = SimpleFloatValidator()
