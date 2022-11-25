@@ -1,15 +1,10 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Final, List, Literal, Optional, Pattern, Tuple
+from typing import Any, Final, Literal, Pattern, Tuple
 
-from koda_validate._internals import (
-    _async_predicates_warning,
-    _handle_scalar_processors_and_predicates_async_tuple,
-)
 from koda_validate.base import (
     InvalidType,
     Predicate,
-    PredicateAsync,
     Processor,
     ValidationErr,
     _ResultTupleUnsafe,
@@ -22,45 +17,11 @@ EXPECTED_STR_ERR: Final[Tuple[Literal[False], ValidationErr]] = (False, STRING_T
 
 
 class StringValidator(_ToTupleValidatorUnsafe[Any, str]):
-    __match_args__ = ("predicates", "predicates_async", "preprocessors")
-    __slots__ = ("predicates", "predicates_async", "preprocessors")
-
-    def __init__(
-        self,
-        *predicates: Predicate[str],
-        predicates_async: Optional[List[PredicateAsync[str]]] = None,
-        preprocessors: Optional[List[Processor[str]]] = None,
-    ) -> None:
-        self.predicates = predicates
-        self.predicates_async = predicates_async
-        self.preprocessors = preprocessors
-
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
-        if self.predicates_async:
-            _async_predicates_warning(self.__class__)
-
+    def coerce_to_type(self, val: str) -> _ResultTupleUnsafe:
         if type(val) is str:
-            if self.preprocessors:
-                for proc in self.preprocessors:
-                    val = proc(val)
-
-            if self.predicates:
-                if errors := [pred for pred in self.predicates if not pred(val)]:
-                    return False, errors
-                else:
-                    return True, val
-            else:
-                return True, val
-
-        return EXPECTED_STR_ERR
-
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
-        if type(val) is str:
-            return await _handle_scalar_processors_and_predicates_async_tuple(
-                val, self.preprocessors, self.predicates, self.predicates_async
-            )
+            return True, val
         else:
-            return EXPECTED_STR_ERR
+            return False, STRING_TYPE_ERR
 
 
 @dataclass(init=False)

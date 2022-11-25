@@ -1,18 +1,13 @@
-from typing import (
-    Any,
-    Callable,
-    ClassVar,
-    Final,
-    List,
-    NoReturn,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Callable, ClassVar, Final, List, Optional, Tuple, Union
 
 from koda_validate._generics import A, FailT
-from koda_validate.base import Predicate, PredicateAsync, Processor, _ResultTupleUnsafe
+from koda_validate.base import (
+    Predicate,
+    PredicateAsync,
+    Processor,
+    _async_predicates_warning,
+    _ResultTupleUnsafe,
+)
 from koda_validate.validated import Validated
 
 
@@ -87,11 +82,3 @@ class _NotSet:
 
 
 _not_set = _NotSet()
-
-
-def _async_predicates_warning(cls: Type[Any]) -> NoReturn:
-    raise AssertionError(
-        f"{cls.__name__} cannot run `predicates_async` in synchronous calls. "
-        f"Please `await` the `.validate_async` method instead; or remove the "
-        f"items in `predicates_async`."
-    )
