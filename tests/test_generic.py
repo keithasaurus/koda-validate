@@ -4,7 +4,14 @@ import pytest
 
 from koda_validate import Choices, EqualsValidator, Max, Min, MultipleOf, strip
 from koda_validate.base import InvalidType
-from koda_validate.generic import EqualTo, always_valid
+from koda_validate.generic import (
+    EqualTo,
+    ExactItemCount,
+    MaxItems,
+    MinItems,
+    always_valid,
+    unique_items,
+)
 from koda_validate.validated import Invalid, Valid
 
 
@@ -103,3 +110,38 @@ async def test_always_valid_async() -> None:
     assert always_valid(5) == Valid(5)
     assert always_valid([1, 2, 3]) == Valid([1, 2, 3])
     assert always_valid(False) == Valid(False)
+
+
+def test_unique_items() -> None:
+    assert unique_items([1, 2, 3]) is True
+    assert unique_items([1, 1]) is False
+    assert unique_items.err_message == "all items must be unique"
+    assert unique_items([1, [], []]) is False
+    assert unique_items([[], [1], [2]]) is True
+    assert unique_items([{"something": {"a": 1}}, {"something": {"a": 1}}]) is False
+
+
+def test_exact_item_count() -> None:
+    assert ExactItemCount(2)([1, 2]) is True
+    assert ExactItemCount(1)([1, 2]) is False
+    assert ExactItemCount(2)([1]) is False
+    assert ExactItemCount(4).err_message == "length must be 4"
+
+
+def test_max_items() -> None:
+    assert MaxItems(0)([]) is True
+
+    assert MaxItems(5)([1, 2, 3]) is True
+
+    assert MaxItems(5)(["a", "b", "c", "d", "e", "fghij"]) is False
+
+    assert MaxItems(5).err_message == "maximum allowed length is 5"
+
+
+def test_min_items() -> None:
+    assert MinItems(0)([]) is True
+
+    assert MinItems(3)([1, 2, 3]) is True
+    assert MinItems(3)([1, 2]) is False
+
+    assert MinItems(3).err_message == "minimum allowed length is 3"

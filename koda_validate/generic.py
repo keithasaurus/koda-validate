@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, List, Optional, Set, TypeVar
+from typing import Any, List, Optional, Set, Tuple, Type, TypeVar
 from uuid import UUID
 
 from koda import Thunk
@@ -195,3 +195,72 @@ class AlwaysValid(_ToTupleValidatorUnsafe[A, A]):
 
 
 always_valid: _ToTupleValidatorUnsafe[Any, Any] = AlwaysValid()
+ListOrTupleAny = TypeVar("ListOrTupleAny", List[Any], Tuple[Any, ...])
+
+
+@dataclass(init=False)
+class MinItems(Predicate[ListOrTupleAny]):
+    length: int
+    err_message: str
+
+    def __init__(self, length: int) -> None:
+        self.length = length
+        self.err_message = f"minimum allowed length is {length}"
+
+    def __call__(self, val: ListOrTupleAny) -> bool:
+        return len(val) >= self.length
+
+
+@dataclass(init=False)
+class MaxItems(Predicate[ListOrTupleAny]):
+    length: int
+    err_message: str
+
+    def __init__(self, length: int) -> None:
+        self.length = length
+        self.err_message = f"maximum allowed length is {length}"
+
+    def __call__(self, val: ListOrTupleAny) -> bool:
+        return len(val) <= self.length
+
+
+@dataclass(init=False)
+class ExactItemCount(Predicate[ListOrTupleAny]):
+    length: int
+    err_message: str
+
+    def __init__(self, length: int) -> None:
+        self.length = length
+        self.err_message = f"length must be {length}"
+
+    def __call__(self, val: ListOrTupleAny) -> bool:
+        return len(val) == self.length
+
+
+@dataclass
+class UniqueItems(Predicate[ListOrTupleAny]):
+    err_message = "all items must be unique"
+
+    def __call__(self, val: ListOrTupleAny) -> bool:
+        hashable_items: Set[Tuple[Type[Any], Any]] = set()
+        # slower lookups for unhashables
+        unhashable_items: List[Tuple[Type[Any], Any]] = []
+        for item in val:
+            # needed to tell difference between things like
+            # ints and bools
+            typed_lookup = (type(item), item)
+            try:
+                if typed_lookup in hashable_items:
+                    return False
+                else:
+                    hashable_items.add(typed_lookup)
+            except TypeError:  # not hashable!
+                if typed_lookup in unhashable_items:
+                    return False
+                else:
+                    unhashable_items.append(typed_lookup)
+        else:
+            return True
+
+
+unique_items = UniqueItems()

@@ -25,6 +25,9 @@ __all__ = (
     "Choices",
     "Min",
     "Max",
+    "MinItems",
+    "MaxItems",
+    "ExactItemCount",
     "MultipleOf",
     "EqualsValidator",
     "always_valid",
@@ -32,10 +35,6 @@ __all__ = (
     # integer.py
     "IntValidator",
     # list.py
-    "MinItems",
-    "MaxItems",
-    "UniqueItems",
-    "unique_items",
     "ListValidator",
     # none.py
     "OptionalValidator",
@@ -93,20 +92,19 @@ from koda_validate.generic import (
     AlwaysValid,
     Choices,
     EqualsValidator,
+    ExactItemCount,
     Lazy,
     Max,
-    Min,
-    MultipleOf,
-    always_valid,
-)
-from koda_validate.integer import IntValidator
-from koda_validate.list import (
-    ListValidator,
     MaxItems,
+    Min,
     MinItems,
+    MultipleOf,
     UniqueItems,
+    always_valid,
     unique_items,
 )
+from koda_validate.integer import IntValidator
+from koda_validate.list import ListValidator
 from koda_validate.none import NoneValidator, OptionalValidator, none_validator
 from koda_validate.one_of import OneOf2, OneOf3
 from koda_validate.string import (

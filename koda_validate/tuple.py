@@ -10,13 +10,14 @@ from koda_validate._cruft import _typed_tuple
 from koda_validate._generics import A, B, C
 from koda_validate._validate_and_map import validate_and_map
 from koda_validate.base import (
+    InvalidCoercion,
+    InvalidCustom,
     InvalidIterable,
     InvalidType,
     InvalidVariants,
     Predicate,
     PredicateAsync,
     Processor,
-    Serializable,
     ValidationErr,
     ValidationResult,
     Validator,
@@ -40,6 +41,50 @@ EXPECTED_TUPLE_THREE_ERROR: Final[Invalid[ValidationErr]] = Invalid(
 )
 
 
+EXPECTED_TUPLE_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidCoercion(
+    [list, tuple], tuple, "expected a list or tuple"
+)
+
+
+class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
+    """
+    Will be type-safe when we have variadic args available generally
+    """
+
+    def __init__(self, *validators: Validator[Any, Any]) -> None:
+        self.validators = validators
+        self._tuple_len = len(validators)
+        # self._len_predicate = MaxItems()
+
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+        val_type = type(val)
+        if val_type is tuple or val_type is list:
+            if len(val) != self._tuple_len:
+                return False, InvalidCustom("wrong")
+            errs = []
+            vals = []
+            for validator, tuple_val in zip(self.validators, val):
+                if isinstance(validator, _ToTupleValidatorUnsafe):
+                    succeeded, new_val = validator.validate_to_tuple(tuple_val)
+                    if succeeded:
+                        vals.append(new_val)
+                    else:
+                        errs.append(new_val)
+                else:
+                    result = validator(tuple_val)
+                    if result.is_valid:
+                        vals.append(result.val)
+                    else:
+                        errs.append(result.val)
+            if errs:
+                return False, InvalidVariants(errs)
+            else:
+                return True, tuple(vals)
+
+        else:
+            return False, EXPECTED_TUPLE_ERR
+
+
 # todo: auto-generate
 class Tuple2Validator(Validator[Any, Tuple[A, B]]):
 
@@ -58,6 +103,8 @@ class Tuple2Validator(Validator[Any, Tuple[A, B]]):
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator
         self.tuple_validator = tuple_validator
+
+        self._validator = TupleNValidatorAny(slot1_validator, slot2_validator)
 
     async def validate_async(self, data: Any) -> ValidationResult[Tuple[A, B]]:
         if isinstance(data, (list, tuple)) and len(data) == self.required_length:
@@ -163,11 +210,6 @@ class Tuple3Validator(Validator[Any, Tuple[A, B, C]]):
             return EXPECTED_TUPLE_THREE_ERROR
 
 
-EXPECTED_TUPLE_ERR: Final[Tuple[Literal[False], Serializable]] = False, [
-    "expected a tuple"
-]
-
-
 class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
     __slots__ = (
         "_item_validator_is_tuple",
@@ -233,42 +275,3 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
                 return True, tuple(return_list)
         else:
             return EXPECTED_TUPLE_ERR
-
-
-class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
-    """
-    Will be type-safe when we have variadic args available generally
-    """
-
-    def __init__(self, *validators: Validator[Any, Any]) -> None:
-        self.validators = validators
-        self.tuple_len = len(validators)
-
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
-        val_type = type(val)
-        if val_type is tuple or val_type is list:
-            if len(val) != self.tuple_len:
-                return False, f"expected tuple of length {self.tuple_len}"
-            else:
-                errs = []
-                vals = []
-                for validator, tuple_val in zip(self.validators, val):
-                    if isinstance(validator, _ToTupleValidatorUnsafe):
-                        succeeded, new_val = validator.validate_to_tuple(tuple_val)
-                        if succeeded:
-                            vals.append(new_val)
-                        else:
-                            errs.append(new_val)
-                    else:
-                        result = validator(tuple_val)
-                        if result.is_valid:
-                            vals.append(result.val)
-                        else:
-                            errs.append(result.val)
-                if errs:
-                    return False, InvalidVariants(errs)
-                else:
-                    return True, tuple(vals)
-
-        else:
-            return False, EXPECTED_TUPLE_ERR

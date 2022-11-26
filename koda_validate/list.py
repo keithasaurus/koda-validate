@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from typing import Any, Dict, Final, List, Literal, Optional, Set, Tuple, Type, Union
+from typing import Any, Dict, Final, List, Literal, Optional, Tuple, Union
 
 from koda._generics import A
 
@@ -15,61 +14,6 @@ from koda_validate.base import (
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
-
-
-@dataclass(init=False)
-class MinItems(Predicate[List[Any]]):
-    length: int
-    err_message: str
-
-    def __init__(self, length: int) -> None:
-        self.length = length
-        self.err_message = f"minimum allowed length is {length}"
-
-    def __call__(self, val: List[Any]) -> bool:
-        return len(val) >= self.length
-
-
-@dataclass(init=False)
-class MaxItems(Predicate[List[Any]]):
-    length: int
-    err_message: str
-
-    def __init__(self, length: int) -> None:
-        self.length = length
-        self.err_message = f"maximum allowed length is {length}"
-
-    def __call__(self, val: List[Any]) -> bool:
-        return len(val) <= self.length
-
-
-@dataclass
-class UniqueItems(Predicate[List[Any]]):
-    err_message = "all items must be unique"
-
-    def __call__(self, val: List[Any]) -> bool:
-        hashable_items: Set[Tuple[Type[Any], Any]] = set()
-        # slower lookups for unhashables
-        unhashable_items: List[Tuple[Type[Any], Any]] = []
-        for item in val:
-            # needed to tell difference between things like
-            # ints and bools
-            typed_lookup = (type(item), item)
-            try:
-                if typed_lookup in hashable_items:
-                    return False
-                else:
-                    hashable_items.add(typed_lookup)
-            except TypeError:  # not hashable!
-                if typed_lookup in unhashable_items:
-                    return False
-                else:
-                    unhashable_items.append(typed_lookup)
-        else:
-            return True
-
-
-unique_items = UniqueItems()
 
 EXPECTED_LIST_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidType(
     list, "expected a list"

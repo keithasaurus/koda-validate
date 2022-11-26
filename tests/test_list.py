@@ -8,8 +8,8 @@ from koda._generics import A
 from koda_validate import IntValidator, PredicateAsync, Processor, StringValidator
 from koda_validate.base import InvalidIterable, InvalidType
 from koda_validate.float import FloatValidator
-from koda_validate.generic import Min
-from koda_validate.list import ListValidator, MaxItems, MinItems, unique_items
+from koda_validate.generic import MaxItems, Min, MinItems
+from koda_validate.list import ListValidator
 from koda_validate.validated import Invalid, Valid
 
 
@@ -106,34 +106,6 @@ async def test_child_validator_async_is_used() -> None:
     assert await l_validator.validate_async([1, 3]) == Valid([3])
 
     assert await l_validator.validate_async([1, 1, 1]) == Invalid([MaxItems(1)])
-
-
-def test_max_items() -> None:
-    assert MaxItems(0)([]) is True
-
-    assert MaxItems(5)([1, 2, 3]) is True
-
-    assert MaxItems(5)(["a", "b", "c", "d", "e", "fghij"]) is False
-
-    assert MaxItems(5).err_message == "maximum allowed length is 5"
-
-
-def test_min_items() -> None:
-    assert MinItems(0)([]) is True
-
-    assert MinItems(3)([1, 2, 3]) is True
-    assert MinItems(3)([1, 2]) is False
-
-    assert MinItems(3).err_message == "minimum allowed length is 3"
-
-
-def test_unique_items() -> None:
-    assert unique_items([1, 2, 3]) is True
-    assert unique_items([1, 1]) is False
-    assert unique_items.err_message == "all items must be unique"
-    assert unique_items([1, [], []]) is False
-    assert unique_items([[], [1], [2]]) is True
-    assert unique_items([{"something": {"a": 1}}, {"something": {"a": 1}}]) is False
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
