@@ -1,6 +1,10 @@
+import sys
 from dataclasses import is_dataclass
 from decimal import Decimal
-from types import NoneType, UnionType
+
+if sys.version_info >= (3, 8):
+    from types import UnionType
+
 from typing import (
     Any,
     ClassVar,
@@ -53,7 +57,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any]:
         return IntValidator()
     elif annotations is float:
         return FloatValidator()
-    elif annotations is None or annotations is NoneType:
+    elif annotations is None or annotations is type(None):  # noqa: E721
         return NoneValidator()
     elif annotations is UUID:
         return UUIDValidator()
@@ -80,7 +84,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any]:
             return MapValidator(
                 key=get_typehint_validator(args[0]), value=get_typehint_validator(args[1])
             )
-        if origin is Union or origin is UnionType:
+        if origin is Union or (sys.version_info >= (3, 10) and origin is UnionType):
             return UnionValidatorAny(*[get_typehint_validator(arg) for arg in args])
         if origin is tuple or origin is Tuple:
             if len(args) == 2 and args[1] is Ellipsis:

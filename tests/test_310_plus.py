@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, Hashable
+from typing import Any, Dict, Hashable, Union
 
 from koda import Maybe
 
@@ -33,6 +33,7 @@ from koda_validate import (
     strip,
 )
 from koda_validate.base import InvalidCustom, ValidationResult
+from koda_validate.dataclasses import get_typehint_validator
 from koda_validate.dictionary import (
     DictValidatorAny,
     KeyNotRequired,
@@ -43,6 +44,7 @@ from koda_validate.dictionary import (
 )
 from koda_validate.generic import AlwaysValid
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
+from koda_validate.union import UnionValidatorAny
 from koda_validate.validated import Invalid, Valid
 
 
@@ -360,3 +362,15 @@ def test_always_valid_match() -> None:
             assert True
         case _:
             assert False
+
+
+def test_get_typehint_validator_list_union() -> None:
+    for validator in [
+        get_typehint_validator(list[str | int]),
+        get_typehint_validator(list[Union[str, int]]),
+    ]:
+        assert isinstance(validator, ListValidator)
+        assert isinstance(validator.item_validator, UnionValidatorAny)
+        assert len(validator.item_validator.validators) == 2
+        assert isinstance(validator.item_validator.validators[0], StringValidator)
+        assert isinstance(validator.item_validator.validators[1], IntValidator)
