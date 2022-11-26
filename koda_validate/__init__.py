@@ -3,7 +3,6 @@ __all__ = (
     "Validator",
     "Predicate",
     "PredicateAsync",
-    "Serializable",
     "Processor",
     # boolean.py
     "BoolValidator",
@@ -45,6 +44,9 @@ __all__ = (
     # one_of.py
     "OneOf2",
     "OneOf3",
+    # serialization
+    "Serializable",
+    "serializable_validation_err",
     # string.py
     "StringValidator",
     "MinLength",
@@ -70,13 +72,7 @@ __all__ = (
     "Invalid",
 )
 
-from koda_validate.base import (
-    Predicate,
-    PredicateAsync,
-    Processor,
-    Serializable,
-    Validator,
-)
+from koda_validate.base import Predicate, PredicateAsync, Processor, Validator
 from koda_validate.boolean import BoolValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
@@ -109,6 +105,7 @@ from koda_validate.integer import IntValidator
 from koda_validate.list import ListValidator
 from koda_validate.none import NoneValidator, OptionalValidator, none_validator
 from koda_validate.one_of import OneOf2, OneOf3
+from koda_validate.serialization import Serializable, serializable_validation_err
 from koda_validate.string import (
     EmailPredicate,
     MaxLength,

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List, Tuple, Union
 
 from koda_validate.base import (
     InvalidCoercion,
@@ -10,9 +10,19 @@ from koda_validate.base import (
     InvalidMap,
     InvalidType,
     InvalidVariants,
-    Serializable,
     ValidationErr,
 )
+
+Serializable = Union[
+    None,
+    int,
+    str,
+    bool,
+    float,
+    List["Serializable"],
+    Tuple["Serializable", ...],
+    Dict[str, "Serializable"],
+]
 
 
 def serializable_validation_err(err: ValidationErr) -> Serializable:

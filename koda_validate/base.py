@@ -162,18 +162,6 @@ class PredicateAsync(Generic[InputT]):
         raise NotImplementedError
 
 
-Serializable = Union[
-    None,
-    int,
-    str,
-    bool,
-    float,
-    List["Serializable"],
-    Tuple["Serializable", ...],
-    Dict[str, "Serializable"],
-]
-
-
 class Processor(Generic[A]):
     @abstractmethod
     def __call__(self, val: A) -> A:  # pragma: no cover
