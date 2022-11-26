@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, Hashable, Union
+from typing import Any, Dict, Hashable, Optional, Union
 
 from koda import Maybe
 
@@ -32,8 +32,14 @@ from koda_validate import (
     Validator,
     strip,
 )
-from koda_validate.base import InvalidCustom, ValidationResult
-from koda_validate.dataclasses import get_typehint_validator
+from koda_validate.base import (
+    InvalidCustom,
+    InvalidDict,
+    InvalidType,
+    InvalidVariants,
+    ValidationResult,
+)
+from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
 from koda_validate.dictionary import (
     DictValidatorAny,
     KeyNotRequired,
@@ -374,3 +380,30 @@ def test_get_typehint_validator_list_union() -> None:
         assert len(validator.item_validator.validators) == 2
         assert isinstance(validator.item_validator.validators[0], StringValidator)
         assert isinstance(validator.item_validator.validators[1], IntValidator)
+
+
+# should be in test_dataclasses
+def test_complex_union_dataclass() -> None:
+    @dataclass
+    class Example:
+        a: Optional[str] | float | int
+
+    example_validator = DataclassValidator(Example)
+    assert example_validator({"a": "ok"}) == Valid(Example("ok"))
+    assert example_validator({"a": None}) == Valid(Example(None))
+    assert example_validator({"a": 1.1}) == Valid(Example(1.1))
+    assert example_validator({"a": 5}) == Valid(Example(5))
+    assert example_validator({"a": False}) == Invalid(
+        InvalidDict(
+            {
+                "a": InvalidVariants(
+                    [
+                        InvalidType(str, "expected a string"),
+                        InvalidType(type(None), "expected None"),
+                        InvalidType(float, "expected a float"),
+                        InvalidType(int, "expected an integer"),
+                    ]
+                )
+            }
+        )
+    )

@@ -261,32 +261,6 @@ def test_nested_dataclass() -> None:
     )
 
 
-def test_complex_union_dataclass() -> None:
-    @dataclass
-    class Example:
-        a: Optional[str] | float | int
-
-    example_validator = DataclassValidator(Example)
-    assert example_validator({"a": "ok"}) == Valid(Example("ok"))
-    assert example_validator({"a": None}) == Valid(Example(None))
-    assert example_validator({"a": 1.1}) == Valid(Example(1.1))
-    assert example_validator({"a": 5}) == Valid(Example(5))
-    assert example_validator({"a": False}) == Invalid(
-        InvalidDict(
-            {
-                "a": InvalidVariants(
-                    [
-                        InvalidType(str, "expected a string"),
-                        InvalidType(type(None), "expected None"),
-                        InvalidType(float, "expected a float"),
-                        InvalidType(int, "expected an integer"),
-                    ]
-                )
-            }
-        )
-    )
-
-
 def test_get_typehint_validator() -> None:
     assert isinstance(get_typehint_validator(Any), AlwaysValid)
     assert isinstance(get_typehint_validator(None), NoneValidator)
