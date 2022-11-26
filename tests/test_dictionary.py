@@ -33,7 +33,7 @@ from koda_validate.base import (
     InvalidType,
     ValidationErr,
     ValidationResult,
-    invalid_key_missing,
+    invalid_missing_key,
 )
 from koda_validate.dictionary import (
     DICT_TYPE_ERR,
@@ -245,7 +245,7 @@ def test_record_1() -> None:
 
     assert validator("not a dict") == Invalid(DICT_TYPE_ERR)
 
-    assert validator({}) == Invalid(InvalidDict({"name": invalid_key_missing}))
+    assert validator({}) == Invalid(InvalidDict({"name": invalid_missing_key}))
 
     assert validator({"name": 5}) == Invalid(
         InvalidDict(keys={"name": InvalidType(str, "expected a string")})
@@ -269,7 +269,7 @@ def test_record_2() -> None:
 
     assert validator("not a dict") == Invalid(InvalidType(dict, "expected a dictionary"))
 
-    assert validator({}) == Invalid(InvalidDict({"name": invalid_key_missing}))
+    assert validator({}) == Invalid(InvalidDict({"name": invalid_missing_key}))
 
     assert validator({"name": 5, "age": "50"}) == Invalid(
         InvalidDict(
@@ -879,7 +879,7 @@ def test_dict_validator_any_key_missing() -> None:
     assert validator({"first_name": 5}) == Invalid(
         InvalidDict(
             {
-                "last_name": invalid_key_missing,
+                "last_name": invalid_missing_key,
                 "first_name": InvalidType(str, "expected a string"),
             }
         )
@@ -928,7 +928,7 @@ async def test_validate_dictionary_any_async() -> None:
     assert await validator.validate_async({"first_name": 5}) == Invalid(
         InvalidDict(
             {
-                "last_name": invalid_key_missing,
+                "last_name": invalid_missing_key,
                 "first_name": InvalidType(str, "expected a string"),
             }
         )
@@ -992,7 +992,7 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
     assert await validator.validate_async({"first_name": 5}) == Invalid(
         InvalidDict(
             {
-                "last_name": invalid_key_missing,
+                "last_name": invalid_missing_key,
                 "first_name": InvalidType(str, "expected a string"),
             }
         )
@@ -1147,7 +1147,7 @@ async def test_validate_dictionary_async() -> None:
     assert await validator.validate_async({"first_name": 5}) == Invalid(
         InvalidDict(
             {
-                "last_name": invalid_key_missing,
+                "last_name": invalid_missing_key,
                 "first_name": InvalidType(str, "expected a string"),
             }
         )

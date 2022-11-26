@@ -30,15 +30,15 @@ class InvalidCoercion:
     err_message: str
 
 
-class InvalidKeyMissing:
-    _instance: ClassVar[Optional["InvalidKeyMissing"]] = None
+class InvalidMissingKey:
+    _instance: ClassVar[Optional["InvalidMissingKey"]] = None
 
-    def __new__(cls) -> "InvalidKeyMissing":
+    def __new__(cls) -> "InvalidMissingKey":
         """
         Make `KeyMissingErr` a singleton, so we can do `is` checks if we want.
         """
         if cls._instance is None:
-            cls._instance = super(InvalidKeyMissing, cls).__new__(cls)
+            cls._instance = super(InvalidMissingKey, cls).__new__(cls)
         return cls._instance
 
 
@@ -58,7 +58,7 @@ class InvalidExtraKeys:
         )
 
 
-invalid_key_missing = InvalidKeyMissing()
+invalid_missing_key = InvalidMissingKey()
 
 
 @dataclass
@@ -104,7 +104,7 @@ ValidationErr = Union[
     InvalidDict,
     InvalidExtraKeys,
     InvalidIterable,
-    InvalidKeyMissing,
+    InvalidMissingKey,
     InvalidMap,
     InvalidType,
     InvalidVariants,

@@ -6,8 +6,8 @@ from koda_validate.base import (
     InvalidDict,
     InvalidExtraKeys,
     InvalidIterable,
-    InvalidKeyMissing,
     InvalidMap,
+    InvalidMissingKey,
     InvalidType,
     InvalidVariants,
     ValidationErr,
@@ -38,7 +38,7 @@ def serializable_validation_err(err: ValidationErr) -> Serializable:
         return [p.err_message for p in err]
     elif isinstance(err, InvalidIterable):
         return [[i, serializable_validation_err(err)] for i, err in err.indexes.items()]
-    elif isinstance(err, InvalidKeyMissing):
+    elif isinstance(err, InvalidMissingKey):
         return ["key missing"]
     elif isinstance(err, InvalidMap):
         errs_dict: Dict[str, Serializable] = {}

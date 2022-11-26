@@ -9,7 +9,7 @@ from koda_validate.base import (
     InvalidMap,
     InvalidType,
     InvalidVariants,
-    invalid_key_missing,
+    invalid_missing_key,
 )
 from koda_validate.serialization import serializable_validation_err
 from koda_validate.string import STRING_TYPE_ERR, MaxLength, MinLength
@@ -29,7 +29,7 @@ def test_predicate_returns_err_in_list() -> None:
 
 
 def test_key_missing_returns_list_str() -> None:
-    assert serializable_validation_err(invalid_key_missing) == ["key missing"]
+    assert serializable_validation_err(invalid_missing_key) == ["key missing"]
 
 
 def test_coercion_err_uses_message() -> None:
@@ -50,7 +50,7 @@ def test_iterable_errs() -> None:
 
 def test_invalid_dict() -> None:
     assert serializable_validation_err(
-        InvalidDict({5: InvalidType(float, "not a float"), "ok": invalid_key_missing})
+        InvalidDict({5: InvalidType(float, "not a float"), "ok": invalid_missing_key})
     ) == {"5": ["not a float"], "ok": ["key missing"]}
 
 

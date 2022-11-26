@@ -52,7 +52,7 @@ from koda_validate.base import (
     _async_predicates_warning,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
-    invalid_key_missing,
+    invalid_missing_key,
 )
 from koda_validate.validated import Invalid, Valid
 
@@ -886,7 +886,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = invalid_key_missing
+                    errs.keys[key_] = invalid_missing_key
                 else:
                     args.append(nothing)
             else:
@@ -940,7 +940,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = invalid_key_missing
+                    errs.keys[key_] = invalid_missing_key
                 else:
                     args.append(nothing)
             else:
@@ -1071,7 +1071,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = invalid_key_missing
+                    errs.keys[key_] = invalid_missing_key
                 elif not errs.keys:
                     success_dict[key_] = nothing
             else:
@@ -1124,7 +1124,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = invalid_key_missing
+                    errs.keys[key_] = invalid_missing_key
                 elif not errs.keys:
                     success_dict[key_] = nothing
             else:

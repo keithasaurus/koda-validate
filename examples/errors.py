@@ -7,7 +7,7 @@ from koda_validate.base import (
     InvalidDict,
     InvalidExtraKeys,
     InvalidType,
-    invalid_key_missing,
+    invalid_missing_key,
 )
 from koda_validate.serialization import serializable_validation_err
 
@@ -40,7 +40,7 @@ assert city_validator(None) == Invalid(InvalidType(dict, "expected a dictionary"
 
 # Missing keys are errors
 print(city_validator({}))
-assert city_validator({}) == Invalid(InvalidDict({"name": invalid_key_missing}))
+assert city_validator({}) == Invalid(InvalidDict({"name": invalid_missing_key}))
 
 print(city_validator({}).map_invalid(serializable_validation_err))
 
@@ -63,7 +63,7 @@ neighborhood_validator = RecordValidator(
 
 # Errors are nested in predictable manner
 assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Invalid(
-    InvalidDict({"city": InvalidDict({"name": invalid_key_missing})})
+    InvalidDict({"city": InvalidDict({"name": invalid_missing_key})})
 )
 
 print(
