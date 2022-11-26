@@ -2,8 +2,9 @@ from typing import Tuple
 
 import pytest
 
-from koda_validate import BoolValidator, IntValidator, StringValidator
+from koda_validate import BoolValidator, ExactItemCount, IntValidator, StringValidator
 from koda_validate.base import (
+    InvalidCoercion,
     InvalidCustom,
     InvalidIterable,
     InvalidType,
@@ -15,11 +16,11 @@ from koda_validate.validated import Invalid, Valid
 
 def test_tuple2() -> None:
     assert Tuple2Validator(StringValidator(), IntValidator())({}) == Invalid(
-        InvalidType(tuple, "expected tuple (or list) of length 2")
+        InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
     )
 
     assert Tuple2Validator(StringValidator(), IntValidator())([]) == Invalid(
-        InvalidType(tuple, "expected tuple (or list) of length 2")
+        [ExactItemCount(2)]
     )
 
     assert Tuple2Validator(StringValidator(), IntValidator())(["a", 1]) == Valid(("a", 1))
@@ -62,11 +63,11 @@ def test_tuple2() -> None:
 async def test_tuple2_async() -> None:
     assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
         {}
-    ) == Invalid(InvalidType(tuple, "expected tuple (or list) of length 2"))
+    ) == Invalid(InvalidCoercion([list, tuple], tuple, "expected a list or tuple"))
 
     assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
         []
-    ) == Invalid(InvalidType(tuple, "expected tuple (or list) of length 2"))
+    ) == Invalid([ExactItemCount(2)])
 
     assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
         ["a", 1]
@@ -113,11 +114,11 @@ async def test_tuple2_async() -> None:
 def test_tuple3() -> None:
     assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
         {}
-    ) == Invalid(InvalidType(tuple, "expected tuple (or list) of length 3"))
+    ) == Invalid(InvalidCoercion([list, tuple], tuple, "expected a list or tuple"))
 
     assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
         []
-    ) == Invalid(InvalidType(tuple, "expected tuple (or list) of length 3"))
+    ) == Invalid([ExactItemCount(3)])
 
     assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
         ["a", 1, False]
@@ -169,14 +170,12 @@ async def test_tuple3_async() -> None:
     assert await Tuple3Validator(
         StringValidator(), IntValidator(), BoolValidator()
     ).validate_async({}) == Invalid(
-        InvalidType(tuple, "expected tuple (or list) of length 3")
+        InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
     )
 
     assert await Tuple3Validator(
         StringValidator(), IntValidator(), BoolValidator()
-    ).validate_async([]) == Invalid(
-        InvalidType(tuple, "expected tuple (or list) of length 3")
-    )
+    ).validate_async([]) == Invalid([ExactItemCount(3)])
 
     assert await Tuple3Validator(
         StringValidator(), IntValidator(), BoolValidator()

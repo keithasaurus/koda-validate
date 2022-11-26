@@ -28,6 +28,8 @@ __all__ = (
     "MinItems",
     "MaxItems",
     "ExactItemCount",
+    "unique_items",
+    "UniqueItems",
     "MultipleOf",
     "EqualsValidator",
     "always_valid",
