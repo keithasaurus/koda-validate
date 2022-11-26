@@ -14,7 +14,7 @@ EXPECTED_BYTES_ERR: Final[Tuple[Literal[False], ValidationErr]] = (
 
 
 class BytesValidator(_ToTupleValidatorUnsafeScalar[Any, str]):
-    def check_and_or_coerce_type(self, val: str) -> _ResultTupleUnsafe:
+    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is bytes:
             return True, val
         else:

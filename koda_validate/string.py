@@ -17,7 +17,7 @@ EXPECTED_STR_ERR: Final[Tuple[Literal[False], ValidationErr]] = (False, STRING_T
 
 
 class StringValidator(_ToTupleValidatorUnsafeScalar[Any, str]):
-    def check_and_or_coerce_type(self, val: str) -> _ResultTupleUnsafe:
+    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is str:
             return True, val
         else:

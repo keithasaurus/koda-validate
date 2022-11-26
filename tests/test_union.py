@@ -1,3 +1,5 @@
+import pytest
+
 from koda_validate import FloatValidator, IntValidator, Invalid, StringValidator, Valid
 from koda_validate.base import InvalidType, InvalidVariants
 from koda_validate.union import UnionValidatorAny
@@ -22,6 +24,36 @@ def test_union_validator_any() -> None:
     )
 
     assert str_int_float_validator(False) == Invalid(
+        InvalidVariants(
+            [
+                InvalidType(str, "expected a string"),
+                InvalidType(int, "expected an integer"),
+                InvalidType(float, "expected a float"),
+            ]
+        )
+    )
+
+
+@pytest.mark.asyncio
+async def test_union_validator_any_async() -> None:
+    str_int_float_validator = UnionValidatorAny(
+        StringValidator(), IntValidator(), FloatValidator()
+    )
+
+    assert await str_int_float_validator.validate_async("abc") == Valid("abc")
+    assert await str_int_float_validator.validate_async(5) == Valid(5)
+    assert await str_int_float_validator.validate_async(5.5) == Valid(5.5)
+    assert await str_int_float_validator.validate_async(None) == Invalid(
+        InvalidVariants(
+            [
+                InvalidType(str, "expected a string"),
+                InvalidType(int, "expected an integer"),
+                InvalidType(float, "expected a float"),
+            ]
+        )
+    )
+
+    assert await str_int_float_validator.validate_async(False) == Invalid(
         InvalidVariants(
             [
                 InvalidType(str, "expected a string"),

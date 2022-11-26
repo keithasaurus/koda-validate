@@ -4,7 +4,7 @@ with a generic TupleValidator... (2 and 3 can still use the new one
 under the hood, if needed)
 """
 
-from typing import Any, Callable, Dict, Final, List, Literal, Optional, Tuple
+from typing import Any, Callable, Dict, Final, List, Literal, Optional, Tuple, Union
 
 from koda_validate import ExactItemCount
 from koda_validate._generics import A, B, C
@@ -22,23 +22,13 @@ from koda_validate.base import (
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
-from koda_validate.validated import Invalid
 
+EXPECTED_TUPLE_OR_LIST_ERR: Final[
+    Tuple[Literal[False], ValidationErr]
+] = False, InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
 
-def _tuple_to_dict_errors(errs: Tuple[ValidationErr, ...]) -> ValidationErr:
-    return InvalidIterable({i: err for i, err in enumerate(errs)})
-
-
-EXPECTED_TUPLE_TWO_ERROR: Final[Invalid[ValidationErr]] = Invalid(
-    InvalidType(tuple, "expected tuple (or list) of length 2")
-)
-
-EXPECTED_TUPLE_THREE_ERROR: Final[Invalid[ValidationErr]] = Invalid(
-    InvalidType(tuple, "expected tuple (or list) of length 3")
-)
-
-EXPECTED_TUPLE_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidCoercion(
-    [list, tuple], tuple, "expected a list or tuple"
+EXPECTED_TUPLE_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidType(
+    tuple, "expected a tuple"
 )
 
 
@@ -77,7 +67,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
                 return True, tuple(vals)
 
         else:
-            return EXPECTED_TUPLE_ERR
+            return EXPECTED_TUPLE_OR_LIST_ERR
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         val_type = type(val)
@@ -107,7 +97,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
                 return True, tuple(vals)
 
         else:
-            return EXPECTED_TUPLE_ERR
+            return EXPECTED_TUPLE_OR_LIST_ERR
 
 
 # todo: auto-generate
@@ -266,7 +256,7 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
                     return_list.append(item_result)
 
             if index_errors:
-                return False, index_errors
+                return False, InvalidIterable(index_errors)
             else:
                 return True, tuple(return_list)
         else:
@@ -278,14 +268,19 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
                 for processor in self.preprocessors:
                     val = processor(val)
 
+            tuple_errors: List[
+                Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
+            ] = []
             if self.predicates:
-                tuple_errors: List[Predicate[Tuple[A, ...]]] = [
-                    pred for pred in self.predicates if not pred(val)
-                ]
+                tuple_errors.extend([pred for pred in self.predicates if not pred(val)])
+            if self.predicates_async:
+                for pred_async in self.predicates_async:
+                    if not await pred_async.validate_async(val):
+                        tuple_errors.append(pred_async)
 
-                # Not running async validators! They shouldn't be set!
-                if tuple_errors:
-                    return False, tuple_errors
+            # Not running async validators! They shouldn't be set!
+            if tuple_errors:
+                return False, tuple_errors
 
             return_list: List[A] = []
             index_errors: Dict[int, ValidationErr] = {}
@@ -304,7 +299,7 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
                     return_list.append(item_result)
 
             if index_errors:
-                return False, index_errors
+                return False, InvalidIterable(index_errors)
             else:
                 return True, tuple(return_list)
         else:

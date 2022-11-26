@@ -37,3 +37,20 @@ class UnionValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                 else:
                     errs.append(result.val)
         return False, InvalidVariants(errs)
+
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+        errs = []
+        for validator in self.validators:
+            if isinstance(validator, _ToTupleValidatorUnsafe):
+                success, new_val = await validator.validate_to_tuple_async(val)
+                if success:
+                    return True, new_val
+                else:
+                    errs.append(new_val)
+            else:
+                result = await validator.validate_async(val)
+                if result.is_valid:
+                    return True, result.val
+                else:
+                    errs.append(result.val)
+        return False, InvalidVariants(errs)
