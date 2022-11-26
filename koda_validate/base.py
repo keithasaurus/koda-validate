@@ -22,7 +22,7 @@ from koda_validate.validated import Invalid, Valid, Validated
 @dataclass
 class InvalidCoercion:
     """
-    When an exact type is required but not found
+    When one or more types can be coerced to a destination type
     """
 
     compatible_types: List[Type[Any]]
@@ -31,11 +31,15 @@ class InvalidCoercion:
 
 
 class InvalidMissingKey:
+    """
+    A key is missing from a dictionary
+    """
+
     _instance: ClassVar[Optional["InvalidMissingKey"]] = None
 
     def __new__(cls) -> "InvalidMissingKey":
         """
-        Make `KeyMissingErr` a singleton, so we can do `is` checks if we want.
+        A singleton, so we can do `is` checks if we want.
         """
         if cls._instance is None:
             cls._instance = super(InvalidMissingKey, cls).__new__(cls)
@@ -44,6 +48,10 @@ class InvalidMissingKey:
 
 @dataclass(init=False)
 class InvalidExtraKeys:
+    """
+    extra keys were present in a dictionary
+    """
+
     expected_keys: Set[Hashable]
     err_message: str
 
@@ -63,37 +71,66 @@ invalid_missing_key = InvalidMissingKey()
 
 @dataclass
 class InvalidDict:
+    """
+    validation failures for key/value pairs on a record-like
+    dictionary
+    """
+
     keys: Dict[Hashable, "ValidationErr"]
 
 
 @dataclass
 class InvalidKeyVal:
+    """
+    key and/or value errors from a single key/value pair
+    """
+
     key: Optional["ValidationErr"]
     val: Optional["ValidationErr"]
 
 
 @dataclass
 class InvalidMap:
+    """
+    errors from key/value pairs of a map-like dictionary
+    """
+
     keys: Dict[Hashable, InvalidKeyVal]
 
 
 @dataclass
 class InvalidIterable:
+    """
+    dictionary of validation errors by index
+    """
+
     indexes: Dict[int, "ValidationErr"]
 
 
 @dataclass
 class InvalidVariants:
+    """
+    none of these validators was satisfied by a given value
+    """
+
     variants: List["ValidationErr"]
 
 
 @dataclass
 class InvalidCustom:
+    """
+    Basic custom validation error. Can be subclassed if needed
+    """
+
     err_message: str
 
 
 @dataclass
 class InvalidType:
+    """
+    A specific type was required but not provided
+    """
+
     expected_type: Type[Any]
     err_message: str
 
