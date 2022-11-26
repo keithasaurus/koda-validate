@@ -14,7 +14,7 @@ EXPECTED_UUID_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidC
 
 
 class UUIDValidator(_ToTupleValidatorUnsafeScalar[Any, UUID]):
-    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
+    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is UUID:
             return True, val
 

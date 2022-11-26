@@ -13,7 +13,7 @@ EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, (
 
 
 class FloatValidator(_ToTupleValidatorUnsafeScalar[Any, float]):
-    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
+    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is float:
             return True, val
         else:

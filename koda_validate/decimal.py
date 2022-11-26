@@ -19,7 +19,7 @@ EXPECTED_DECIMAL_ERR: Final[
 
 
 class DecimalValidator(_ToTupleValidatorUnsafeScalar[Any, Decimal]):
-    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
+    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is Decimal:
             return True, val
         elif isinstance(val, (str, int)):

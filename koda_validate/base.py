@@ -216,9 +216,9 @@ class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
 
 class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):
     """
-    This `Validator` subclass exists for optimization. When we call
-    nested validators it's much less computation to deal with simple
-    tuples and bools, instead of Valid and Invalid instances.
+    This `Validator` subclass exists primarily for code cleanliness and standardization.
+    It allows us to have very simple Scalar validators.
+
     This class may go away!
 
     DO NOT USE THIS UNLESS YOU:
@@ -240,14 +240,14 @@ class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def coerce_to_type(self, val: InputT) -> _ResultTupleUnsafe:
+    def check_and_or_coerce_type(self, val: InputT) -> _ResultTupleUnsafe:
         raise NotImplementedError()
 
     def validate_to_tuple(self, val: InputT) -> _ResultTupleUnsafe:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
-        succeeded, val_or_type_err = self.coerce_to_type(val)
+        succeeded, val_or_type_err = self.check_and_or_coerce_type(val)
         if succeeded:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -266,7 +266,7 @@ class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):
         return False, val_or_type_err
 
     async def validate_to_tuple_async(self, val: InputT) -> _ResultTupleUnsafe:
-        succeeded, val_or_type_err = self.coerce_to_type(val)
+        succeeded, val_or_type_err = self.check_and_or_coerce_type(val)
         if succeeded:
             if self.preprocessors:
                 for proc in self.preprocessors:

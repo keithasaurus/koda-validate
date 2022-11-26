@@ -13,7 +13,7 @@ EXPECTED_BOOL_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidT
 
 
 class BoolValidator(_ToTupleValidatorUnsafeScalar[Any, bool]):
-    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
+    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is bool:
             return True, val
         else:

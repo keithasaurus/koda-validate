@@ -20,7 +20,7 @@ EXPECTED_ISO_DATESTRING: Final[
 
 
 class DateValidator(_ToTupleValidatorUnsafeScalar[Any, date]):
-    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
+    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is date:
             return True, val
         else:
@@ -31,7 +31,7 @@ class DateValidator(_ToTupleValidatorUnsafeScalar[Any, date]):
 
 
 class DatetimeStringValidator(_ToTupleValidatorUnsafeScalar[Any, datetime]):
-    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
+    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is datetime:
             return True, val
         else:
