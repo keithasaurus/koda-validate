@@ -2,7 +2,7 @@ import sys
 from dataclasses import is_dataclass
 from decimal import Decimal
 
-if sys.version_info >= (3, 8):
+if sys.version_info >= (3, 10):
     from types import UnionType
 
 from typing import (
