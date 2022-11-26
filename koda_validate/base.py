@@ -30,12 +30,6 @@ class InvalidCoercion:
     err_message: str
 
 
-@dataclass
-class InvalidType:
-    expected_type: Type[Any]
-    err_message: str
-
-
 class InvalidKeyMissing:
     _instance: ClassVar[Optional["InvalidKeyMissing"]] = None
 
@@ -95,6 +89,12 @@ class InvalidVariants:
 
 @dataclass
 class InvalidCustom:
+    err_message: str
+
+
+@dataclass
+class InvalidType:
+    expected_type: Type[Any]
     err_message: str
 
 
