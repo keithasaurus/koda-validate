@@ -12,7 +12,7 @@ EXPECTED_DATE_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidC
     [str, date], date, "expected date or string formatted as yyyy-mm-dd"
 )
 
-EXPECTED_ISO_DATESTRING: Final[
+EXPECTED_DATETIME_ERR: Final[
     Tuple[Literal[False], ValidationErr]
 ] = False, InvalidCoercion(
     [str, datetime], datetime, "expected datetime or iso8601-formatted string"
@@ -30,7 +30,7 @@ class DateValidator(_ToTupleValidatorUnsafeScalar[Any, date]):
                 return EXPECTED_DATE_ERR
 
 
-class DatetimeStringValidator(_ToTupleValidatorUnsafeScalar[Any, datetime]):
+class DatetimeValidator(_ToTupleValidatorUnsafeScalar[Any, datetime]):
     def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is datetime:
             return True, val
@@ -40,4 +40,4 @@ class DatetimeStringValidator(_ToTupleValidatorUnsafeScalar[Any, datetime]):
                 # to add the dependency at some point
                 return True, datetime.fromisoformat(val)
             except (ValueError, TypeError):
-                return EXPECTED_ISO_DATESTRING
+                return EXPECTED_DATETIME_ERR

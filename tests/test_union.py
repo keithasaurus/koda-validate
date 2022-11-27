@@ -1,7 +1,9 @@
+from typing import Any
+
 import pytest
 
 from koda_validate import FloatValidator, IntValidator, Invalid, StringValidator, Valid
-from koda_validate.base import InvalidType, InvalidVariants
+from koda_validate.base import InvalidType, InvalidVariants, ValidationResult, Validator
 from koda_validate.union import UnionValidatorAny
 
 
@@ -36,19 +38,30 @@ def test_union_validator_any() -> None:
 
 @pytest.mark.asyncio
 async def test_union_validator_any_async() -> None:
+    class TestNoneValidator(Validator[Any, None]):
+        async def validate_async(self, val: Any) -> ValidationResult[None]:
+            return self(val)
+
+        def __call__(self, val: Any) -> ValidationResult[None]:
+            if val is None:
+                return Valid(None)
+            else:
+                return Invalid(InvalidType(type(None), "expected None"))
+
     str_int_float_validator = UnionValidatorAny(
-        StringValidator(), IntValidator(), FloatValidator()
+        StringValidator(), IntValidator(), FloatValidator(), TestNoneValidator()
     )
 
     assert await str_int_float_validator.validate_async("abc") == Valid("abc")
     assert await str_int_float_validator.validate_async(5) == Valid(5)
-    assert await str_int_float_validator.validate_async(5.5) == Valid(5.5)
-    assert await str_int_float_validator.validate_async(None) == Invalid(
+    assert await str_int_float_validator.validate_async(None) == Valid(None)
+    assert await str_int_float_validator.validate_async([]) == Invalid(
         InvalidVariants(
             [
                 InvalidType(str, "expected a string"),
                 InvalidType(int, "expected an integer"),
                 InvalidType(float, "expected a float"),
+                InvalidType(type(None), "expected None"),
             ]
         )
     )
@@ -59,6 +72,7 @@ async def test_union_validator_any_async() -> None:
                 InvalidType(str, "expected a string"),
                 InvalidType(int, "expected an integer"),
                 InvalidType(float, "expected a float"),
+                InvalidType(type(None), "expected None"),
             ]
         )
     )
