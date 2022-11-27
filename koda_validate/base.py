@@ -133,6 +133,7 @@ class InvalidType:
 
     expected_type: Type[Any]
     err_message: str
+    validator: "Validator[Any, Any]"
 
 
 ValidationErr = Union[

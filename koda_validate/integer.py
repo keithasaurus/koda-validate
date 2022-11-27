@@ -1,14 +1,9 @@
-from typing import Any, Final, Literal, Tuple
+from typing import Any
 
 from koda_validate.base import (
     InvalidType,
-    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafeScalar,
-)
-
-EXPECTED_INTEGER_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, (
-    InvalidType(int, "expected an integer")
 )
 
 
@@ -17,4 +12,4 @@ class IntValidator(_ToTupleValidatorUnsafeScalar[Any, int]):
         if type(val) is int:
             return True, val
         else:
-            return EXPECTED_INTEGER_ERR
+            return False, (InvalidType(int, "expected an integer", self))

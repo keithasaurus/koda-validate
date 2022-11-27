@@ -56,13 +56,6 @@ from koda_validate.base import (
 )
 from koda_validate.validated import Invalid, Valid
 
-DICT_TYPE_ERR: Final[ValidationErr] = InvalidType(dict, "expected a dictionary")
-
-EXPECTED_DICT_ERR_TUPLE: Final[Tuple[Literal[False], ValidationErr]] = (
-    False,
-    DICT_TYPE_ERR,
-)
-
 
 class KeyNotRequired(Validator[Any, Maybe[A]]):
     """
@@ -164,7 +157,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
             else:
                 return Valid(return_dict)
         else:
-            return Invalid(DICT_TYPE_ERR)
+            return Invalid(InvalidType(dict, "expected a dictionary", self))
 
     def __call__(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
         if self.predicates_async:
@@ -210,7 +203,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
             else:
                 return Valid(return_dict)
         else:
-            return Invalid(DICT_TYPE_ERR)
+            return Invalid(InvalidType(dict, "expected a dictionary", self))
 
 
 class IsDictValidator(_ToTupleValidatorUnsafe[Any, Dict[Any, Any]]):
@@ -218,7 +211,7 @@ class IsDictValidator(_ToTupleValidatorUnsafe[Any, Dict[Any, Any]]):
         if isinstance(val, dict):
             return True, val
         else:
-            return False, DICT_TYPE_ERR
+            return False, InvalidType(dict, "expected a dictionary", self)
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         return self.validate_to_tuple(val)
@@ -868,7 +861,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR_TUPLE
+            return False, InvalidType(dict, "expected a dictionary", self)
 
         if self.preprocessors:
             for preproc in self.preprocessors:
@@ -922,7 +915,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
 
     async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR_TUPLE
+            return False, InvalidType(dict, "expected a dictionary", self)
 
         if self.preprocessors:
             for preproc in self.preprocessors:
@@ -1053,7 +1046,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
 
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR_TUPLE
+            return False, InvalidType(dict, "expected a dictionary", self)
 
         if self.preprocessors:
             for preproc in self.preprocessors:
@@ -1106,7 +1099,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
     async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
 
         if not isinstance(data, dict):
-            return EXPECTED_DICT_ERR_TUPLE
+            return False, InvalidType(dict, "expected a dictionary", self)
 
         if self.preprocessors:
             for preproc in self.preprocessors:

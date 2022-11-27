@@ -1,4 +1,4 @@
-from typing import Any, Dict, Final, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 from koda._generics import A
 
@@ -13,10 +13,6 @@ from koda_validate.base import (
     _async_predicates_warning,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
-)
-
-EXPECTED_LIST_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidType(
-    list, "expected a list"
 )
 
 
@@ -83,7 +79,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
             else:
                 return True, return_list
         else:
-            return EXPECTED_LIST_ERR
+            return False, InvalidType(list, "expected a list", self)
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         if isinstance(val, list):
@@ -131,4 +127,4 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
             else:
                 return True, return_list
         else:
-            return EXPECTED_LIST_ERR
+            return False, InvalidType(list, "expected a list", self)

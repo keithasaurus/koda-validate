@@ -27,10 +27,6 @@ EXPECTED_TUPLE_OR_LIST_ERR: Final[
     Tuple[Literal[False], ValidationErr]
 ] = False, InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
 
-EXPECTED_TUPLE_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidType(
-    tuple, "expected a tuple"
-)
-
 
 class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
     """
@@ -260,7 +256,7 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
             else:
                 return True, tuple(return_list)
         else:
-            return EXPECTED_TUPLE_ERR
+            return False, InvalidType(tuple, "expected a tuple", self)
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         if isinstance(val, tuple):
@@ -286,7 +282,11 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
             index_errors: Dict[int, ValidationErr] = {}
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
-                    is_valid, item_result = await self.item_validator.validate_to_tuple_async(  # type: ignore # noqa: E501
+                    (
+                        is_valid,
+                        item_result,
+                    ) = await self.item_validator.validate_to_tuple_async(
+                        # type: ignore # noqa: E501
                         item
                     )
                 else:
@@ -303,4 +303,4 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
             else:
                 return True, tuple(return_list)
         else:
-            return EXPECTED_TUPLE_ERR
+            return False, InvalidType(tuple, "expected a tuple", self)

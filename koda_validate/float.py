@@ -1,14 +1,9 @@
-from typing import Any, Final, Literal, Tuple
+from typing import Any
 
 from koda_validate.base import (
     InvalidType,
-    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafeScalar,
-)
-
-EXPECTED_FLOAT_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, (
-    InvalidType(float, "expected a float")
 )
 
 
@@ -17,4 +12,4 @@ class FloatValidator(_ToTupleValidatorUnsafeScalar[Any, float]):
         if type(val) is float:
             return True, val
         else:
-            return EXPECTED_FLOAT_ERR
+            return False, InvalidType(float, "expected a float")

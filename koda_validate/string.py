@@ -1,19 +1,14 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Final, Literal, Pattern, Tuple
+from typing import Any, Final, Pattern
 
 from koda_validate.base import (
     InvalidType,
     Predicate,
     Processor,
-    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafeScalar,
 )
-
-STRING_TYPE_ERR: Final[InvalidType] = InvalidType(str, "expected a string")
-
-EXPECTED_STR_ERR: Final[Tuple[Literal[False], ValidationErr]] = (False, STRING_TYPE_ERR)
 
 
 class StringValidator(_ToTupleValidatorUnsafeScalar[Any, str]):
@@ -21,7 +16,7 @@ class StringValidator(_ToTupleValidatorUnsafeScalar[Any, str]):
         if type(val) is str:
             return True, val
         else:
-            return EXPECTED_STR_ERR
+            return False, InvalidType(str, "expected a string", self)
 
 
 @dataclass(init=False)

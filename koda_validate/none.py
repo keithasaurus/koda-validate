@@ -2,20 +2,11 @@ from typing import Any, Final, Optional
 
 from koda._generics import A
 
-from koda_validate.base import (
-    InvalidType,
-    InvalidVariants,
-    ValidationErr,
-    ValidationResult,
-    Validator,
-)
+from koda_validate.base import InvalidType, InvalidVariants, ValidationResult, Validator
 from koda_validate.validated import Invalid, Valid
 
 OK_NONE: Final[Valid[None]] = Valid(None)
 OK_NONE_OPTIONAL: Final[Valid[Optional[Any]]] = Valid(None)
-
-EXPECTED_NONE_ERR: Final[ValidationErr] = InvalidType(type(None), "expected None")
-EXPECTED_NONE: Final[Invalid[ValidationErr]] = Invalid(EXPECTED_NONE_ERR)
 
 
 class OptionalValidator(Validator[Any, Optional[A]]):
@@ -37,7 +28,11 @@ class OptionalValidator(Validator[Any, Optional[A]]):
             if result.is_valid:
                 return Valid(result.val)
             else:
-                return Invalid(InvalidVariants([EXPECTED_NONE_ERR, result.val]))
+                return Invalid(
+                    InvalidVariants(
+                        [InvalidType(type(None), "expected None", self), result.val]
+                    )
+                )
 
     def __call__(self, val: Any) -> ValidationResult[Optional[A]]:
         if val is None:
@@ -47,7 +42,11 @@ class OptionalValidator(Validator[Any, Optional[A]]):
             if result.is_valid:
                 return Valid(result.val)
             else:
-                return Invalid(InvalidVariants([EXPECTED_NONE_ERR, result.val]))
+                return Invalid(
+                    InvalidVariants(
+                        [InvalidType(type(None), "expected None", self), result.val]
+                    )
+                )
 
 
 class NoneValidator(Validator[Any, None]):
@@ -58,7 +57,7 @@ class NoneValidator(Validator[Any, None]):
         if val is None:
             return OK_NONE
         else:
-            return EXPECTED_NONE
+            return Invalid(InvalidType(type(None), "expected None", self))
 
 
 none_validator = NoneValidator()
