@@ -163,10 +163,10 @@ class Validator(Generic[InputT, SuccessT]):
         """
         make it possible for all validators to be async-compatible
         """
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError()  # pragma: no cover
 
     def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError()  # pragma: no cover
 
 
 class Predicate(Generic[InputT]):
@@ -184,7 +184,7 @@ class Predicate(Generic[InputT]):
 
     @abstractmethod
     def __call__(self, val: InputT) -> bool:  # pragma: no cover
-        raise NotImplementedError
+        raise NotImplementedError()  # pragma: no cover
 
 
 class PredicateAsync(Generic[InputT]):
@@ -196,13 +196,13 @@ class PredicateAsync(Generic[InputT]):
 
     @abstractmethod
     async def validate_async(self, val: InputT) -> bool:  # pragma: no cover
-        raise NotImplementedError
+        raise NotImplementedError()  # pragma: no cover
 
 
 class Processor(Generic[A]):
     @abstractmethod
     def __call__(self, val: A) -> A:  # pragma: no cover
-        raise NotImplementedError
+        raise NotImplementedError()  # pragma: no cover
 
 
 # should look like this, but mypy doesn't understand it as of 0.982
@@ -231,10 +231,10 @@ class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
     """
 
     def validate_to_tuple(self, val: InputT) -> _ResultTupleUnsafe:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     async def validate_to_tuple_async(self, val: InputT) -> _ResultTupleUnsafe:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
         valid, result_val = await self.validate_to_tuple_async(val)
@@ -278,7 +278,7 @@ class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):
         self.preprocessors = preprocessors
 
     def check_and_or_coerce_type(self, val: InputT) -> _ResultTupleUnsafe:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     def validate_to_tuple(self, val: InputT) -> _ResultTupleUnsafe:
         if self.predicates_async:

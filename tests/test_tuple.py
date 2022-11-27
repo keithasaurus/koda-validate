@@ -26,6 +26,7 @@ from koda_validate.base import (
 )
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator, TupleHomogenousValidator
 from koda_validate.validated import Invalid, Valid
+from tests.utils import BasicNoneValidator
 
 
 def test_tuple2() -> None:
@@ -261,6 +262,14 @@ def test_tuple_homogenous_validator() -> None:
         preprocessors=[RemoveLast()],
     )((10.1, 7.7, 2.2, 5, 0.0)) == Invalid([MaxItems(3)])
 
+    n_v = TupleHomogenousValidator(BasicNoneValidator())
+
+    assert n_v((None, None)) == Valid((None, None))
+
+    assert n_v((None, 1)) == Invalid(
+        InvalidIterable({1: InvalidType(type(None), "expected None")})
+    )
+
 
 @pytest.mark.asyncio
 async def test_list_async() -> None:
@@ -287,6 +296,14 @@ async def test_list_async() -> None:
     assert await TupleHomogenousValidator(
         FloatValidator(Min(5.5)), predicates=[MinItems(1), MaxItems(3)]
     ).validate_async((10.1, 7.7, 2.2, 5)) == Invalid([MaxItems(3)])
+
+    n_v = TupleHomogenousValidator(BasicNoneValidator())
+
+    assert await n_v.validate_async((None, None)) == Valid((None, None))
+
+    assert await n_v.validate_async((None, 1)) == Invalid(
+        InvalidIterable({1: InvalidType(type(None), "expected None")})
+    )
 
 
 @pytest.mark.asyncio

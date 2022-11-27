@@ -11,6 +11,7 @@ from koda_validate.float import FloatValidator
 from koda_validate.generic import MaxItems, Min, MinItems
 from koda_validate.list import ListValidator
 from koda_validate.validated import Invalid, Valid
+from tests.utils import BasicNoneValidator
 
 
 def test_list_validator() -> None:
@@ -38,6 +39,14 @@ def test_list_validator() -> None:
         preprocessors=[RemoveLast()],
     )([10.1, 7.7, 2.2, 5, 0.0]) == Invalid([MaxItems(3)])
 
+    n_v = ListValidator(BasicNoneValidator())
+
+    assert n_v([None, None]) == Valid([None, None])
+
+    assert n_v([None, 1]) == Invalid(
+        InvalidIterable({1: InvalidType(type(None), "expected None")})
+    )
+
 
 @pytest.mark.asyncio
 async def test_list_async() -> None:
@@ -62,6 +71,14 @@ async def test_list_async() -> None:
     assert await ListValidator(
         FloatValidator(Min(5.5)), predicates=[MinItems(1), MaxItems(3)]
     ).validate_async([10.1, 7.7, 2.2, 5]) == Invalid([MaxItems(3)])
+
+    n_v = ListValidator(BasicNoneValidator())
+
+    assert await n_v.validate_async([None, None]) == Valid([None, None])
+
+    assert await n_v.validate_async([None, 1]) == Invalid(
+        InvalidIterable({1: InvalidType(type(None), "expected None")})
+    )
 
 
 @pytest.mark.asyncio
