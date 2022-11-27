@@ -106,6 +106,11 @@ class DataclassValidator(Validator[Any, _DCT]):
     ) -> None:
         self.data_cls = data_cls
         overrides = overrides or {}
+        if sys.version_info >= (3, 9):
+            type_hints = get_type_hints(self.data_cls, include_extras=True)
+        else:
+            type_hints = get_type_hints(self.data_cls)
+
         self.validator = DictValidatorAny(
             {
                 field: (
@@ -113,9 +118,7 @@ class DataclassValidator(Validator[Any, _DCT]):
                     if field in overrides
                     else get_typehint_validator(annotations)
                 )
-                for field, annotations in get_type_hints(
-                    self.data_cls, include_extras=True
-                ).items()
+                for field, annotations in type_hints.items()
             }
         )
         self.validate_object = validate_object
