@@ -1,4 +1,5 @@
 import sys
+import typing
 from dataclasses import is_dataclass
 from decimal import Decimal
 
@@ -10,6 +11,7 @@ from typing import (
     ClassVar,
     Dict,
     List,
+    Optional,
     Protocol,
     Tuple,
     Type,
@@ -91,31 +93,52 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any]:
                 return TupleHomogenousValidator(get_typehint_validator(args[0]))
             else:
                 return TupleNValidatorAny(*[get_typehint_validator(a) for a in args])
-        breakpoint()
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
 
 class DataclassValidator(Validator[Any, _DCT]):
-    def __init__(self, data_cls: Type[_DCT]) -> None:
+    def __init__(
+        self,
+        data_cls: Type[_DCT],
+        *,
+        overrides: Optional[Dict[str, Validator[Any, Any]]] = None,
+        validate_object: Optional[typing.Callable[[_DCT], ValidationResult[_DCT]]] = None,
+    ) -> None:
         self.data_cls = data_cls
+        overrides = overrides or {}
         self.validator = DictValidatorAny(
             {
-                field: get_typehint_validator(annotations)
-                for field, annotations in get_type_hints(self.data_cls).items()
+                field: (
+                    overrides[field]
+                    if field in overrides
+                    else get_typehint_validator(annotations)
+                )
+                for field, annotations in get_type_hints(
+                    self.data_cls, include_extras=True
+                ).items()
             }
         )
+        self.validate_object = validate_object
 
     def __call__(self, val: Any) -> ValidationResult[_DCT]:
         if isinstance(val, dict):
             result = self.validator(val)
             if result.is_valid:
-                return Valid(self.data_cls(**result.val))
+                obj = self.data_cls(**result.val)
+                if self.validate_object:
+                    return self.validate_object(obj)
+                else:
+                    return Valid(obj)
             else:
                 return result
-        elif is_dataclass(self.data_cls) and isinstance(val, self.data_cls):
+        elif isinstance(val, self.data_cls):
             result = self.validator(val.__dict__)
             if result.is_valid:
-                return Valid(self.data_cls(**result.val))
+                obj = self.data_cls(**result.val)
+                if self.validate_object:
+                    return self.validate_object(obj)
+                else:
+                    return Valid(obj)
             else:
                 return result
 
