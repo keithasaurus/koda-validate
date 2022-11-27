@@ -59,7 +59,7 @@ addopts ="""
   --cov-report=term:skip-covered
   --cov-report=html
   --cov-branch
-  --cov-fail-under=95
+  --cov-fail-under=94
 """
 
 [tool.coverage.run]
