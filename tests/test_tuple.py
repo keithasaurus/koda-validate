@@ -39,13 +39,15 @@ def test_tuple2() -> None:
     )
 
     assert Tuple2Validator(StringValidator(), IntValidator())(["a", 1]) == Valid(("a", 1))
-    assert Tuple2Validator(StringValidator(), IntValidator())(("a", 1)) == Valid(("a", 1))
+    assert Tuple2Validator(StringValidator(), BasicNoneValidator())(("a", None)) == Valid(
+        ("a", None)
+    )
 
-    assert Tuple2Validator(StringValidator(), IntValidator())([1, "a"]) == Invalid(
+    assert Tuple2Validator(StringValidator(), BasicNoneValidator())([1, "a"]) == Invalid(
         InvalidIterable(
             {
                 0: InvalidType(str, "expected a string"),
-                1: InvalidType(int, "expected an integer"),
+                1: InvalidType(type(None), "expected None"),
             }
         )
     )
@@ -87,17 +89,17 @@ async def test_tuple2_async() -> None:
     assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
         ["a", 1]
     ) == Valid(("a", 1))
-    assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
-        ("a", 1)
-    ) == Valid(("a", 1))
+    assert await Tuple2Validator(StringValidator(), BasicNoneValidator()).validate_async(
+        ("a", None)
+    ) == Valid(("a", None))
 
-    assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
+    assert await Tuple2Validator(StringValidator(), BasicNoneValidator()).validate_async(
         [1, "a"]
     ) == Invalid(
         InvalidIterable(
             {
                 0: InvalidType(str, "expected a string"),
-                1: InvalidType(int, "expected an integer"),
+                1: InvalidType(type(None), "expected None"),
             }
         )
     )
