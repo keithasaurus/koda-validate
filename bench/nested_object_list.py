@@ -10,6 +10,7 @@ from koda_validate import (
     RecordValidator,
     StringValidator,
 )
+from koda_validate.dataclasses import DataclassValidator
 from koda_validate.validated import Valid
 
 
@@ -28,27 +29,31 @@ class Person:
     hobbies: List[Hobby]
 
 
-k_validator = RecordValidator(
-    into=Person,
-    keys=(
-        ("name", StringValidator()),
-        ("age", IntValidator()),
-        (
-            "hobbies",
-            ListValidator(
-                RecordValidator(
-                    into=Hobby,
-                    keys=(
-                        ("name", StringValidator()),
-                        ("reason", StringValidator()),
-                        ("category", StringValidator()),
-                        ("enjoyment", FloatValidator()),
-                    ),
-                )
-            ),
-        ),
-    ),
-)
+#
+#
+# k_validator = RecordValidator(
+#     into=Person,
+#     keys=(
+#         ("name", StringValidator()),
+#         ("age", IntValidator()),
+#         (
+#             "hobbies",
+#             ListValidator(
+#                 RecordValidator(
+#                     into=Hobby,
+#                     keys=(
+#                         ("name", StringValidator()),
+#                         ("reason", StringValidator()),
+#                         ("category", StringValidator()),
+#                         ("enjoyment", FloatValidator()),
+#                     ),
+#                 )
+#             ),
+#         ),
+#     ),
+# )
+
+k_validator = DataclassValidator(Person)
 
 
 class PydHobby(BaseModel):

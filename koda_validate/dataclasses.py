@@ -39,7 +39,12 @@ from koda_validate import (
     Validator,
     always_valid,
 )
-from koda_validate.base import InvalidCoercion, ValidationResult
+from koda_validate.base import (
+    InvalidCoercion,
+    ValidationResult,
+    _ResultTupleUnsafe,
+    _ToTupleValidatorUnsafe,
+)
 from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny
 
@@ -96,7 +101,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any]:
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
 
-class DataclassValidator(Validator[Any, _DCT]):
+class DataclassValidator(_ToTupleValidatorUnsafe[Any, _DCT]):
     def __init__(
         self,
         data_cls: Type[_DCT],
@@ -123,33 +128,41 @@ class DataclassValidator(Validator[Any, _DCT]):
         )
         self.validate_object = validate_object
 
-    def __call__(self, val: Any) -> ValidationResult[_DCT]:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if isinstance(val, dict):
-            result = self.validator(val)
-            if result.is_valid:
-                obj = self.data_cls(**result.val)
+            success, new_val = self.validator.validate_to_tuple(val)
+            if success:
+                obj = self.data_cls(**new_val)
                 if self.validate_object:
-                    return self.validate_object(obj)
+                    result = self.validate_object(obj)
+                    if result.is_valid:
+                        return True, result.val
+                    else:
+                        return False, result.val
                 else:
-                    return Valid(obj)
+                    return True, obj
             else:
-                return result
+                return False, new_val
+
         elif isinstance(val, self.data_cls):
-            result = self.validator(val.__dict__)
-            if result.is_valid:
-                obj = self.data_cls(**result.val)
+            success, new_val = self.validator.validate_to_tuple(val.__dict__)
+
+            if success:
+                obj = self.data_cls(**new_val)
                 if self.validate_object:
-                    return self.validate_object(obj)
+                    result = self.validate_object(obj)
+                    if result.is_valid:
+                        return True, result.val
+                    else:
+                        return False, result.val
                 else:
-                    return Valid(obj)
+                    return True, obj
             else:
-                return result
+                return False, new_val
 
         else:
-            return Invalid(
-                InvalidCoercion(
-                    self,
-                    [dict, self.data_cls],
-                    self.data_cls,
-                )
+            return False, InvalidCoercion(
+                self,
+                [dict, self.data_cls],
+                self.data_cls,
             )
