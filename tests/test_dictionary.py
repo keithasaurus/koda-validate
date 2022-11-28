@@ -222,7 +222,6 @@ def test_max_keys() -> None:
     assert MaxKeys(5)({"a": 1, "b": 2, "c": 3}) is True
 
     assert MaxKeys(1)({"a": 1, "b": 2}) is False
-    assert MaxKeys(1).err_message == "maximum allowed properties is 1"
 
 
 def test_min_keys() -> None:
@@ -231,7 +230,6 @@ def test_min_keys() -> None:
     assert MinKeys(3)({"a": 1, "b": 2, "c": 3}) is True
 
     assert MinKeys(3)({"a": 1, "b": 2}) is False
-    assert MinKeys(3).err_message == "minimum allowed properties is 3"
 
 
 def test_record_1() -> None:

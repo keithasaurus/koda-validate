@@ -54,7 +54,7 @@ class Lazy(Validator[A, Ret]):
         return self.validator()(data)
 
 
-@dataclass(init=False)
+@dataclass
 class Choices(Predicate[EnumT]):
     """
     This only exists separately from a more generic form because
@@ -62,11 +62,6 @@ class Choices(Predicate[EnumT]):
     """
 
     choices: Set[EnumT]
-    err_message: str
-
-    def __init__(self, choices: Set[EnumT]) -> None:
-        self.err_message = f"expected one of {sorted(choices)}"
-        self.choices: Set[EnumT] = choices
 
     def __call__(self, val: EnumT) -> bool:
         return val in self.choices
@@ -75,16 +70,10 @@ class Choices(Predicate[EnumT]):
 Num = TypeVar("Num", int, float, Decimal)
 
 
-@dataclass(init=False)
+@dataclass
 class Min(Predicate[Num]):
     minimum: Num
-    exclusive_minimum: bool
-
-    def __init__(self, minimum: Num, exclusive_minimum: bool = False) -> None:
-        self.minimum: Num = minimum
-        self.exclusive_minimum = exclusive_minimum
-        exclusive = " (exclusive)" if self.exclusive_minimum else ""
-        self.err_message = f"minimum allowed value{exclusive} is {self.minimum}"
+    exclusive_minimum: bool = False
 
     def __call__(self, val: Num) -> bool:
         if self.exclusive_minimum:
@@ -93,16 +82,10 @@ class Min(Predicate[Num]):
             return val >= self.minimum
 
 
-@dataclass(init=False)
+@dataclass
 class Max(Predicate[Num]):
     maximum: Num
-    exclusive_maximum: bool
-
-    def __init__(self, maximum: Num, exclusive_maximum: bool = False) -> None:
-        self.maximum: Num = maximum
-        self.exclusive_maximum = exclusive_maximum
-        exclusive = " (exclusive)" if self.exclusive_maximum else ""
-        self.err_message = f"maximum allowed value{exclusive} is {self.maximum}"
+    exclusive_maximum: bool = False
 
     def __call__(self, val: Num) -> bool:
         if self.exclusive_maximum:
@@ -111,14 +94,9 @@ class Max(Predicate[Num]):
             return val <= self.maximum
 
 
-@dataclass(init=False)
+@dataclass
 class MultipleOf(Predicate[Num]):
     factor: Num
-    err_message: str
-
-    def __init__(self, factor: Num) -> None:
-        self.err_message = f"expected multiple of {factor}"
-        self.factor: Num = factor
 
     def __call__(self, val: Num) -> bool:
         return val % self.factor == 0
@@ -140,14 +118,9 @@ ExactMatchT = TypeVar(
 )
 
 
-@dataclass(init=False)
+@dataclass
 class EqualTo(Predicate[ExactMatchT]):
     match: ExactMatchT
-    err_message: str
-
-    def __init__(self, match: ExactMatchT) -> None:
-        self.match = match
-        self.err_message = f"must equal {repr(match)}"
 
     def __call__(self, val: A) -> bool:
         return val == self.match
@@ -198,40 +171,25 @@ always_valid: _ToTupleValidatorUnsafe[Any, Any] = AlwaysValid()
 ListOrTupleAny = TypeVar("ListOrTupleAny", List[Any], Tuple[Any, ...])
 
 
-@dataclass(init=False)
+@dataclass
 class MinItems(Predicate[ListOrTupleAny]):
     length: int
-    err_message: str
-
-    def __init__(self, length: int) -> None:
-        self.length = length
-        self.err_message = f"minimum allowed length is {length}"
 
     def __call__(self, val: ListOrTupleAny) -> bool:
         return len(val) >= self.length
 
 
-@dataclass(init=False)
+@dataclass
 class MaxItems(Predicate[ListOrTupleAny]):
     length: int
-    err_message: str
-
-    def __init__(self, length: int) -> None:
-        self.length = length
-        self.err_message = f"maximum allowed length is {length}"
 
     def __call__(self, val: ListOrTupleAny) -> bool:
         return len(val) <= self.length
 
 
-@dataclass(init=False)
+@dataclass
 class ExactItemCount(Predicate[ListOrTupleAny]):
     length: int
-    err_message: str
-
-    def __init__(self, length: int) -> None:
-        self.length = length
-        self.err_message = f"length must be {length}"
 
     def __call__(self, val: ListOrTupleAny) -> bool:
         return len(val) == self.length
@@ -239,8 +197,6 @@ class ExactItemCount(Predicate[ListOrTupleAny]):
 
 @dataclass
 class UniqueItems(Predicate[ListOrTupleAny]):
-    err_message = "all items must be unique"
-
     def __call__(self, val: ListOrTupleAny) -> bool:
         hashable_items: Set[Tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables

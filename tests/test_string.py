@@ -8,7 +8,6 @@ from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate
 from koda_validate._generics import A
 from koda_validate.base import InvalidType
 from koda_validate.string import (
-    BLANK_STRING_MSG,
     MaxLength,
     MinLength,
     NotBlank,
@@ -61,7 +60,6 @@ def test_max_string_length() -> None:
     assert MaxLength(5)("abc") is True
 
     assert MaxLength(5)("something") is False
-    assert MaxLength(5).err_message == "maximum allowed length is 5"
 
 
 def test_min_string_length() -> None:
@@ -70,20 +68,17 @@ def test_min_string_length() -> None:
     assert MinLength(3)("abc") is True
 
     assert MinLength(3)("zz") is False
-    assert MinLength(3).err_message == "minimum allowed length is 3"
 
 
 def test_regex_validator() -> None:
     v = RegexPredicate(re.compile(r".+"))
     assert v("something") is True
     assert v("") is False
-    assert v.err_message == "must match pattern .+"
 
 
 def test_not_blank() -> None:
     assert NotBlank()("a") is True
     assert NotBlank()("") is False
-    assert NotBlank().err_message == BLANK_STRING_MSG
     assert NotBlank()(" ") is False
     assert NotBlank()("\t") is False
     assert NotBlank()("\n") is False
@@ -92,7 +87,6 @@ def test_not_blank() -> None:
 def test_email() -> None:
     assert EmailPredicate()("notanemail") is False
     assert EmailPredicate()("a@b.com") is True
-    assert EmailPredicate().err_message == "expected a valid email address"
 
 
 @pytest.mark.asyncio

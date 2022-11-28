@@ -207,9 +207,8 @@ def test_lazy_match_args() -> None:
 
 def test_generic_match() -> None:
     match Choices({1, 2, 3}):
-        case Choices(choices, err_message):
+        case Choices(choices):
             assert choices == {1, 2, 3}
-            assert err_message == f"expected one of {sorted({1,2,3})}"
         case _:
             assert False
 
@@ -228,9 +227,8 @@ def test_generic_match() -> None:
             assert False
 
     match MultipleOf(3):
-        case MultipleOf(num, err_message):
+        case MultipleOf(num):
             assert num == 3
-            assert err_message == "expected multiple of 3"
         case _:
             assert False
 
@@ -258,16 +256,14 @@ def test_generic_match() -> None:
             assert False
 
     match MinItems(2):
-        case MinItems(length, err_message):
+        case MinItems(length):
             assert length == 2
-            assert err_message == "minimum allowed length is 2"
         case _:
             assert False
 
     match MaxItems(2):
-        case MaxItems(length, err_message):
+        case MaxItems(length):
             assert length == 2
-            assert err_message == f"maximum allowed length is {length}"
         case _:
             assert False
 

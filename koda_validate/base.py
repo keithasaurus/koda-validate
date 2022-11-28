@@ -180,8 +180,6 @@ class Predicate(Generic[InputT]):
     why we have PredicateAsync. Any IO needs should probably go there!
     """
 
-    err_message: str
-
     @abstractmethod
     def __call__(self, val: InputT) -> bool:  # pragma: no cover
         raise NotImplementedError()  # pragma: no cover
@@ -191,8 +189,6 @@ class PredicateAsync(Generic[InputT]):
     """
     For async-only validation.
     """
-
-    err_message: str
 
     @abstractmethod
     async def validate_async(self, val: InputT) -> bool:  # pragma: no cover

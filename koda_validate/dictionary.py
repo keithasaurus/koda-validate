@@ -217,27 +217,17 @@ class IsDictValidator(_ToTupleValidatorUnsafe[Any, Dict[Any, Any]]):
 is_dict_validator = IsDictValidator()
 
 
-@dataclasses.dataclass(init=False)
+@dataclasses.dataclass
 class MinKeys(Predicate[Dict[Any, Any]]):
     size: int
-    err_message: str
-
-    def __init__(self, size: int) -> None:
-        self.err_message = f"minimum allowed properties is {size}"
-        self.size = size
 
     def __call__(self, val: Dict[Any, Any]) -> bool:
         return len(val) >= self.size
 
 
-@dataclasses.dataclass(init=False)
+@dataclasses.dataclass
 class MaxKeys(Predicate[Dict[Any, Any]]):
     size: int
-    err_message: str
-
-    def __init__(self, size: int) -> None:
-        self.err_message = f"maximum allowed properties is {size}"
-        self.size = size
 
     def __call__(self, val: Dict[Any, Any]) -> bool:
         return len(val) <= self.size

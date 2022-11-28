@@ -67,38 +67,26 @@ def test_choices() -> None:
 
     assert validator("bc") is True
     assert validator("not present") is False
-    assert validator.err_message == "expected one of ['a', 'bc', 'def']"
 
 
 def test_multiple_of() -> None:
     assert MultipleOf(5)(10) is True
     assert MultipleOf(5)(11) is False
     assert MultipleOf(2.2)(4.40) is True
-    assert MultipleOf(2.2).err_message == "expected multiple of 2.2"
 
 
 def test_min() -> None:
     assert Min(5)(5) is True
-    assert Min(5).err_message == "minimum allowed value is 5"
     assert Min(5)(4) is False
     assert Min(5, exclusive_minimum=True)(6) is True
     assert Min(5, exclusive_minimum=True)(5) is False
-    assert (
-        Min(5, exclusive_minimum=True).err_message
-        == "minimum allowed value (exclusive) is 5"
-    )
 
 
 def test_max() -> None:
     assert Max(5)(5) is True
     assert Max(4, exclusive_maximum=True)(3) is True
     assert Max(5)(6) is False
-    assert Max(5).err_message == "maximum allowed value is 5"
     assert Max(5, exclusive_maximum=True)(5) is False
-    assert (
-        Max(5, exclusive_maximum=True).err_message
-        == "maximum allowed value (exclusive) is 5"
-    )
 
 
 def test_always_valid() -> None:
@@ -117,7 +105,6 @@ async def test_always_valid_async() -> None:
 def test_unique_items() -> None:
     assert unique_items([1, 2, 3]) is True
     assert unique_items([1, 1]) is False
-    assert unique_items.err_message == "all items must be unique"
     assert unique_items([1, [], []]) is False
     assert unique_items([[], [1], [2]]) is True
     assert unique_items([{"something": {"a": 1}}, {"something": {"a": 1}}]) is False
@@ -127,7 +114,6 @@ def test_exact_item_count() -> None:
     assert ExactItemCount(2)([1, 2]) is True
     assert ExactItemCount(1)([1, 2]) is False
     assert ExactItemCount(2)([1]) is False
-    assert ExactItemCount(4).err_message == "length must be 4"
 
 
 def test_max_items() -> None:
@@ -137,13 +123,9 @@ def test_max_items() -> None:
 
     assert MaxItems(5)(["a", "b", "c", "d", "e", "fghij"]) is False
 
-    assert MaxItems(5).err_message == "maximum allowed length is 5"
-
 
 def test_min_items() -> None:
     assert MinItems(0)([]) is True
 
     assert MinItems(3)([1, 2, 3]) is True
     assert MinItems(3)([1, 2]) is False
-
-    assert MinItems(3).err_message == "minimum allowed length is 3"
