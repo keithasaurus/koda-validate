@@ -1,22 +1,12 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Final, Pattern
+from typing import Final, Pattern
 
-from koda_validate.base import (
-    InvalidType,
-    Predicate,
-    Processor,
-    _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafeScalar,
-)
+from koda_validate.base import Predicate, Processor, _ExactTypeValidator
 
 
-class StringValidator(_ToTupleValidatorUnsafeScalar[Any, str]):
-    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
-        if type(val) is str:
-            return True, val
-        else:
-            return False, InvalidType(str, "expected a string", self)
+class StringValidator(_ExactTypeValidator[str]):
+    _TYPE = str
 
 
 @dataclass(init=False)

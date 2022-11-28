@@ -132,7 +132,6 @@ class InvalidType:
     """
 
     expected_type: Type[Any]
-    err_message: str
     validator: "Validator[Any, Any]"
 
 
@@ -250,6 +249,83 @@ class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
             return Valid(result_val)
         else:
             return Invalid(result_val)
+
+
+class _ExactTypeValidator(_ToTupleValidatorUnsafe[Any, SuccessT]):
+    """
+    This `Validator` subclass exists primarily for code cleanliness and standardization.
+    It allows us to have very simple Scalar validators.
+
+    This class may go away!
+
+    DO NOT USE THIS UNLESS YOU:
+    - ARE OK WITH THIS DISAPPEARING IN A FUTURE RELEASE
+    - ARE GOING TO TEST YOUR CODE EXTENSIVELY
+    """
+
+    __slots__ = ("predicates", "predicates_async", "preprocessors")
+
+    __match_args__ = ("predicates", "predicates_async", "preprocessors")
+
+    # SHOULD BE THE SAME AS SuccessT but mypy can't handle that...? v0.991
+    _TYPE: ClassVar[Type[Any]]
+    _type_err: InvalidType
+
+    def __init__(
+        self,
+        *predicates: Predicate[SuccessT],
+        predicates_async: Optional[List[PredicateAsync[SuccessT]]] = None,
+        preprocessors: Optional[List[Processor[SuccessT]]] = None,
+    ) -> None:
+        self.predicates = predicates
+        self.predicates_async = predicates_async
+        self.preprocessors = preprocessors
+        self._type_err = InvalidType(self._TYPE, self)
+
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
+        if type(val) is self._TYPE:
+            if self.preprocessors:
+                for proc in self.preprocessors:
+                    val = proc(val)
+
+            if self.predicates:
+                errors: ValidationErr = [
+                    pred for pred in self.predicates if not pred(val)
+                ]
+                if errors:
+                    return False, errors
+                else:
+                    return True, val
+            else:
+                return True, val
+        return False, self._type_err
+
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+        if type(val) is self._TYPE:
+            if self.preprocessors:
+                for proc in self.preprocessors:
+                    val = proc(val)
+
+            errors: List[Union[Predicate[SuccessT], PredicateAsync[SuccessT]]] = [
+                pred for pred in self.predicates if not pred(val)
+            ]
+
+            if self.predicates_async:
+                errors.extend(
+                    [
+                        pred
+                        for pred in self.predicates_async
+                        if not await pred.validate_async(val)
+                    ]
+                )
+            if errors:
+                return False, errors
+            else:
+                return True, val
+        return False, self._type_err
 
 
 class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):

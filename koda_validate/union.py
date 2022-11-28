@@ -13,6 +13,8 @@ class UnionValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
     Until we're comfortable using variadic args, we'll just keep this private
     """
 
+    __match_args__ = ("validators",)
+
     def __init__(
         self,
         # just a way to enforce at least one validator is defined

@@ -43,11 +43,13 @@ def test_tuple2() -> None:
         ("a", None)
     )
 
-    assert Tuple2Validator(StringValidator(), BasicNoneValidator())([1, "a"]) == Invalid(
+    s_v = StringValidator()
+    basic_n_v = BasicNoneValidator()
+    assert Tuple2Validator(s_v, basic_n_v)([1, "a"]) == Invalid(
         InvalidIterable(
             {
-                0: InvalidType(str, "expected a string"),
-                1: InvalidType(type(None), "expected None"),
+                0: InvalidType(str, s_v),
+                1: InvalidType(type(None), basic_n_v),
             }
         )
     )
@@ -78,28 +80,28 @@ def test_tuple2() -> None:
 
 @pytest.mark.asyncio
 async def test_tuple2_async() -> None:
-    assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
-        {}
-    ) == Invalid(InvalidCoercion([list, tuple], tuple, "expected a list or tuple"))
+    s_v = StringValidator()
+    assert await Tuple2Validator(s_v, IntValidator()).validate_async({}) == Invalid(
+        InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
+    )
 
-    assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
-        []
-    ) == Invalid([ExactItemCount(2)])
+    assert await Tuple2Validator(s_v, IntValidator()).validate_async([]) == Invalid(
+        [ExactItemCount(2)]
+    )
 
-    assert await Tuple2Validator(StringValidator(), IntValidator()).validate_async(
-        ["a", 1]
-    ) == Valid(("a", 1))
-    assert await Tuple2Validator(StringValidator(), BasicNoneValidator()).validate_async(
+    assert await Tuple2Validator(s_v, IntValidator()).validate_async(["a", 1]) == Valid(
+        ("a", 1)
+    )
+    basic_n_v = BasicNoneValidator()
+    assert await Tuple2Validator(s_v, basic_n_v).validate_async(("a", None)) == Valid(
         ("a", None)
-    ) == Valid(("a", None))
+    )
 
-    assert await Tuple2Validator(StringValidator(), BasicNoneValidator()).validate_async(
-        [1, "a"]
-    ) == Invalid(
+    assert await Tuple2Validator(s_v, basic_n_v).validate_async([1, "a"]) == Invalid(
         InvalidIterable(
             {
-                0: InvalidType(str, "expected a string"),
-                1: InvalidType(type(None), "expected None"),
+                0: InvalidType(str, s_v),
+                1: InvalidType(type(None), basic_n_v),
             }
         )
     )
@@ -116,7 +118,7 @@ async def test_tuple2_async() -> None:
             return Valid(ab)
 
     a1_validator = Tuple2Validator(
-        StringValidator(),
+        s_v,
         IntValidator(),
         must_be_a_if_integer_is_1,
     )
@@ -129,30 +131,25 @@ async def test_tuple2_async() -> None:
 
 
 def test_tuple3() -> None:
-    assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
-        {}
-    ) == Invalid(InvalidCoercion([list, tuple], tuple, "expected a list or tuple"))
+    s_v = StringValidator()
+    i_v = IntValidator()
+    b_v = BoolValidator()
+    assert Tuple3Validator(s_v, i_v, b_v)({}) == Invalid(
+        InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
+    )
 
-    assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
-        []
-    ) == Invalid([ExactItemCount(3)])
+    assert Tuple3Validator(s_v, i_v, b_v)([]) == Invalid([ExactItemCount(3)])
 
-    assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
-        ["a", 1, False]
-    ) == Valid(("a", 1, False))
+    assert Tuple3Validator(s_v, i_v, b_v)(["a", 1, False]) == Valid(("a", 1, False))
 
-    assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
-        ("a", 1, False)
-    ) == Valid(("a", 1, False))
+    assert Tuple3Validator(s_v, i_v, b_v)(("a", 1, False)) == Valid(("a", 1, False))
 
-    assert Tuple3Validator(StringValidator(), IntValidator(), BoolValidator())(
-        [1, "a", 7.42]
-    ) == Invalid(
+    assert Tuple3Validator(s_v, i_v, b_v)([1, "a", 7.42]) == Invalid(
         InvalidIterable(
             {
-                0: InvalidType(str, "expected a string"),
-                1: InvalidType(int, "expected an integer"),
-                2: InvalidType(bool, "expected a boolean"),
+                0: InvalidType(str, s_v),
+                1: InvalidType(int, i_v),
+                2: InvalidType(bool, b_v),
             }
         )
     )
@@ -169,9 +166,9 @@ def test_tuple3() -> None:
             return Valid(abc)
 
     a1_validator = Tuple3Validator(
-        StringValidator(),
-        IntValidator(),
-        BoolValidator(),
+        s_v,
+        i_v,
+        b_v,
         must_be_a_if_1_and_true,
     )
 
@@ -184,32 +181,33 @@ def test_tuple3() -> None:
 
 @pytest.mark.asyncio
 async def test_tuple3_async() -> None:
-    assert await Tuple3Validator(
-        StringValidator(), IntValidator(), BoolValidator()
-    ).validate_async({}) == Invalid(
+    str_v = StringValidator()
+    int_v = IntValidator()
+    bool_v = BoolValidator()
+    assert await Tuple3Validator(str_v, int_v, bool_v).validate_async({}) == Invalid(
         InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
     )
 
-    assert await Tuple3Validator(
-        StringValidator(), IntValidator(), BoolValidator()
-    ).validate_async([]) == Invalid([ExactItemCount(3)])
+    assert await Tuple3Validator(str_v, int_v, bool_v).validate_async([]) == Invalid(
+        [ExactItemCount(3)]
+    )
 
-    assert await Tuple3Validator(
-        StringValidator(), IntValidator(), BoolValidator()
-    ).validate_async(["a", 1, False]) == Valid(("a", 1, False))
+    assert await Tuple3Validator(str_v, int_v, bool_v).validate_async(
+        ["a", 1, False]
+    ) == Valid(("a", 1, False))
 
-    assert await Tuple3Validator(
-        StringValidator(), IntValidator(), BoolValidator()
-    ).validate_async(("a", 1, False)) == Valid(("a", 1, False))
+    assert await Tuple3Validator(str_v, int_v, bool_v).validate_async(
+        ("a", 1, False)
+    ) == Valid(("a", 1, False))
 
-    assert await Tuple3Validator(
-        StringValidator(), IntValidator(), BoolValidator()
-    ).validate_async([1, "a", 7.42]) == Invalid(
+    assert await Tuple3Validator(str_v, int_v, bool_v).validate_async(
+        [1, "a", 7.42]
+    ) == Invalid(
         InvalidIterable(
             {
-                0: InvalidType(str, "expected a string"),
-                1: InvalidType(int, "expected an integer"),
-                2: InvalidType(bool, "expected a boolean"),
+                0: InvalidType(str, str_v),
+                1: InvalidType(int, int_v),
+                2: InvalidType(bool, bool_v),
             }
         )
     )
@@ -226,9 +224,9 @@ async def test_tuple3_async() -> None:
             return Valid(abc)
 
     a1_validator = Tuple3Validator(
-        StringValidator(),
-        IntValidator(),
-        BoolValidator(),
+        str_v,
+        int_v,
+        bool_v,
         must_be_a_if_1_and_true,
     )
 
@@ -240,19 +238,19 @@ async def test_tuple3_async() -> None:
 
 
 def test_tuple_homogenous_validator() -> None:
-    assert TupleHomogenousValidator(FloatValidator())("a string") == Invalid(
-        InvalidType(tuple, "expected a tuple")
-    )
+    f_v = FloatValidator()
+    tuple_v = TupleHomogenousValidator(f_v)
+    assert tuple_v("a string") == Invalid(InvalidType(tuple, tuple_v))
 
-    assert TupleHomogenousValidator(FloatValidator())((5.5, "something else")) == Invalid(
+    assert tuple_v((5.5, "something else")) == Invalid(
         InvalidIterable(
-            {1: InvalidType(float, "expected a float")},
+            {1: InvalidType(float, f_v)},
         )
     )
 
-    assert TupleHomogenousValidator(FloatValidator())((5.5, 10.1)) == Valid((5.5, 10.1))
+    assert tuple_v((5.5, 10.1)) == Valid((5.5, 10.1))
 
-    assert TupleHomogenousValidator(FloatValidator())(()) == Valid(())
+    assert tuple_v(()) == Valid(())
 
     class RemoveLast(Processor[Tuple[Any, ...]]):
         def __call__(self, val: Tuple[Any, ...]) -> Tuple[Any, ...]:
@@ -269,31 +267,27 @@ def test_tuple_homogenous_validator() -> None:
     assert n_v((None, None)) == Valid((None, None))
 
     assert n_v((None, 1)) == Invalid(
-        InvalidIterable({1: InvalidType(type(None), "expected None")})
+        InvalidIterable({1: InvalidType(type(None), n_v.item_validator)})
     )
 
 
 @pytest.mark.asyncio
-async def test_list_async() -> None:
-    assert await TupleHomogenousValidator(FloatValidator()).validate_async(
-        "a string"
-    ) == Invalid(InvalidType(tuple, "expected a tuple"))
+async def test_tuple_homogenous_async() -> None:
+    float_validator = FloatValidator()
+    validator = TupleHomogenousValidator(float_validator)
+    assert await validator.validate_async("a string") == Invalid(
+        InvalidType(tuple, validator)
+    )
 
-    assert await TupleHomogenousValidator(FloatValidator()).validate_async(
-        (5.5, "something else")
-    ) == Invalid(
+    assert await validator.validate_async((5.5, "something else")) == Invalid(
         InvalidIterable(
-            {1: InvalidType(float, "expected a float")},
+            {1: InvalidType(float, float_validator)},
         )
     )
 
-    assert await TupleHomogenousValidator(FloatValidator()).validate_async(
-        (5.5, 10.1)
-    ) == Valid((5.5, 10.1))
+    assert await validator.validate_async((5.5, 10.1)) == Valid((5.5, 10.1))
 
-    assert await TupleHomogenousValidator(FloatValidator()).validate_async(()) == Valid(
-        ()
-    )
+    assert await validator.validate_async(()) == Valid(())
 
     assert await TupleHomogenousValidator(
         FloatValidator(Min(5.5)), predicates=[MinItems(1), MaxItems(3)]
@@ -304,7 +298,7 @@ async def test_list_async() -> None:
     assert await n_v.validate_async((None, None)) == Valid((None, None))
 
     assert await n_v.validate_async((None, 1)) == Invalid(
-        InvalidIterable({1: InvalidType(type(None), "expected None")})
+        InvalidIterable({1: InvalidType(type(None), n_v.item_validator)})
     )
 
 

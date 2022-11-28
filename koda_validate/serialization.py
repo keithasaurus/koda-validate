@@ -33,7 +33,7 @@ def serializable_validation_err(err: ValidationErr) -> Serializable:
     elif isinstance(err, InvalidExtraKeys):
         return [err.err_message]
     elif isinstance(err, InvalidType):
-        return [err.err_message]
+        return [f"expected {err.expected_type.__name__}"]
     elif isinstance(err, list):
         return [p.err_message for p in err]
     elif isinstance(err, InvalidIterable):

@@ -8,9 +8,10 @@ from koda_validate.union import UnionValidatorAny
 
 
 def test_union_validator_any() -> None:
-    str_int_float_validator = UnionValidatorAny(
-        StringValidator(), IntValidator(), FloatValidator()
-    )
+    s_v = StringValidator()
+    i_v = IntValidator()
+    f_v = FloatValidator()
+    str_int_float_validator = UnionValidatorAny(s_v, i_v, f_v)
 
     assert str_int_float_validator("abc") == Valid("abc")
     assert str_int_float_validator(5) == Valid(5)
@@ -18,9 +19,9 @@ def test_union_validator_any() -> None:
     assert str_int_float_validator(None) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, "expected a string"),
-                InvalidType(int, "expected an integer"),
-                InvalidType(float, "expected a float"),
+                InvalidType(str, s_v),
+                InvalidType(int, i_v),
+                InvalidType(float, f_v),
             ]
         )
     )
@@ -28,9 +29,9 @@ def test_union_validator_any() -> None:
     assert str_int_float_validator(False) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, "expected a string"),
-                InvalidType(int, "expected an integer"),
-                InvalidType(float, "expected a float"),
+                InvalidType(str, s_v),
+                InvalidType(int, i_v),
+                InvalidType(float, f_v),
             ]
         )
     )
@@ -46,11 +47,13 @@ async def test_union_validator_any_async() -> None:
             if val is None:
                 return Valid(None)
             else:
-                return Invalid(InvalidType(type(None), "expected None"))
+                return Invalid(InvalidType(type(None), self))
 
-    str_int_float_validator = UnionValidatorAny(
-        StringValidator(), IntValidator(), FloatValidator(), TestNoneValidator()
-    )
+    s_v = StringValidator()
+    i_v = IntValidator()
+    f_v = FloatValidator()
+    n_v = TestNoneValidator()
+    str_int_float_validator = UnionValidatorAny(s_v, i_v, f_v, n_v)
 
     assert await str_int_float_validator.validate_async("abc") == Valid("abc")
     assert await str_int_float_validator.validate_async(5) == Valid(5)
@@ -58,10 +61,10 @@ async def test_union_validator_any_async() -> None:
     assert await str_int_float_validator.validate_async([]) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, "expected a string"),
-                InvalidType(int, "expected an integer"),
-                InvalidType(float, "expected a float"),
-                InvalidType(type(None), "expected None"),
+                InvalidType(str, s_v),
+                InvalidType(int, i_v),
+                InvalidType(float, f_v),
+                InvalidType(type(None), n_v),
             ]
         )
     )
@@ -69,10 +72,10 @@ async def test_union_validator_any_async() -> None:
     assert await str_int_float_validator.validate_async(False) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, "expected a string"),
-                InvalidType(int, "expected an integer"),
-                InvalidType(float, "expected a float"),
-                InvalidType(type(None), "expected None"),
+                InvalidType(str, s_v),
+                InvalidType(int, i_v),
+                InvalidType(float, f_v),
+                InvalidType(type(None), n_v),
             ]
         )
     )

@@ -8,4 +8,4 @@ assert min_length_3_validator("bad") == Invalid([MinLength(4)])
 exactly_5_validator = EqualsValidator(5)
 
 assert exactly_5_validator(5) == Valid(5)
-assert exactly_5_validator("hmm") == Invalid(InvalidType(int, "expected a int"))
+assert exactly_5_validator("hmm") == Invalid(InvalidType(int, exactly_5_validator))

@@ -79,7 +79,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
             else:
                 return True, return_list
         else:
-            return False, InvalidType(list, "expected a list", self)
+            return False, InvalidType(list, self)
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         if isinstance(val, list):
@@ -127,4 +127,4 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
             else:
                 return True, return_list
         else:
-            return False, InvalidType(list, "expected a list", self)
+            return False, InvalidType(list, self)

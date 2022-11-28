@@ -6,7 +6,6 @@ import pytest
 from koda_validate import BoolValidator, Predicate, PredicateAsync, Processor
 from koda_validate._generics import A
 from koda_validate.base import InvalidType
-from koda_validate.boolean import EXPECTED_BOOL_ERR
 from koda_validate.validated import Invalid, Valid
 
 
@@ -16,11 +15,12 @@ class Flip(Processor[bool]):
 
 
 def test_boolean() -> None:
-    assert BoolValidator()("a string") == Invalid(InvalidType(bool, "expected a boolean"))
+    b_v = BoolValidator()
+    assert b_v("a string") == Invalid(InvalidType(bool, b_v))
 
-    assert BoolValidator()(True) == Valid(True)
+    assert b_v(True) == Valid(True)
 
-    assert BoolValidator()(False) == Valid(False)
+    assert b_v(False) == Valid(False)
 
     @dataclass
     class RequireTrue(Predicate[bool]):
@@ -31,7 +31,7 @@ def test_boolean() -> None:
 
     assert BoolValidator(RequireTrue())(False) == Invalid([RequireTrue()])
 
-    assert BoolValidator()(1) == Invalid(InvalidType(bool, "expected a boolean"))
+    assert b_v(1) == Invalid(InvalidType(bool, b_v))
 
     @dataclass
     class IsTrue(Predicate[bool]):
@@ -64,7 +64,9 @@ async def test_boolean_validator_async() -> None:
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(False) == Valid(True)
 
-    assert await BoolValidator().validate_async("abc") == Invalid(EXPECTED_BOOL_ERR[1])
+    b_v = BoolValidator()
+
+    assert await b_v.validate_async("abc") == Invalid(InvalidType(bool, b_v))
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:

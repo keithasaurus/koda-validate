@@ -25,11 +25,13 @@ def test_equals_validator() -> None:
     assert EqualsValidator(Decimal("1.1"))(Decimal("5")) == Invalid(
         [EqualTo(Decimal("1.1"))]
     )
-    assert EqualsValidator(4.4)("5.5") == Invalid(InvalidType(float, "expected a float"))
+    e_f_v = EqualsValidator(4.4)
+    assert e_f_v("5.5") == Invalid(InvalidType(float, e_f_v))
     assert EqualsValidator(True)(True) == Valid(True)
     assert EqualsValidator(False)(False) == Valid(False)
     assert EqualsValidator(True)(False) == Invalid([EqualTo(True)])
-    assert EqualsValidator(4)(4.0) == Invalid(InvalidType(int, "expected a int"))
+    e_i_v = EqualsValidator(4)
+    assert e_i_v(4.0) == Invalid(InvalidType(int, e_i_v))
 
 
 @pytest.mark.asyncio
@@ -49,15 +51,15 @@ async def test_equals_validator_async() -> None:
     assert await EqualsValidator(Decimal("1.1")).validate_async(Decimal("5")) == Invalid(
         [EqualTo(Decimal("1.1"))]
     )
+    e_f_v = EqualsValidator(4.4)
     assert await EqualsValidator(4.4).validate_async("5.5") == Invalid(
-        InvalidType(float, "expected a float")
+        InvalidType(float, e_f_v)
     )
     assert await EqualsValidator(True).validate_async(True) == Valid(True)
     assert await EqualsValidator(False).validate_async(False) == Valid(False)
     assert await EqualsValidator(True).validate_async(False) == Invalid([EqualTo(True)])
-    assert await EqualsValidator(4).validate_async(4.0) == Invalid(
-        InvalidType(int, "expected a int")
-    )
+    e_i_v = EqualsValidator(4)
+    assert await e_i_v.validate_async(4.0) == Invalid(InvalidType(int, e_i_v))
 
 
 def test_choices() -> None:

@@ -12,7 +12,8 @@ from koda_validate.base import (
 from koda_validate.serialization import serializable_validation_err
 
 # Wrong type
-assert StringValidator()(None) == Invalid(InvalidType(str, "expected a string"))
+string_validator_ = StringValidator()
+assert string_validator_(None) == Invalid(InvalidType(str, string_validator_))
 
 # All failing `Predicate`s are reported (not just the first)
 str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
@@ -36,7 +37,7 @@ city_validator = RecordValidator(
 )
 
 # We use the key "__container__" for object-level errors
-assert city_validator(None) == Invalid(InvalidType(dict, "expected a dictionary"))
+assert city_validator(None) == Invalid(InvalidType(dict, city_validator))
 
 # Missing keys are errors
 print(city_validator({}))

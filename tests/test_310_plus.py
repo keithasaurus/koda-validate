@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Hashable, List, Optional, Union
+from typing import Any, Dict, Hashable, List, Optional, Union, cast
 
 from koda import Maybe
 
@@ -32,6 +32,7 @@ from koda_validate import (
     RegexPredicate,
     StringValidator,
     Validator,
+    none_validator,
     strip,
 )
 from koda_validate.base import (
@@ -285,7 +286,9 @@ def test_list_validator_match() -> None:
 def test_optional_validator_match() -> None:
     match OptionalValidator(str_3 := StringValidator()):
         case OptionalValidator(opt_validator):
-            assert opt_validator is str_3
+            assert isinstance(opt_validator, UnionValidatorAny)
+            assert opt_validator.validators[0] is none_validator
+            assert opt_validator.validators[1] is str_3
 
         case _:
             assert False
@@ -409,15 +412,19 @@ def test_complex_union_dataclass() -> None:
     assert example_validator({"a": None}) == Valid(Example(None))
     assert example_validator({"a": 1.1}) == Valid(Example(1.1))
     assert example_validator({"a": 5}) == Valid(Example(5))
+
+    validators_schema_key_a = cast(
+        UnionValidatorAny, example_validator.validator.schema["a"]
+    )
     assert example_validator({"a": False}) == Invalid(
         InvalidDict(
             {
                 "a": InvalidVariants(
                     [
-                        InvalidType(str, "expected a string"),
-                        InvalidType(type(None), "expected None"),
-                        InvalidType(float, "expected a float"),
-                        InvalidType(int, "expected an integer"),
+                        InvalidType(str, validators_schema_key_a.validators[0]),
+                        InvalidType(type(None), validators_schema_key_a.validators[1]),
+                        InvalidType(float, validators_schema_key_a.validators[2]),
+                        InvalidType(int, validators_schema_key_a.validators[3]),
                     ]
                 )
             }
@@ -490,7 +497,11 @@ def test_nested_dataclass() -> None:
                         "something": InvalidMap(
                             {
                                 5: InvalidKeyVal(
-                                    key=InvalidType(str, "expected a string"), val=None
+                                    key=InvalidType(
+                                        str,
+                                        b_validator.validator.schema["a"].validator.schema["something"].key_validator,  # type: ignore  # noqa: E501
+                                    ),
+                                    val=None,
                                 )
                             }
                         )

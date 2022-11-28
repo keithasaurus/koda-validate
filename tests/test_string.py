@@ -35,7 +35,8 @@ def test_lower_case() -> None:
 
 
 def test_string_validator() -> None:
-    assert StringValidator()(False) == Invalid(InvalidType(str, "expected a string"))
+    s_v = StringValidator()
+    assert s_v(False) == Invalid(InvalidType(str, s_v))
 
     assert StringValidator()("abc") == Valid("abc")
 
@@ -116,9 +117,8 @@ async def test_validate_fake_db_async() -> None:
     )
     assert hit == ["ok"]
     assert result == Invalid([CheckUsername()])
-    assert await StringValidator().validate_async(5) == Invalid(
-        InvalidType(str, "expected a string")
-    )
+    s_v = StringValidator()
+    assert await s_v.validate_async(5) == Invalid(InvalidType(str, s_v))
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
