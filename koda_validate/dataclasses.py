@@ -148,8 +148,8 @@ class DataclassValidator(Validator[Any, _DCT]):
         else:
             return Invalid(
                 InvalidCoercion(
+                    self,
                     [dict, self.data_cls],
                     self.data_cls,
-                    f"expected a dict or {self.data_cls.__name__} instance",
                 )
             )

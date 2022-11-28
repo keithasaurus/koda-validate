@@ -1,4 +1,6 @@
-from koda_validate import FloatValidator, IntValidator, Max, Min
+from decimal import Decimal
+
+from koda_validate import DecimalValidator, FloatValidator, IntValidator, Max, Min
 from koda_validate.base import (
     InvalidCoercion,
     InvalidCustom,
@@ -34,8 +36,8 @@ def test_key_missing_returns_list_str() -> None:
 
 def test_coercion_err_uses_message() -> None:
     assert serializable_validation_err(
-        InvalidCoercion([str, int], int, "should be str or int")
-    ) == ["should be str or int"]
+        InvalidCoercion(DecimalValidator(), [str, int, Decimal], Decimal)
+    ) == ["could not coerce to Decimal (compatible with str, int, Decimal)"]
 
 
 def test_iterable_errs() -> None:

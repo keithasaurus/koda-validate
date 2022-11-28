@@ -1,21 +1,10 @@
 from datetime import date, datetime
-from typing import Any, Final, Literal, Tuple
+from typing import Any
 
 from koda_validate.base import (
     InvalidCoercion,
-    ValidationErr,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafeScalar,
-)
-
-EXPECTED_DATE_ERR: Final[Tuple[Literal[False], ValidationErr]] = False, InvalidCoercion(
-    [str, date], date, "expected date or string formatted as yyyy-mm-dd"
-)
-
-EXPECTED_DATETIME_ERR: Final[
-    Tuple[Literal[False], ValidationErr]
-] = False, InvalidCoercion(
-    [str, datetime], datetime, "expected datetime or iso8601-formatted string"
 )
 
 
@@ -27,7 +16,11 @@ class DateValidator(_ToTupleValidatorUnsafeScalar[Any, date]):
             try:
                 return True, date.fromisoformat(val)
             except (ValueError, TypeError):
-                return EXPECTED_DATE_ERR
+                return False, InvalidCoercion(
+                    self,
+                    [str, date],
+                    date,
+                )
 
 
 class DatetimeValidator(_ToTupleValidatorUnsafeScalar[Any, datetime]):
@@ -40,4 +33,4 @@ class DatetimeValidator(_ToTupleValidatorUnsafeScalar[Any, datetime]):
                 # to add the dependency at some point
                 return True, datetime.fromisoformat(val)
             except (ValueError, TypeError):
-                return EXPECTED_DATETIME_ERR
+                return False, InvalidCoercion(self, [str, datetime], datetime)

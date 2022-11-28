@@ -17,19 +17,20 @@ class ReverseUUID(Processor[UUID]):
 
 
 def test_UUID() -> None:
-    assert UUIDValidator()("a string") == Invalid(
-        InvalidCoercion([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")
+    uuid_validator = UUIDValidator()
+    assert uuid_validator("a string") == Invalid(
+        InvalidCoercion(uuid_validator, [str, UUID], UUID)
     )
 
-    assert UUIDValidator()(5.5) == Invalid(
-        InvalidCoercion([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")
+    assert uuid_validator(5.5) == Invalid(
+        InvalidCoercion(uuid_validator, [str, UUID], UUID)
     )
 
-    assert UUIDValidator()(UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222")) == Valid(
+    assert uuid_validator(UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222")) == Valid(
         UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222")
     )
 
-    assert UUIDValidator()("a22acebe-60ba-11ed-9c95-4f52af693eb2") == Valid(
+    assert uuid_validator("a22acebe-60ba-11ed-9c95-4f52af693eb2") == Valid(
         UUID("a22acebe-60ba-11ed-9c95-4f52af693eb2")
     )
 
@@ -55,15 +56,20 @@ def test_UUID() -> None:
 
 @pytest.mark.asyncio
 async def test_UUID_async() -> None:
-    assert await UUIDValidator().validate_async("abc") == Invalid(
-        InvalidCoercion([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")
+    uuid_validator = UUIDValidator()
+    assert await uuid_validator.validate_async("abc") == Invalid(
+        InvalidCoercion(
+            uuid_validator,
+            [str, UUID],
+            UUID,
+        )
     )
 
-    assert await UUIDValidator().validate_async(5.5) == Invalid(
-        InvalidCoercion([str, UUID], UUID, "expected a UUID, or a UUID-compatible string")
+    assert await uuid_validator.validate_async(5.5) == Invalid(
+        InvalidCoercion(uuid_validator, [str, UUID], UUID)
     )
 
-    assert await UUIDValidator().validate_async(
+    assert await uuid_validator.validate_async(
         UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222")
     ) == Valid(UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222"))
 

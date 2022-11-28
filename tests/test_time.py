@@ -11,52 +11,44 @@ from koda_validate.validated import Invalid, Valid
 
 
 def test_date_validator() -> None:
-    assert DateValidator()("2021-03-21") == Valid(date(2021, 3, 21))
-    assert DateValidator()("2021-3-21") == Invalid(
-        InvalidCoercion(
-            [str, date], date, "expected date or string formatted as yyyy-mm-dd"
-        )
-    )
+    d_v = DateValidator()
+    assert d_v("2021-03-21") == Valid(date(2021, 3, 21))
+    assert d_v("2021-3-21") == Invalid(InvalidCoercion(d_v, [str, date], date))
 
-    assert DateValidator()(date(2022, 10, 1)) == Valid(date(2022, 10, 1))
+    assert d_v(date(2022, 10, 1)) == Valid(date(2022, 10, 1))
 
 
 @pytest.mark.asyncio
 async def test_date_validator_async() -> None:
-    assert await DateValidator().validate_async("2021-03-21") == Valid(date(2021, 3, 21))
-    assert await DateValidator().validate_async("2021-3-21") == Invalid(
+    d_v = DateValidator()
+    assert await d_v.validate_async("2021-03-21") == Valid(date(2021, 3, 21))
+    assert await d_v.validate_async("2021-3-21") == Invalid(
         InvalidCoercion(
-            [str, date], date, "expected date or string formatted as yyyy-mm-dd"
+            d_v,
+            [str, date],
+            date,
         )
     )
 
 
 def test_datetime_validator() -> None:
-    assert DatetimeValidator()("") == Invalid(
-        InvalidCoercion(
-            [str, datetime], datetime, "expected datetime or iso8601-formatted string"
-        )
-    )
-    assert DatetimeValidator()("2011-11-04") == Valid(datetime(2011, 11, 4, 0, 0))
-    assert DatetimeValidator()("2011-11-04T00:05:23") == Valid(
-        datetime(2011, 11, 4, 0, 5, 23)
-    )
+    dt_v = DatetimeValidator()
+    assert dt_v("") == Invalid(InvalidCoercion(dt_v, [str, datetime], datetime))
+    assert dt_v("2011-11-04") == Valid(datetime(2011, 11, 4, 0, 0))
+    assert dt_v("2011-11-04T00:05:23") == Valid(datetime(2011, 11, 4, 0, 5, 23))
 
     now_ = datetime.now()
-    assert DatetimeValidator()(now_) == Valid(now_)
+    assert dt_v(now_) == Valid(now_)
 
 
 @pytest.mark.asyncio
 async def test_datetime_validator_async() -> None:
-    assert await DatetimeValidator().validate_async("") == Invalid(
-        InvalidCoercion(
-            [str, datetime], datetime, "expected datetime or iso8601-formatted string"
-        )
+    dt_v = DatetimeValidator()
+    assert await dt_v.validate_async("") == Invalid(
+        InvalidCoercion(dt_v, [str, datetime], datetime)
     )
-    assert await DatetimeValidator().validate_async("2011-11-04") == Valid(
-        datetime(2011, 11, 4, 0, 0)
-    )
-    assert await DatetimeValidator().validate_async("2011-11-04T00:05:23") == Valid(
+    assert await dt_v.validate_async("2011-11-04") == Valid(datetime(2011, 11, 4, 0, 0))
+    assert await dt_v.validate_async("2011-11-04T00:05:23") == Valid(
         datetime(2011, 11, 4, 0, 5, 23)
     )
 

@@ -25,9 +25,9 @@ class InvalidCoercion:
     When one or more types can be coerced to a destination type
     """
 
+    validator: "Validator[Any, Any]"
     compatible_types: List[Type[Any]]
     dest_type: Type[Any]
-    err_message: str
 
 
 class InvalidMissingKey:

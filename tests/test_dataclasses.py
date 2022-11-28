@@ -22,10 +22,9 @@ class PersonSimple:
 
 
 def test_will_fail_if_not_dataclass() -> None:
-    assert DataclassValidator(PersonSimple)(None) == Invalid(
-        InvalidCoercion(
-            [dict, PersonSimple], PersonSimple, "expected a dict or PersonSimple instance"
-        )
+    dc_v = DataclassValidator(PersonSimple)
+    assert dc_v(None) == Invalid(
+        InvalidCoercion(dc_v, [dict, PersonSimple], PersonSimple)
     )
 
 
@@ -35,10 +34,9 @@ def test_wrong_dataclass_is_invalid() -> None:
         name: str
         age: int
 
-    assert DataclassValidator(PersonSimple)(Other("ok", 5)) == Invalid(
-        InvalidCoercion(
-            [dict, PersonSimple], PersonSimple, "expected a dict or PersonSimple instance"
-        )
+    dc_v = DataclassValidator(PersonSimple)
+    assert dc_v(Other("ok", 5)) == Invalid(
+        InvalidCoercion(dc_v, [dict, PersonSimple], PersonSimple)
     )
 
 
@@ -168,9 +166,9 @@ def test_validates_proper_decimal_type() -> None:
         InvalidDict(
             {
                 "name": InvalidCoercion(
+                    dc_validator.validator.schema["name"],
                     [str, int, Decimal],
                     Decimal,
-                    "expected a Decimal, or a Decimal-compatible string or integer",
                 )
             }
         )
@@ -195,7 +193,7 @@ def test_validates_proper_uuid_type() -> None:
         InvalidDict(
             {
                 "name": InvalidCoercion(
-                    [str, UUID], UUID, "expected a UUID, or a UUID-compatible string"
+                    dc_validator.validator.schema["name"], [str, UUID], UUID
                 )
             }
         )
@@ -207,10 +205,9 @@ def test_will_fail_if_not_exact_dataclass() -> None:
     class Bad:
         name: str
 
-    assert DataclassValidator(PersonSimple)(Bad("hmm")) == Invalid(
-        InvalidCoercion(
-            [dict, PersonSimple], PersonSimple, "expected a dict or PersonSimple instance"
-        )
+    validator = DataclassValidator(PersonSimple)
+    assert validator(Bad("hmm")) == Invalid(
+        InvalidCoercion(validator, [dict, PersonSimple], PersonSimple)
     )
 
 

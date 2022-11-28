@@ -16,19 +16,20 @@ class Add1Decimal(Processor[Decimal]):
 
 
 def test_decimal() -> None:
-    assert DecimalValidator()("a string") == Invalid(
+    d_v = DecimalValidator()
+    assert d_v("a string") == Invalid(
         InvalidCoercion(
+            d_v,
             [str, int, Decimal],
             Decimal,
-            "expected a Decimal, or a Decimal-compatible string or integer",
         )
     )
 
-    assert DecimalValidator()(5.5) == Invalid(
+    assert d_v(5.5) == Invalid(
         InvalidCoercion(
+            d_v,
             [str, int, Decimal],
             Decimal,
-            "expected a Decimal, or a Decimal-compatible string or integer",
         )
     )
 
@@ -47,19 +48,20 @@ def test_decimal() -> None:
 
 @pytest.mark.asyncio
 async def test_decimal_async() -> None:
-    assert await DecimalValidator().validate_async("abc") == Invalid(
+    d_v = DecimalValidator()
+    assert await d_v.validate_async("abc") == Invalid(
         InvalidCoercion(
+            d_v,
             [str, int, Decimal],
             Decimal,
-            "expected a Decimal, or a Decimal-compatible string or integer",
         )
     )
 
-    assert await DecimalValidator().validate_async(5.5) == Invalid(
+    assert await d_v.validate_async(5.5) == Invalid(
         InvalidCoercion(
+            d_v,
             [str, int, Decimal],
             Decimal,
-            "expected a Decimal, or a Decimal-compatible string or integer",
         )
     )
 

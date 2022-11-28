@@ -30,15 +30,13 @@ from tests.utils import BasicNoneValidator
 
 
 def test_tuple2() -> None:
-    assert Tuple2Validator(StringValidator(), IntValidator())({}) == Invalid(
-        InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
-    )
 
-    assert Tuple2Validator(StringValidator(), IntValidator())([]) == Invalid(
-        [ExactItemCount(2)]
-    )
+    validator = Tuple2Validator(StringValidator(), IntValidator())
+    assert validator({}) == Invalid(InvalidCoercion(validator, [list, tuple], tuple))
 
-    assert Tuple2Validator(StringValidator(), IntValidator())(["a", 1]) == Valid(("a", 1))
+    assert validator([]) == Invalid([ExactItemCount(2)])
+
+    assert validator(["a", 1]) == Valid(("a", 1))
     assert Tuple2Validator(StringValidator(), BasicNoneValidator())(("a", None)) == Valid(
         ("a", None)
     )
@@ -81,17 +79,14 @@ def test_tuple2() -> None:
 @pytest.mark.asyncio
 async def test_tuple2_async() -> None:
     s_v = StringValidator()
-    assert await Tuple2Validator(s_v, IntValidator()).validate_async({}) == Invalid(
-        InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
+    validator = Tuple2Validator(s_v, IntValidator())
+    assert await validator.validate_async({}) == Invalid(
+        InvalidCoercion(validator, [list, tuple], tuple)
     )
 
-    assert await Tuple2Validator(s_v, IntValidator()).validate_async([]) == Invalid(
-        [ExactItemCount(2)]
-    )
+    assert await validator.validate_async([]) == Invalid([ExactItemCount(2)])
 
-    assert await Tuple2Validator(s_v, IntValidator()).validate_async(["a", 1]) == Valid(
-        ("a", 1)
-    )
+    assert await validator.validate_async(["a", 1]) == Valid(("a", 1))
     basic_n_v = BasicNoneValidator()
     assert await Tuple2Validator(s_v, basic_n_v).validate_async(("a", None)) == Valid(
         ("a", None)
@@ -134,17 +129,16 @@ def test_tuple3() -> None:
     s_v = StringValidator()
     i_v = IntValidator()
     b_v = BoolValidator()
-    assert Tuple3Validator(s_v, i_v, b_v)({}) == Invalid(
-        InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
-    )
+    validator = Tuple3Validator(s_v, i_v, b_v)
+    assert validator({}) == Invalid(InvalidCoercion(validator, [list, tuple], tuple))
 
-    assert Tuple3Validator(s_v, i_v, b_v)([]) == Invalid([ExactItemCount(3)])
+    assert validator([]) == Invalid([ExactItemCount(3)])
 
-    assert Tuple3Validator(s_v, i_v, b_v)(["a", 1, False]) == Valid(("a", 1, False))
+    assert validator(["a", 1, False]) == Valid(("a", 1, False))
 
-    assert Tuple3Validator(s_v, i_v, b_v)(("a", 1, False)) == Valid(("a", 1, False))
+    assert validator(("a", 1, False)) == Valid(("a", 1, False))
 
-    assert Tuple3Validator(s_v, i_v, b_v)([1, "a", 7.42]) == Invalid(
+    assert validator([1, "a", 7.42]) == Invalid(
         InvalidIterable(
             {
                 0: InvalidType(str, s_v),
@@ -184,25 +178,18 @@ async def test_tuple3_async() -> None:
     str_v = StringValidator()
     int_v = IntValidator()
     bool_v = BoolValidator()
-    assert await Tuple3Validator(str_v, int_v, bool_v).validate_async({}) == Invalid(
-        InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
+    validator = Tuple3Validator(str_v, int_v, bool_v)
+    assert await validator.validate_async({}) == Invalid(
+        InvalidCoercion(validator, [list, tuple], tuple)
     )
 
-    assert await Tuple3Validator(str_v, int_v, bool_v).validate_async([]) == Invalid(
-        [ExactItemCount(3)]
-    )
+    assert await validator.validate_async([]) == Invalid([ExactItemCount(3)])
 
-    assert await Tuple3Validator(str_v, int_v, bool_v).validate_async(
-        ["a", 1, False]
-    ) == Valid(("a", 1, False))
+    assert await validator.validate_async(["a", 1, False]) == Valid(("a", 1, False))
 
-    assert await Tuple3Validator(str_v, int_v, bool_v).validate_async(
-        ("a", 1, False)
-    ) == Valid(("a", 1, False))
+    assert await validator.validate_async(("a", 1, False)) == Valid(("a", 1, False))
 
-    assert await Tuple3Validator(str_v, int_v, bool_v).validate_async(
-        [1, "a", 7.42]
-    ) == Invalid(
+    assert await validator.validate_async([1, "a", 7.42]) == Invalid(
         InvalidIterable(
             {
                 0: InvalidType(str, str_v),

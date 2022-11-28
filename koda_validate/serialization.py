@@ -27,7 +27,11 @@ Serializable = Union[
 
 def serializable_validation_err(err: ValidationErr) -> Serializable:
     if isinstance(err, InvalidCoercion):
-        return [err.err_message]
+        compatible_names = [t.__name__ for t in err.compatible_types]
+        return [
+            f"could not coerce to {err.dest_type.__name__} "
+            f"(compatible with {', '.join(compatible_names)})"
+        ]
     elif isinstance(err, InvalidCustom):
         return [err.err_message]
     elif isinstance(err, InvalidExtraKeys):

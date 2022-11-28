@@ -4,7 +4,7 @@ with a generic TupleValidator... (2 and 3 can still use the new one
 under the hood, if needed)
 """
 
-from typing import Any, Callable, Dict, Final, List, Literal, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from koda_validate import ExactItemCount
 from koda_validate._generics import A, B, C
@@ -22,10 +22,6 @@ from koda_validate.base import (
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
-
-EXPECTED_TUPLE_OR_LIST_ERR: Final[
-    Tuple[Literal[False], ValidationErr]
-] = False, InvalidCoercion([list, tuple], tuple, "expected a list or tuple")
 
 
 class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
@@ -63,7 +59,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
                 return True, tuple(vals)
 
         else:
-            return EXPECTED_TUPLE_OR_LIST_ERR
+            return False, InvalidCoercion(self, [list, tuple], tuple)
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         val_type = type(val)
@@ -93,7 +89,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
                 return True, tuple(vals)
 
         else:
-            return EXPECTED_TUPLE_OR_LIST_ERR
+            return False, InvalidCoercion(self, [list, tuple], tuple)
 
 
 # todo: auto-generate
@@ -128,6 +124,8 @@ class Tuple2Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B]]):
                 else:
                     return False, result.val
         else:
+            if isinstance(new_val, InvalidCoercion):
+                new_val.validator = self
             return False, new_val
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
@@ -139,6 +137,8 @@ class Tuple2Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B]]):
                 result = self.tuple_validator(new_val)
                 return result.is_valid, result.val
         else:
+            if isinstance(new_val, InvalidCoercion):
+                new_val.validator = self
             return False, new_val
 
 
@@ -178,6 +178,8 @@ class Tuple3Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B, C]]):
                 result = self.tuple_validator(new_val)
                 return result.is_valid, result.val
         else:
+            if isinstance(new_val, InvalidCoercion):
+                new_val.validator = self
             return False, new_val
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
@@ -189,6 +191,8 @@ class Tuple3Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B, C]]):
                 result = self.tuple_validator(new_val)
                 return result.is_valid, result.val
         else:
+            if isinstance(new_val, InvalidCoercion):
+                new_val.validator = self
             return False, new_val
 
 
