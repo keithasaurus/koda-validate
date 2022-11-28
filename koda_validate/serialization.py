@@ -46,7 +46,7 @@ Serializable = Union[
 ]
 
 
-def pred_to_err_message(pred: Predicate[Any] | PredicateAsync[Any]) -> str:
+def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str:
     if isinstance(pred, MinKeys):
         return f"minimum allowed properties is {pred.size}"
     elif isinstance(pred, MaxKeys):
