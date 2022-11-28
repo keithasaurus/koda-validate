@@ -88,7 +88,11 @@ def test_invalid_custom() -> None:
 
 def test_extra_keys() -> None:
     invalid_keys = InvalidExtraKeys({"a", "b", "cde"})
-    assert serializable_validation_err(invalid_keys) == [invalid_keys.err_message]
+    assert serializable_validation_err(invalid_keys) == [
+        "Received unknown keys. Only expected "
+        + ", ".join(sorted([repr(k) for k in invalid_keys.expected_keys]))
+        + "."
+    ]
 
 
 def test_map_err() -> None:

@@ -19,13 +19,21 @@ from koda_validate._generics import A, InputT, SuccessT
 from koda_validate.validated import Invalid, Valid, Validated
 
 
+class InvalidBase:
+    pass
+
+
 @dataclass
-class InvalidCoercion:
+class ValidatorErrorBase(InvalidBase):
+    validator: "Validator[Any, Any]"
+
+
+@dataclass
+class InvalidCoercion(ValidatorErrorBase):
     """
     When one or more types can be coerced to a destination type
     """
 
-    validator: "Validator[Any, Any]"
     compatible_types: List[Type[Any]]
     dest_type: Type[Any]
 
@@ -46,24 +54,14 @@ class InvalidMissingKey:
         return cls._instance
 
 
-@dataclass(init=False)
+@dataclass
 class InvalidExtraKeys:
     """
     extra keys were present in a dictionary
     """
 
+    # todo: add validator
     expected_keys: Set[Hashable]
-    err_message: str
-
-    def __init__(self, expected_keys: Set[Hashable]) -> None:
-        self.expected_keys = expected_keys
-        self.err_message = "Received unknown keys. " + (
-            "Expected empty dictionary."
-            if len(expected_keys) == 0
-            else "Only expected "
-            + ", ".join(sorted([repr(k) for k in expected_keys]))
-            + "."
-        )
 
 
 invalid_missing_key = InvalidMissingKey()
@@ -76,6 +74,7 @@ class InvalidDict:
     dictionary
     """
 
+    # todo: add validator, rename
     keys: Dict[Hashable, "ValidationErr"]
 
 
@@ -145,7 +144,7 @@ ValidationErr = Union[
     InvalidMap,
     InvalidType,
     InvalidVariants,
-    # to: consider properly parameterizing
+    # todo: add explicit wrapper, consider properly parameterizing
     List[Union["Predicate[Any]", "PredicateAsync[Any]"]],
 ]
 

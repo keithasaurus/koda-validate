@@ -95,7 +95,14 @@ def serializable_validation_err(err: ValidationErr) -> Serializable:
     elif isinstance(err, InvalidCustom):
         return [err.err_message]
     elif isinstance(err, InvalidExtraKeys):
-        return [err.err_message]
+        err_message = "Received unknown keys. " + (
+            "Expected empty dictionary."
+            if len(err.expected_keys) == 0
+            else "Only expected "
+            + ", ".join(sorted([repr(k) for k in err.expected_keys]))
+            + "."
+        )
+        return [err_message]
     elif isinstance(err, InvalidType):
         return [f"expected {err.expected_type.__name__}"]
     elif isinstance(err, list):
