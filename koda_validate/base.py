@@ -24,7 +24,7 @@ class InvalidBase:
 
 
 @dataclass
-class ValidatorErrorBase(InvalidBase):
+class ValidatorErrorBase:
     """
     Simple base class which merely includes the originating validator for transparency
     """
@@ -92,7 +92,7 @@ class InvalidKeyVal:
 
 
 @dataclass
-class InvalidMap:
+class InvalidMap(ValidatorErrorBase):
     """
     errors from key/value pairs of a map-like dictionary
     """

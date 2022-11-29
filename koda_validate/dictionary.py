@@ -129,7 +129,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 return Invalid(predicate_errors)
 
             return_dict: Dict[T1, T2] = {}
-            errors: InvalidMap = InvalidMap({})
+            errors: InvalidMap = InvalidMap(self, {})
 
             for key, val_ in val.items():
                 key_result = await self.key_validator.validate_async(key)
@@ -176,7 +176,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                 return Invalid(predicate_errors)
 
             return_dict: Dict[T1, T2] = {}
-            errors: InvalidMap = InvalidMap({})
+            errors: InvalidMap = InvalidMap(self, {})
             for key, val_ in val.items():
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val_)

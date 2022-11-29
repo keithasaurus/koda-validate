@@ -494,6 +494,7 @@ def test_nested_dataclass() -> None:
                     b_validator.validator.schema["a"],
                     {
                         "something": InvalidMap(
+                            b_validator.validator.schema["a"].validator.schema["something"],  # type: ignore
                             {
                                 5: InvalidKeyVal(
                                     key=InvalidType(
@@ -502,7 +503,7 @@ def test_nested_dataclass() -> None:
                                     ),
                                     val=None,
                                 )
-                            }
+                            },
                         )
                     },
                 )

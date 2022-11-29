@@ -18,7 +18,7 @@ from koda_validate.base import (
     invalid_missing_key,
 )
 from koda_validate.decimal import DecimalValidator
-from koda_validate.dictionary import DictValidatorAny, MaxKeys, MinKeys
+from koda_validate.dictionary import DictValidatorAny, MapValidator, MaxKeys, MinKeys
 from koda_validate.float import FloatValidator
 from koda_validate.generic import (
     Choices,
@@ -104,6 +104,7 @@ def test_extra_keys() -> None:
 def test_map_err() -> None:
     result = serializable_validation_err(
         InvalidMap(
+            MapValidator(key=IntValidator(), value=StringValidator()),
             {
                 5: InvalidKeyVal(key=[Min(6)], val=None),
                 6: InvalidKeyVal(key=None, val=InvalidType(StringValidator(), str)),
@@ -111,7 +112,7 @@ def test_map_err() -> None:
                     key=InvalidType(IntValidator(), int),
                     val=InvalidType(StringValidator(), str),
                 ),
-            }
+            },
         )
     )
 

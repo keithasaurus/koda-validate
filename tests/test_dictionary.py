@@ -88,14 +88,16 @@ def test_map_validator() -> None:
     i_v = IntValidator()
     assert MapValidator(key=s_v, value=i_v)({"a": 5, "b": 22}) == Valid({"a": 5, "b": 22})
 
-    assert MapValidator(key=s_v, value=i_v)({5: None}) == Invalid(
+    m_s_i_v = MapValidator(key=s_v, value=i_v)
+    assert m_s_i_v({5: None}) == Invalid(
         InvalidMap(
+            m_s_i_v,
             {
                 5: InvalidKeyVal(
                     key=InvalidType(s_v, str),
                     val=InvalidType(i_v, int),
                 )
-            }
+            },
         )
     )
 
@@ -153,15 +155,17 @@ async def test_map_validator_async() -> None:
     ) == Valid({"a": 5, "b": 22})
 
     i_v = IntValidator()
+    m_s_i_v = MapValidator(key=s_v, value=i_v)
 
-    assert await MapValidator(key=s_v, value=i_v).validate_async({5: None}) == Invalid(
+    assert await m_s_i_v.validate_async({5: None}) == Invalid(
         InvalidMap(
+            m_s_i_v,
             {
                 5: InvalidKeyVal(
                     key=InvalidType(s_v, str),
                     val=InvalidType(i_v, int),
                 )
-            }
+            },
         )
     )
 
