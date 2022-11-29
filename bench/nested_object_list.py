@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 from pydantic import BaseModel
 
 from koda_validate import (
+    DictValidatorAny,
     FloatValidator,
     IntValidator,
     ListValidator,
@@ -53,6 +54,23 @@ k_validator = RecordValidator(
 
 k_dataclass_validator = DataclassValidator(Person)
 
+k_dict_any_validator = DictValidatorAny(
+    {
+        "name": StringValidator(),
+        "age": IntValidator(),
+        "hobbies": ListValidator(
+            DictValidatorAny(
+                {
+                    "name": StringValidator(),
+                    "reason": StringValidator(),
+                    "category": StringValidator(),
+                    "enjoyment": FloatValidator(),
+                }
+            ),
+        ),
+    }
+)
+
 
 class PydHobby(BaseModel):
     name: str
@@ -94,6 +112,11 @@ def run_kv(objs: List[Any]) -> None:
 def run_kv_dc(objs: List[Any]) -> None:
     for obj in objs:
         assert isinstance(k_dataclass_validator(obj), Valid)
+
+
+def run_kv_dict_any(objs: List[Any]) -> None:
+    for obj in objs:
+        assert isinstance(k_dict_any_validator(obj), Valid)
 
 
 def run_pyd(objs: List[Any]) -> None:

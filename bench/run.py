@@ -73,6 +73,7 @@ benches = {
         {
             f"{KODA_VALIDATE} - RecordValidator": nested_object_list.run_kv,
             f"{KODA_VALIDATE} - DataclassValidator": nested_object_list.run_kv_dc,
+            f"{KODA_VALIDATE} - DictValidatorAny": nested_object_list.run_kv_dict_any,
             PYDANTIC: nested_object_list.run_pyd,
         },
     ),
