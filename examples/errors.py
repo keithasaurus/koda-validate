@@ -67,8 +67,8 @@ neighborhood_validator = RecordValidator(
 # Errors are nested in predictable manner
 assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Invalid(
     InvalidDict(
-        city_validator,
-        {"city": InvalidDict(neighborhood_validator, {"name": invalid_missing_key})},
+        neighborhood_validator,
+        {"city": InvalidDict(city_validator, {"name": invalid_missing_key})},
     )
 )
 
