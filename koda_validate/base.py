@@ -335,6 +335,8 @@ class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
 
+    __match_args__ = ("predicates", "predicates_async", "preprocessors")
+
     def __init__(
         self,
         *predicates: Predicate[SuccessT],
