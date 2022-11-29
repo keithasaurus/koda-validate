@@ -40,6 +40,7 @@ from koda_validate.string import (
     StringValidator,
     not_blank,
 )
+from koda_validate.union import UnionValidatorAny
 
 
 def test_type_err_users_message_in_list() -> None:
@@ -125,7 +126,10 @@ def test_map_err() -> None:
 
 def test_variants() -> None:
     assert serializable_validation_err(
-        InvalidVariants([InvalidType(StringValidator(), str), [Min(5)]])
+        InvalidVariants(
+            UnionValidatorAny(StringValidator(), IntValidator(Min(5))),
+            [InvalidType(StringValidator(), str), [Min(5)]],
+        )
     ) == {"variants": [["expected str"], [pred_to_err_message(Min(5))]]}
 
 

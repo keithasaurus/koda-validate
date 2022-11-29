@@ -417,12 +417,13 @@ def test_complex_union_dataclass() -> None:
             example_validator,
             {
                 "a": InvalidVariants(
+                    example_validator.validator.schema["a"],
                     [
                         InvalidType(validators_schema_key_a.validators[0], str),
                         InvalidType(validators_schema_key_a.validators[1], type(None)),
                         InvalidType(validators_schema_key_a.validators[2], float),
                         InvalidType(validators_schema_key_a.validators[3], int),
-                    ]
+                    ],
                 )
             },
         )
@@ -494,7 +495,7 @@ def test_nested_dataclass() -> None:
                     b_validator.validator.schema["a"],
                     {
                         "something": InvalidMap(
-                            b_validator.validator.schema["a"].validator.schema["something"],  # type: ignore
+                            b_validator.validator.schema["a"].validator.schema["something"],  # type: ignore  # noqa: E501
                             {
                                 5: InvalidKeyVal(
                                     key=InvalidType(

@@ -32,10 +32,11 @@ def test_optional_validator() -> None:
     assert o_v(None) == Valid(None)
     assert o_v(5) == Invalid(
         InvalidVariants(
+            o_v,
             [
                 InvalidType(o_v.validator.validators[0], type(None)),
                 InvalidType(o_v.validator.validators[1], str),
-            ]
+            ],
         )
     )
     assert o_v("okok") == Valid("okok")
@@ -47,10 +48,11 @@ async def test_optional_validator_async() -> None:
     assert await o_v.validate_async(None) == Valid(None)
     assert await o_v.validate_async(5) == Invalid(
         InvalidVariants(
+            o_v,
             [
                 InvalidType(o_v.validator.validators[0], type(None)),
                 InvalidType(o_v.validator.validators[1], str),
-            ]
+            ],
         )
     )
     assert await o_v.validate_async("okok") == Valid("okok")

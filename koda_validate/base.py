@@ -110,7 +110,7 @@ class InvalidIterable(ValidatorErrorBase):
 
 
 @dataclass
-class InvalidVariants:
+class InvalidVariants(ValidatorErrorBase):
     """
     none of these validators was satisfied by a given value
     """

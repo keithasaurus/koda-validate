@@ -2,7 +2,12 @@ from typing import Any, Final, Optional
 
 from koda._generics import A
 
-from koda_validate.base import ValidationResult, Validator, _ExactTypeValidator
+from koda_validate.base import (
+    ValidationResult,
+    Validator,
+    ValidatorErrorBase,
+    _ExactTypeValidator,
+)
 from koda_validate.union import UnionValidatorAny
 from koda_validate.validated import Valid
 
@@ -28,7 +33,19 @@ class OptionalValidator(Validator[Any, Optional[A]]):
         self.validator = UnionValidatorAny(none_validator, validator)
 
     async def validate_async(self, val: Any) -> ValidationResult[Optional[A]]:
-        return await self.validator.validate_async(val)
+        result = await self.validator.validate_async(val)
+        if result.is_valid:
+            return result
+        else:
+            if isinstance(result.val, ValidatorErrorBase):
+                result.val.validator = self
+            return result
 
     def __call__(self, val: Any) -> ValidationResult[Optional[A]]:
-        return self.validator(val)
+        result = self.validator(val)
+        if result.is_valid:
+            return result
+        else:
+            if isinstance(result.val, ValidatorErrorBase):
+                result.val.validator = self
+            return result
