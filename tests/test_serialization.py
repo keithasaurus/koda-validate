@@ -2,6 +2,7 @@ import re
 from decimal import Decimal
 from typing import Any, List, Tuple, Union
 
+from koda_validate import ListValidator
 from koda_validate.base import (
     InvalidCoercion,
     InvalidDict,
@@ -65,10 +66,12 @@ def test_coercion_err_uses_message() -> None:
 
 
 def test_iterable_errs() -> None:
-    assert serializable_validation_err(InvalidIterable({})) == []
+    l_v = ListValidator(StringValidator())
+    assert serializable_validation_err(InvalidIterable(l_v, {})) == []
     assert serializable_validation_err(
         InvalidIterable(
-            {0: InvalidType(StringValidator(), str), 5: [MaxLength(10), MinLength(2)]}
+            l_v,
+            {0: InvalidType(StringValidator(), str), 5: [MaxLength(10), MinLength(2)]},
         )
     ) == [
         [0, ["expected str"]],

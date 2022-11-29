@@ -75,7 +75,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, InvalidIterable(index_errs)
+                return False, InvalidIterable(self, index_errs)
             else:
                 return True, return_list
         else:
@@ -123,7 +123,7 @@ class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, InvalidIterable(index_errs)
+                return False, InvalidIterable(self, index_errs)
             else:
                 return True, return_list
         else:

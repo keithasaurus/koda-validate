@@ -20,6 +20,7 @@ def test_list_validator() -> None:
 
     assert l_f_v([5.5, "something else"]) == Invalid(
         InvalidIterable(
+            l_f_v,
             {1: InvalidType(l_f_v.item_validator, float)},
         )
     )
@@ -43,7 +44,7 @@ def test_list_validator() -> None:
     assert n_v([None, None]) == Valid([None, None])
 
     assert n_v([None, 1]) == Invalid(
-        InvalidIterable({1: InvalidType(n_v.item_validator, type(None))})
+        InvalidIterable(n_v, {1: InvalidType(n_v.item_validator, type(None))})
     )
 
 
@@ -54,6 +55,7 @@ async def test_list_async() -> None:
 
     assert await l_f_v.validate_async([5.5, "something else"]) == Invalid(
         InvalidIterable(
+            l_f_v,
             {1: InvalidType(l_f_v.item_validator, float)},
         )
     )
@@ -73,7 +75,7 @@ async def test_list_async() -> None:
     assert await n_v.validate_async([None, None]) == Valid([None, None])
 
     assert await n_v.validate_async([None, 1]) == Invalid(
-        InvalidIterable({1: InvalidType(n_v.item_validator, type(None))})
+        InvalidIterable(n_v, {1: InvalidType(n_v.item_validator, type(None))})
     )
 
 

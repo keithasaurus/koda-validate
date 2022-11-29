@@ -101,7 +101,7 @@ class InvalidMap:
 
 
 @dataclass
-class InvalidIterable:
+class InvalidIterable(ValidatorErrorBase):
     """
     dictionary of validation errors by index
     """

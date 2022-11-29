@@ -18,6 +18,7 @@ from koda_validate.base import (
     ValidationErr,
     ValidationResult,
     Validator,
+    ValidatorErrorBase,
     _async_predicates_warning,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
@@ -54,7 +55,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
                     else:
                         errs[i] = result.val
             if errs:
-                return False, InvalidIterable(errs)
+                return False, InvalidIterable(self, errs)
             else:
                 return True, tuple(vals)
 
@@ -84,7 +85,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
                     else:
                         errs[i] = result.val
             if errs:
-                return False, InvalidIterable(errs)
+                return False, InvalidIterable(self, errs)
             else:
                 return True, tuple(vals)
 
@@ -124,7 +125,7 @@ class Tuple2Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B]]):
                 else:
                     return False, result.val
         else:
-            if isinstance(new_val, InvalidCoercion):
+            if isinstance(new_val, ValidatorErrorBase):
                 new_val.validator = self
             return False, new_val
 
@@ -137,7 +138,7 @@ class Tuple2Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B]]):
                 result = self.tuple_validator(new_val)
                 return result.is_valid, result.val
         else:
-            if isinstance(new_val, InvalidCoercion):
+            if isinstance(new_val, ValidatorErrorBase):
                 new_val.validator = self
             return False, new_val
 
@@ -178,7 +179,7 @@ class Tuple3Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B, C]]):
                 result = self.tuple_validator(new_val)
                 return result.is_valid, result.val
         else:
-            if isinstance(new_val, InvalidCoercion):
+            if isinstance(new_val, ValidatorErrorBase):
                 new_val.validator = self
             return False, new_val
 
@@ -191,7 +192,7 @@ class Tuple3Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B, C]]):
                 result = self.tuple_validator(new_val)
                 return result.is_valid, result.val
         else:
-            if isinstance(new_val, InvalidCoercion):
+            if isinstance(new_val, ValidatorErrorBase):
                 new_val.validator = self
             return False, new_val
 
@@ -256,7 +257,7 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
                     return_list.append(item_result)
 
             if index_errors:
-                return False, InvalidIterable(index_errors)
+                return False, InvalidIterable(self, index_errors)
             else:
                 return True, tuple(return_list)
         else:
@@ -302,7 +303,7 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
                     return_list.append(item_result)
 
             if index_errors:
-                return False, InvalidIterable(index_errors)
+                return False, InvalidIterable(self, index_errors)
             else:
                 return True, tuple(return_list)
         else:
