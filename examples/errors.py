@@ -50,7 +50,7 @@ print(city_validator({}).map_invalid(serializable_validation_err))
 # Extra keys are also errors
 assert city_validator(
     {"region": "California", "population": 510, "country": "USA"}
-) == Invalid(InvalidExtraKeys({"name", "region"}))
+) == Invalid(InvalidExtraKeys(city_validator, {"name", "region"}))
 
 
 @dataclass

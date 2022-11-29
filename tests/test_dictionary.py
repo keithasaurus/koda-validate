@@ -249,7 +249,9 @@ def test_record_1() -> None:
         InvalidDict(validator, keys={"name": InvalidType(s_v, str)})
     )
 
-    assert validator({"name": "bob", "age": 50}) == Invalid(InvalidExtraKeys({"name"}))
+    assert validator({"name": "bob", "age": 50}) == Invalid(
+        InvalidExtraKeys(validator, {"name"})
+    )
 
     assert validator({"name": "bob"}) == Valid(Person("bob"))
 
@@ -283,7 +285,7 @@ def test_record_2() -> None:
     )
 
     assert validator({"name": "bob", "age": 50, "eye_color": "brown"}) == Invalid(
-        InvalidExtraKeys({"name", "age"}),
+        InvalidExtraKeys(validator, {"name", "age"}),
     )
 
     assert validator({"name": "bob", "age": 50}) == Valid(Person("bob", Just(50)))
@@ -385,12 +387,13 @@ def test_record_4_mix_and_match_key_types() -> None:
 
     assert validator({"bad field": 1}) == Invalid(
         InvalidExtraKeys(
+            validator,
             {
                 "first_name",
                 5,
                 ("age", "field"),
                 Decimal(6),
-            }
+            },
         )
     )
 
@@ -788,7 +791,9 @@ def test_dict_validator_any_empty() -> None:
 
     assert empty_dict_validator({}).val == {}
 
-    assert empty_dict_validator({"oops": 5}) == Invalid(InvalidExtraKeys(set()))
+    assert empty_dict_validator({"oops": 5}) == Invalid(
+        InvalidExtraKeys(empty_dict_validator, set())
+    )
 
 
 def _nobody_named_jones_has_first_name_alice_dict(
@@ -941,7 +946,7 @@ async def test_validate_dictionary_any_async() -> None:
     )
 
     assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Invalid(
-        InvalidExtraKeys({"first_name", "last_name"})
+        InvalidExtraKeys(validator, {"first_name", "last_name"})
     )
 
 
@@ -1164,7 +1169,7 @@ async def test_validate_dictionary_async() -> None:
     )
 
     assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Invalid(
-        InvalidExtraKeys({"first_name", "last_name"})
+        InvalidExtraKeys(validator, {"first_name", "last_name"})
     )
 
 

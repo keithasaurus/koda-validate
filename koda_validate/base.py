@@ -59,12 +59,11 @@ class InvalidMissingKey:
 
 
 @dataclass
-class InvalidExtraKeys:
+class InvalidExtraKeys(ValidatorErrorBase):
     """
     extra keys were present in a dictionary
     """
 
-    # todo: add validator
     expected_keys: Set[Hashable]
 
 

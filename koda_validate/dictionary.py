@@ -845,7 +845,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
             )
             for key, val in keys
         ]
-        self._unknown_keys_err = False, InvalidExtraKeys(_key_set)
+        self._unknown_keys_err = False, InvalidExtraKeys(self, _key_set)
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
         if not isinstance(data, dict):
@@ -858,7 +858,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return False, InvalidExtraKeys(self._key_set)
+                return False, InvalidExtraKeys(self, self._key_set)
 
         args: List[Any] = []
         errs: Dict[Hashable, ValidationErr] = {}
@@ -1029,7 +1029,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
             for key, val in schema.items()
         ]
 
-        self._unknown_keys_err = False, InvalidExtraKeys(set(schema.keys()))
+        self._unknown_keys_err = False, InvalidExtraKeys(self, set(schema.keys()))
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
 
