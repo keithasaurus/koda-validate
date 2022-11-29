@@ -861,13 +861,13 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 return False, InvalidExtraKeys(self._key_set)
 
         args: List[Any] = []
-        errs: InvalidDict = InvalidDict({})
+        errs: Dict[Hashable, ValidationErr] = {}
         for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = invalid_missing_key
+                    errs[key_] = invalid_missing_key
                 else:
                     args.append(nothing)
             else:
@@ -883,12 +883,12 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                     )
 
                 if not success:
-                    errs.keys[key_] = new_val
-                else:
+                    errs[key_] = new_val
+                elif not errs:
                     args.append(new_val)
 
-        if errs.keys:
-            return False, errs
+        if errs:
+            return False, InvalidDict(errs)
         else:
             # we know this should be ret
             obj = self.into(*args)
@@ -915,13 +915,13 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 return self._unknown_keys_err
 
         args: List[Any] = []
-        errs: InvalidDict = InvalidDict({})
+        errs: Dict[Hashable, ValidationErr] = {}
         for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = invalid_missing_key
+                    errs[key_] = invalid_missing_key
                 else:
                     args.append(nothing)
             else:
@@ -935,12 +935,12 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                     )
 
                 if not success:
-                    errs.keys[key_] = new_val
-                else:
+                    errs[key_] = new_val
+                elif not errs:
                     args.append(new_val)
 
-        if errs.keys:
-            return False, errs
+        if errs:
+            return False, InvalidDict(errs)
         else:
             obj = self.into(*args)
             if self.validate_object is not None:

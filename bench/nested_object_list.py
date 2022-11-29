@@ -3,6 +3,13 @@ from typing import Any, Dict, List
 
 from pydantic import BaseModel
 
+from koda_validate import (
+    FloatValidator,
+    IntValidator,
+    ListValidator,
+    RecordValidator,
+    StringValidator,
+)
 from koda_validate.dataclasses import DataclassValidator
 from koda_validate.validated import Valid
 
@@ -22,31 +29,29 @@ class Person:
     hobbies: List[Hobby]
 
 
-#
-#
-# k_validator = RecordValidator(
-#     into=Person,
-#     keys=(
-#         ("name", StringValidator()),
-#         ("age", IntValidator()),
-#         (
-#             "hobbies",
-#             ListValidator(
-#                 RecordValidator(
-#                     into=Hobby,
-#                     keys=(
-#                         ("name", StringValidator()),
-#                         ("reason", StringValidator()),
-#                         ("category", StringValidator()),
-#                         ("enjoyment", FloatValidator()),
-#                     ),
-#                 )
-#             ),
-#         ),
-#     ),
-# )
+k_validator = RecordValidator(
+    into=Person,
+    keys=(
+        ("name", StringValidator()),
+        ("age", IntValidator()),
+        (
+            "hobbies",
+            ListValidator(
+                RecordValidator(
+                    into=Hobby,
+                    keys=(
+                        ("name", StringValidator()),
+                        ("reason", StringValidator()),
+                        ("category", StringValidator()),
+                        ("enjoyment", FloatValidator()),
+                    ),
+                )
+            ),
+        ),
+    ),
+)
 
-k_validator = DataclassValidator(Person)
+k_dataclass_validator = DataclassValidator(Person)
 
 
 class PydHobby(BaseModel):
@@ -84,6 +89,11 @@ def get_valid_data(i: int) -> Dict[str, Any]:
 def run_kv(objs: List[Any]) -> None:
     for obj in objs:
         assert isinstance(k_validator(obj), Valid)
+
+
+def run_kv_dc(objs: List[Any]) -> None:
+    for obj in objs:
+        assert isinstance(k_dataclass_validator(obj), Valid)
 
 
 def run_pyd(objs: List[Any]) -> None:
