@@ -44,6 +44,7 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
+    ValidationErr,
     ValidationResult,
     Validator,
     _async_predicates_warning,
@@ -1045,14 +1046,14 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                 return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
-        errs = InvalidDict({})
+        errs: Dict[Hashable, ValidationErr] = {}
         for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = invalid_missing_key
-                elif not errs.keys:
+                    errs[key_] = invalid_missing_key
+                elif not errs:
                     success_dict[key_] = nothing
             else:
                 if is_tuple_validator:
@@ -1067,12 +1068,12 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                     )
 
                 if not success:
-                    errs.keys[key_] = new_val
-                elif not errs.keys:
+                    errs[key_] = new_val
+                elif not errs:
                     success_dict[key_] = new_val
 
-        if errs.keys:
-            return False, errs
+        if errs:
+            return False, InvalidDict(errs)
         else:
             if self.validate_object is None:
                 return True, success_dict
@@ -1098,14 +1099,14 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                 return self._unknown_keys_err
 
         success_dict: Dict[Hashable, Any] = {}
-        errs = InvalidDict({})
+        errs: Dict[Hashable, ValidationErr] = {}
         for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             try:
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs.keys[key_] = invalid_missing_key
-                elif not errs.keys:
+                    errs[key_] = invalid_missing_key
+                elif not errs:
                     success_dict[key_] = nothing
             else:
                 if is_tuple_validator:
@@ -1120,12 +1121,12 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                     )
 
                 if not success:
-                    errs.keys[key_] = new_val
-                elif not errs.keys:
+                    errs[key_] = new_val
+                elif not errs:
                     success_dict[key_] = new_val
 
-        if errs.keys:
-            return False, errs
+        if errs:
+            return False, InvalidDict(errs)
         else:
             if self.validate_object is not None:
                 result = self.validate_object(success_dict)
