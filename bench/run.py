@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Callable, Dict, Generic, List, Optional
+from typing import Callable, Dict, Generic, List
 
 from bench import (
     min_max,
