@@ -13,7 +13,7 @@ from koda_validate.serialization import serializable_validation_err
 
 # Wrong type
 string_validator_ = StringValidator()
-assert string_validator_(None) == Invalid(InvalidType(str, string_validator_))
+assert string_validator_(None) == Invalid(InvalidType(string_validator_, str))
 
 # All failing `Predicate`s are reported (not just the first)
 str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
@@ -37,7 +37,7 @@ city_validator = RecordValidator(
 )
 
 # We use the key "__container__" for object-level errors
-assert city_validator(None) == Invalid(InvalidType(dict, city_validator))
+assert city_validator(None) == Invalid(InvalidType(city_validator, dict))
 
 # Missing keys are errors
 print(city_validator({}))

@@ -6,8 +6,8 @@ from uuid import UUID, uuid4
 from koda_validate import AlwaysValid, Invalid, MaxLength, StringValidator, Valid
 from koda_validate.base import (
     InvalidCoercion,
-    InvalidCustom,
     InvalidDict,
+    InvalidMessage,
     InvalidType,
     ValidationResult,
 )
@@ -75,13 +75,13 @@ def test_validate_object_works() -> None:
 
     def first_name_last_name_are_different(obj: A) -> ValidationResult[A]:
         if obj.first_name == obj.last_name:
-            return Invalid(InvalidCustom("first name cannot be last name"))
+            return Invalid(InvalidMessage("first name cannot be last name"))
         else:
             return Valid(obj)
 
     v1 = DataclassValidator(A, validate_object=first_name_last_name_are_different)
     test_dict_same = {"first_name": "same", "last_name": "same"}
-    assert v1(test_dict_same) == Invalid(InvalidCustom("first name cannot be last name"))
+    assert v1(test_dict_same) == Invalid(InvalidMessage("first name cannot be last name"))
 
     test_dict_different = {"first_name": "different", "last_name": "names"}
 
@@ -89,7 +89,7 @@ def test_validate_object_works() -> None:
 
     # should also work with dataclasses
     test_dc_same = A("same", "same")
-    assert v1(test_dc_same) == Invalid(InvalidCustom("first name cannot be last name"))
+    assert v1(test_dc_same) == Invalid(InvalidMessage("first name cannot be last name"))
 
     test_dc_different = A("different", "names")
 
@@ -107,7 +107,7 @@ def test_validates_proper_string_type() -> None:
 
     # not type-safe, but still validate
     assert dc_validator(Example(5)) == Invalid(  # type: ignore
-        InvalidDict({"name": InvalidType(str, dc_validator.validator.schema["name"])})
+        InvalidDict({"name": InvalidType(dc_validator.validator.schema["name"], str)})
     )
 
 
@@ -121,7 +121,7 @@ def test_validates_proper_int_type() -> None:
     assert dc_validator(Example(5)) == Valid(Example(5))
     # not type-safe, but still validate
     assert dc_validator(Example("bad")) == Invalid(  # type: ignore
-        InvalidDict({"name": InvalidType(int, dc_validator.validator.schema["name"])})
+        InvalidDict({"name": InvalidType(dc_validator.validator.schema["name"], int)})
     )
 
 
@@ -134,7 +134,7 @@ def test_validates_proper_float_type() -> None:
 
     assert dc_validator(Example(5.0)) == Valid(Example(5.0))
     assert dc_validator(Example(5)) == Invalid(
-        InvalidDict({"name": InvalidType(float, dc_validator.validator.schema["name"])})
+        InvalidDict({"name": InvalidType(dc_validator.validator.schema["name"], float)})
     )
 
 
@@ -148,7 +148,7 @@ def test_validates_proper_bool_type() -> None:
     assert dc_validator(Example(False)) == Valid(Example(False))
     # not type-safe, but still validate
     assert dc_validator(Example(1)) == Invalid(  # type: ignore
-        InvalidDict({"name": InvalidType(bool, dc_validator.validator.schema["name"])})
+        InvalidDict({"name": InvalidType(dc_validator.validator.schema["name"], bool)})
     )
 
 

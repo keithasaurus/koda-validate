@@ -25,6 +25,10 @@ class InvalidBase:
 
 @dataclass
 class ValidatorErrorBase(InvalidBase):
+    """
+    Simple base class which merely includes the originating validator for transparency
+    """
+
     validator: "Validator[Any, Any]"
 
 
@@ -116,27 +120,26 @@ class InvalidVariants:
 
 
 @dataclass
-class InvalidCustom:
+class InvalidMessage:
     """
-    Basic custom validation error. Can be subclassed if needed
+    If all you want to do is produce a message, this can be useful
     """
 
     err_message: str
 
 
 @dataclass
-class InvalidType:
+class InvalidType(ValidatorErrorBase):
     """
     A specific type was required but not provided
     """
 
     expected_type: Type[Any]
-    validator: "Validator[Any, Any]"
 
 
 ValidationErr = Union[
     InvalidCoercion,
-    InvalidCustom,
+    InvalidMessage,
     InvalidDict,
     InvalidExtraKeys,
     InvalidIterable,
@@ -275,7 +278,7 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[Any, SuccessT]):
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
-        self._type_err = InvalidType(self._TYPE, self)
+        self._type_err = InvalidType(self, self._TYPE)
 
     def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if self.predicates_async:

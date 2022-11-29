@@ -13,8 +13,8 @@ assert str_to_int_validator({3.14: "pi!"}) == Invalid(
     InvalidMap(
         {
             3.14: InvalidKeyVal(
-                InvalidType(str, str_validator),
-                InvalidType(int, int_validator),
+                InvalidType(str_validator, str),
+                InvalidType(int_validator, int),
             )
         }
     )

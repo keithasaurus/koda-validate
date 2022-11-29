@@ -7,23 +7,23 @@ from koda_validate.validated import Invalid, Valid
 
 
 def test_none() -> None:
-    assert none_validator("a string") == Invalid(InvalidType(type(None), none_validator))
+    assert none_validator("a string") == Invalid(InvalidType(none_validator, type(None)))
 
     assert none_validator(None) == Valid(None)
 
-    assert none_validator(False) == Invalid(InvalidType(type(None), none_validator))
+    assert none_validator(False) == Invalid(InvalidType(none_validator, type(None)))
 
 
 @pytest.mark.asyncio
 async def test_none_async() -> None:
     assert await none_validator.validate_async("a string") == Invalid(
-        InvalidType(type(None), none_validator)
+        InvalidType(none_validator, type(None))
     )
 
     assert await none_validator.validate_async(None) == Valid(None)
 
     assert await none_validator.validate_async(False) == Invalid(
-        InvalidType(type(None), none_validator)
+        InvalidType(none_validator, type(None))
     )
 
 
@@ -33,8 +33,8 @@ def test_optional_validator() -> None:
     assert o_v(5) == Invalid(
         InvalidVariants(
             [
-                InvalidType(type(None), o_v.validator.validators[0]),
-                InvalidType(str, o_v.validator.validators[1]),
+                InvalidType(o_v.validator.validators[0], type(None)),
+                InvalidType(o_v.validator.validators[1], str),
             ]
         )
     )
@@ -48,8 +48,8 @@ async def test_optional_validator_async() -> None:
     assert await o_v.validate_async(5) == Invalid(
         InvalidVariants(
             [
-                InvalidType(type(None), o_v.validator.validators[0]),
-                InvalidType(str, o_v.validator.validators[1]),
+                InvalidType(o_v.validator.validators[0], type(None)),
+                InvalidType(o_v.validator.validators[1], str),
             ]
         )
     )

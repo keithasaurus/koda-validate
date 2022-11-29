@@ -4,12 +4,12 @@ from typing import Any, List, Tuple, Union
 
 from koda_validate.base import (
     InvalidCoercion,
-    InvalidCustom,
     InvalidDict,
     InvalidExtraKeys,
     InvalidIterable,
     InvalidKeyVal,
     InvalidMap,
+    InvalidMessage,
     InvalidType,
     InvalidVariants,
     Predicate,
@@ -42,7 +42,7 @@ from koda_validate.string import (
 
 
 def test_type_err_users_message_in_list() -> None:
-    assert serializable_validation_err(InvalidType(str, StringValidator())) == [
+    assert serializable_validation_err(InvalidType(StringValidator(), str)) == [
         "expected str"
     ]
 
@@ -68,7 +68,7 @@ def test_iterable_errs() -> None:
     assert serializable_validation_err(InvalidIterable({})) == []
     assert serializable_validation_err(
         InvalidIterable(
-            {0: InvalidType(str, StringValidator()), 5: [MaxLength(10), MinLength(2)]}
+            {0: InvalidType(StringValidator(), str), 5: [MaxLength(10), MinLength(2)]}
         )
     ) == [
         [0, ["expected str"]],
@@ -78,12 +78,12 @@ def test_iterable_errs() -> None:
 
 def test_invalid_dict() -> None:
     assert serializable_validation_err(
-        InvalidDict({5: InvalidType(float, FloatValidator()), "ok": invalid_missing_key})
+        InvalidDict({5: InvalidType(FloatValidator(), float), "ok": invalid_missing_key})
     ) == {"5": ["expected float"], "ok": ["key missing"]}
 
 
 def test_invalid_custom() -> None:
-    assert serializable_validation_err(InvalidCustom("abc")) == ["abc"]
+    assert serializable_validation_err(InvalidMessage("abc")) == ["abc"]
 
 
 def test_extra_keys() -> None:
@@ -100,10 +100,10 @@ def test_map_err() -> None:
         InvalidMap(
             {
                 5: InvalidKeyVal(key=[Min(6)], val=None),
-                6: InvalidKeyVal(key=None, val=InvalidType(str, StringValidator())),
+                6: InvalidKeyVal(key=None, val=InvalidType(StringValidator(), str)),
                 "7": InvalidKeyVal(
-                    key=InvalidType(int, IntValidator()),
-                    val=InvalidType(str, StringValidator()),
+                    key=InvalidType(IntValidator(), int),
+                    val=InvalidType(StringValidator(), str),
                 ),
             }
         )
@@ -118,7 +118,7 @@ def test_map_err() -> None:
 
 def test_variants() -> None:
     assert serializable_validation_err(
-        InvalidVariants([InvalidType(str, StringValidator()), [Min(5)]])
+        InvalidVariants([InvalidType(StringValidator(), str), [Min(5)]])
     ) == {"variants": [["expected str"], [pred_to_err_message(Min(5))]]}
 
 

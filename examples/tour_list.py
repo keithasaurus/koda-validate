@@ -11,8 +11,8 @@ assert binary_list_validator([1]) == Invalid([MinItems(2)])
 assert binary_list_validator([0, 1.0, "0"]) == Invalid(
     InvalidIterable(
         {
-            1: InvalidType(int, binary_int_validator),
-            2: InvalidType(int, binary_int_validator),
+            1: InvalidType(binary_int_validator, int),
+            2: InvalidType(binary_int_validator, int),
         }
     )
 )

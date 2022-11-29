@@ -16,11 +16,11 @@ from tests.utils import BasicNoneValidator
 
 def test_list_validator() -> None:
     l_f_v = ListValidator(FloatValidator())
-    assert l_f_v("a string") == Invalid(InvalidType(list, l_f_v))
+    assert l_f_v("a string") == Invalid(InvalidType(l_f_v, list))
 
     assert l_f_v([5.5, "something else"]) == Invalid(
         InvalidIterable(
-            {1: InvalidType(float, l_f_v.item_validator)},
+            {1: InvalidType(l_f_v.item_validator, float)},
         )
     )
 
@@ -43,18 +43,18 @@ def test_list_validator() -> None:
     assert n_v([None, None]) == Valid([None, None])
 
     assert n_v([None, 1]) == Invalid(
-        InvalidIterable({1: InvalidType(type(None), n_v.item_validator)})
+        InvalidIterable({1: InvalidType(n_v.item_validator, type(None))})
     )
 
 
 @pytest.mark.asyncio
 async def test_list_async() -> None:
     l_f_v = ListValidator(FloatValidator())
-    assert await l_f_v.validate_async("a string") == Invalid(InvalidType(list, l_f_v))
+    assert await l_f_v.validate_async("a string") == Invalid(InvalidType(l_f_v, list))
 
     assert await l_f_v.validate_async([5.5, "something else"]) == Invalid(
         InvalidIterable(
-            {1: InvalidType(float, l_f_v.item_validator)},
+            {1: InvalidType(l_f_v.item_validator, float)},
         )
     )
 
@@ -73,7 +73,7 @@ async def test_list_async() -> None:
     assert await n_v.validate_async([None, None]) == Valid([None, None])
 
     assert await n_v.validate_async([None, 1]) == Invalid(
-        InvalidIterable({1: InvalidType(type(None), n_v.item_validator)})
+        InvalidIterable({1: InvalidType(n_v.item_validator, type(None))})
     )
 
 

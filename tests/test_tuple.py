@@ -17,8 +17,8 @@ from koda_validate import (
 from koda_validate._generics import A
 from koda_validate.base import (
     InvalidCoercion,
-    InvalidCustom,
     InvalidIterable,
+    InvalidMessage,
     InvalidType,
     PredicateAsync,
     Processor,
@@ -46,8 +46,8 @@ def test_tuple2() -> None:
     assert Tuple2Validator(s_v, basic_n_v)([1, "a"]) == Invalid(
         InvalidIterable(
             {
-                0: InvalidType(str, s_v),
-                1: InvalidType(type(None), basic_n_v),
+                0: InvalidType(s_v, str),
+                1: InvalidType(basic_n_v, type(None)),
             }
         )
     )
@@ -59,7 +59,7 @@ def test_tuple2() -> None:
             if ab[0] == "a":
                 return Valid(ab)
             else:
-                return Invalid(InvalidCustom("must be a if int is 1 and bool is True"))
+                return Invalid(InvalidMessage("must be a if int is 1 and bool is True"))
         else:
             return Valid(ab)
 
@@ -71,7 +71,7 @@ def test_tuple2() -> None:
 
     assert a1_validator(["a", 1]) == Valid(("a", 1))
     assert a1_validator(["b", 1]) == Invalid(
-        InvalidCustom("must be a if int is 1 and bool is True")
+        InvalidMessage("must be a if int is 1 and bool is True")
     )
     assert a1_validator(["b", 2]) == Valid(("b", 2))
 
@@ -95,8 +95,8 @@ async def test_tuple2_async() -> None:
     assert await Tuple2Validator(s_v, basic_n_v).validate_async([1, "a"]) == Invalid(
         InvalidIterable(
             {
-                0: InvalidType(str, s_v),
-                1: InvalidType(type(None), basic_n_v),
+                0: InvalidType(s_v, str),
+                1: InvalidType(basic_n_v, type(None)),
             }
         )
     )
@@ -108,7 +108,7 @@ async def test_tuple2_async() -> None:
             if ab[0] == "a":
                 return Valid(ab)
             else:
-                return Invalid(InvalidCustom("must be a if int is 1"))
+                return Invalid(InvalidMessage("must be a if int is 1"))
         else:
             return Valid(ab)
 
@@ -120,7 +120,7 @@ async def test_tuple2_async() -> None:
 
     assert await a1_validator.validate_async(["a", 1]) == Valid(("a", 1))
     assert await a1_validator.validate_async(["b", 1]) == Invalid(
-        InvalidCustom("must be a if int is 1")
+        InvalidMessage("must be a if int is 1")
     )
     assert await a1_validator.validate_async(["b", 2]) == Valid(("b", 2))
 
@@ -141,9 +141,9 @@ def test_tuple3() -> None:
     assert validator([1, "a", 7.42]) == Invalid(
         InvalidIterable(
             {
-                0: InvalidType(str, s_v),
-                1: InvalidType(int, i_v),
-                2: InvalidType(bool, b_v),
+                0: InvalidType(s_v, str),
+                1: InvalidType(i_v, int),
+                2: InvalidType(b_v, bool),
             }
         )
     )
@@ -155,7 +155,7 @@ def test_tuple3() -> None:
             if abc[0] == "a":
                 return Valid(abc)
             else:
-                return Invalid(InvalidCustom("must be a if int is 1 and bool is True"))
+                return Invalid(InvalidMessage("must be a if int is 1 and bool is True"))
         else:
             return Valid(abc)
 
@@ -168,7 +168,7 @@ def test_tuple3() -> None:
 
     assert a1_validator(["a", 1, True]) == Valid(("a", 1, True))
     assert a1_validator(["b", 1, True]) == Invalid(
-        InvalidCustom("must be a if int is 1 and bool is True")
+        InvalidMessage("must be a if int is 1 and bool is True")
     )
     assert a1_validator(["b", 2, False]) == Valid(("b", 2, False))
 
@@ -192,9 +192,9 @@ async def test_tuple3_async() -> None:
     assert await validator.validate_async([1, "a", 7.42]) == Invalid(
         InvalidIterable(
             {
-                0: InvalidType(str, str_v),
-                1: InvalidType(int, int_v),
-                2: InvalidType(bool, bool_v),
+                0: InvalidType(str_v, str),
+                1: InvalidType(int_v, int),
+                2: InvalidType(bool_v, bool),
             }
         )
     )
@@ -206,7 +206,7 @@ async def test_tuple3_async() -> None:
             if abc[0] == "a":
                 return Valid(abc)
             else:
-                return Invalid(InvalidCustom("must be a if int is 1 and bool is True"))
+                return Invalid(InvalidMessage("must be a if int is 1 and bool is True"))
         else:
             return Valid(abc)
 
@@ -219,7 +219,7 @@ async def test_tuple3_async() -> None:
 
     assert await a1_validator.validate_async(["a", 1, True]) == Valid(("a", 1, True))
     assert await a1_validator.validate_async(["b", 1, True]) == Invalid(
-        InvalidCustom("must be a if int is 1 and bool is True")
+        InvalidMessage("must be a if int is 1 and bool is True")
     )
     assert await a1_validator.validate_async(["b", 2, False]) == Valid(("b", 2, False))
 
@@ -227,11 +227,11 @@ async def test_tuple3_async() -> None:
 def test_tuple_homogenous_validator() -> None:
     f_v = FloatValidator()
     tuple_v = TupleHomogenousValidator(f_v)
-    assert tuple_v("a string") == Invalid(InvalidType(tuple, tuple_v))
+    assert tuple_v("a string") == Invalid(InvalidType(tuple_v, tuple))
 
     assert tuple_v((5.5, "something else")) == Invalid(
         InvalidIterable(
-            {1: InvalidType(float, f_v)},
+            {1: InvalidType(f_v, float)},
         )
     )
 
@@ -254,7 +254,7 @@ def test_tuple_homogenous_validator() -> None:
     assert n_v((None, None)) == Valid((None, None))
 
     assert n_v((None, 1)) == Invalid(
-        InvalidIterable({1: InvalidType(type(None), n_v.item_validator)})
+        InvalidIterable({1: InvalidType(n_v.item_validator, type(None))})
     )
 
 
@@ -263,12 +263,12 @@ async def test_tuple_homogenous_async() -> None:
     float_validator = FloatValidator()
     validator = TupleHomogenousValidator(float_validator)
     assert await validator.validate_async("a string") == Invalid(
-        InvalidType(tuple, validator)
+        InvalidType(validator, tuple)
     )
 
     assert await validator.validate_async((5.5, "something else")) == Invalid(
         InvalidIterable(
-            {1: InvalidType(float, float_validator)},
+            {1: InvalidType(float_validator, float)},
         )
     )
 
@@ -285,7 +285,7 @@ async def test_tuple_homogenous_async() -> None:
     assert await n_v.validate_async((None, None)) == Valid((None, None))
 
     assert await n_v.validate_async((None, 1)) == Invalid(
-        InvalidIterable({1: InvalidType(type(None), n_v.item_validator)})
+        InvalidIterable({1: InvalidType(n_v.item_validator, type(None))})
     )
 
 

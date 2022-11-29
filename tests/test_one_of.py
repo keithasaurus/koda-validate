@@ -15,8 +15,8 @@ def test_one_of2() -> None:
     assert str_or_int_validator(5.5) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, s_v),
-                InvalidType(int, i_v),
+                InvalidType(s_v, str),
+                InvalidType(i_v, int),
             ]
         )
     )
@@ -32,8 +32,8 @@ async def test_one_of2_async() -> None:
     assert await str_or_int_validator.validate_async(5.5) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, s_v),
-                InvalidType(int, i_v),
+                InvalidType(s_v, str),
+                InvalidType(i_v, int),
             ]
         )
     )
@@ -50,9 +50,9 @@ def test_one_of3() -> None:
     assert str_or_int_or_float_validator(True) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, str_v),
-                InvalidType(int, int_v),
-                InvalidType(float, fl_v),
+                InvalidType(str_v, str),
+                InvalidType(int_v, int),
+                InvalidType(fl_v, float),
             ]
         )
     )
@@ -70,9 +70,9 @@ async def test_one_of3_async() -> None:
     assert await str_or_int_or_float_validator.validate_async(True) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, str_v),
-                InvalidType(int, int_v),
-                InvalidType(float, fl_v),
+                InvalidType(str_v, str),
+                InvalidType(int_v, int),
+                InvalidType(fl_v, float),
             ]
         )
     )

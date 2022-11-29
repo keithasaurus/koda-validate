@@ -260,7 +260,7 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
             else:
                 return True, tuple(return_list)
         else:
-            return False, InvalidType(tuple, self)
+            return False, InvalidType(self, tuple)
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         if isinstance(val, tuple):
@@ -306,4 +306,4 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
             else:
                 return True, tuple(return_list)
         else:
-            return False, InvalidType(tuple, self)
+            return False, InvalidType(self, tuple)

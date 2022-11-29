@@ -2,11 +2,11 @@ from typing import Any, Dict, List, Tuple, Union
 
 from koda_validate.base import (
     InvalidCoercion,
-    InvalidCustom,
     InvalidDict,
     InvalidExtraKeys,
     InvalidIterable,
     InvalidMap,
+    InvalidMessage,
     InvalidMissingKey,
     InvalidType,
     InvalidVariants,
@@ -92,7 +92,7 @@ def serializable_validation_err(err: ValidationErr) -> Serializable:
             f"could not coerce to {err.dest_type.__name__} "
             f"(compatible with {', '.join(compatible_names)})"
         ]
-    elif isinstance(err, InvalidCustom):
+    elif isinstance(err, InvalidMessage):
         return [err.err_message]
     elif isinstance(err, InvalidExtraKeys):
         err_message = "Received unknown keys. " + (

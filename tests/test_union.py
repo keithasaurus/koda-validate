@@ -19,9 +19,9 @@ def test_union_validator_any() -> None:
     assert str_int_float_validator(None) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, s_v),
-                InvalidType(int, i_v),
-                InvalidType(float, f_v),
+                InvalidType(s_v, str),
+                InvalidType(i_v, int),
+                InvalidType(f_v, float),
             ]
         )
     )
@@ -29,9 +29,9 @@ def test_union_validator_any() -> None:
     assert str_int_float_validator(False) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, s_v),
-                InvalidType(int, i_v),
-                InvalidType(float, f_v),
+                InvalidType(s_v, str),
+                InvalidType(i_v, int),
+                InvalidType(f_v, float),
             ]
         )
     )
@@ -47,7 +47,7 @@ async def test_union_validator_any_async() -> None:
             if val is None:
                 return Valid(None)
             else:
-                return Invalid(InvalidType(type(None), self))
+                return Invalid(InvalidType(self, type(None)))
 
     s_v = StringValidator()
     i_v = IntValidator()
@@ -61,10 +61,10 @@ async def test_union_validator_any_async() -> None:
     assert await str_int_float_validator.validate_async([]) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, s_v),
-                InvalidType(int, i_v),
-                InvalidType(float, f_v),
-                InvalidType(type(None), n_v),
+                InvalidType(s_v, str),
+                InvalidType(i_v, int),
+                InvalidType(f_v, float),
+                InvalidType(n_v, type(None)),
             ]
         )
     )
@@ -72,10 +72,10 @@ async def test_union_validator_any_async() -> None:
     assert await str_int_float_validator.validate_async(False) == Invalid(
         InvalidVariants(
             [
-                InvalidType(str, s_v),
-                InvalidType(int, i_v),
-                InvalidType(float, f_v),
-                InvalidType(type(None), n_v),
+                InvalidType(s_v, str),
+                InvalidType(i_v, int),
+                InvalidType(f_v, float),
+                InvalidType(n_v, type(None)),
             ]
         )
     )

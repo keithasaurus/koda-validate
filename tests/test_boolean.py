@@ -16,7 +16,7 @@ class Flip(Processor[bool]):
 
 def test_boolean() -> None:
     b_v = BoolValidator()
-    assert b_v("a string") == Invalid(InvalidType(bool, b_v))
+    assert b_v("a string") == Invalid(InvalidType(b_v, bool))
 
     assert b_v(True) == Valid(True)
 
@@ -31,7 +31,7 @@ def test_boolean() -> None:
 
     assert BoolValidator(RequireTrue())(False) == Invalid([RequireTrue()])
 
-    assert b_v(1) == Invalid(InvalidType(bool, b_v))
+    assert b_v(1) == Invalid(InvalidType(b_v, bool))
 
     @dataclass
     class IsTrue(Predicate[bool]):
@@ -66,7 +66,7 @@ async def test_boolean_validator_async() -> None:
 
     b_v = BoolValidator()
 
-    assert await b_v.validate_async("abc") == Invalid(InvalidType(bool, b_v))
+    assert await b_v.validate_async("abc") == Invalid(InvalidType(b_v, bool))
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
