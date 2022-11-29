@@ -8,7 +8,6 @@ from koda_validate.validated import Invalid, Valid
 
 
 class OneOf2(Validator[Any, Either[A, B]]):
-    __slots__ = ("variant_1", "variant_2")
     __match_args__ = ("variant_1", "variant_2")
 
     def __init__(
@@ -39,7 +38,6 @@ class OneOf2(Validator[Any, Either[A, B]]):
 
 
 class OneOf3(Validator[Any, Either3[A, B, C]]):
-    __slots__ = ("variant_1", "variant_2", "variant_3")
     __match_args__ = ("variant_1", "variant_2", "variant_3")
 
     def __init__(

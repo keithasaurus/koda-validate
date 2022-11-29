@@ -23,10 +23,6 @@ EnumT = TypeVar("EnumT", str, int)
 
 
 class Lazy(Validator[A, Ret]):
-    __slots__ = (
-        "validator",
-        "recurrent",
-    )
     __match_args__ = (
         "validator",
         "recurrent",

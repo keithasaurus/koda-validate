@@ -260,8 +260,6 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[Any, SuccessT]):
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
 
-    __slots__ = ("predicates", "predicates_async", "preprocessors")
-
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
 
     # SHOULD BE THE SAME AS SuccessT but mypy can't handle that...? v0.991
@@ -336,10 +334,6 @@ class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):
     - ARE OK WITH THIS DISAPPEARING IN A FUTURE RELEASE
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
-
-    __slots__ = ("predicates", "predicates_async", "preprocessors")
-
-    __match_args__ = ("predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,

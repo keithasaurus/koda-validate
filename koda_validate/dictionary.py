@@ -78,13 +78,6 @@ KeyValidator = Tuple[
 
 
 class MapValidator(Validator[Any, Dict[T1, T2]]):
-    __slots__ = (
-        "key_validator",
-        "value_validator",
-        "predicates",
-        "predicates_async",
-        "preprocessors",
-    )
     __match_args__ = (
         "key_validator",
         "value_validator",
@@ -235,15 +228,6 @@ class MaxKeys(Predicate[Dict[Any, Any]]):
 
 
 class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
-    __slots__ = (
-        "_fast_keys",
-        "_key_set",
-        "keys",
-        "into",
-        "preprocessors",
-        "validate_object",
-        "validate_object_async",
-    )
     __match_args__ = (
         "keys",
         "into",
@@ -977,15 +961,6 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
     assistance.
     """
 
-    __slots__ = (
-        "schema",
-        "_key_set",
-        "_fast_keys",
-        "_unknown_keys_err",
-        "preprocessors",
-        "validate_object",
-        "validate_object_async",
-    )
     __match_args__ = (
         "schema",
         "preprocessors",

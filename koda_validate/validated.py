@@ -6,7 +6,6 @@ from koda_validate._generics import A, B, FailT
 
 
 class Valid(Generic[A]):
-    __slots__ = ("val",)
     __match_args__ = ("val",)
 
     is_valid: ClassVar[Literal[True]] = True
@@ -40,7 +39,6 @@ class Valid(Generic[A]):
 
 
 class Invalid(Generic[FailT]):
-    __slots__ = ("val",)
     __match_args__ = ("val",)
 
     is_valid: ClassVar[Literal[False]] = False

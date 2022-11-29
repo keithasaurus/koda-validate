@@ -96,7 +96,6 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
 # todo: auto-generate
 class Tuple2Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B]]):
     __match_args__ = ("slot1_validator", "slot2_validator", "tuple_validator")
-    __slots__ = __match_args__
     required_length: int = 2
 
     def __init__(
@@ -150,7 +149,6 @@ class Tuple3Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B, C]]):
         "slot3_validator",
         "tuple_validator",
     )
-    __slots__ = __match_args__
     required_length: int = 3
 
     def __init__(
@@ -198,13 +196,6 @@ class Tuple3Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B, C]]):
 
 
 class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
-    __slots__ = (
-        "_item_validator_is_tuple",
-        "item_validator",
-        "predicates",
-        "predicates_async",
-        "preprocessors",
-    )
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
 
     def __init__(

@@ -17,13 +17,6 @@ from koda_validate.base import (
 
 
 class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
-    __slots__ = (
-        "_item_validator_is_tuple",
-        "item_validator",
-        "predicates",
-        "predicates_async",
-        "preprocessors",
-    )
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
 
     def __init__(

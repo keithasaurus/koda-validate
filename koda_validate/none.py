@@ -22,7 +22,6 @@ class OptionalValidator(Validator[Any, Optional[A]]):
     We have a value for a key, but it can be null (None)
     """
 
-    __slots__ = ("validator",)
     __match_args__ = ("validator",)
 
     def __init__(self, validator: Validator[Any, A]) -> None:
