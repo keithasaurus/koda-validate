@@ -414,6 +414,7 @@ def test_complex_union_dataclass() -> None:
     )
     assert example_validator({"a": False}) == Invalid(
         InvalidDict(
+            example_validator,
             {
                 "a": InvalidVariants(
                     [
@@ -423,7 +424,7 @@ def test_complex_union_dataclass() -> None:
                         InvalidType(validators_schema_key_a.validators[3], int),
                     ]
                 )
-            }
+            },
         )
     )
 
@@ -472,7 +473,7 @@ def test_nested_dataclass() -> None:
                 "something": {},
             },
         }
-    ) == Invalid(InvalidDict({"name": invalid_missing_key}))
+    ) == Invalid(InvalidDict(b_validator, {"name": invalid_missing_key}))
 
     assert b_validator(
         {
@@ -487,8 +488,10 @@ def test_nested_dataclass() -> None:
         }
     ) == Invalid(
         InvalidDict(
+            b_validator,
             {
                 "a": InvalidDict(
+                    b_validator.validator.schema["a"],
                     {
                         "something": InvalidMap(
                             {
@@ -501,9 +504,9 @@ def test_nested_dataclass() -> None:
                                 )
                             }
                         )
-                    }
+                    },
                 )
-            }
+            },
         )
     )
 

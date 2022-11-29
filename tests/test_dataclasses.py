@@ -64,7 +64,7 @@ def test_explicit_overrides_work() -> None:
     assert v0(test_dict) == Valid(A("longname", "jones"))
 
     v1 = DataclassValidator(A, overrides={"first_name": StringValidator(MaxLength(3))})
-    assert v1(test_dict) == Invalid(InvalidDict({"first_name": [MaxLength(3)]}))
+    assert v1(test_dict) == Invalid(InvalidDict(v1, {"first_name": [MaxLength(3)]}))
 
 
 def test_validate_object_works() -> None:
@@ -107,7 +107,10 @@ def test_validates_proper_string_type() -> None:
 
     # not type-safe, but still validate
     assert dc_validator(Example(5)) == Invalid(  # type: ignore
-        InvalidDict({"name": InvalidType(dc_validator.validator.schema["name"], str)})
+        InvalidDict(
+            dc_validator,
+            {"name": InvalidType(dc_validator.validator.schema["name"], str)},
+        )
     )
 
 
@@ -121,7 +124,10 @@ def test_validates_proper_int_type() -> None:
     assert dc_validator(Example(5)) == Valid(Example(5))
     # not type-safe, but still validate
     assert dc_validator(Example("bad")) == Invalid(  # type: ignore
-        InvalidDict({"name": InvalidType(dc_validator.validator.schema["name"], int)})
+        InvalidDict(
+            dc_validator,
+            {"name": InvalidType(dc_validator.validator.schema["name"], int)},
+        )
     )
 
 
@@ -134,7 +140,10 @@ def test_validates_proper_float_type() -> None:
 
     assert dc_validator(Example(5.0)) == Valid(Example(5.0))
     assert dc_validator(Example(5)) == Invalid(
-        InvalidDict({"name": InvalidType(dc_validator.validator.schema["name"], float)})
+        InvalidDict(
+            dc_validator,
+            {"name": InvalidType(dc_validator.validator.schema["name"], float)},
+        )
     )
 
 
@@ -148,7 +157,10 @@ def test_validates_proper_bool_type() -> None:
     assert dc_validator(Example(False)) == Valid(Example(False))
     # not type-safe, but still validate
     assert dc_validator(Example(1)) == Invalid(  # type: ignore
-        InvalidDict({"name": InvalidType(dc_validator.validator.schema["name"], bool)})
+        InvalidDict(
+            dc_validator,
+            {"name": InvalidType(dc_validator.validator.schema["name"], bool)},
+        )
     )
 
 
@@ -164,13 +176,14 @@ def test_validates_proper_decimal_type() -> None:
     # not type-safe, but still validate
     assert dc_validator(Example(5.6)) == Invalid(  # type: ignore
         InvalidDict(
+            dc_validator,
             {
                 "name": InvalidCoercion(
                     dc_validator.validator.schema["name"],
                     [str, int, Decimal],
                     Decimal,
                 )
-            }
+            },
         )
     )
 
@@ -191,11 +204,12 @@ def test_validates_proper_uuid_type() -> None:
 
     assert dc_validator(Example(123)) == Invalid(  # type: ignore
         InvalidDict(
+            dc_validator,
             {
                 "name": InvalidCoercion(
                     dc_validator.validator.schema["name"], [str, UUID], UUID
                 )
-            }
+            },
         )
     )
 

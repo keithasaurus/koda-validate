@@ -40,6 +40,7 @@ from koda_validate import (
 from koda_validate.base import (
     InvalidCoercion,
     ValidationResult,
+    ValidatorErrorBase,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
@@ -140,6 +141,8 @@ class DataclassValidator(_ToTupleValidatorUnsafe[Any, _DCT]):
                 else:
                     return True, obj
             else:
+                if isinstance(new_val, ValidatorErrorBase):
+                    new_val.validator = self
                 return False, new_val
 
         elif isinstance(val, self.data_cls):
@@ -156,6 +159,8 @@ class DataclassValidator(_ToTupleValidatorUnsafe[Any, _DCT]):
                 else:
                     return True, obj
             else:
+                if isinstance(new_val, ValidatorErrorBase):
+                    new_val.validator = self
                 return False, new_val
 
         else:

@@ -72,7 +72,7 @@ invalid_missing_key = InvalidMissingKey()
 
 
 @dataclass
-class InvalidDict:
+class InvalidDict(ValidatorErrorBase):
     """
     validation failures for key/value pairs on a record-like
     dictionary

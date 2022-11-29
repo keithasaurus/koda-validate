@@ -41,7 +41,9 @@ assert city_validator(None) == Invalid(InvalidType(city_validator, dict))
 
 # Missing keys are errors
 print(city_validator({}))
-assert city_validator({}) == Invalid(InvalidDict({"name": invalid_missing_key}))
+assert city_validator({}) == Invalid(
+    InvalidDict(city_validator, {"name": invalid_missing_key})
+)
 
 print(city_validator({}).map_invalid(serializable_validation_err))
 
@@ -64,7 +66,10 @@ neighborhood_validator = RecordValidator(
 
 # Errors are nested in predictable manner
 assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Invalid(
-    InvalidDict({"city": InvalidDict({"name": invalid_missing_key})})
+    InvalidDict(
+        city_validator,
+        {"city": InvalidDict(neighborhood_validator, {"name": invalid_missing_key})},
+    )
 )
 
 print(

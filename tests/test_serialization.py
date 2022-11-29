@@ -17,7 +17,7 @@ from koda_validate.base import (
     invalid_missing_key,
 )
 from koda_validate.decimal import DecimalValidator
-from koda_validate.dictionary import MaxKeys, MinKeys
+from koda_validate.dictionary import DictValidatorAny, MaxKeys, MinKeys
 from koda_validate.float import FloatValidator
 from koda_validate.generic import (
     Choices,
@@ -78,7 +78,10 @@ def test_iterable_errs() -> None:
 
 def test_invalid_dict() -> None:
     assert serializable_validation_err(
-        InvalidDict({5: InvalidType(FloatValidator(), float), "ok": invalid_missing_key})
+        InvalidDict(
+            DictValidatorAny({}),
+            {5: InvalidType(FloatValidator(), float), "ok": invalid_missing_key},
+        )
     ) == {"5": ["expected float"], "ok": ["key missing"]}
 
 

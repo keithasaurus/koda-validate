@@ -888,7 +888,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                     args.append(new_val)
 
         if errs:
-            return False, InvalidDict(errs)
+            return False, InvalidDict(self, errs)
         else:
             # we know this should be ret
             obj = self.into(*args)
@@ -940,7 +940,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                     args.append(new_val)
 
         if errs:
-            return False, InvalidDict(errs)
+            return False, InvalidDict(self, errs)
         else:
             obj = self.into(*args)
             if self.validate_object is not None:
@@ -1073,7 +1073,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                     success_dict[key_] = new_val
 
         if errs:
-            return False, InvalidDict(errs)
+            return False, InvalidDict(self, errs)
         else:
             if self.validate_object is None:
                 return True, success_dict
@@ -1126,7 +1126,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
                     success_dict[key_] = new_val
 
         if errs:
-            return False, InvalidDict(errs)
+            return False, InvalidDict(self, errs)
         else:
             if self.validate_object is not None:
                 result = self.validate_object(success_dict)
