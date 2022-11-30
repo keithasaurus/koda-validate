@@ -39,11 +39,11 @@ from koda_validate.base import (
     InvalidDict,
     InvalidKeyVal,
     InvalidMap,
-    InvalidMessage,
+    InvalidMissingKey,
+    InvalidSimple,
     InvalidType,
     InvalidVariants,
     ValidationResult,
-    invalid_missing_key,
 )
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
 from koda_validate.dictionary import (
@@ -116,7 +116,7 @@ def test_match_args() -> None:
 def test_record_validator_match_args() -> None:
     def validate_person(p: Person) -> ValidationResult[Person]:
         if len(p.name) > p.age.get_or_else(100):
-            return Invalid(InvalidMessage("your name cannot be longer than your age"))
+            return Invalid(InvalidSimple("your name cannot be longer than your age"))
         else:
             return Valid(p)
 
@@ -152,7 +152,7 @@ def test_record_validator_match_args() -> None:
 def test_dict_any_match_args() -> None:
     def validate_person_dict_any(p: Dict[Any, Any]) -> ValidationResult[Dict[Any, Any]]:
         if len(p["name"]) > p["age"]:
-            return Invalid(InvalidMessage("your name cannot be longer than your name"))
+            return Invalid(InvalidSimple("your name cannot be longer than your name"))
         else:
             return Valid(p)
 
@@ -409,15 +409,13 @@ def test_complex_union_dataclass() -> None:
     assert example_validator({"a": 1.1}) == Valid(Example(1.1))
     assert example_validator({"a": 5}) == Valid(Example(5))
 
-    validators_schema_key_a = cast(
-        UnionValidatorAny, example_validator.validator.schema["a"]
-    )
+    validators_schema_key_a = cast(UnionValidatorAny, example_validator.schema["a"])
     assert example_validator({"a": False}) == Invalid(
         InvalidDict(
             example_validator,
             {
                 "a": InvalidVariants(
-                    example_validator.validator.schema["a"],
+                    example_validator.schema["a"],
                     [
                         InvalidType(validators_schema_key_a.validators[0], str),
                         InvalidType(validators_schema_key_a.validators[1], type(None)),
@@ -474,7 +472,7 @@ def test_nested_dataclass() -> None:
                 "something": {},
             },
         }
-    ) == Invalid(InvalidDict(b_validator, {"name": invalid_missing_key}))
+    ) == Invalid(InvalidDict(b_validator, {"name": InvalidMissingKey(b_validator)}))
 
     assert b_validator(
         {
@@ -492,14 +490,14 @@ def test_nested_dataclass() -> None:
             b_validator,
             {
                 "a": InvalidDict(
-                    b_validator.validator.schema["a"],
+                    b_validator.schema["a"],
                     {
                         "something": InvalidMap(
-                            b_validator.validator.schema["a"].validator.schema["something"],  # type: ignore  # noqa: E501
+                            b_validator.schema["a"].schema["something"],  # type: ignore
                             {
                                 5: InvalidKeyVal(
                                     key=InvalidType(
-                                        b_validator.validator.schema["a"].validator.schema["something"].key_validator,  # type: ignore  # noqa: E501
+                                        b_validator.schema["a"].schema["something"].key_validator,  # type: ignore  # noqa: E501
                                         str,
                                     ),
                                     val=None,

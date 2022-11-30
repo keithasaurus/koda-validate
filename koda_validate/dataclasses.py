@@ -3,6 +3,8 @@ import typing
 from dataclasses import is_dataclass
 from decimal import Decimal
 
+from koda_validate._internal import validate_dict_to_tuple, validate_dict_to_tuple_async
+
 if sys.version_info >= (3, 10):
     from types import UnionType
 
@@ -26,7 +28,6 @@ from uuid import UUID
 from koda_validate import (
     BoolValidator,
     DecimalValidator,
-    DictValidatorAny,
     FloatValidator,
     IntValidator,
     ListValidator,
@@ -39,8 +40,8 @@ from koda_validate import (
 )
 from koda_validate.base import (
     InvalidCoercion,
+    InvalidExtraKeys,
     ValidationResult,
-    ValidatorErrorBase,
     _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
 )
@@ -115,57 +116,82 @@ class DataclassValidator(_ToTupleValidatorUnsafe[Any, _DCT]):
         else:
             type_hints = get_type_hints(self.data_cls)
 
-        self.validator = DictValidatorAny(
-            {
-                field: (
-                    overrides[field]
-                    if field in overrides
-                    else get_typehint_validator(annotations)
-                )
-                for field, annotations in type_hints.items()
-            }
-        )
+        self.schema = {
+            field: (
+                overrides[field]
+                if field in overrides
+                else get_typehint_validator(annotations)
+            )
+            for field, annotations in type_hints.items()
+        }
+
         self.validate_object = validate_object
+
+        self._fast_keys: List[Tuple[typing.Hashable, Validator[Any, Any], bool, bool]] = [
+            (
+                key,
+                val,
+                True,
+                isinstance(val, _ToTupleValidatorUnsafe),
+            )
+            for key, val in self.schema.items()
+        ]
+        self._unknown_keys_err = False, InvalidExtraKeys(self, set(self.schema.keys()))
 
     def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if isinstance(val, dict):
-            success, new_val = self.validator.validate_to_tuple(val)
-            if success:
-                obj = self.data_cls(**new_val)
-                if self.validate_object:
-                    result = self.validate_object(obj)
-                    if result.is_valid:
-                        return True, result.val
-                    else:
-                        return False, result.val
-                else:
-                    return True, obj
-            else:
-                if isinstance(new_val, ValidatorErrorBase):
-                    new_val.validator = self
-                return False, new_val
-
+            data = val
         elif isinstance(val, self.data_cls):
-            success, new_val = self.validator.validate_to_tuple(val.__dict__)
-
-            if success:
-                obj = self.data_cls(**new_val)
-                if self.validate_object:
-                    result = self.validate_object(obj)
-                    if result.is_valid:
-                        return True, result.val
-                    else:
-                        return False, result.val
-                else:
-                    return True, obj
-            else:
-                if isinstance(new_val, ValidatorErrorBase):
-                    new_val.validator = self
-                return False, new_val
-
+            data = val.__dict__
         else:
             return False, InvalidCoercion(
                 self,
                 [dict, self.data_cls],
                 self.data_cls,
             )
+
+        succeeded, new_val = validate_dict_to_tuple(
+            self, None, self._fast_keys, self.schema, self._unknown_keys_err, data
+        )
+
+        if not succeeded:
+            return succeeded, new_val
+        else:
+            obj = self.data_cls(**new_val)
+            if self.validate_object:
+                result = self.validate_object(obj)
+                if result.is_valid:
+                    return True, result.val
+                else:
+                    return False, result.val
+            else:
+                return True, obj
+
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+        if isinstance(val, dict):
+            data = val
+        elif isinstance(val, self.data_cls):
+            data = val.__dict__
+        else:
+            return False, InvalidCoercion(
+                self,
+                [dict, self.data_cls],
+                self.data_cls,
+            )
+
+        succeeded, new_val = await validate_dict_to_tuple_async(
+            self, None, self._fast_keys, self.schema, self._unknown_keys_err, data
+        )
+
+        if not succeeded:
+            return succeeded, new_val
+        else:
+            obj = self.data_cls(**new_val)
+            if self.validate_object:
+                result = self.validate_object(obj)
+                if result.is_valid:
+                    return True, result.val
+                else:
+                    return False, result.val
+            else:
+                return True, obj

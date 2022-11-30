@@ -10,12 +10,12 @@ from koda_validate.base import (
     InvalidIterable,
     InvalidKeyVal,
     InvalidMap,
-    InvalidMessage,
+    InvalidMissingKey,
+    InvalidSimple,
     InvalidType,
     InvalidVariants,
     Predicate,
     PredicateAsync,
-    invalid_missing_key,
 )
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import DictValidatorAny, MapValidator, MaxKeys, MinKeys
@@ -57,7 +57,9 @@ def test_predicate_returns_err_in_list() -> None:
 
 
 def test_key_missing_returns_list_str() -> None:
-    assert serializable_validation_err(invalid_missing_key) == ["key missing"]
+    assert serializable_validation_err(InvalidMissingKey(DictValidatorAny({}))) == [
+        "key missing"
+    ]
 
 
 def test_coercion_err_uses_message() -> None:
@@ -84,13 +86,16 @@ def test_invalid_dict() -> None:
     assert serializable_validation_err(
         InvalidDict(
             DictValidatorAny({}),
-            {5: InvalidType(FloatValidator(), float), "ok": invalid_missing_key},
+            {
+                5: InvalidType(FloatValidator(), float),
+                "ok": InvalidMissingKey(DictValidatorAny({})),
+            },
         )
     ) == {"5": ["expected float"], "ok": ["key missing"]}
 
 
 def test_invalid_custom() -> None:
-    assert serializable_validation_err(InvalidMessage("abc")) == ["abc"]
+    assert serializable_validation_err(InvalidSimple("abc")) == ["abc"]
 
 
 def test_extra_keys() -> None:

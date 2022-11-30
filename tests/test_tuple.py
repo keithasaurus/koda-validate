@@ -18,7 +18,7 @@ from koda_validate._generics import A
 from koda_validate.base import (
     InvalidCoercion,
     InvalidIterable,
-    InvalidMessage,
+    InvalidSimple,
     InvalidType,
     PredicateAsync,
     Processor,
@@ -61,7 +61,7 @@ def test_tuple2() -> None:
             if ab[0] == "a":
                 return Valid(ab)
             else:
-                return Invalid(InvalidMessage("must be a if int is 1 and bool is True"))
+                return Invalid(InvalidSimple("must be a if int is 1 and bool is True"))
         else:
             return Valid(ab)
 
@@ -73,7 +73,7 @@ def test_tuple2() -> None:
 
     assert a1_validator(["a", 1]) == Valid(("a", 1))
     assert a1_validator(["b", 1]) == Invalid(
-        InvalidMessage("must be a if int is 1 and bool is True")
+        InvalidSimple("must be a if int is 1 and bool is True")
     )
     assert a1_validator(["b", 2]) == Valid(("b", 2))
 
@@ -112,7 +112,7 @@ async def test_tuple2_async() -> None:
             if ab[0] == "a":
                 return Valid(ab)
             else:
-                return Invalid(InvalidMessage("must be a if int is 1"))
+                return Invalid(InvalidSimple("must be a if int is 1"))
         else:
             return Valid(ab)
 
@@ -124,7 +124,7 @@ async def test_tuple2_async() -> None:
 
     assert await a1_validator.validate_async(["a", 1]) == Valid(("a", 1))
     assert await a1_validator.validate_async(["b", 1]) == Invalid(
-        InvalidMessage("must be a if int is 1")
+        InvalidSimple("must be a if int is 1")
     )
     assert await a1_validator.validate_async(["b", 2]) == Valid(("b", 2))
 
@@ -160,7 +160,7 @@ def test_tuple3() -> None:
             if abc[0] == "a":
                 return Valid(abc)
             else:
-                return Invalid(InvalidMessage("must be a if int is 1 and bool is True"))
+                return Invalid(InvalidSimple("must be a if int is 1 and bool is True"))
         else:
             return Valid(abc)
 
@@ -173,7 +173,7 @@ def test_tuple3() -> None:
 
     assert a1_validator(["a", 1, True]) == Valid(("a", 1, True))
     assert a1_validator(["b", 1, True]) == Invalid(
-        InvalidMessage("must be a if int is 1 and bool is True")
+        InvalidSimple("must be a if int is 1 and bool is True")
     )
     assert a1_validator(["b", 2, False]) == Valid(("b", 2, False))
 
@@ -212,7 +212,7 @@ async def test_tuple3_async() -> None:
             if abc[0] == "a":
                 return Valid(abc)
             else:
-                return Invalid(InvalidMessage("must be a if int is 1 and bool is True"))
+                return Invalid(InvalidSimple("must be a if int is 1 and bool is True"))
         else:
             return Valid(abc)
 
@@ -225,7 +225,7 @@ async def test_tuple3_async() -> None:
 
     assert await a1_validator.validate_async(["a", 1, True]) == Valid(("a", 1, True))
     assert await a1_validator.validate_async(["b", 1, True]) == Invalid(
-        InvalidMessage("must be a if int is 1 and bool is True")
+        InvalidSimple("must be a if int is 1 and bool is True")
     )
     assert await a1_validator.validate_async(["b", 2, False]) == Valid(("b", 2, False))
 

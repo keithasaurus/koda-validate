@@ -42,20 +42,10 @@ class InvalidCoercion(ValidatorErrorBase):
     dest_type: Type[Any]
 
 
-class InvalidMissingKey:
+class InvalidMissingKey(ValidatorErrorBase):
     """
     A key is missing from a dictionary
     """
-
-    _instance: ClassVar[Optional["InvalidMissingKey"]] = None
-
-    def __new__(cls) -> "InvalidMissingKey":
-        """
-        A singleton, so we can do `is` checks if we want.
-        """
-        if cls._instance is None:
-            cls._instance = super(InvalidMissingKey, cls).__new__(cls)
-        return cls._instance
 
 
 @dataclass
@@ -65,9 +55,6 @@ class InvalidExtraKeys(ValidatorErrorBase):
     """
 
     expected_keys: Set[Hashable]
-
-
-invalid_missing_key = InvalidMissingKey()
 
 
 @dataclass
@@ -119,7 +106,7 @@ class InvalidVariants(ValidatorErrorBase):
 
 
 @dataclass
-class InvalidMessage:
+class InvalidSimple:
     """
     If all you want to do is produce a message, this can be useful
     """
@@ -138,7 +125,7 @@ class InvalidType(ValidatorErrorBase):
 
 ValidationErr = Union[
     InvalidCoercion,
-    InvalidMessage,
+    InvalidSimple,
     InvalidDict,
     InvalidExtraKeys,
     InvalidIterable,

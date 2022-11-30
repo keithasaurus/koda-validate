@@ -29,11 +29,11 @@ from koda_validate.base import (
     InvalidExtraKeys,
     InvalidKeyVal,
     InvalidMap,
-    InvalidMessage,
+    InvalidMissingKey,
+    InvalidSimple,
     InvalidType,
     ValidationErr,
     ValidationResult,
-    invalid_missing_key,
 )
 from koda_validate.dictionary import (
     DictValidatorAny,
@@ -49,7 +49,7 @@ class PersonLike(Protocol):
     eye_color: str
 
 
-_JONES_ERROR_MSG: ValidationErr = InvalidMessage(
+_JONES_ERROR_MSG: ValidationErr = InvalidSimple(
     "can't have last_name of jones and eye color of brown"
 )
 
@@ -207,8 +207,6 @@ async def test_map_validator_async() -> None:
 def test_map_validator_sync_call_with_async_predicates_raises_assertion_error() -> None:
     @dataclass
     class AsyncWait(PredicateAsync[A]):
-        err_message = "should always succeed??"
-
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
@@ -247,7 +245,9 @@ def test_record_1() -> None:
 
     assert validator("not a dict") == Invalid(InvalidType(validator, dict))
 
-    assert validator({}) == Invalid(InvalidDict(validator, {"name": invalid_missing_key}))
+    assert validator({}) == Invalid(
+        InvalidDict(validator, {"name": InvalidMissingKey(validator)})
+    )
 
     assert validator({"name": 5}) == Invalid(
         InvalidDict(validator, keys={"name": InvalidType(s_v, str)})
@@ -276,7 +276,9 @@ def test_record_2() -> None:
 
     assert validator("not a dict") == Invalid(InvalidType(validator, dict))
 
-    assert validator({}) == Invalid(InvalidDict(validator, {"name": invalid_missing_key}))
+    assert validator({}) == Invalid(
+        InvalidDict(validator, {"name": InvalidMissingKey(validator)})
+    )
 
     assert validator({"name": 5, "age": "50"}) == Invalid(
         InvalidDict(
@@ -894,7 +896,7 @@ def test_dict_validator_any_key_missing() -> None:
         InvalidDict(
             validator,
             {
-                "last_name": invalid_missing_key,
+                "last_name": InvalidMissingKey(validator),
                 "first_name": InvalidType(s_v_1, str),
             },
         )
@@ -943,7 +945,7 @@ async def test_validate_dictionary_any_async() -> None:
         InvalidDict(
             validator,
             {
-                "last_name": invalid_missing_key,
+                "last_name": InvalidMissingKey(validator),
                 "first_name": InvalidType(s_v, str),
             },
         )
@@ -1010,7 +1012,7 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
         InvalidDict(
             validator,
             {
-                "last_name": invalid_missing_key,
+                "last_name": InvalidMissingKey(validator),
                 "first_name": InvalidType(s_v, str),
             },
         )
@@ -1062,7 +1064,7 @@ def test_dict_validator_cannot_have_validate_object_and_validate_object_async() 
         person: Person,
     ) -> ValidationResult[Person]:
         if person.name.lower() == "jones" and person.age == 100:
-            return Invalid(InvalidMessage("Cannot be jones and 100"))
+            return Invalid(InvalidSimple("Cannot be jones and 100"))
         else:
             return Valid(person)
 
@@ -1093,7 +1095,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
         person: Person,
     ) -> ValidationResult[Person]:
         if person.name.lower() == "jones" and person.age == 100:
-            return Invalid(InvalidMessage("Cannot be jones and 100"))
+            return Invalid(InvalidSimple("Cannot be jones and 100"))
         else:
             return Valid(person)
 
@@ -1112,7 +1114,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     # calling sync validate_object, even within async context
     assert await validator_sync.validate_async({"name": "jones", "age": 100}) == Invalid(
-        InvalidMessage("Cannot be jones and 100")
+        InvalidSimple("Cannot be jones and 100")
     )
 
     validator_async = RecordValidator(
@@ -1126,7 +1128,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     # calling sync validate_object_async within async context
     assert await validator_async.validate_async({"name": "jones", "age": 100}) == Invalid(
-        InvalidMessage("Cannot be jones and 100")
+        InvalidSimple("Cannot be jones and 100")
     )
 
     # calling sync validate_object_async within async context
@@ -1166,7 +1168,7 @@ async def test_validate_dictionary_async() -> None:
         InvalidDict(
             validator,
             {
-                "last_name": invalid_missing_key,
+                "last_name": InvalidMissingKey(validator),
                 "first_name": InvalidType(s_v, str),
             },
         )

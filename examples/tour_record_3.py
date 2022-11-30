@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from koda_validate import *
-from koda_validate.base import InvalidMessage, ValidationResult
+from koda_validate.base import InvalidSimple, ValidationResult
 
 
 @dataclass
@@ -15,7 +15,7 @@ def no_dwight_regional_manager(employee: Employee) -> ValidationResult[Employee]
         "schrute" in employee.name.lower()
         and employee.title.lower() == "assistant regional manager"
     ):
-        return Invalid(InvalidMessage("Assistant TO THE Regional Manager!"))
+        return Invalid(InvalidSimple("Assistant TO THE Regional Manager!"))
     else:
         return Valid(employee)
 
@@ -37,4 +37,4 @@ assert employee_validator(
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     }
-) == Invalid(InvalidMessage("Assistant TO THE Regional Manager!"))
+) == Invalid(InvalidSimple("Assistant TO THE Regional Manager!"))
