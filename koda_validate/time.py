@@ -1,15 +1,12 @@
 from datetime import date, datetime
 from typing import Any
 
-from koda_validate.base import (
-    InvalidCoercion,
-    _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafeScalar,
-)
+from koda_validate._internal import _CoercionValidator
+from koda_validate.base import InvalidCoercion, _ResultTupleUnsafe
 
 
-class DateValidator(_ToTupleValidatorUnsafeScalar[Any, date]):
-    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
+class DateValidator(_CoercionValidator[Any, date]):
+    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is date:
             return True, val
         else:
@@ -23,8 +20,8 @@ class DateValidator(_ToTupleValidatorUnsafeScalar[Any, date]):
                 )
 
 
-class DatetimeValidator(_ToTupleValidatorUnsafeScalar[Any, datetime]):
-    def check_and_or_coerce_type(self, val: Any) -> _ResultTupleUnsafe:
+class DatetimeValidator(_CoercionValidator[Any, datetime]):
+    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is datetime:
             return True, val
         else:

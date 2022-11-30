@@ -1,11 +1,7 @@
 from typing import Any, Tuple
 
-from koda_validate.base import (
-    InvalidVariants,
-    Validator,
-    _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
-)
+from koda_validate._internal import _ToTupleValidatorUnsafe
+from koda_validate.base import InvalidVariants, Validator, _ResultTupleUnsafe
 
 
 class UnionValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):

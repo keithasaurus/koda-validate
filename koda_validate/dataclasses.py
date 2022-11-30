@@ -3,7 +3,11 @@ import typing
 from dataclasses import is_dataclass
 from decimal import Decimal
 
-from koda_validate._internal import validate_dict_to_tuple, validate_dict_to_tuple_async
+from koda_validate._internal import (
+    _ToTupleValidatorUnsafe,
+    validate_dict_to_tuple,
+    validate_dict_to_tuple_async,
+)
 
 if sys.version_info >= (3, 10):
     from types import UnionType
@@ -43,7 +47,6 @@ from koda_validate.base import (
     InvalidExtraKeys,
     ValidationResult,
     _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
 )
 from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny

@@ -2,12 +2,8 @@ from typing import Any, Final, Optional
 
 from koda._generics import A
 
-from koda_validate.base import (
-    ValidationResult,
-    Validator,
-    ValidatorErrorBase,
-    _ExactTypeValidator,
-)
+from koda_validate._internal import _ExactTypeValidator
+from koda_validate.base import ValidationResult, Validator, ValidatorErrorBase
 from koda_validate.union import UnionValidatorAny
 from koda_validate.validated import Valid
 

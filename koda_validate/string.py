@@ -2,7 +2,8 @@ import re
 from dataclasses import dataclass
 from typing import Pattern
 
-from koda_validate.base import Predicate, Processor, _ExactTypeValidator
+from koda_validate._internal import _ExactTypeValidator
+from koda_validate.base import Predicate, Processor
 
 
 class StringValidator(_ExactTypeValidator[str]):

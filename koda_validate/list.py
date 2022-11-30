@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from koda._generics import A
 
+from koda_validate._internal import _ToTupleValidatorUnsafe
 from koda_validate.base import (
     InvalidIterable,
     InvalidType,
@@ -12,7 +13,6 @@ from koda_validate.base import (
     Validator,
     _async_predicates_warning,
     _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
 )
 
 
