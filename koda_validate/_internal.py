@@ -244,7 +244,7 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[Any, SuccessT]):
         return False, self._type_err
 
 
-class _CoercionValidator(_ToTupleValidatorUnsafe[InputT, SuccessT]):
+class _CoercingValidator(_ToTupleValidatorUnsafe[InputT, SuccessT]):
     """
     This `Validator` subclass exists primarily for code cleanliness and standardization.
     It allows us to have very simple Scalar validators.
