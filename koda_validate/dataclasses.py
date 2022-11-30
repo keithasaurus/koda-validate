@@ -4,8 +4,8 @@ from dataclasses import is_dataclass
 from decimal import Decimal
 
 from koda_validate._internal import (
-    _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
+    ResultTuple,
+    _ToTupleValidator,
     validate_dict_to_tuple,
     validate_dict_to_tuple_async,
 )
@@ -100,7 +100,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
 
-class DataclassValidator(_ToTupleValidatorUnsafe[_DCT]):
+class DataclassValidator(_ToTupleValidator[_DCT]):
     def __init__(
         self,
         data_cls: Type[_DCT],
@@ -131,13 +131,13 @@ class DataclassValidator(_ToTupleValidatorUnsafe[_DCT]):
                 key,
                 val,
                 True,
-                isinstance(val, _ToTupleValidatorUnsafe),
+                isinstance(val, _ToTupleValidator),
             )
             for key, val in self.schema.items()
         ]
         self._unknown_keys_err = False, InvalidExtraKeys(self, set(self.schema.keys()))
 
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
         if isinstance(val, dict):
             data = val
         elif isinstance(val, self.data_cls):
@@ -166,7 +166,7 @@ class DataclassValidator(_ToTupleValidatorUnsafe[_DCT]):
             else:
                 return True, obj
 
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[_DCT]:
         if isinstance(val, dict):
             data = val
         elif isinstance(val, self.data_cls):

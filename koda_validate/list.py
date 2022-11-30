@@ -3,9 +3,9 @@ from typing import Any, Dict, List, Optional, Union
 from koda._generics import A
 
 from koda_validate._internal import (
+    ResultTuple,
     _async_predicates_warning,
-    _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
+    _ToTupleValidator,
 )
 from koda_validate.base import (
     InvalidIterable,
@@ -19,7 +19,7 @@ from koda_validate.base import (
 )
 
 
-class ListValidator(_ToTupleValidatorUnsafe[List[A]]):
+class ListValidator(_ToTupleValidator[List[A]]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
 
     def __init__(
@@ -35,11 +35,9 @@ class ListValidator(_ToTupleValidatorUnsafe[List[A]]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-        self._item_validator_is_tuple = isinstance(
-            item_validator, _ToTupleValidatorUnsafe
-        )
+        self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
 
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[List[A]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -77,7 +75,7 @@ class ListValidator(_ToTupleValidatorUnsafe[List[A]]):
         else:
             return False, InvalidType(self, list)
 
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[List[A]]:
         if isinstance(val, list):
             if self.preprocessors:
                 for processor in self.preprocessors:

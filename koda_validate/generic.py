@@ -9,7 +9,7 @@ from koda._generics import A
 
 from koda_validate import Invalid, Valid
 from koda_validate._generics import Ret
-from koda_validate._internal import _ResultTupleUnsafe, _ToTupleValidatorUnsafe
+from koda_validate._internal import ResultTuple, _ToTupleValidator
 from koda_validate.base import (
     InvalidPredicates,
     InvalidType,
@@ -153,17 +153,17 @@ class EqualsValidator(Validator[ExactMatchT]):
             return Invalid(InvalidType(self, match_type))
 
 
-class AlwaysValid(_ToTupleValidatorUnsafe[A]):
+class AlwaysValid(_ToTupleValidator[A]):
     __match_args__ = ()
 
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[A]:
         return True, val
 
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[A]:
         return True, val
 
 
-always_valid: _ToTupleValidatorUnsafe[Any] = AlwaysValid()
+always_valid: _ToTupleValidator[Any] = AlwaysValid()
 ListOrTupleAny = TypeVar("ListOrTupleAny", List[Any], Tuple[Any, ...])
 
 
