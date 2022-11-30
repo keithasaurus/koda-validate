@@ -2,6 +2,7 @@ import asyncio
 from dataclasses import dataclass
 
 from koda_validate import *
+from koda_validate.base import InvalidPredicates
 
 
 @dataclass
@@ -19,7 +20,7 @@ username_validator = StringValidator(MinLength(1), predicates_async=[IsActiveUse
 
 assert asyncio.run(username_validator.validate_async("michael")) == Valid("michael")
 assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(
-    [IsActiveUsername()]
+    InvalidPredicates(username_validator, [IsActiveUsername()])
 )
 
 # calling in sync mode raises an AssertionError!

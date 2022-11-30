@@ -42,7 +42,9 @@ test_val = 0.7
 
 assert range_validator(test_val) == Valid(test_val)
 
-assert range_validator(0.01) == Invalid([Range(0.5, 1.0)])
+assert range_validator(0.01) == Invalid(
+    InvalidPredicates(range_validator, [Range(0.5, 1.0)])
+)
 
 
 @dataclass
@@ -80,4 +82,6 @@ test_val = -0.7
 
 assert range_validator_2(test_val) == Valid(abs(test_val))
 
-assert range_validator_2(-0.01) == Invalid([Range(0.5, 1.0)])
+assert range_validator_2(-0.01) == Invalid(
+    InvalidPredicates(range_validator_2, [Range(0.5, 1.0)])
+)

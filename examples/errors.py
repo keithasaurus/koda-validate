@@ -7,6 +7,7 @@ from koda_validate.base import (
     InvalidDict,
     InvalidExtraKeys,
     InvalidMissingKey,
+    InvalidPredicates,
     InvalidType,
 )
 from koda_validate.serialization import serializable_validation_err
@@ -17,7 +18,9 @@ assert string_validator_(None) == Invalid(InvalidType(string_validator_, str))
 
 # All failing `Predicate`s are reported (not just the first)
 str_choice_validator = StringValidator(MinLength(2), Choices({"abc", "yz"}))
-assert str_choice_validator("") == Invalid([MinLength(2), Choices({"abc", "yz"})])
+assert str_choice_validator("") == Invalid(
+    InvalidPredicates(str_choice_validator, [MinLength(2), Choices({"abc", "yz"})])
+)
 
 print(str_choice_validator("no").map_invalid(serializable_validation_err))
 
