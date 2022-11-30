@@ -36,6 +36,8 @@ from koda_validate._generics import (
     Ret,
 )
 from koda_validate._internal import (
+    _async_predicates_warning,
+    _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
     validate_dict_to_tuple,
     validate_dict_to_tuple_async,
@@ -54,8 +56,6 @@ from koda_validate.base import (
     ValidationErr,
     ValidationResult,
     Validator,
-    _async_predicates_warning,
-    _ResultTupleUnsafe,
 )
 from koda_validate.validated import Invalid, Valid
 

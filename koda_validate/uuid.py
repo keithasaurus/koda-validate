@@ -1,8 +1,8 @@
 from typing import Any
 from uuid import UUID
 
-from koda_validate._internal import _CoercingValidator
-from koda_validate.base import InvalidCoercion, _ResultTupleUnsafe
+from koda_validate._internal import _CoercingValidator, _ResultTupleUnsafe
+from koda_validate.base import InvalidCoercion
 
 
 class UUIDValidator(_CoercingValidator[Any, UUID]):

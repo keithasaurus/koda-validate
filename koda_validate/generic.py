@@ -8,7 +8,7 @@ from koda import Thunk
 from koda._generics import A
 
 from koda_validate._generics import Ret
-from koda_validate._internal import _ToTupleValidatorUnsafe
+from koda_validate._internal import _ResultTupleUnsafe, _ToTupleValidatorUnsafe
 from koda_validate.base import (
     InvalidPredicates,
     InvalidType,
@@ -16,7 +16,6 @@ from koda_validate.base import (
     Processor,
     ValidationResult,
     Validator,
-    _ResultTupleUnsafe,
 )
 from koda_validate.validated import Invalid, Valid
 

@@ -4,6 +4,7 @@ from dataclasses import is_dataclass
 from decimal import Decimal
 
 from koda_validate._internal import (
+    _ResultTupleUnsafe,
     _ToTupleValidatorUnsafe,
     validate_dict_to_tuple,
     validate_dict_to_tuple_async,
@@ -42,12 +43,7 @@ from koda_validate import (
     Validator,
     always_valid,
 )
-from koda_validate.base import (
-    InvalidCoercion,
-    InvalidExtraKeys,
-    ValidationResult,
-    _ResultTupleUnsafe,
-)
+from koda_validate.base import InvalidCoercion, InvalidExtraKeys, ValidationResult
 from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny
 

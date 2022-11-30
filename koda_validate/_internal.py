@@ -1,10 +1,12 @@
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     ClassVar,
     Dict,
     Hashable,
     List,
+    NoReturn,
     Optional,
     Tuple,
     Type,
@@ -26,10 +28,10 @@ from koda_validate.base import (
     ValidationErr,
     ValidationResult,
     Validator,
-    _async_predicates_warning,
-    _ResultTupleUnsafe,
 )
 from koda_validate.validated import Invalid, Valid
+
+_ResultTupleUnsafe = Tuple[bool, Any]
 
 
 class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
@@ -171,6 +173,23 @@ async def validate_dict_to_tuple_async(
         return True, success_dict
 
 
+def _simple_type_validator(
+    type_: Type[Any], type_err: InvalidType
+) -> Callable[[Any], _ResultTupleUnsafe]:
+    def inner(val: Any) -> _ResultTupleUnsafe:
+        return (True, val) if type(val) is type_ else (False, type_err)
+
+    return inner
+
+
+def _async_predicates_warning(cls: Type[Any]) -> NoReturn:
+    raise AssertionError(
+        f"{cls.__name__} cannot run `predicates_async` in synchronous calls. "
+        f"Please `await` the `.validate_async` method instead; or remove the "
+        f"items in `predicates_async`."
+    )
+
+
 class _ExactTypeValidator(_ToTupleValidatorUnsafe[Any, SuccessT]):
     """
     This `Validator` subclass exists primarily for code cleanliness and standardization.
@@ -198,7 +217,14 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[Any, SuccessT]):
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
-        self._type_err = InvalidType(self, self._TYPE)
+        _type_err = InvalidType(self, self._TYPE)
+        self._type_err = _type_err
+
+        # optimization for simple  validators. can speed up by ~15%
+        if not predicates and not predicates_async and not preprocessors:
+            self.validate_to_tuple = _simple_type_validator(  # type: ignore
+                self._TYPE, _type_err
+            )
 
     def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if self.predicates_async:

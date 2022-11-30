@@ -1,18 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    Hashable,
-    List,
-    NoReturn,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Any, Dict, Generic, Hashable, List, Optional, Set, Type, Union
 
 from koda_validate._generics import A, InputT, SuccessT
 from koda_validate.validated import Validated
@@ -188,16 +176,3 @@ class Processor(Generic[A]):
     @abstractmethod
     def __call__(self, val: A) -> A:  # pragma: no cover
         raise NotImplementedError()  # pragma: no cover
-
-
-# should look like this, but mypy doesn't understand it as of 0.982
-# _ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], FailT]]
-_ResultTupleUnsafe = Tuple[bool, Any]
-
-
-def _async_predicates_warning(cls: Type[Any]) -> NoReturn:
-    raise AssertionError(
-        f"{cls.__name__} cannot run `predicates_async` in synchronous calls. "
-        f"Please `await` the `.validate_async` method instead; or remove the "
-        f"items in `predicates_async`."
-    )
