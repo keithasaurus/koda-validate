@@ -13,7 +13,7 @@ from koda_validate import (
     StringValidator,
     Valid,
 )
-from koda_validate.base import InvalidIterable, InvalidType
+from koda_validate.base import InvalidIterable, InvalidPredicates, InvalidType
 from koda_validate.float import FloatValidator
 from koda_validate.generic import MaxItems, Min, MinItems
 from koda_validate.list import ListValidator
@@ -39,11 +39,14 @@ def test_list_validator() -> None:
         def __call__(self, val: List[Any]) -> List[Any]:
             return val[:-1]
 
-    assert ListValidator(
+    l_validator = ListValidator(
         FloatValidator(Min(5.5)),
         predicates=[MinItems(1), MaxItems(3)],
         preprocessors=[RemoveLast()],
-    )([10.1, 7.7, 2.2, 5, 0.0]) == Invalid([MaxItems(3)])
+    )
+    assert l_validator([10.1, 7.7, 2.2, 5, 0.0]) == Invalid(
+        InvalidPredicates(l_validator, [MaxItems(3)])
+    )
 
     n_v = ListValidator(BasicNoneValidator())
 
@@ -72,9 +75,12 @@ async def test_list_async() -> None:
 
     assert await ListValidator(FloatValidator()).validate_async([]) == Valid([])
 
-    assert await ListValidator(
+    l_validator = ListValidator(
         FloatValidator(Min(5.5)), predicates=[MinItems(1), MaxItems(3)]
-    ).validate_async([10.1, 7.7, 2.2, 5]) == Invalid([MaxItems(3)])
+    )
+    assert await l_validator.validate_async([10.1, 7.7, 2.2, 5]) == Invalid(
+        InvalidPredicates(l_validator, [MaxItems(3)])
+    )
 
     n_v = ListValidator(BasicNoneValidator())
 
@@ -93,9 +99,12 @@ async def test_list_validator_with_async_predicate_validator() -> None:
             await asyncio.sleep(0.001)
             return len(val) == 1
 
-    assert await ListValidator(
+    l_validator = ListValidator(
         StringValidator(), predicates_async=[SomeAsyncListCheck()]
-    ).validate_async([]) == Invalid([SomeAsyncListCheck()])
+    )
+    assert await l_validator.validate_async([]) == Invalid(
+        InvalidPredicates(l_validator, [SomeAsyncListCheck()])
+    )
 
     assert await ListValidator(
         StringValidator(), predicates_async=[SomeAsyncListCheck()]
@@ -122,7 +131,9 @@ async def test_child_validator_async_is_used() -> None:
 
     assert await l_validator.validate_async([1, 3]) == Valid([3])
 
-    assert await l_validator.validate_async([1, 1, 1]) == Invalid([MaxItems(1)])
+    assert await l_validator.validate_async([1, 1, 1]) == Invalid(
+        InvalidPredicates(l_validator, [MaxItems(1)])
+    )
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:

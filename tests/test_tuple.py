@@ -20,6 +20,7 @@ from koda_validate._generics import A
 from koda_validate.base import (
     InvalidCoercion,
     InvalidIterable,
+    InvalidPredicates,
     InvalidSimple,
     InvalidType,
     PredicateAsync,
@@ -31,11 +32,10 @@ from tests.utils import BasicNoneValidator
 
 
 def test_tuple2() -> None:
-
     validator = Tuple2Validator(StringValidator(), IntValidator())
     assert validator({}) == Invalid(InvalidCoercion(validator, [list, tuple], tuple))
 
-    assert validator([]) == Invalid([ExactItemCount(2)])
+    assert validator([]) == Invalid(InvalidPredicates(validator, [ExactItemCount(2)]))
 
     assert validator(["a", 1]) == Valid(("a", 1))
     assert Tuple2Validator(StringValidator(), BasicNoneValidator())(("a", None)) == Valid(
@@ -87,7 +87,9 @@ async def test_tuple2_async() -> None:
         InvalidCoercion(validator, [list, tuple], tuple)
     )
 
-    assert await validator.validate_async([]) == Invalid([ExactItemCount(2)])
+    assert await validator.validate_async([]) == Invalid(
+        InvalidPredicates(validator, [ExactItemCount(2)])
+    )
 
     assert await validator.validate_async(["a", 1]) == Valid(("a", 1))
     basic_n_v = BasicNoneValidator()
@@ -137,7 +139,7 @@ def test_tuple3() -> None:
     validator = Tuple3Validator(s_v, i_v, b_v)
     assert validator({}) == Invalid(InvalidCoercion(validator, [list, tuple], tuple))
 
-    assert validator([]) == Invalid([ExactItemCount(3)])
+    assert validator([]) == Invalid(InvalidPredicates(validator, [ExactItemCount(3)]))
 
     assert validator(["a", 1, False]) == Valid(("a", 1, False))
 
@@ -189,7 +191,9 @@ async def test_tuple3_async() -> None:
         InvalidCoercion(validator, [list, tuple], tuple)
     )
 
-    assert await validator.validate_async([]) == Invalid([ExactItemCount(3)])
+    assert await validator.validate_async([]) == Invalid(
+        InvalidPredicates(validator, [ExactItemCount(3)])
+    )
 
     assert await validator.validate_async(["a", 1, False]) == Valid(("a", 1, False))
 
@@ -251,11 +255,14 @@ def test_tuple_homogenous_validator() -> None:
         def __call__(self, val: Tuple[Any, ...]) -> Tuple[Any, ...]:
             return val[:-1]
 
-    assert TupleHomogenousValidator(
+    t_p_p_validator = TupleHomogenousValidator(
         FloatValidator(Min(5.5)),
         predicates=[MinItems(1), MaxItems(3)],
         preprocessors=[RemoveLast()],
-    )((10.1, 7.7, 2.2, 5, 0.0)) == Invalid([MaxItems(3)])
+    )
+    assert t_p_p_validator((10.1, 7.7, 2.2, 5, 0.0)) == Invalid(
+        InvalidPredicates(t_p_p_validator, [MaxItems(3)])
+    )
 
     n_v = TupleHomogenousValidator(BasicNoneValidator())
 
@@ -285,9 +292,12 @@ async def test_tuple_homogenous_async() -> None:
 
     assert await validator.validate_async(()) == Valid(())
 
-    assert await TupleHomogenousValidator(
+    t_validator = TupleHomogenousValidator(
         FloatValidator(Min(5.5)), predicates=[MinItems(1), MaxItems(3)]
-    ).validate_async((10.1, 7.7, 2.2, 5)) == Invalid([MaxItems(3)])
+    )
+    assert await t_validator.validate_async((10.1, 7.7, 2.2, 5)) == Invalid(
+        InvalidPredicates(t_validator, [MaxItems(3)])
+    )
 
     n_v = TupleHomogenousValidator(BasicNoneValidator())
 
@@ -306,13 +316,14 @@ async def test_list_validator_with_async_predicate_validator() -> None:
             await asyncio.sleep(0.001)
             return len(val) == 1
 
-    assert await TupleHomogenousValidator(
+    t_validator = TupleHomogenousValidator(
         StringValidator(), predicates_async=[SomeAsyncListCheck()]
-    ).validate_async(()) == Invalid([SomeAsyncListCheck()])
+    )
+    assert await t_validator.validate_async(()) == Invalid(
+        InvalidPredicates(t_validator, [SomeAsyncListCheck()])
+    )
 
-    assert await TupleHomogenousValidator(
-        StringValidator(), predicates_async=[SomeAsyncListCheck()]
-    ).validate_async(("hooray",)) == Valid(("hooray",))
+    assert await t_validator.validate_async(("hooray",)) == Valid(("hooray",))
 
 
 @pytest.mark.asyncio
@@ -335,7 +346,9 @@ async def test_child_validator_async_is_used() -> None:
 
     assert await l_validator.validate_async((1, 3)) == Valid((3,))
 
-    assert await l_validator.validate_async((1, 1, 1)) == Invalid([MaxItems(1)])
+    assert await l_validator.validate_async((1, 1, 1)) == Invalid(
+        InvalidPredicates(l_validator, [MaxItems(1)])
+    )
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:

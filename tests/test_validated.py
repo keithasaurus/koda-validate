@@ -2,7 +2,8 @@ from decimal import Decimal
 
 from koda import Err, Ok
 
-from koda_validate import Invalid, Valid
+from koda_validate import Invalid, StringValidator, Valid
+from koda_validate.base import InvalidType
 
 
 def test_valid_repr() -> None:
@@ -14,8 +15,10 @@ def test_valid_as_result() -> None:
 
 
 def test_invalid_repr() -> None:
-    assert repr(Invalid(Decimal("0.50"))) == "Invalid(Decimal('0.50'))"
+    invalid_type = InvalidType(StringValidator(), str)
+    assert repr(Invalid(invalid_type)) == f"Invalid({repr(invalid_type)})"
 
 
 def test_invalid_as_result() -> None:
-    assert Invalid(123).as_result == Err(123)
+    invalid_type = InvalidType(StringValidator(), str)
+    assert Invalid(invalid_type).as_result == Err(invalid_type)

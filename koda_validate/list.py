@@ -9,6 +9,7 @@ from koda_validate._internal import (
 )
 from koda_validate.base import (
     InvalidIterable,
+    InvalidPredicates,
     InvalidType,
     Predicate,
     PredicateAsync,
@@ -48,12 +49,12 @@ class ListValidator(_ToTupleValidatorUnsafe[List[A]]):
                     val = processor(val)
 
             if self.predicates:
-                list_errors: List[Predicate[List[Any]]] = [
+                list_errors: List[Union[Predicate[List[A]], PredicateAsync[List[A]]]] = [
                     pred for pred in self.predicates if not pred.__call__(val)
                 ]
 
                 if list_errors:
-                    return False, list_errors
+                    return False, InvalidPredicates(self, list_errors)
 
             return_list: List[A] = []
             index_errs: Dict[int, ValidationErr] = {}
@@ -96,7 +97,7 @@ class ListValidator(_ToTupleValidatorUnsafe[List[A]]):
                         predicate_errors.append(pred_async)
 
             if predicate_errors:
-                return False, predicate_errors
+                return False, InvalidPredicates(self, predicate_errors)
 
             return_list: List[A] = []
             index_errs = {}

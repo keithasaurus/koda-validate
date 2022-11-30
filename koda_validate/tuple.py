@@ -16,6 +16,7 @@ from koda_validate._internal import (
 from koda_validate.base import (
     InvalidCoercion,
     InvalidIterable,
+    InvalidPredicates,
     InvalidType,
     Predicate,
     PredicateAsync,
@@ -40,7 +41,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Tuple[Any, ...]]):
         val_type = type(val)
         if val_type is tuple or val_type is list:
             if not self._len_predicate(val):
-                return False, [self._len_predicate]
+                return False, InvalidPredicates(self, [self._len_predicate])
             errs: Dict[int, ValidationErr] = {}
             vals = []
             for i, (validator, tuple_val) in enumerate(zip(self.validators, val)):
@@ -68,7 +69,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Tuple[Any, ...]]):
         val_type = type(val)
         if val_type is tuple or val_type is list:
             if not self._len_predicate(val):
-                return False, [self._len_predicate]
+                return False, InvalidPredicates(self, [self._len_predicate])
             errs: Dict[int, ValidationErr] = {}
             vals = []
             for i, (validator, tuple_val) in enumerate(zip(self.validators, val)):
@@ -227,13 +228,13 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Tuple[A, ...]]):
                     val = processor(val)
 
             if self.predicates:
-                tuple_errors: List[Predicate[Tuple[A, ...]]] = [
-                    pred for pred in self.predicates if not pred(val)
-                ]
+                tuple_errors: List[
+                    Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
+                ] = [pred for pred in self.predicates if not pred(val)]
 
                 # Not running async validators! They shouldn't be set!
                 if tuple_errors:
-                    return False, tuple_errors
+                    return False, InvalidPredicates(self, tuple_errors)
 
             return_list: List[A] = []
             index_errors: Dict[int, ValidationErr] = {}
@@ -274,7 +275,7 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Tuple[A, ...]]):
 
             # Not running async validators! They shouldn't be set!
             if tuple_errors:
-                return False, tuple_errors
+                return False, InvalidPredicates(self, tuple_errors)
 
             return_list: List[A] = []
             index_errors: Dict[int, ValidationErr] = {}

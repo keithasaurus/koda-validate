@@ -16,7 +16,7 @@ from typing import (
 
 from koda import Err, Ok, Result
 
-from koda_validate._generics import A, FailT, SuccessT
+from koda_validate._generics import A, SuccessT
 
 
 class Valid(Generic[A]):
@@ -38,16 +38,16 @@ class Valid(Generic[A]):
         return f"Valid({repr(self.val)})"
 
 
-class Invalid(Generic[FailT]):
+class Invalid:
     __match_args__ = ("val",)
 
     is_valid: ClassVar[Literal[False]] = False
 
-    def __init__(self, val: FailT) -> None:
-        self.val: FailT = val
+    def __init__(self, val: "ValidationErr") -> None:
+        self.val = val
 
     @property
-    def as_result(self) -> Result[Any, FailT]:
+    def as_result(self) -> Result[Any, "ValidationErr"]:
         return Err(self.val)
 
     def __eq__(self, other: Any) -> bool:
@@ -57,7 +57,7 @@ class Invalid(Generic[FailT]):
         return f"Invalid({repr(self.val)})"
 
 
-Validated = Union[Valid[A], Invalid[FailT]]
+Validated = Union[Valid[A], Invalid]
 
 
 @dataclass
@@ -176,7 +176,7 @@ ValidationErr = Union[
     ValidatorErrorBase,
 ]
 
-ValidationResult = Validated[A, ValidationErr]
+ValidationResult = Validated[A]
 
 
 class Validator(Generic[SuccessT]):
