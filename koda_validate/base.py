@@ -143,7 +143,7 @@ class InvalidVariants(ErrorDetail):
     none of these validators was satisfied by a given value
     """
 
-    variants: List["ValidationErr"]
+    variants: List[Invalid]
 
 
 @dataclass

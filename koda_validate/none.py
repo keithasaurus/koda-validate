@@ -33,8 +33,7 @@ class OptionalValidator(Validator[Optional[A]]):
         if result.is_valid:
             return result
         else:
-            if isinstance(result.val, ValidatorErrorBase):
-                result.val.validator = self
+            result.validator = self
             return result
 
     def __call__(self, val: Any) -> ValidationResult[Optional[A]]:

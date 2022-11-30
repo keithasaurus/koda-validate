@@ -23,11 +23,11 @@ class Add1Float(Processor[float]):
 
 def test_float() -> None:
     f_v = FloatValidator()
-    assert f_v("a string") == Invalid(InvalidType(f_v, float))
+    assert f_v("a string") == Invalid(f_v, InvalidType(float))
 
     assert f_v(5.5) == Valid(5.5)
 
-    assert f_v(4) == Invalid(InvalidType(f_v, float))
+    assert f_v(4) == Invalid(f_v, InvalidType(float))
 
     f_max_500_v = FloatValidator(Max(500.0))
     assert f_max_500_v(503.0) == Invalid(f_max_500_v, InvalidPredicates([Max(500.0)]))

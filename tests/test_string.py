@@ -112,7 +112,7 @@ async def test_validate_fake_db_async() -> None:
     assert hit == ["ok"]
     assert result == Invalid(validator, InvalidPredicates([CheckUsername()]))
     s_v = StringValidator()
-    assert await s_v.validate_async(5) == Invalid(InvalidType(s_v, str))
+    assert await s_v.validate_async(5) == Invalid(s_v, InvalidType(str))
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:

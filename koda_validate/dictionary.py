@@ -842,7 +842,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
             )
             for key, val in keys
         ]
-        self._unknown_keys_err = False, InvalidExtraKeys(self, _key_set)
+        self._unknown_keys_err = False, Invalid(self, InvalidExtraKeys(_key_set))
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
         if not isinstance(data, dict):

@@ -33,8 +33,8 @@ def test_optional_validator() -> None:
         InvalidVariants(
             o_v,
             [
-                InvalidType(o_v.validator.validators[0], type(None)),
-                InvalidType(o_v.validator.validators[1], str),
+                Invalid(o_v.validator.validators[0], InvalidType(type(None))),
+                Invalid(o_v.validator.validators[1], InvalidType(str)),
             ],
         )
     )
@@ -46,12 +46,12 @@ async def test_optional_validator_async() -> None:
     o_v = OptionalValidator(StringValidator())
     assert await o_v.validate_async(None) == Valid(None)
     assert await o_v.validate_async(5) == Invalid(
+        o_v,
         InvalidVariants(
-            o_v,
             [
-                InvalidType(o_v.validator.validators[0], type(None)),
-                InvalidType(o_v.validator.validators[1], str),
+                Invalid(o_v.validator.validators[0], InvalidType(type(None))),
+                Invalid(o_v.validator.validators[0], InvalidType(str)),
             ],
-        )
+        ),
     )
     assert await o_v.validate_async("okok") == Valid("okok")

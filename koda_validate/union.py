@@ -1,7 +1,7 @@
 from typing import Any, Tuple
 
 from koda_validate._internal import _ResultTupleUnsafe, _ToTupleValidatorUnsafe
-from koda_validate.base import InvalidVariants, Validator
+from koda_validate.base import Invalid, InvalidVariants, Validator
 
 
 class UnionValidatorAny(_ToTupleValidatorUnsafe[Any]):
@@ -33,8 +33,8 @@ class UnionValidatorAny(_ToTupleValidatorUnsafe[Any]):
                 if result.is_valid:
                     return True, result.val
                 else:
-                    errs.append(result.val)
-        return False, InvalidVariants(errs)
+                    errs.append(result)
+        return False, Invalid(self, InvalidVariants(errs))
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         errs = []
@@ -50,5 +50,5 @@ class UnionValidatorAny(_ToTupleValidatorUnsafe[Any]):
                 if result.is_valid:
                     return True, result.val
                 else:
-                    errs.append(result.val)
-        return False, InvalidVariants(errs)
+                    errs.append(result)
+        return False, Invalid(self, InvalidVariants(errs))

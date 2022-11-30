@@ -24,18 +24,18 @@ class Add1Int(Processor[int]):
 
 def test_integer() -> None:
     i_v = IntValidator()
-    assert i_v("a string") == Invalid(InvalidType(i_v, int))
+    assert i_v("a string") == Invalid(i_v, InvalidType(int))
 
     assert i_v(5) == Valid(5)
 
-    assert i_v(True) == Invalid(InvalidType(i_v, int)), (
+    assert i_v(True) == Invalid(i_v, InvalidType(int)), (
         "even though `bool`s are subclasses of ints in python, we wouldn't "
         "want to validate incoming data as ints if they are bools"
     )
 
-    assert i_v("5") == Invalid(InvalidType(i_v, int))
+    assert i_v("5") == Invalid(i_v, InvalidType(int))
 
-    assert i_v(5.0) == Invalid(InvalidType(i_v, int))
+    assert i_v(5.0) == Invalid(i_v, InvalidType(int))
 
     @dataclass
     class DivisibleBy2(Predicate[int]):
