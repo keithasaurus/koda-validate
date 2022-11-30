@@ -133,17 +133,10 @@ class InvalidType(ValidatorErrorBase):
 
 
 ValidationErr = Union[
-    InvalidCoercion,
     InvalidSimple,
-    InvalidDict,
-    InvalidExtraKeys,
-    InvalidIterable,
-    InvalidMissingKey,
-    InvalidMap,
-    InvalidType,
-    InvalidVariants,
     # todo: add explicit wrapper, consider properly parameterizing
     InvalidPredicates[Any],
+    ValidatorErrorBase,
 ]
 
 ValidationResult = Validated[A, ValidationErr]
