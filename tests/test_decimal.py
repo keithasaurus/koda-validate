@@ -6,7 +6,7 @@ import pytest
 
 from koda_validate import DecimalValidator, Max, Min, PredicateAsync, Processor
 from koda_validate._generics import A
-from koda_validate.base import InvalidCoercion
+from koda_validate.base import InvalidCoercion, InvalidPredicates
 from koda_validate.validated import Invalid, Valid
 
 
@@ -38,8 +38,9 @@ def test_decimal() -> None:
     assert DecimalValidator()(5) == Valid(Decimal(5))
 
     assert DecimalValidator(Min(Decimal(4)), Max(Decimal("5.5")))(5) == Valid(Decimal(5))
-    assert DecimalValidator(Min(Decimal(4)), Max(Decimal("5.5")))(Decimal(1)) == Invalid(
-        [Min(Decimal(4))]
+    dec_min_max_v = DecimalValidator(Min(Decimal(4)), Max(Decimal("5.5")))
+    assert dec_min_max_v(Decimal(1)) == Invalid(
+        InvalidPredicates(dec_min_max_v, [Min(Decimal(4))])
     )
     assert DecimalValidator(preprocessors=[Add1Decimal()])(Decimal("5.0")) == Valid(
         Decimal("6.0")
@@ -71,10 +72,11 @@ async def test_decimal_async() -> None:
             await asyncio.sleep(0.001)
             return val < Decimal(4)
 
-    result = await DecimalValidator(
+    add_1_dec_v = DecimalValidator(
         preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
-    ).validate_async(3)
-    assert result == Invalid([LessThan4()])
+    )
+    result = await add_1_dec_v.validate_async(3)
+    assert result == Invalid(InvalidPredicates(add_1_dec_v, [LessThan4()]))
     assert await DecimalValidator(
         preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
     ).validate_async(2) == Valid(3)
@@ -83,9 +85,9 @@ async def test_decimal_async() -> None:
         preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
     ).validate_async(Decimal("2.75")) == Valid(Decimal("3.75"))
 
-    assert await DecimalValidator(
-        preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
-    ).validate_async(Decimal("3.75")) == Invalid([LessThan4()])
+    assert await add_1_dec_v.validate_async(Decimal("3.75")) == Invalid(
+        InvalidPredicates(add_1_dec_v, [LessThan4()])
+    )
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:

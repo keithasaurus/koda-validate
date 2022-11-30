@@ -5,7 +5,7 @@ import pytest
 
 from koda_validate import BoolValidator, Predicate, PredicateAsync, Processor
 from koda_validate._generics import A
-from koda_validate.base import InvalidType
+from koda_validate.base import InvalidPredicates, InvalidType
 from koda_validate.validated import Invalid, Valid
 
 
@@ -27,7 +27,9 @@ def test_boolean() -> None:
         def __call__(self, val: bool) -> bool:
             return val is True
 
-    assert BoolValidator(RequireTrue())(False) == Invalid([RequireTrue()])
+    assert (true_bool := BoolValidator(RequireTrue()))(False) == Invalid(
+        InvalidPredicates(true_bool, [RequireTrue()])
+    )
 
     assert b_v(1) == Invalid(InvalidType(b_v, bool))
 
@@ -38,7 +40,9 @@ def test_boolean() -> None:
 
     assert BoolValidator(IsTrue(), preprocessors=[Flip()])(False) == Valid(True)
 
-    assert BoolValidator(IsTrue())(False) == Invalid([IsTrue()])
+    assert (req_true_v := BoolValidator(IsTrue()))(False) == Invalid(
+        InvalidPredicates(req_true_v, [IsTrue()])
+    )
 
 
 @pytest.mark.asyncio
@@ -49,11 +53,13 @@ async def test_boolean_validator_async() -> None:
             await asyncio.sleep(0.001)
             return val is True
 
-    result = await BoolValidator(
-        preprocessors=[Flip()], predicates_async=[IsTrue()]
+    result = await (
+        require_true_v := BoolValidator(
+            preprocessors=[Flip()], predicates_async=[IsTrue()]
+        )
     ).validate_async(True)
 
-    assert result == Invalid([IsTrue()])
+    assert result == Invalid(InvalidPredicates(require_true_v, [IsTrue()]))
     assert await BoolValidator(
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(False) == Valid(True)

@@ -4,7 +4,13 @@ from dataclasses import dataclass
 import pytest
 from koda._generics import A
 
-from koda_validate.base import InvalidType, Predicate, PredicateAsync, Processor
+from koda_validate.base import (
+    InvalidPredicates,
+    InvalidType,
+    Predicate,
+    PredicateAsync,
+    Processor,
+)
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Max, Min
 from koda_validate.validated import Invalid, Valid
@@ -23,11 +29,13 @@ def test_float() -> None:
 
     assert f_v(4) == Invalid(InvalidType(f_v, float))
 
-    assert FloatValidator(Max(500.0))(503.0) == Invalid([Max(500.0)])
+    f_max_500_v = FloatValidator(Max(500.0))
+    assert f_max_500_v(503.0) == Invalid(InvalidPredicates(f_max_500_v, [Max(500.0)]))
 
     assert FloatValidator(Max(500.0))(3.5) == Valid(3.5)
 
-    assert FloatValidator(Min(5.0))(4.999) == Invalid([Min(5.0)])
+    f_max_5_v = FloatValidator(Min(5.0))
+    assert f_max_5_v(4.999) == Invalid(InvalidPredicates(f_max_5_v, [Min(5.0)]))
 
     assert FloatValidator(Min(5.0))(5.0) == Valid(5.0)
 
@@ -40,13 +48,13 @@ def test_float() -> None:
             else:
                 return False
 
-    assert FloatValidator(Min(2.5), Max(4.0), MustHaveAZeroSomewhere())(5.5) == Invalid(
-        [Max(4.0), MustHaveAZeroSomewhere()]
+    f_min_max_v = FloatValidator(Min(2.5), Max(4.0), MustHaveAZeroSomewhere())
+    assert f_min_max_v(5.5) == Invalid(
+        InvalidPredicates(f_min_max_v, [Max(4.0), MustHaveAZeroSomewhere()])
     )
 
-    assert FloatValidator(Min(2.5), preprocessors=[Add1Float()])(1.0) == Invalid(
-        [Min(2.5)]
-    )
+    f_min_25_v = FloatValidator(Min(2.5), preprocessors=[Add1Float()])
+    assert f_min_25_v(1.0) == Invalid(InvalidPredicates(f_min_25_v, [Min(2.5)]))
 
 
 @pytest.mark.asyncio
@@ -57,10 +65,9 @@ async def test_float_async() -> None:
             await asyncio.sleep(0.001)
             return val < 4.0
 
-    result = await FloatValidator(
-        preprocessors=[Add1Float()], predicates_async=[LessThan4()]
-    ).validate_async(3.5)
-    assert result == Invalid([LessThan4()])
+    f_v = FloatValidator(preprocessors=[Add1Float()], predicates_async=[LessThan4()])
+    result = await f_v.validate_async(3.5)
+    assert result == Invalid(InvalidPredicates(f_v, [LessThan4()]))
     assert await FloatValidator(
         preprocessors=[Add1Float()], predicates_async=[LessThan4()]
     ).validate_async(2.5) == Valid(3.5)

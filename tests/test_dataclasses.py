@@ -105,7 +105,9 @@ def test_explicit_overrides_work() -> None:
 
     v1 = DataclassValidator(A, overrides={"first_name": StringValidator(MaxLength(3))})
     assert v1(test_dict) == Invalid(
-        InvalidDict(v1, {"first_name": InvalidPredicates(v1, [MaxLength(3)])})
+        InvalidDict(
+            v1, {"first_name": InvalidPredicates(v1.schema["first_name"], [MaxLength(3)])}
+        )
     )
 
 
@@ -123,7 +125,9 @@ async def test_explicit_overrides_work_async() -> None:
 
     v1 = DataclassValidator(A, overrides={"first_name": StringValidator(MaxLength(3))})
     assert await v1.validate_async(test_dict) == Invalid(
-        InvalidDict(v1, {"first_name": InvalidPredicates(v1, [MaxLength(3)])})
+        InvalidDict(
+            v1, {"first_name": InvalidPredicates(v1.schema["first_name"], [MaxLength(3)])}
+        )
     )
 
 
