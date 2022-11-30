@@ -67,8 +67,6 @@ async def test_decimal_async() -> None:
 
     @dataclass
     class LessThan4(PredicateAsync[Decimal]):
-        err_message = "not less than 4!"
-
         async def validate_async(self, val: Decimal) -> bool:
             await asyncio.sleep(0.001)
             return val < Decimal(4)
@@ -93,8 +91,6 @@ async def test_decimal_async() -> None:
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     @dataclass
     class AsyncWait(PredicateAsync[A]):
-        err_message = "should always succeed??"
-
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True

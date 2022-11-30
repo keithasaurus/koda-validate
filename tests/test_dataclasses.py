@@ -9,6 +9,7 @@ from koda_validate import AlwaysValid, Invalid, MaxLength, StringValidator, Vali
 from koda_validate.base import (
     InvalidCoercion,
     InvalidDict,
+    InvalidPredicates,
     InvalidSimple,
     InvalidType,
     ValidationResult,
@@ -103,7 +104,9 @@ def test_explicit_overrides_work() -> None:
     assert v0(test_dict) == Valid(A("longname", "jones"))
 
     v1 = DataclassValidator(A, overrides={"first_name": StringValidator(MaxLength(3))})
-    assert v1(test_dict) == Invalid(InvalidDict(v1, {"first_name": [MaxLength(3)]}))
+    assert v1(test_dict) == Invalid(
+        InvalidDict(v1, {"first_name": InvalidPredicates(v1, [MaxLength(3)])})
+    )
 
 
 @pytest.mark.asyncio
@@ -120,7 +123,7 @@ async def test_explicit_overrides_work_async() -> None:
 
     v1 = DataclassValidator(A, overrides={"first_name": StringValidator(MaxLength(3))})
     assert await v1.validate_async(test_dict) == Invalid(
-        InvalidDict(v1, {"first_name": [MaxLength(3)]})
+        InvalidDict(v1, {"first_name": InvalidPredicates(v1, [MaxLength(3)])})
     )
 
 

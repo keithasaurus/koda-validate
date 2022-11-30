@@ -24,8 +24,6 @@ def test_boolean() -> None:
 
     @dataclass
     class RequireTrue(Predicate[bool]):
-        err_message = "must be true"
-
         def __call__(self, val: bool) -> bool:
             return val is True
 
@@ -35,8 +33,6 @@ def test_boolean() -> None:
 
     @dataclass
     class IsTrue(Predicate[bool]):
-        err_message = "should be True"
-
         def __call__(self, val: bool) -> bool:
             return val is True
 
@@ -49,8 +45,6 @@ def test_boolean() -> None:
 async def test_boolean_validator_async() -> None:
     @dataclass
     class IsTrue(PredicateAsync[bool]):
-        err_message = "not True"
-
         async def validate_async(self, val: bool) -> bool:
             await asyncio.sleep(0.001)
             return val is True
@@ -72,8 +66,6 @@ async def test_boolean_validator_async() -> None:
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     @dataclass
     class AsyncWait(PredicateAsync[A]):
-        err_message = "should always succeed??"
-
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True

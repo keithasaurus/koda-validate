@@ -6,7 +6,7 @@ import pytest
 
 from koda_validate import Predicate, PredicateAsync, Processor
 from koda_validate._generics import A
-from koda_validate.base import InvalidCoercion
+from koda_validate.base import InvalidCoercion, InvalidPredicates
 from koda_validate.uuid import UUIDValidator
 from koda_validate.validated import Invalid, Valid
 
@@ -40,14 +40,13 @@ def test_UUID() -> None:
 
     @dataclass
     class HexStartsWithD(Predicate[UUID]):
-        err_message = "doesn't start with d!"
-
         def __call__(self, val: UUID) -> bool:
             return val.hex.startswith("d")
 
-    assert UUIDValidator(HexStartsWithD(), preprocessors=[ReverseUUID()])(
-        UUID("8309b7b7-728a-253a-3f54-54f07810bf73")
-    ) == Invalid([HexStartsWithD()])
+    validator = UUIDValidator(HexStartsWithD(), preprocessors=[ReverseUUID()])
+    assert validator(UUID("8309b7b7-728a-253a-3f54-54f07810bf73")) == Invalid(
+        InvalidPredicates(validator, [HexStartsWithD()])
+    )
 
     assert UUIDValidator(HexStartsWithD(), preprocessors=[ReverseUUID()])(
         UUID("f309b7b7-728a-253a-3f54-54f07810bf7d")
@@ -75,23 +74,18 @@ async def test_UUID_async() -> None:
 
     @dataclass
     class HexStartsWithF(PredicateAsync[UUID]):
-        err_message = "doesn't start with f!"
-
         async def validate_async(self, val: UUID) -> bool:
             await asyncio.sleep(0.001)
             return val.hex.startswith("f")
 
-    result = await UUIDValidator(
-        preprocessors=[ReverseUUID()], predicates_async=[HexStartsWithF()]
-    ).validate_async("e348c1b4-60bd-11ed-a6e9-6ffb14046222")
-    assert result == Invalid([HexStartsWithF()])
+    v = UUIDValidator(preprocessors=[ReverseUUID()], predicates_async=[HexStartsWithF()])
+    result = await v.validate_async("e348c1b4-60bd-11ed-a6e9-6ffb14046222")
+    assert result == Invalid(InvalidPredicates(v, [HexStartsWithF()]))
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     @dataclass
     class AsyncWait(PredicateAsync[A]):
-        err_message = "should always succeed??"
-
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True

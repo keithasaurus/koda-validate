@@ -106,6 +106,15 @@ class InvalidVariants(ValidatorErrorBase):
 
 
 @dataclass
+class InvalidPredicates(Generic[A], ValidatorErrorBase):
+    """
+    A grouping of failed Predicates
+    """
+
+    predicates: List[Union["Predicate[A]", "PredicateAsync[A]"]]
+
+
+@dataclass
 class InvalidSimple:
     """
     If all you want to do is produce a message, this can be useful
@@ -134,7 +143,7 @@ ValidationErr = Union[
     InvalidType,
     InvalidVariants,
     # todo: add explicit wrapper, consider properly parameterizing
-    List[Union["Predicate[Any]", "PredicateAsync[Any]"]],
+    InvalidPredicates[Any],
 ]
 
 ValidationResult = Validated[A, ValidationErr]
@@ -274,11 +283,9 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[Any, SuccessT]):
                     val = proc(val)
 
             if self.predicates:
-                errors: ValidationErr = [
-                    pred for pred in self.predicates if not pred(val)
-                ]
+                errors: List[Any] = [pred for pred in self.predicates if not pred(val)]
                 if errors:
-                    return False, errors
+                    return False, InvalidPredicates(self, errors)
                 else:
                     return True, val
             else:
@@ -304,7 +311,7 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[Any, SuccessT]):
                     ]
                 )
             if errors:
-                return False, errors
+                return False, InvalidPredicates(self, errors)
             else:
                 return True, val
         return False, self._type_err
@@ -348,11 +355,11 @@ class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):
                     val_or_type_err = proc(val_or_type_err)
 
             if self.predicates:
-                errors: ValidationErr = [
+                errors: List[Any] = [
                     pred for pred in self.predicates if not pred(val_or_type_err)
                 ]
                 if errors:
-                    return False, errors
+                    return False, InvalidPredicates(self, errors)
                 else:
                     return True, val_or_type_err
             else:
@@ -379,7 +386,7 @@ class _ToTupleValidatorUnsafeScalar(_ToTupleValidatorUnsafe[InputT, SuccessT]):
                     ]
                 )
             if errors:
-                return False, errors
+                return False, InvalidPredicates(self, errors)
             else:
                 return True, val_or_type_err
         return False, val_or_type_err

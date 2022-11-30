@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from koda_validate import Choices, EqualsValidator, Max, Min, MultipleOf, strip
-from koda_validate.base import InvalidType
+from koda_validate.base import InvalidPredicates, InvalidType
 from koda_validate.generic import (
     EqualTo,
     ExactItemCount,
@@ -16,48 +16,65 @@ from koda_validate.validated import Invalid, Valid
 
 
 def test_equals_validator() -> None:
-    assert EqualsValidator(5)(5) == Valid(5)
-    assert EqualsValidator(5)(4) == Invalid([EqualTo(5)])
-    assert EqualsValidator("ok")("ok") == Valid("ok")
+    equals_5_validator = EqualsValidator(5)
+    assert equals_5_validator(5) == Valid(5)
+    assert equals_5_validator(4) == Invalid(
+        InvalidPredicates(equals_5_validator, [EqualTo(5)])
+    )
+    eq_ok_v = EqualsValidator("ok")
+    assert eq_ok_v("ok") == Valid("ok")
     assert EqualsValidator("ok", preprocessors=[strip])(" ok ") == Valid("ok")
-    assert EqualsValidator("ok")("not ok") == Invalid([EqualTo("ok")])
+    assert eq_ok_v("not ok") == Invalid(InvalidPredicates(eq_ok_v, [EqualTo("ok")]))
     assert EqualsValidator(Decimal("1.25"))(Decimal("1.25")) == Valid(Decimal("1.25"))
-    assert EqualsValidator(Decimal("1.1"))(Decimal("5")) == Invalid(
-        [EqualTo(Decimal("1.1"))]
+    equals_dec_11 = EqualsValidator(Decimal("1.1"))
+    assert equals_dec_11(Decimal("5")) == Invalid(
+        InvalidPredicates(equals_dec_11, [EqualTo(Decimal("1.1"))])
     )
     e_f_v = EqualsValidator(4.4)
     assert e_f_v("5.5") == Invalid(InvalidType(e_f_v, float))
-    assert EqualsValidator(True)(True) == Valid(True)
+    equals_true_validator = EqualsValidator(True)
+
+    assert equals_true_validator(True) == Valid(True)
     assert EqualsValidator(False)(False) == Valid(False)
-    assert EqualsValidator(True)(False) == Invalid([EqualTo(True)])
+    assert equals_true_validator(False) == Invalid(
+        InvalidPredicates(equals_true_validator, [EqualTo(True)])
+    )
     e_i_v = EqualsValidator(4)
     assert e_i_v(4.0) == Invalid(InvalidType(e_i_v, int))
 
 
 @pytest.mark.asyncio
 async def test_equals_validator_async() -> None:
-    assert await EqualsValidator(5).validate_async(5) == Valid(5)
-    assert await EqualsValidator(5).validate_async(4) == Invalid([EqualTo(5)])
+    equals_5_validator = EqualsValidator(5)
+    assert await equals_5_validator.validate_async(5) == Valid(5)
+    assert await equals_5_validator.validate_async(4) == Invalid(
+        InvalidPredicates(equals_5_validator, [EqualTo(5)])
+    )
     assert await EqualsValidator("ok").validate_async("ok") == Valid("ok")
     assert await EqualsValidator("ok", preprocessors=[strip]).validate_async(
         " ok "
     ) == Valid("ok")
-    assert await EqualsValidator("ok").validate_async("not ok") == Invalid(
-        [EqualTo("ok")]
+    eq_ok_v = EqualsValidator("ok")
+    assert await eq_ok_v.validate_async("not ok") == Invalid(
+        InvalidPredicates(eq_ok_v, [EqualTo("ok")])
     )
     assert await EqualsValidator(Decimal("1.25")).validate_async(
         Decimal("1.25")
     ) == Valid(Decimal("1.25"))
-    assert await EqualsValidator(Decimal("1.1")).validate_async(Decimal("5")) == Invalid(
-        [EqualTo(Decimal("1.1"))]
+    equals_dec_11 = EqualsValidator(Decimal("1.1"))
+    assert await equals_dec_11.validate_async(Decimal("5")) == Invalid(
+        InvalidPredicates(equals_dec_11, [EqualTo(Decimal("1.1"))])
     )
     e_f_v = EqualsValidator(4.4)
     assert await EqualsValidator(4.4).validate_async("5.5") == Invalid(
         InvalidType(e_f_v, float)
     )
-    assert await EqualsValidator(True).validate_async(True) == Valid(True)
+    equals_true_validator = EqualsValidator(True)
+    assert await equals_true_validator.validate_async(True) == Valid(True)
     assert await EqualsValidator(False).validate_async(False) == Valid(False)
-    assert await EqualsValidator(True).validate_async(False) == Invalid([EqualTo(True)])
+    assert await equals_true_validator.validate_async(False) == Invalid(
+        InvalidPredicates(equals_true_validator, [EqualTo(True)])
+    )
     e_i_v = EqualsValidator(4)
     assert await e_i_v.validate_async(4.0) == Invalid(InvalidType(e_i_v, int))
 

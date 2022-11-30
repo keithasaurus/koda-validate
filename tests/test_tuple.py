@@ -301,8 +301,6 @@ async def test_tuple_homogenous_async() -> None:
 async def test_list_validator_with_async_predicate_validator() -> None:
     @dataclass
     class SomeAsyncListCheck(PredicateAsync[Tuple[Any, ...]]):
-        err_message = "not len 1"
-
         async def validate_async(self, val: Tuple[Any, ...]) -> bool:
             await asyncio.sleep(0.001)
             return len(val) == 1
@@ -320,8 +318,6 @@ async def test_list_validator_with_async_predicate_validator() -> None:
 async def test_child_validator_async_is_used() -> None:
     @dataclass
     class SomeIntDBCheck(PredicateAsync[int]):
-        err_message = "not equal to three"
-
         async def validate_async(self, val: int) -> bool:
             await asyncio.sleep(0.001)
             return val == 3
@@ -344,8 +340,6 @@ async def test_child_validator_async_is_used() -> None:
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     @dataclass
     class AsyncWait(PredicateAsync[A]):
-        err_message = "should always succeed??"
-
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True

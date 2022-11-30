@@ -6,7 +6,7 @@ import pytest
 
 from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate
 from koda_validate._generics import A
-from koda_validate.base import InvalidType
+from koda_validate.base import InvalidPredicates, InvalidType
 from koda_validate.string import (
     MaxLength,
     MinLength,
@@ -39,13 +39,18 @@ def test_string_validator() -> None:
 
     assert StringValidator()("abc") == Valid("abc")
 
-    assert StringValidator(MaxLength(3))("something") == Invalid([MaxLength(3)])
+    s_min_3_v = StringValidator(MaxLength(3))
+    assert s_min_3_v("something") == Invalid(InvalidPredicates(s_min_3_v, [MaxLength(3)]))
 
     min_len_3_not_blank_validator = StringValidator(MinLength(3), NotBlank())
 
-    assert min_len_3_not_blank_validator("") == Invalid([MinLength(3), not_blank])
+    assert min_len_3_not_blank_validator("") == Invalid(
+        InvalidPredicates(min_len_3_not_blank_validator, [MinLength(3), not_blank])
+    )
 
-    assert min_len_3_not_blank_validator("   ") == Invalid([not_blank])
+    assert min_len_3_not_blank_validator("   ") == Invalid(
+        InvalidPredicates(min_len_3_not_blank_validator, [not_blank])
+    )
 
     assert min_len_3_not_blank_validator("something") == Valid("something")
 
@@ -97,28 +102,22 @@ async def test_validate_fake_db_async() -> None:
 
     @dataclass
     class CheckUsername(PredicateAsync[str]):
-        def __init__(self) -> None:
-            self.err_message = "not in db!"
-
         async def validate_async(self, val: str) -> bool:
             hit.append("ok")
             # fake db call
             await asyncio.sleep(0.001)
             return val == test_valid_username
 
-    result = await StringValidator(predicates_async=[CheckUsername()]).validate_async(
-        "bad username"
-    )
+    validator = StringValidator(predicates_async=[CheckUsername()])
+    result = await validator.validate_async("bad username")
     assert hit == ["ok"]
-    assert result == Invalid([CheckUsername()])
+    assert result == Invalid(InvalidPredicates(validator, [CheckUsername()]))
     s_v = StringValidator()
     assert await s_v.validate_async(5) == Invalid(InvalidType(s_v, str))
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     class AsyncWait(PredicateAsync[A]):
-        err_message = "should always succeed??"
-
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True

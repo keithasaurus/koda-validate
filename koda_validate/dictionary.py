@@ -42,6 +42,7 @@ from koda_validate.base import (
     InvalidKeyVal,
     InvalidMap,
     InvalidMissingKey,
+    InvalidPredicates,
     InvalidType,
     Predicate,
     PredicateAsync,
@@ -127,7 +128,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                         predicate_errors.append(pred_async)
 
             if predicate_errors:
-                return Invalid(predicate_errors)
+                return Invalid(InvalidPredicates(self, predicate_errors))
 
             return_dict: Dict[T1, T2] = {}
             errors: InvalidMap = InvalidMap(self, {})
@@ -174,7 +175,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
                         predicate_errors.append(predicate)
 
             if predicate_errors:
-                return Invalid(predicate_errors)
+                return Invalid(InvalidPredicates(self, predicate_errors))
 
             return_dict: Dict[T1, T2] = {}
             errors: InvalidMap = InvalidMap(self, {})

@@ -9,6 +9,7 @@ from koda._generics import A
 
 from koda_validate._generics import Ret
 from koda_validate.base import (
+    InvalidPredicates,
     InvalidType,
     Predicate,
     Processor,
@@ -148,7 +149,7 @@ class EqualsValidator(Validator[Any, ExactMatchT]):
             if self.predicate(val):
                 return Valid(val)
             else:
-                return Invalid([self.predicate])
+                return Invalid(InvalidPredicates(self, [self.predicate]))
         else:
             return Invalid(InvalidType(self, match_type))
 

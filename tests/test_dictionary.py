@@ -101,13 +101,9 @@ def test_map_validator() -> None:
         )
     )
 
-    @dataclass(init=False)
+    @dataclass
     class MaxKeys(Predicate[Dict[Any, Any]]):
         max: int
-
-        def __init__(self, max: int) -> None:
-            self.max = max
-            self.err_message = f"max {max} key(s) allowed"
 
         def __call__(self, val: Dict[Any, Any]) -> bool:
             return len(val) <= self.max
@@ -169,14 +165,9 @@ async def test_map_validator_async() -> None:
         )
     )
 
-    @dataclass(init=False)
+    @dataclass
     class MaxKeys(Predicate[Dict[Any, Any]]):
         max: int
-        err_message: str
-
-        def __init__(self, max: int) -> None:
-            self.max = max
-            self.err_message = f"max {max} key(s) allowed"
 
         def __call__(self, val: Dict[Any, Any]) -> bool:
             return len(val) <= self.max

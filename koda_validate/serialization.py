@@ -7,6 +7,7 @@ from koda_validate.base import (
     InvalidIterable,
     InvalidMap,
     InvalidMissingKey,
+    InvalidPredicates,
     InvalidSimple,
     InvalidType,
     InvalidVariants,
@@ -105,8 +106,8 @@ def serializable_validation_err(err: ValidationErr) -> Serializable:
         return [err_message]
     elif isinstance(err, InvalidType):
         return [f"expected {err.expected_type.__name__}"]
-    elif isinstance(err, list):
-        return [pred_to_err_message(p) for p in err]
+    elif isinstance(err, InvalidPredicates):
+        return [pred_to_err_message(p) for p in err.predicates]
     elif isinstance(err, InvalidIterable):
         return [[i, serializable_validation_err(err)] for i, err in err.indexes.items()]
     elif isinstance(err, InvalidMissingKey):

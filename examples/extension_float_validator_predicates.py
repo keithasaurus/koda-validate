@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 from koda_validate import *
-from koda_validate.base import InvalidType, ValidationResult
+from koda_validate.base import InvalidPredicates, InvalidType, ValidationResult
 
 
 @dataclass
@@ -12,7 +12,11 @@ class SimpleFloatValidator2(Validator[Any, float]):
     def __call__(self, val: Any) -> ValidationResult[float]:
         if isinstance(val, float):
             if self.predicate:
-                return Valid(val) if self.predicate(val) else Invalid([self.predicate])
+                return (
+                    Valid(val)
+                    if self.predicate(val)
+                    else Invalid(InvalidPredicates(self, [self.predicate]))
+                )
             else:
                 return Valid(val)
         else:
@@ -52,7 +56,11 @@ class SimpleFloatValidator3(Validator[Any, float]):
                 val = self.preprocessor(val)
 
             if self.predicate:
-                return Valid(val) if self.predicate(val) else Invalid([self.predicate])
+                return (
+                    Valid(val)
+                    if self.predicate(val)
+                    else Invalid(InvalidPredicates(self, [self.predicate]))
+                )
             else:
                 return Valid(val)
         else:

@@ -33,8 +33,6 @@ def test_float() -> None:
 
     @dataclass
     class MustHaveAZeroSomewhere(Predicate[float]):
-        err_message = "There should be a zero in the number"
-
         def __call__(self, val: float) -> bool:
             for char in str(val):
                 if char == "0":
@@ -55,8 +53,6 @@ def test_float() -> None:
 async def test_float_async() -> None:
     @dataclass
     class LessThan4(PredicateAsync[float]):
-        err_message = "not less than 4!"
-
         async def validate_async(self, val: float) -> bool:
             await asyncio.sleep(0.001)
             return val < 4.0
@@ -73,8 +69,6 @@ async def test_float_async() -> None:
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     @dataclass
     class AsyncWait(PredicateAsync[A]):
-        err_message = "should always succeed??"
-
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True

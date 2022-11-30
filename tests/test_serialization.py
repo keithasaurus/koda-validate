@@ -11,6 +11,7 @@ from koda_validate.base import (
     InvalidKeyVal,
     InvalidMap,
     InvalidMissingKey,
+    InvalidPredicates,
     InvalidSimple,
     InvalidType,
     InvalidVariants,
@@ -50,8 +51,9 @@ def test_type_err_users_message_in_list() -> None:
 
 
 def test_predicate_returns_err_in_list() -> None:
-    assert serializable_validation_err([Min(5), Max(10)]) == [
-        pred_to_err_message(Min(5)),
+    i_v = IntValidator(Min(15), Max(10))
+    assert serializable_validation_err(InvalidPredicates(i_v, [Min(15), Max(10)])) == [
+        pred_to_err_message(Min(15)),
         pred_to_err_message(Max(10)),
     ]
 
@@ -74,7 +76,10 @@ def test_iterable_errs() -> None:
     assert serializable_validation_err(
         InvalidIterable(
             l_v,
-            {0: InvalidType(StringValidator(), str), 5: [MaxLength(10), MinLength(2)]},
+            {
+                0: InvalidType(StringValidator(), str),
+                5: InvalidPredicates(l_v.item_validator, [MaxLength(10), MinLength(2)]),
+            },
         )
     ) == [
         [0, ["expected str"]],
@@ -108,11 +113,12 @@ def test_extra_keys() -> None:
 
 
 def test_map_err() -> None:
+    i_v = IntValidator()
     result = serializable_validation_err(
         InvalidMap(
-            MapValidator(key=IntValidator(), value=StringValidator()),
+            MapValidator(key=i_v, value=StringValidator()),
             {
-                5: InvalidKeyVal(key=[Min(6)], val=None),
+                5: InvalidKeyVal(key=InvalidPredicates(i_v, [Min(6)]), val=None),
                 6: InvalidKeyVal(key=None, val=InvalidType(StringValidator(), str)),
                 "7": InvalidKeyVal(
                     key=InvalidType(IntValidator(), int),
@@ -130,10 +136,11 @@ def test_map_err() -> None:
 
 
 def test_variants() -> None:
+    i_v = IntValidator(Min(5))
     assert serializable_validation_err(
         InvalidVariants(
-            UnionValidatorAny(StringValidator(), IntValidator(Min(5))),
-            [InvalidType(StringValidator(), str), [Min(5)]],
+            UnionValidatorAny(StringValidator(), i_v),
+            [InvalidType(StringValidator(), str), InvalidPredicates(i_v, [Min(5)])],
         )
     ) == {"variants": [["expected str"], [pred_to_err_message(Min(5))]]}
 

@@ -56,8 +56,6 @@ async def test_datetime_validator_async() -> None:
 def test_sync_call_with_async_predicates_raises_assertion_error_date() -> None:
     @dataclass
     class AsyncWait(PredicateAsync[A]):
-        err_message = "should always succeed??"
-
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
@@ -70,8 +68,6 @@ def test_sync_call_with_async_predicates_raises_assertion_error_date() -> None:
 def test_sync_call_with_async_predicates_raises_assertion_error_datetime() -> None:
     @dataclass
     class AsyncWait(PredicateAsync[A]):
-        err_message = "should always succeed??"
-
         async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
