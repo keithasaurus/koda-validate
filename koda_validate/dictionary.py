@@ -70,10 +70,18 @@ class KeyNotRequired(Validator[Any, Maybe[A]]):
         self.validator = validator
 
     async def validate_async(self, val: Any) -> ValidationResult[Maybe[A]]:
-        return (await self.validator.validate_async(val)).map(Just)
+        result = await self.validator.validate_async(val)
+        if result.is_valid:
+            return Valid(Just(result.val))
+        else:
+            return result
 
     def __call__(self, val: Any) -> ValidationResult[Maybe[A]]:
-        return self.validator(val).map(Just)
+        result = self.validator(val)
+        if result.is_valid:
+            return Valid(Just(result.val))
+        else:
+            return result
 
 
 KeyValidator = Tuple[

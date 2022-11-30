@@ -1,8 +1,8 @@
-from typing import Any, Callable, ClassVar, Generic, Literal, Union
+from typing import Any, ClassVar, Generic, Literal, Union
 
 from koda import Err, Ok, Result
 
-from koda_validate._generics import A, B, FailT
+from koda_validate._generics import A, FailT
 
 
 class Valid(Generic[A]):
@@ -12,20 +12,6 @@ class Valid(Generic[A]):
 
     def __init__(self, val: A) -> None:
         self.val: A = val
-
-    def flat_map(self, fn: Callable[[A], "Validated[B, FailT]"]) -> "Validated[B, FailT]":
-        return fn(self.val)
-
-    def flat_map_invalid(
-        self, fn: Callable[[Any], "Validated[A, B]"]
-    ) -> "Validated[A, B]":
-        return self
-
-    def map(self, fn: Callable[[A], B]) -> "Validated[B, FailT]":
-        return Valid(fn(self.val))
-
-    def map_invalid(self, fn: Callable[[Any], "B"]) -> "Validated[A, B]":
-        return self
 
     @property
     def as_result(self) -> Result[A, Any]:
@@ -45,22 +31,6 @@ class Invalid(Generic[FailT]):
 
     def __init__(self, val: FailT) -> None:
         self.val: FailT = val
-
-    def map(self, _: Callable[[Any], B]) -> "Validated[B, FailT]":
-        return self
-
-    def flat_map(
-        self, _: Callable[[Any], "Validated[B, FailT]"]
-    ) -> "Validated[B, FailT]":
-        return self
-
-    def flat_map_invalid(
-        self, fn: Callable[[FailT], "Validated[A, B]"]
-    ) -> "Validated[A, B]":
-        return fn(self.val)
-
-    def map_invalid(self, fn: Callable[[FailT], B]) -> "Validated[A, B]":
-        return Invalid(fn(self.val))
 
     @property
     def as_result(self) -> Result[Any, FailT]:
