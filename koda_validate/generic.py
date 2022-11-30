@@ -15,7 +15,7 @@ from koda_validate.base import (
     InvalidType,
     Predicate,
     Processor,
-    ValidationResult,
+    Validated,
     Validator,
 )
 
@@ -43,10 +43,10 @@ class Lazy(Validator[Ret]):
         self.validator = validator
         self.recurrent = recurrent
 
-    async def validate_async(self, data: Any) -> ValidationResult[Ret]:
+    async def validate_async(self, data: Any) -> Validated[Ret]:
         return await self.validator().validate_async(data)
 
-    def __call__(self, data: Any) -> ValidationResult[Ret]:
+    def __call__(self, data: Any) -> Validated[Ret]:
         return self.validator()(data)
 
 
@@ -136,10 +136,10 @@ class EqualsValidator(Validator[ExactMatchT]):
         self.preprocessors = preprocessors
         self.predicate: EqualTo[ExactMatchT] = EqualTo(match)
 
-    async def validate_async(self, val: Any) -> ValidationResult[ExactMatchT]:
+    async def validate_async(self, val: Any) -> Validated[ExactMatchT]:
         return self(val)
 
-    def __call__(self, val: Any) -> ValidationResult[ExactMatchT]:
+    def __call__(self, val: Any) -> Validated[ExactMatchT]:
         if (match_type := type(self.match)) == type(val):
             if self.preprocessors:
                 for preprocess in self.preprocessors:

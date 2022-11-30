@@ -176,8 +176,6 @@ ValidationErr = Union[
     ValidatorErrorBase,
 ]
 
-ValidationResult = Validated[A]
-
 
 class Validator(Generic[SuccessT]):
     """
@@ -186,13 +184,13 @@ class Validator(Generic[SuccessT]):
     instance, we can later access `5` from something like `MaxLength(5)`.
     """
 
-    async def validate_async(self, val: Any) -> ValidationResult[SuccessT]:
+    async def validate_async(self, val: Any) -> Validated[SuccessT]:
         """
         make it possible for all validators to be async-compatible
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def __call__(self, val: Any) -> ValidationResult[SuccessT]:
+    def __call__(self, val: Any) -> Validated[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
 

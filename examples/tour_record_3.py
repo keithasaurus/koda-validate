@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from koda_validate import *
-from koda_validate.base import InvalidSimple, ValidationResult
+from koda_validate.base import InvalidSimple, Validated
 
 
 @dataclass
@@ -10,7 +10,7 @@ class Employee:
     name: str
 
 
-def no_dwight_regional_manager(employee: Employee) -> ValidationResult[Employee]:
+def no_dwight_regional_manager(employee: Employee) -> Validated[Employee]:
     if (
         "schrute" in employee.name.lower()
         and employee.title.lower() == "assistant regional manager"

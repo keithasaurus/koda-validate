@@ -43,7 +43,7 @@ from koda_validate import (
     Validator,
     always_valid,
 )
-from koda_validate.base import InvalidCoercion, InvalidExtraKeys, ValidationResult
+from koda_validate.base import InvalidCoercion, InvalidExtraKeys, Validated
 from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny
 
@@ -106,7 +106,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         data_cls: Type[_DCT],
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
-        validate_object: Optional[typing.Callable[[_DCT], ValidationResult[_DCT]]] = None,
+        validate_object: Optional[typing.Callable[[_DCT], Validated[_DCT]]] = None,
     ) -> None:
         self.data_cls = data_cls
         overrides = overrides or {}
@@ -135,7 +135,9 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             )
             for key, val in self.schema.items()
         ]
-        self._unknown_keys_err = False, InvalidExtraKeys(self, set(self.schema.keys()))
+        self._unknown_keys_err: Tuple[
+            typing.Literal[False], InvalidExtraKeys
+        ] = False, InvalidExtraKeys(self, set(self.schema.keys()))
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
         if isinstance(val, dict):
@@ -149,14 +151,14 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 self.data_cls,
             )
 
-        succeeded, new_val = validate_dict_to_tuple(
+        result_tup = validate_dict_to_tuple(
             self, None, self._fast_keys, self.schema, self._unknown_keys_err, data
         )
 
-        if not succeeded:
-            return succeeded, new_val
+        if not result_tup[0]:
+            return False, result_tup[1]
         else:
-            obj = self.data_cls(**new_val)
+            obj = self.data_cls(**result_tup[1])
             if self.validate_object:
                 result = self.validate_object(obj)
                 if result.is_valid:
@@ -178,14 +180,14 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 self.data_cls,
             )
 
-        succeeded, new_val = await validate_dict_to_tuple_async(
+        result_tup = await validate_dict_to_tuple_async(
             self, None, self._fast_keys, self.schema, self._unknown_keys_err, data
         )
 
-        if not succeeded:
-            return succeeded, new_val
+        if not result_tup[0]:
+            return False, result_tup[1]
         else:
-            obj = self.data_cls(**new_val)
+            obj = self.data_cls(**result_tup[1])
             if self.validate_object:
                 result = self.validate_object(obj)
                 if result.is_valid:

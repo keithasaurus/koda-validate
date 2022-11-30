@@ -21,8 +21,8 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
+    Validated,
     ValidationErr,
-    ValidationResult,
     Validator,
     ValidatorErrorBase,
 )
@@ -105,9 +105,7 @@ class Tuple2Validator(_ToTupleValidator[Tuple[A, B]]):
         self,
         slot1_validator: Validator[A],
         slot2_validator: Validator[B],
-        tuple_validator: Optional[
-            Callable[[Tuple[A, B]], ValidationResult[Tuple[A, B]]]
-        ] = None,
+        tuple_validator: Optional[Callable[[Tuple[A, B]], Validated[Tuple[A, B]]]] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator
@@ -167,7 +165,7 @@ class Tuple3Validator(_ToTupleValidator[Tuple[A, B, C]]):
         slot2_validator: Validator[B],
         slot3_validator: Validator[C],
         tuple_validator: Optional[
-            Callable[[Tuple[A, B, C]], ValidationResult[Tuple[A, B, C]]]
+            Callable[[Tuple[A, B, C]], Validated[Tuple[A, B, C]]]
         ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator

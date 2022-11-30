@@ -55,8 +55,8 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
+    Validated,
     ValidationErr,
-    ValidationResult,
     Validator,
 )
 
@@ -70,14 +70,14 @@ class KeyNotRequired(Validator[Maybe[A]]):
     def __init__(self, validator: Validator[A]):
         self.validator = validator
 
-    async def validate_async(self, val: Any) -> ValidationResult[Maybe[A]]:
+    async def validate_async(self, val: Any) -> Validated[Maybe[A]]:
         result = await self.validator.validate_async(val)
         if result.is_valid:
             return Valid(Just(result.val))
         else:
             return result
 
-    def __call__(self, val: Any) -> ValidationResult[Maybe[A]]:
+    def __call__(self, val: Any) -> Validated[Maybe[A]]:
         result = self.validator(val)
         if result.is_valid:
             return Valid(Just(result.val))
@@ -115,7 +115,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    async def validate_async(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
+    async def validate_async(self, val: Any) -> Validated[Dict[T1, T2]]:
         if isinstance(val, dict):
             if self.preprocessors is not None:
                 for preproc in self.preprocessors:
@@ -164,7 +164,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
         else:
             return Invalid(InvalidType(self, dict))
 
-    def __call__(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
+    def __call__(self, val: Any) -> Validated[Dict[T1, T2]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -258,9 +258,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
         keys: Tuple[
             KeyValidator[T1],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -275,9 +275,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T1],
             KeyValidator[T2],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -293,9 +293,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T2],
             KeyValidator[T3],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -312,9 +312,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T3],
             KeyValidator[T4],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -332,9 +332,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T4],
             KeyValidator[T5],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -353,9 +353,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T5],
             KeyValidator[T6],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -375,9 +375,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T6],
             KeyValidator[T7],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -398,9 +398,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T7],
             KeyValidator[T8],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -422,9 +422,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T8],
             KeyValidator[T9],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -447,9 +447,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T9],
             KeyValidator[T10],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -473,9 +473,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T10],
             KeyValidator[T11],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -500,9 +500,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T11],
             KeyValidator[T12],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -528,9 +528,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T12],
             KeyValidator[T13],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -559,9 +559,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T13],
             KeyValidator[T14],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -591,9 +591,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T14],
             KeyValidator[T15],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -624,9 +624,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T15],
             KeyValidator[T16],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -813,9 +813,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T16],
             ],
         ],
-        validate_object: Optional[Callable[[Ret], ValidationResult[Ret]]] = None,
+        validate_object: Optional[Callable[[Ret], Validated[Ret]]] = None,
         validate_object_async: Optional[
-            Callable[[Ret], Awaitable[ValidationResult[Ret]]]
+            Callable[[Ret], Awaitable[Validated[Ret]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
@@ -989,12 +989,12 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         schema: Dict[Any, Validator[Any]],
         *,
         validate_object: Optional[
-            Callable[[Dict[Hashable, Any]], ValidationResult[Dict[Any, Any]]]
+            Callable[[Dict[Hashable, Any]], Validated[Dict[Any, Any]]]
         ] = None,
         validate_object_async: Optional[
             Callable[
                 [Dict[Any, Any]],
-                Awaitable[ValidationResult[Dict[Any, Any]]],
+                Awaitable[Validated[Dict[Any, Any]]],
             ]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
@@ -1020,10 +1020,12 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             for key, val in schema.items()
         ]
 
-        self._unknown_keys_err = False, InvalidExtraKeys(self, set(schema.keys()))
+        self._unknown_keys_err: Tuple[
+            Literal[False], InvalidExtraKeys
+        ] = False, InvalidExtraKeys(self, set(schema.keys()))
 
     def validate_to_tuple(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
-        succeeded, new_val = validate_dict_to_tuple(
+        result_tup = validate_dict_to_tuple(
             self,
             self.preprocessors,
             self._fast_keys,
@@ -1031,20 +1033,20 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             self._unknown_keys_err,
             data,
         )
-        if not succeeded:
-            return succeeded, new_val
+        if not result_tup[0]:
+            return False, result_tup[1]
         else:
             if self.validate_object is not None:
-                result = self.validate_object(new_val)
+                result = self.validate_object(result_tup[1])
                 if result.is_valid:
                     return True, result.val
                 else:
                     return False, result.val
             else:
-                return True, new_val
+                return True, result_tup[1]
 
     async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
-        succeeded, new_val = await validate_dict_to_tuple_async(
+        result_tup = await validate_dict_to_tuple_async(
             self,
             self.preprocessors,
             self._fast_keys,
@@ -1052,20 +1054,20 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             self._unknown_keys_err,
             data,
         )
-        if not succeeded:
-            return succeeded, new_val
+        if not result_tup[0]:
+            return False, result_tup[1]
         else:
             if self.validate_object is not None:
-                result = self.validate_object(new_val)
+                result = self.validate_object(result_tup[1])
                 if result.is_valid:
                     return True, result.val
                 else:
                     return False, result.val
             elif self.validate_object_async is not None:
-                result = await self.validate_object_async(new_val)
+                result = await self.validate_object_async(result_tup[1])
                 if result.is_valid:
                     return True, result.val
                 else:
                     return False, result.val
             else:
-                return True, new_val
+                return True, result_tup[1]

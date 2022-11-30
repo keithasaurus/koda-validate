@@ -12,7 +12,7 @@ from koda_validate.base import (
     InvalidPredicates,
     InvalidSimple,
     InvalidType,
-    ValidationResult,
+    Validated,
 )
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
 from koda_validate.tuple import TupleHomogenousValidator
@@ -137,7 +137,7 @@ def test_validate_object_works() -> None:
         first_name: str
         last_name: str
 
-    def first_name_last_name_are_different(obj: A) -> ValidationResult[A]:
+    def first_name_last_name_are_different(obj: A) -> Validated[A]:
         if obj.first_name == obj.last_name:
             return Invalid(InvalidSimple("first name cannot be last name"))
         else:
@@ -167,7 +167,7 @@ async def test_validate_object_works_async() -> None:
         first_name: str
         last_name: str
 
-    def first_name_last_name_are_different(obj: A) -> ValidationResult[A]:
+    def first_name_last_name_are_different(obj: A) -> Validated[A]:
         if obj.first_name == obj.last_name:
             return Invalid(InvalidSimple("first name cannot be last name"))
         else:

@@ -27,8 +27,8 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
+    Validated,
     ValidationErr,
-    ValidationResult,
     Validator,
 )
 
@@ -55,14 +55,14 @@ class _ToTupleValidator(Validator[SuccessT]):
     async def validate_to_tuple_async(self, val: InputT) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
-    async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
+    async def validate_async(self, val: InputT) -> Validated[SuccessT]:
         result = await self.validate_to_tuple_async(val)
         if result[0]:
             return Valid(result[1])
         else:
             return Invalid(result[1])
 
-    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
+    def __call__(self, val: InputT) -> Validated[SuccessT]:
         result = self.validate_to_tuple(val)
         if result[0]:
             return Valid(result[1])
@@ -75,9 +75,9 @@ def validate_dict_to_tuple(
     preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
     fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
     schema: Dict[Any, Validator[Any]],
-    unknown_keys_err: Tuple[bool, InvalidExtraKeys],
+    unknown_keys_err: Tuple[Literal[False], InvalidExtraKeys],
     data: Any,
-) -> _ResultTupleUnsafe:
+) -> ResultTuple[Dict[Any, Any]]:
     if not isinstance(data, dict):
         return False, InvalidType(source_validator, dict)
 
@@ -128,9 +128,9 @@ async def validate_dict_to_tuple_async(
     preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
     fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
     schema: Dict[Any, Validator[Any]],
-    unknown_keys_err: Tuple[bool, InvalidExtraKeys],
+    unknown_keys_err: Tuple[Literal[False], InvalidExtraKeys],
     data: Any,
-) -> _ResultTupleUnsafe:
+) -> ResultTuple[Dict[Any, Any]]:
     if not isinstance(data, dict):
         return False, InvalidType(source_validator, dict)
 
@@ -272,14 +272,14 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
                 return True, val
         return False, self._type_err
 
-    async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
+    async def validate_async(self, val: InputT) -> Validated[SuccessT]:
         result = await self.validate_to_tuple_async(val)
         if result[0]:
             return Valid(result[1])
         else:
             return Invalid(result[1])
 
-    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
+    def __call__(self, val: InputT) -> Validated[SuccessT]:
         result = self.validate_to_tuple(val)
         if result[0]:
             return Valid(result[1])
