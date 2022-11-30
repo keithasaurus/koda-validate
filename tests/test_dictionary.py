@@ -10,6 +10,7 @@ from koda_validate import (
     BoolValidator,
     FloatValidator,
     IntValidator,
+    Invalid,
     ListValidator,
     MapValidator,
     MaxKeys,
@@ -20,6 +21,7 @@ from koda_validate import (
     PredicateAsync,
     Processor,
     StringValidator,
+    Valid,
     none_validator,
     strip,
 )
@@ -42,7 +44,6 @@ from koda_validate.dictionary import (
     RecordValidator,
     is_dict_validator,
 )
-from koda_validate.validated import Invalid, Valid
 
 
 class PersonLike(Protocol):

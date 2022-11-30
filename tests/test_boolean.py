@@ -3,10 +3,16 @@ from dataclasses import dataclass
 
 import pytest
 
-from koda_validate import BoolValidator, Predicate, PredicateAsync, Processor
+from koda_validate import (
+    BoolValidator,
+    Invalid,
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Valid,
+)
 from koda_validate._generics import A
 from koda_validate.base import InvalidPredicates, InvalidType
-from koda_validate.validated import Invalid, Valid
 
 
 class Flip(Processor[bool]):

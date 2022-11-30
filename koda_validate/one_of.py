@@ -3,8 +3,8 @@ from typing import Any
 from koda import Either, Either3, First, Second, Third
 from koda._generics import A, B, C
 
+from koda_validate import Invalid, Valid
 from koda_validate.base import InvalidVariants, ValidationResult, Validator
-from koda_validate.validated import Invalid, Valid
 
 
 class OneOf2(Validator[Any, Either[A, B]]):

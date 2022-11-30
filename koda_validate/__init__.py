@@ -1,5 +1,8 @@
 __all__ = (
     # base.py
+    "Valid",
+    "Invalid",
+    "Validated",
     "Validator",
     "Predicate",
     "PredicateAsync",
@@ -66,13 +69,17 @@ __all__ = (
     "Tuple3Validator",
     # uuid
     "UUIDValidator",
-    # validated
-    "Validated",
-    "Valid",
-    "Invalid",
 )
 
-from koda_validate.base import Predicate, PredicateAsync, Processor, Validator
+from koda_validate.base import (
+    Invalid,
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Valid,
+    Validated,
+    Validator,
+)
 from koda_validate.boolean import BoolValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
@@ -121,4 +128,3 @@ from koda_validate.string import (
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator
 from koda_validate.uuid import UUIDValidator
-from koda_validate.validated import Invalid, Valid, Validated

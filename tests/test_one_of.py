@@ -1,9 +1,16 @@
 import pytest
 from koda import First, Second, Third
 
-from koda_validate import FloatValidator, IntValidator, OneOf2, OneOf3, StringValidator
+from koda_validate import (
+    FloatValidator,
+    IntValidator,
+    Invalid,
+    OneOf2,
+    OneOf3,
+    StringValidator,
+    Valid,
+)
 from koda_validate.base import InvalidType, InvalidVariants
-from koda_validate.validated import Invalid, Valid
 
 
 def test_one_of2() -> None:

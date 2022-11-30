@@ -4,11 +4,10 @@ from uuid import UUID
 
 import pytest
 
-from koda_validate import Predicate, PredicateAsync, Processor
+from koda_validate import Invalid, Predicate, PredicateAsync, Processor, Valid
 from koda_validate._generics import A
 from koda_validate.base import InvalidCoercion, InvalidPredicates
 from koda_validate.uuid import UUIDValidator
-from koda_validate.validated import Invalid, Valid
 
 
 class ReverseUUID(Processor[UUID]):

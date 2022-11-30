@@ -15,6 +15,7 @@ from typing import (
 
 from koda import nothing
 
+from koda_validate import Invalid, Valid
 from koda_validate._generics import InputT, SuccessT
 from koda_validate.base import (
     InvalidDict,
@@ -29,7 +30,6 @@ from koda_validate.base import (
     ValidationResult,
     Validator,
 )
-from koda_validate.validated import Invalid, Valid
 
 _ResultTupleUnsafe = Tuple[bool, Any]
 

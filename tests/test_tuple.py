@@ -9,10 +9,12 @@ from koda_validate import (
     ExactItemCount,
     FloatValidator,
     IntValidator,
+    Invalid,
     MaxItems,
     Min,
     MinItems,
     StringValidator,
+    Valid,
 )
 from koda_validate._generics import A
 from koda_validate.base import (
@@ -25,7 +27,6 @@ from koda_validate.base import (
     ValidationResult,
 )
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator, TupleHomogenousValidator
-from koda_validate.validated import Invalid, Valid
 from tests.utils import BasicNoneValidator
 
 

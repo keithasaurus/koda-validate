@@ -4,10 +4,17 @@ from decimal import Decimal
 
 import pytest
 
-from koda_validate import DecimalValidator, Max, Min, PredicateAsync, Processor
+from koda_validate import (
+    DecimalValidator,
+    Invalid,
+    Max,
+    Min,
+    PredicateAsync,
+    Processor,
+    Valid,
+)
 from koda_validate._generics import A
 from koda_validate.base import InvalidCoercion, InvalidPredicates
-from koda_validate.validated import Invalid, Valid
 
 
 class Add1Decimal(Processor[Decimal]):

@@ -15,6 +15,7 @@ from typing import (
 
 from koda import Just, Maybe, nothing
 
+from koda_validate import Invalid, Valid
 from koda_validate._generics import (
     T1,
     T2,
@@ -57,7 +58,6 @@ from koda_validate.base import (
     ValidationResult,
     Validator,
 )
-from koda_validate.validated import Invalid, Valid
 
 
 class KeyNotRequired(Validator[Any, Maybe[A]]):

@@ -5,12 +5,18 @@ from typing import Any, List
 import pytest
 from koda._generics import A
 
-from koda_validate import IntValidator, PredicateAsync, Processor, StringValidator
+from koda_validate import (
+    IntValidator,
+    Invalid,
+    PredicateAsync,
+    Processor,
+    StringValidator,
+    Valid,
+)
 from koda_validate.base import InvalidIterable, InvalidType
 from koda_validate.float import FloatValidator
 from koda_validate.generic import MaxItems, Min, MinItems
 from koda_validate.list import ListValidator
-from koda_validate.validated import Invalid, Valid
 from tests.utils import BasicNoneValidator
 
 

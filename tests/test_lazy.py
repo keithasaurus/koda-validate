@@ -3,9 +3,8 @@ from dataclasses import dataclass
 import pytest
 from koda import Just, Maybe, nothing
 
-from koda_validate import IntValidator, Lazy
+from koda_validate import IntValidator, Lazy, Valid
 from koda_validate.dictionary import KeyNotRequired, RecordValidator
-from koda_validate.validated import Valid
 
 
 def test_lazy() -> None:

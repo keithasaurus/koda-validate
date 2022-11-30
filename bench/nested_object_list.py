@@ -10,9 +10,9 @@ from koda_validate import (
     ListValidator,
     RecordValidator,
     StringValidator,
+    Valid,
 )
 from koda_validate.dataclasses import DataclassValidator
-from koda_validate.validated import Valid
 
 
 @dataclass

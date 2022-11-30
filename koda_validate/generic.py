@@ -7,6 +7,7 @@ from uuid import UUID
 from koda import Thunk
 from koda._generics import A
 
+from koda_validate import Invalid, Valid
 from koda_validate._generics import Ret
 from koda_validate._internal import _ResultTupleUnsafe, _ToTupleValidatorUnsafe
 from koda_validate.base import (
@@ -17,7 +18,6 @@ from koda_validate.base import (
     ValidationResult,
     Validator,
 )
-from koda_validate.validated import Invalid, Valid
 
 EnumT = TypeVar("EnumT", str, int)
 

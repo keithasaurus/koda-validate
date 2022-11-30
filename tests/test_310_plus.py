@@ -14,6 +14,7 @@ from koda_validate import (
     EqualsValidator,
     FloatValidator,
     IntValidator,
+    Invalid,
     IsDictValidator,
     Lazy,
     ListValidator,
@@ -31,6 +32,7 @@ from koda_validate import (
     OptionalValidator,
     RegexPredicate,
     StringValidator,
+    Valid,
     Validator,
     none_validator,
     strip,
@@ -62,7 +64,6 @@ from koda_validate.tuple import (
     TupleNValidatorAny,
 )
 from koda_validate.union import UnionValidatorAny
-from koda_validate.validated import Invalid, Valid
 
 
 @dataclass

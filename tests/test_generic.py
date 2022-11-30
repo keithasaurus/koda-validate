@@ -2,7 +2,16 @@ from decimal import Decimal
 
 import pytest
 
-from koda_validate import Choices, EqualsValidator, Max, Min, MultipleOf, strip
+from koda_validate import (
+    Choices,
+    EqualsValidator,
+    Invalid,
+    Max,
+    Min,
+    MultipleOf,
+    Valid,
+    strip,
+)
 from koda_validate.base import InvalidPredicates, InvalidType
 from koda_validate.generic import (
     EqualTo,
@@ -12,7 +21,6 @@ from koda_validate.generic import (
     always_valid,
     unique_items,
 )
-from koda_validate.validated import Invalid, Valid
 
 
 def test_equals_validator() -> None:

@@ -3,8 +3,7 @@ from typing import Any, List
 
 from pydantic import BaseModel, ValidationError, constr
 
-from koda_validate import RecordValidator, StringValidator
-from koda_validate.validated import Valid
+from koda_validate import RecordValidator, StringValidator, Valid
 
 
 @dataclass

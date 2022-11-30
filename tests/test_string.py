@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate
+from koda_validate import EmailPredicate, Invalid, PredicateAsync, RegexPredicate, Valid
 from koda_validate._generics import A
 from koda_validate.base import InvalidPredicates, InvalidType
 from koda_validate.string import (
@@ -17,7 +17,6 @@ from koda_validate.string import (
     strip,
     upper_case,
 )
-from koda_validate.validated import Invalid, Valid
 
 
 def test_strip() -> None:

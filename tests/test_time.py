@@ -4,10 +4,9 @@ from datetime import date, datetime
 
 import pytest
 
-from koda_validate import DatetimeValidator, DateValidator, PredicateAsync
+from koda_validate import DatetimeValidator, DateValidator, Invalid, PredicateAsync, Valid
 from koda_validate._generics import A
 from koda_validate.base import InvalidCoercion
-from koda_validate.validated import Invalid, Valid
 
 
 def test_date_validator() -> None:

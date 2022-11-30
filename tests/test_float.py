@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import pytest
 from koda._generics import A
 
+from koda_validate import Invalid, Valid
 from koda_validate.base import (
     InvalidPredicates,
     InvalidType,
@@ -13,7 +14,6 @@ from koda_validate.base import (
 )
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Max, Min
-from koda_validate.validated import Invalid, Valid
 
 
 class Add1Float(Processor[float]):

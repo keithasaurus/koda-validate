@@ -4,9 +4,17 @@ from dataclasses import dataclass
 import pytest
 from koda._generics import A
 
-from koda_validate import IntValidator, Max, Min, Predicate, PredicateAsync, Processor
+from koda_validate import (
+    IntValidator,
+    Invalid,
+    Max,
+    Min,
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Valid,
+)
 from koda_validate.base import InvalidPredicates, InvalidType
-from koda_validate.validated import Invalid, Valid
 
 
 class Add1Int(Processor[int]):
