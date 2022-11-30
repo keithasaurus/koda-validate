@@ -148,9 +148,9 @@ class EqualsValidator(Validator[ExactMatchT]):
             if self.predicate(val):
                 return Valid(val)
             else:
-                return Invalid(InvalidPredicates(self, [self.predicate]))
+                return Invalid(InvalidPredicates([self.predicate]))
         else:
-            return Invalid(InvalidType(self, match_type))
+            return Invalid(InvalidType(match_type))
 
 
 class AlwaysValid(_ToTupleValidatorUnsafe[A]):

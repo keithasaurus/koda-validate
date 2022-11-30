@@ -139,10 +139,10 @@ class MapValidator(Validator[Dict[T1, T2]]):
                         predicate_errors.append(pred_async)
 
             if predicate_errors:
-                return Invalid(InvalidPredicates(self, predicate_errors))
+                return Invalid(InvalidPredicates(predicate_errors))
 
             return_dict: Dict[T1, T2] = {}
-            errors: InvalidMap = InvalidMap(self, {})
+            errors: InvalidMap = InvalidMap({})
 
             for key, val_ in val.items():
                 key_result = await self.key_validator.validate_async(key)
@@ -161,7 +161,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
             else:
                 return Valid(return_dict)
         else:
-            return Invalid(InvalidType(self, dict))
+            return Invalid(InvalidType(dict))
 
     def __call__(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
         if self.predicates_async:
@@ -186,10 +186,10 @@ class MapValidator(Validator[Dict[T1, T2]]):
                         predicate_errors.append(predicate)
 
             if predicate_errors:
-                return Invalid(InvalidPredicates(self, predicate_errors))
+                return Invalid(InvalidPredicates(predicate_errors))
 
             return_dict: Dict[T1, T2] = {}
-            errors: InvalidMap = InvalidMap(self, {})
+            errors: InvalidMap = InvalidMap({})
             for key, val_ in val.items():
                 key_result = self.key_validator(key)
                 val_result = self.value_validator(val_)
@@ -207,7 +207,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
             else:
                 return Valid(return_dict)
         else:
-            return Invalid(InvalidType(self, dict))
+            return Invalid(InvalidType(dict))
 
 
 class IsDictValidator(_ToTupleValidatorUnsafe[Dict[Any, Any]]):
@@ -215,7 +215,7 @@ class IsDictValidator(_ToTupleValidatorUnsafe[Dict[Any, Any]]):
         if isinstance(val, dict):
             return True, val
         else:
-            return False, InvalidType(self, dict)
+            return False, InvalidType(dict)
 
     async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         return self.validate_to_tuple(val)
@@ -846,7 +846,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
 
     def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
         if not isinstance(data, dict):
-            return False, InvalidType(self, dict)
+            return False, InvalidType(dict)
 
         if self.preprocessors:
             for preproc in self.preprocessors:
@@ -885,7 +885,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
                     args.append(new_val)
 
         if errs:
-            return False, InvalidDict(self, errs)
+            return False, InvalidDict(errs)
         else:
             # we know this should be ret
             obj = self.into(*args)
@@ -900,7 +900,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
 
     async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
         if not isinstance(data, dict):
-            return False, InvalidType(self, dict)
+            return False, InvalidType(dict)
 
         if self.preprocessors:
             for preproc in self.preprocessors:
@@ -937,7 +937,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
                     args.append(new_val)
 
         if errs:
-            return False, InvalidDict(self, errs)
+            return False, InvalidDict(errs)
         else:
             obj = self.into(*args)
             if self.validate_object is not None:

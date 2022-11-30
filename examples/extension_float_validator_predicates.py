@@ -20,7 +20,7 @@ class SimpleFloatValidator2(Validator[float]):
             else:
                 return Valid(val)
         else:
-            return Invalid(InvalidType(self, float))
+            return Invalid(InvalidType(float))
 
 
 @dataclass
@@ -66,7 +66,7 @@ class SimpleFloatValidator3(Validator[float]):
             else:
                 return Valid(val)
         else:
-            return Invalid(InvalidType(self, float))
+            return Invalid(InvalidType(float))
 
 
 class AbsValue(Processor[float]):

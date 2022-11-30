@@ -43,12 +43,12 @@ def test_integer() -> None:
             return val % 2 == 0
 
     i_v = IntValidator(Min(2), Max(10), DivisibleBy2())
-    assert i_v(11) == Invalid(InvalidPredicates(i_v, [Max(10), DivisibleBy2()]))
+    assert i_v(11) == Invalid(i_v, InvalidPredicates([Max(10), DivisibleBy2()]))
 
     assert IntValidator(Min(2), preprocessors=[Add1Int()])(1) == Valid(2)
 
     i_v_add_1 = IntValidator(Min(3), preprocessors=[Add1Int()])
-    assert i_v_add_1(1) == Invalid(InvalidPredicates(i_v_add_1, [Min(3)]))
+    assert i_v_add_1(1) == Invalid(i_v_add_1, InvalidPredicates([Min(3)]))
 
 
 @pytest.mark.asyncio
@@ -65,7 +65,7 @@ async def test_float_async() -> None:
 
     validator = IntValidator(preprocessors=[Add1Int()], predicates_async=[LessThan4()])
     result = await validator.validate_async(3)
-    assert result == Invalid(InvalidPredicates(validator, [LessThan4()]))
+    assert result == Invalid(validator, InvalidPredicates([LessThan4()]))
     assert await IntValidator(
         preprocessors=[Add1Int()], predicates_async=[LessThan4()]
     ).validate_async(2) == Valid(3)

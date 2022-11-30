@@ -9,7 +9,7 @@ class SimpleFloatValidator(Validator[float]):
         if isinstance(val, float):
             return Valid(val)
         else:
-            return Invalid(InvalidType(self, float))
+            return Invalid(InvalidType(float))
 
 
 float_validator = SimpleFloatValidator()

@@ -16,7 +16,7 @@ from typing import (
 from koda import nothing
 
 from koda_validate import Invalid, Valid
-from koda_validate._generics import InputT, SuccessT
+from koda_validate._generics import SuccessT
 from koda_validate.base import (
     InvalidDict,
     InvalidExtraKeys,
@@ -46,25 +46,25 @@ class _ToTupleValidatorUnsafe(Validator[SuccessT]):
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
 
-    def validate_to_tuple(self, val: InputT) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         raise NotImplementedError()  # pragma: no cover
 
-    async def validate_to_tuple_async(self, val: InputT) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         raise NotImplementedError()  # pragma: no cover
 
-    async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
+    async def validate_async(self, val: Any) -> ValidationResult[SuccessT]:
         valid, result_val = await self.validate_to_tuple_async(val)
         if valid:
             return Valid(result_val)
         else:
-            return Invalid(result_val)
+            return Invalid(self, result_val)
 
-    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
+    def __call__(self, val: Any) -> ValidationResult[SuccessT]:
         valid, result_val = self.validate_to_tuple(val)
         if valid:
             return Valid(result_val)
         else:
-            return Invalid(result_val)
+            return Invalid(self, result_val)
 
 
 def validate_dict_to_tuple(
@@ -217,7 +217,7 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[SuccessT]):
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
-        _type_err = InvalidType(self, self._TYPE)
+        _type_err = InvalidType(self._TYPE)
         self._type_err = _type_err
 
         # optimization for simple  validators. can speed up by ~15%
@@ -238,7 +238,7 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[SuccessT]):
             if self.predicates:
                 errors: List[Any] = [pred for pred in self.predicates if not pred(val)]
                 if errors:
-                    return False, InvalidPredicates(self, errors)
+                    return False, InvalidPredicates(errors)
                 else:
                     return True, val
             else:
@@ -264,7 +264,7 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[SuccessT]):
                     ]
                 )
             if errors:
-                return False, InvalidPredicates(self, errors)
+                return False, InvalidPredicates(errors)
             else:
                 return True, val
         return False, self._type_err
@@ -294,10 +294,10 @@ class _CoercingValidator(_ToTupleValidatorUnsafe[SuccessT]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def coerce_to_type(self, val: InputT) -> _ResultTupleUnsafe:
+    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
         raise NotImplementedError()  # pragma: no cover
 
-    def validate_to_tuple(self, val: InputT) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -312,14 +312,14 @@ class _CoercingValidator(_ToTupleValidatorUnsafe[SuccessT]):
                     pred for pred in self.predicates if not pred(val_or_type_err)
                 ]
                 if errors:
-                    return False, InvalidPredicates(self, errors)
+                    return False, InvalidPredicates(errors)
                 else:
                     return True, val_or_type_err
             else:
                 return True, val_or_type_err
         return False, val_or_type_err
 
-    async def validate_to_tuple_async(self, val: InputT) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         succeeded, val_or_type_err = self.coerce_to_type(val)
         if succeeded:
             if self.preprocessors:
@@ -339,7 +339,7 @@ class _CoercingValidator(_ToTupleValidatorUnsafe[SuccessT]):
                     ]
                 )
             if errors:
-                return False, InvalidPredicates(self, errors)
+                return False, InvalidPredicates(errors)
             else:
                 return True, val_or_type_err
         return False, val_or_type_err

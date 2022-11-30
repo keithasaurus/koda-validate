@@ -15,14 +15,12 @@ class DecimalValidator(_CoercingValidator[Decimal]):
                 return True, Decimal(val)
             except decimal.InvalidOperation:
                 return False, InvalidCoercion(
-                    self,
                     compatible_types=[str, int, Decimal],
                     dest_type=Decimal,
                 )
 
         else:
             return False, InvalidCoercion(
-                self,
                 compatible_types=[str, int, Decimal],
                 dest_type=Decimal,
             )

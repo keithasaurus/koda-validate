@@ -47,7 +47,7 @@ def test_decimal() -> None:
     assert DecimalValidator(Min(Decimal(4)), Max(Decimal("5.5")))(5) == Valid(Decimal(5))
     dec_min_max_v = DecimalValidator(Min(Decimal(4)), Max(Decimal("5.5")))
     assert dec_min_max_v(Decimal(1)) == Invalid(
-        InvalidPredicates(dec_min_max_v, [Min(Decimal(4))])
+        dec_min_max_v, InvalidPredicates([Min(Decimal(4))])
     )
     assert DecimalValidator(preprocessors=[Add1Decimal()])(Decimal("5.0")) == Valid(
         Decimal("6.0")
@@ -83,7 +83,7 @@ async def test_decimal_async() -> None:
         preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
     )
     result = await add_1_dec_v.validate_async(3)
-    assert result == Invalid(InvalidPredicates(add_1_dec_v, [LessThan4()]))
+    assert result == Invalid(add_1_dec_v, InvalidPredicates([LessThan4()]))
     assert await DecimalValidator(
         preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
     ).validate_async(2) == Valid(3)
@@ -93,7 +93,7 @@ async def test_decimal_async() -> None:
     ).validate_async(Decimal("2.75")) == Valid(Decimal("3.75"))
 
     assert await add_1_dec_v.validate_async(Decimal("3.75")) == Invalid(
-        InvalidPredicates(add_1_dec_v, [LessThan4()])
+        add_1_dec_v, InvalidPredicates([LessThan4()])
     )
 
 

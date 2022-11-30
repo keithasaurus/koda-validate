@@ -14,9 +14,11 @@ from typing import (
     Union,
 )
 
-from koda import Err, Ok, Result
-
 from koda_validate._generics import A, SuccessT
+
+
+class ErrorDetail:
+    pass
 
 
 class Valid(Generic[A]):
@@ -26,10 +28,6 @@ class Valid(Generic[A]):
 
     def __init__(self, val: A) -> None:
         self.val: A = val
-
-    @property
-    def as_result(self) -> Result[A, Any]:
-        return Ok(self.val)
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Valid) and other.val == self.val
@@ -43,18 +41,19 @@ class Invalid:
 
     is_valid: ClassVar[Literal[False]] = False
 
-    def __init__(self, val: "ValidationErr") -> None:
-        self.val = val
-
-    @property
-    def as_result(self) -> Result[Any, "ValidationErr"]:
-        return Err(self.val)
+    def __init__(self, validator: "Validator[Any]", error_detail: ErrorDetail) -> None:
+        self.validator = validator
+        self.error_detail = error_detail
 
     def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Invalid) and other.val == self.val
+        return (
+            isinstance(other, Invalid)
+            and other.validator == self.validator
+            and other.error_detail == self.error_detail
+        )
 
     def __repr__(self) -> str:
-        return f"Invalid({repr(self.val)})"
+        return f"Invalid(validator={repr(self.validator)}, error_detail={repr(self.error_detail)})"
 
 
 Validated = Union[Valid[A], Invalid]
@@ -70,7 +69,12 @@ class ValidatorErrorBase:
 
 
 @dataclass
-class InvalidCoercion(ValidatorErrorBase):
+class ValidatorError(ValidatorErrorBase):
+    details: Any
+
+
+@dataclass
+class InvalidCoercion(ErrorDetail):
     """
     When one or more types can be coerced to a destination type
     """
@@ -79,14 +83,14 @@ class InvalidCoercion(ValidatorErrorBase):
     dest_type: Type[Any]
 
 
-class InvalidMissingKey(ValidatorErrorBase):
+class InvalidMissingKey(ErrorDetail):
     """
     A key is missing from a dictionary
     """
 
 
 @dataclass
-class InvalidExtraKeys(ValidatorErrorBase):
+class InvalidExtraKeys(ErrorDetail):
     """
     extra keys were present in a dictionary
     """
@@ -95,7 +99,7 @@ class InvalidExtraKeys(ValidatorErrorBase):
 
 
 @dataclass
-class InvalidDict(ValidatorErrorBase):
+class InvalidDict(ErrorDetail):
     """
     validation failures for key/value pairs on a record-like
     dictionary
@@ -106,7 +110,7 @@ class InvalidDict(ValidatorErrorBase):
 
 
 @dataclass
-class InvalidKeyVal:
+class InvalidKeyVal(ErrorDetail):
     """
     key and/or value errors from a single key/value pair
     """
@@ -116,7 +120,7 @@ class InvalidKeyVal:
 
 
 @dataclass
-class InvalidMap(ValidatorErrorBase):
+class InvalidMap(ErrorDetail):
     """
     errors from key/value pairs of a map-like dictionary
     """
@@ -125,7 +129,7 @@ class InvalidMap(ValidatorErrorBase):
 
 
 @dataclass
-class InvalidIterable(ValidatorErrorBase):
+class InvalidIterable(ErrorDetail):
     """
     dictionary of validation errors by index
     """
@@ -134,7 +138,7 @@ class InvalidIterable(ValidatorErrorBase):
 
 
 @dataclass
-class InvalidVariants(ValidatorErrorBase):
+class InvalidVariants(ErrorDetail):
     """
     none of these validators was satisfied by a given value
     """
@@ -143,7 +147,7 @@ class InvalidVariants(ValidatorErrorBase):
 
 
 @dataclass
-class InvalidPredicates(Generic[A], ValidatorErrorBase):
+class InvalidPredicates(Generic[A], ErrorDetail):
     """
     A grouping of failed Predicates
     """
@@ -152,7 +156,7 @@ class InvalidPredicates(Generic[A], ValidatorErrorBase):
 
 
 @dataclass
-class InvalidSimple:
+class InvalidSimple(ErrorDetail):
     """
     If all you want to do is produce a message, this can be useful
     """
@@ -161,7 +165,7 @@ class InvalidSimple:
 
 
 @dataclass
-class InvalidType(ValidatorErrorBase):
+class InvalidType(ErrorDetail):
     """
     A specific type was required but not provided
     """

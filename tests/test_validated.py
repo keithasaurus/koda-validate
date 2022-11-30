@@ -10,15 +10,10 @@ def test_valid_repr() -> None:
     assert repr(Valid(Decimal("0.50"))) == "Valid(Decimal('0.50'))"
 
 
-def test_valid_as_result() -> None:
-    assert Valid(123).as_result == Ok(123)
-
-
 def test_invalid_repr() -> None:
-    invalid_type = InvalidType(StringValidator(), str)
-    assert repr(Invalid(invalid_type)) == f"Invalid({repr(invalid_type)})"
-
-
-def test_invalid_as_result() -> None:
-    invalid_type = InvalidType(StringValidator(), str)
-    assert Invalid(invalid_type).as_result == Err(invalid_type)
+    str_validator = StringValidator()
+    invalid_type = InvalidType(str)
+    assert (
+        repr(Invalid(str_validator, invalid_type))
+        == f"Invalid(validator={repr(str_validator)}, error_detail={repr(invalid_type)})"
+    )

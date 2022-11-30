@@ -45,7 +45,7 @@ def test_list_validator() -> None:
         preprocessors=[RemoveLast()],
     )
     assert l_validator([10.1, 7.7, 2.2, 5, 0.0]) == Invalid(
-        InvalidPredicates(l_validator, [MaxItems(3)])
+        l_validator, InvalidPredicates([MaxItems(3)])
     )
 
     n_v = ListValidator(BasicNoneValidator())
@@ -79,7 +79,7 @@ async def test_list_async() -> None:
         FloatValidator(Min(5.5)), predicates=[MinItems(1), MaxItems(3)]
     )
     assert await l_validator.validate_async([10.1, 7.7, 2.2, 5]) == Invalid(
-        InvalidPredicates(l_validator, [MaxItems(3)])
+        l_validator, InvalidPredicates([MaxItems(3)])
     )
 
     n_v = ListValidator(BasicNoneValidator())
@@ -103,7 +103,7 @@ async def test_list_validator_with_async_predicate_validator() -> None:
         StringValidator(), predicates_async=[SomeAsyncListCheck()]
     )
     assert await l_validator.validate_async([]) == Invalid(
-        InvalidPredicates(l_validator, [SomeAsyncListCheck()])
+        l_validator, InvalidPredicates([SomeAsyncListCheck()])
     )
 
     assert await ListValidator(
@@ -132,7 +132,7 @@ async def test_child_validator_async_is_used() -> None:
     assert await l_validator.validate_async([1, 3]) == Valid([3])
 
     assert await l_validator.validate_async([1, 1, 1]) == Invalid(
-        InvalidPredicates(l_validator, [MaxItems(1)])
+        l_validator, InvalidPredicates([MaxItems(1)])
     )
 
 

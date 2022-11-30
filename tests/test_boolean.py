@@ -34,7 +34,7 @@ def test_boolean() -> None:
             return val is True
 
     assert (true_bool := BoolValidator(RequireTrue()))(False) == Invalid(
-        InvalidPredicates(true_bool, [RequireTrue()])
+        true_bool, InvalidPredicates([RequireTrue()])
     )
 
     assert b_v(1) == Invalid(InvalidType(b_v, bool))
@@ -47,7 +47,7 @@ def test_boolean() -> None:
     assert BoolValidator(IsTrue(), preprocessors=[Flip()])(False) == Valid(True)
 
     assert (req_true_v := BoolValidator(IsTrue()))(False) == Invalid(
-        InvalidPredicates(req_true_v, [IsTrue()])
+        req_true_v, InvalidPredicates([IsTrue()])
     )
 
 
@@ -65,7 +65,7 @@ async def test_boolean_validator_async() -> None:
         )
     ).validate_async(True)
 
-    assert result == Invalid(InvalidPredicates(require_true_v, [IsTrue()]))
+    assert result == Invalid(require_true_v, InvalidPredicates([IsTrue()]))
     assert await BoolValidator(
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(False) == Valid(True)

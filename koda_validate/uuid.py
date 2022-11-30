@@ -15,14 +15,12 @@ class UUIDValidator(_CoercingValidator[UUID]):
                 return True, UUID(val)
             except ValueError:
                 return False, InvalidCoercion(
-                    self,
                     [str, UUID],
                     UUID,
                 )
 
         else:
             return False, InvalidCoercion(
-                self,
                 [str, UUID],
                 UUID,
             )

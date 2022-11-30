@@ -144,7 +144,6 @@ class DataclassValidator(_ToTupleValidatorUnsafe[_DCT]):
             data = val.__dict__
         else:
             return False, InvalidCoercion(
-                self,
                 [dict, self.data_cls],
                 self.data_cls,
             )
@@ -173,7 +172,6 @@ class DataclassValidator(_ToTupleValidatorUnsafe[_DCT]):
             data = val.__dict__
         else:
             return False, InvalidCoercion(
-                self,
                 [dict, self.data_cls],
                 self.data_cls,
             )

@@ -33,9 +33,9 @@ from tests.utils import BasicNoneValidator
 
 def test_tuple2() -> None:
     validator = Tuple2Validator(StringValidator(), IntValidator())
-    assert validator({}) == Invalid(InvalidCoercion(validator, [list, tuple], tuple))
+    assert validator({}) == Invalid(validator, InvalidCoercion([list, tuple], tuple))
 
-    assert validator([]) == Invalid(InvalidPredicates(validator, [ExactItemCount(2)]))
+    assert validator([]) == Invalid(validator, InvalidPredicates([ExactItemCount(2)]))
 
     assert validator(["a", 1]) == Valid(("a", 1))
     assert Tuple2Validator(StringValidator(), BasicNoneValidator())(("a", None)) == Valid(
@@ -84,11 +84,11 @@ async def test_tuple2_async() -> None:
     s_v = StringValidator()
     validator = Tuple2Validator(s_v, IntValidator())
     assert await validator.validate_async({}) == Invalid(
-        InvalidCoercion(validator, [list, tuple], tuple)
+        validator, InvalidCoercion([list, tuple], tuple)
     )
 
     assert await validator.validate_async([]) == Invalid(
-        InvalidPredicates(validator, [ExactItemCount(2)])
+        validator, InvalidPredicates([ExactItemCount(2)])
     )
 
     assert await validator.validate_async(["a", 1]) == Valid(("a", 1))
@@ -137,9 +137,9 @@ def test_tuple3() -> None:
     i_v = IntValidator()
     b_v = BoolValidator()
     validator = Tuple3Validator(s_v, i_v, b_v)
-    assert validator({}) == Invalid(InvalidCoercion(validator, [list, tuple], tuple))
+    assert validator({}) == Invalid(validator, InvalidCoercion([list, tuple], tuple))
 
-    assert validator([]) == Invalid(InvalidPredicates(validator, [ExactItemCount(3)]))
+    assert validator([]) == Invalid(validator, InvalidPredicates([ExactItemCount(3)]))
 
     assert validator(["a", 1, False]) == Valid(("a", 1, False))
 
@@ -188,11 +188,11 @@ async def test_tuple3_async() -> None:
     bool_v = BoolValidator()
     validator = Tuple3Validator(str_v, int_v, bool_v)
     assert await validator.validate_async({}) == Invalid(
-        InvalidCoercion(validator, [list, tuple], tuple)
+        validator, InvalidCoercion([list, tuple], tuple)
     )
 
     assert await validator.validate_async([]) == Invalid(
-        InvalidPredicates(validator, [ExactItemCount(3)])
+        validator, InvalidPredicates([ExactItemCount(3)])
     )
 
     assert await validator.validate_async(["a", 1, False]) == Valid(("a", 1, False))
@@ -261,7 +261,7 @@ def test_tuple_homogenous_validator() -> None:
         preprocessors=[RemoveLast()],
     )
     assert t_p_p_validator((10.1, 7.7, 2.2, 5, 0.0)) == Invalid(
-        InvalidPredicates(t_p_p_validator, [MaxItems(3)])
+        t_p_p_validator, InvalidPredicates([MaxItems(3)])
     )
 
     n_v = TupleHomogenousValidator(BasicNoneValidator())
@@ -296,7 +296,7 @@ async def test_tuple_homogenous_async() -> None:
         FloatValidator(Min(5.5)), predicates=[MinItems(1), MaxItems(3)]
     )
     assert await t_validator.validate_async((10.1, 7.7, 2.2, 5)) == Invalid(
-        InvalidPredicates(t_validator, [MaxItems(3)])
+        t_validator, InvalidPredicates([MaxItems(3)])
     )
 
     n_v = TupleHomogenousValidator(BasicNoneValidator())
@@ -320,7 +320,7 @@ async def test_list_validator_with_async_predicate_validator() -> None:
         StringValidator(), predicates_async=[SomeAsyncListCheck()]
     )
     assert await t_validator.validate_async(()) == Invalid(
-        InvalidPredicates(t_validator, [SomeAsyncListCheck()])
+        t_validator, InvalidPredicates([SomeAsyncListCheck()])
     )
 
     assert await t_validator.validate_async(("hooray",)) == Valid(("hooray",))
@@ -347,7 +347,7 @@ async def test_child_validator_async_is_used() -> None:
     assert await l_validator.validate_async((1, 3)) == Valid((3,))
 
     assert await l_validator.validate_async((1, 1, 1)) == Invalid(
-        InvalidPredicates(l_validator, [MaxItems(1)])
+        l_validator, InvalidPredicates([MaxItems(1)])
     )
 
 

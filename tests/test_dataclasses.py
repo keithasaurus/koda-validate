@@ -27,7 +27,7 @@ class PersonSimple:
 def test_will_fail_if_not_dataclass() -> None:
     dc_v = DataclassValidator(PersonSimple)
     assert dc_v(None) == Invalid(
-        InvalidCoercion(dc_v, [dict, PersonSimple], PersonSimple)
+        dc_v, InvalidCoercion([dict, PersonSimple], PersonSimple)
     )
 
 
@@ -35,7 +35,7 @@ def test_will_fail_if_not_dataclass() -> None:
 async def test_will_fail_if_not_dataclass_async() -> None:
     dc_v = DataclassValidator(PersonSimple)
     assert await dc_v.validate_async(None) == Invalid(
-        InvalidCoercion(dc_v, [dict, PersonSimple], PersonSimple)
+        dc_v, InvalidCoercion([dict, PersonSimple], PersonSimple)
     )
 
 
@@ -47,7 +47,7 @@ def test_wrong_dataclass_is_invalid() -> None:
 
     dc_v = DataclassValidator(PersonSimple)
     assert dc_v(Other("ok", 5)) == Invalid(
-        InvalidCoercion(dc_v, [dict, PersonSimple], PersonSimple)
+        dc_v, InvalidCoercion([dict, PersonSimple], PersonSimple)
     )
 
 
@@ -60,7 +60,7 @@ async def test_wrong_dataclass_is_invalid_async() -> None:
 
     dc_v = DataclassValidator(PersonSimple)
     assert await dc_v.validate_async(Other("ok", 5)) == Invalid(
-        InvalidCoercion(dc_v, [dict, PersonSimple], PersonSimple)
+        dc_v, InvalidCoercion([dict, PersonSimple], PersonSimple)
     )
 
 
@@ -315,7 +315,7 @@ def test_will_fail_if_not_exact_dataclass() -> None:
 
     validator = DataclassValidator(PersonSimple)
     assert validator(Bad("hmm")) == Invalid(
-        InvalidCoercion(validator, [dict, PersonSimple], PersonSimple)
+        validator, InvalidCoercion([dict, PersonSimple], PersonSimple)
     )
 
 
