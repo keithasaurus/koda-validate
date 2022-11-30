@@ -56,7 +56,7 @@ _DCT = TypeVar("_DCT", bound=DataclassLike)
 
 
 # todo: evolve into general-purpose type-hint driven validator
-def get_typehint_validator(annotations: Any) -> Validator[Any, Any]:
+def get_typehint_validator(annotations: Any) -> Validator[Any]:
     if annotations is str:
         return StringValidator()
     elif annotations is int:
@@ -100,12 +100,12 @@ def get_typehint_validator(annotations: Any) -> Validator[Any, Any]:
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
 
-class DataclassValidator(_ToTupleValidatorUnsafe[Any, _DCT]):
+class DataclassValidator(_ToTupleValidatorUnsafe[_DCT]):
     def __init__(
         self,
         data_cls: Type[_DCT],
         *,
-        overrides: Optional[Dict[str, Validator[Any, Any]]] = None,
+        overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[typing.Callable[[_DCT], ValidationResult[_DCT]]] = None,
     ) -> None:
         self.data_cls = data_cls
@@ -126,7 +126,7 @@ class DataclassValidator(_ToTupleValidatorUnsafe[Any, _DCT]):
 
         self.validate_object = validate_object
 
-        self._fast_keys: List[Tuple[typing.Hashable, Validator[Any, Any], bool, bool]] = [
+        self._fast_keys: List[Tuple[typing.Hashable, Validator[Any], bool, bool]] = [
             (
                 key,
                 val,

@@ -5,7 +5,7 @@ from koda_validate import *
 from koda_validate.base import InvalidType, ValidationResult
 
 
-class SimpleFloatValidator(Validator[Any, float]):
+class SimpleFloatValidator(Validator[float]):
 
     # this validator doesn't do any IO, so we can just use the `__call__` method
     async def validate_async(self, val: Any) -> ValidationResult[float]:

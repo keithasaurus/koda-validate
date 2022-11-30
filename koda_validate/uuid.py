@@ -5,7 +5,7 @@ from koda_validate._internal import _CoercingValidator, _ResultTupleUnsafe
 from koda_validate.base import InvalidCoercion
 
 
-class UUIDValidator(_CoercingValidator[Any, UUID]):
+class UUIDValidator(_CoercingValidator[UUID]):
     def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is UUID:
             return True, val

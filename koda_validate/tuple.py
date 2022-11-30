@@ -27,12 +27,12 @@ from koda_validate.base import (
 )
 
 
-class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
+class TupleNValidatorAny(_ToTupleValidatorUnsafe[Tuple[Any, ...]]):
     """
     Will be type-safe when we have variadic args available generally
     """
 
-    def __init__(self, *validators: Validator[Any, Any]) -> None:
+    def __init__(self, *validators: Validator[Any]) -> None:
         self.validators = validators
         self._len_predicate = ExactItemCount(len(validators))
 
@@ -96,14 +96,14 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Any, Tuple[Any, ...]]):
 
 
 # todo: auto-generate
-class Tuple2Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B]]):
+class Tuple2Validator(_ToTupleValidatorUnsafe[Tuple[A, B]]):
     __match_args__ = ("slot1_validator", "slot2_validator", "tuple_validator")
     required_length: int = 2
 
     def __init__(
         self,
-        slot1_validator: Validator[Any, A],
-        slot2_validator: Validator[Any, B],
+        slot1_validator: Validator[A],
+        slot2_validator: Validator[B],
         tuple_validator: Optional[
             Callable[[Tuple[A, B]], ValidationResult[Tuple[A, B]]]
         ] = None,
@@ -144,7 +144,7 @@ class Tuple2Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B]]):
             return False, new_val
 
 
-class Tuple3Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B, C]]):
+class Tuple3Validator(_ToTupleValidatorUnsafe[Tuple[A, B, C]]):
     __match_args__ = (
         "slot1_validator",
         "slot2_validator",
@@ -155,9 +155,9 @@ class Tuple3Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B, C]]):
 
     def __init__(
         self,
-        slot1_validator: Validator[Any, A],
-        slot2_validator: Validator[Any, B],
-        slot3_validator: Validator[Any, C],
+        slot1_validator: Validator[A],
+        slot2_validator: Validator[B],
+        slot3_validator: Validator[C],
         tuple_validator: Optional[
             Callable[[Tuple[A, B, C]], ValidationResult[Tuple[A, B, C]]]
         ] = None,
@@ -197,12 +197,12 @@ class Tuple3Validator(_ToTupleValidatorUnsafe[Any, Tuple[A, B, C]]):
             return False, new_val
 
 
-class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Any, Tuple[A, ...]]):
+class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Tuple[A, ...]]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        item_validator: Validator[Any, A],
+        item_validator: Validator[A],
         *,
         predicates: Optional[List[Predicate[Tuple[A, ...]]]] = None,
         predicates_async: Optional[List[PredicateAsync[Tuple[A, ...]]]] = None,

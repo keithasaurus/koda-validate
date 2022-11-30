@@ -5,7 +5,7 @@ from koda_validate._internal import _CoercingValidator, _ResultTupleUnsafe
 from koda_validate.base import InvalidCoercion
 
 
-class DateValidator(_CoercingValidator[Any, date]):
+class DateValidator(_CoercingValidator[date]):
     def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is date:
             return True, val
@@ -20,7 +20,7 @@ class DateValidator(_CoercingValidator[Any, date]):
                 )
 
 
-class DatetimeValidator(_CoercingValidator[Any, datetime]):
+class DatetimeValidator(_CoercingValidator[datetime]):
     def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is datetime:
             return True, val

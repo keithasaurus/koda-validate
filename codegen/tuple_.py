@@ -51,9 +51,9 @@ _Settable = Union[A, _NotSet]
         tuple_into_signatures.append(f"Callable[[{generic_vals}], Ret]")
 
         tuple_validator_fields.append(
-            f"field{i + 1}: Validator[Any, {type_vars[i]}, Serializable]"
+            f"field{i + 1}: Validator[{type_vars[i]}]"
             if i == 0
-            else f"field{i + 1}: Optional[Validator[Any, {type_vars[i]}, Serializable]] = None"
+            else f"field{i + 1}: Optional[Validator[{type_vars[i]}]] = None"
         )
 
         typed_tuple_args.append(
@@ -108,7 +108,7 @@ def typed_tuple(
 
 class TupleValidator(
     Generic[Ret],
-    Validator[Any, Ret, Serializable]
+    Validator[Ret]
 ):
     __slots__ = ('into', 'fields', 'validate_object')
     __match_args__ = ('into', 'fields', 'validate_object')
@@ -144,7 +144,7 @@ class TupleValidator(
         validate_object: Optional[Callable[[Ret], Result[Ret, Serializable]]] = None
     ) -> None:
         self.into = into
-        self.fields: Tuple[Validator[Any, Any, Serializable], ...] = tuple(
+        self.fields: Tuple[Validator[Any], ...] = tuple(
             f for f in (
                 {tuple_fields},\n
             ) if f is not None)

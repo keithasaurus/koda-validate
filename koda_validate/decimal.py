@@ -6,7 +6,7 @@ from koda_validate._internal import _CoercingValidator, _ResultTupleUnsafe
 from koda_validate.base import InvalidCoercion
 
 
-class DecimalValidator(_CoercingValidator[Any, Decimal]):
+class DecimalValidator(_CoercingValidator[Decimal]):
     def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
         if type(val) is Decimal:
             return True, val

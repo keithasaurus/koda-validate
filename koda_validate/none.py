@@ -18,14 +18,14 @@ class NoneValidator(_ExactTypeValidator[None]):
 none_validator = NoneValidator()
 
 
-class OptionalValidator(Validator[Any, Optional[A]]):
+class OptionalValidator(Validator[Optional[A]]):
     """
     We have a value for a key, but it can be null (None)
     """
 
     __match_args__ = ("validator",)
 
-    def __init__(self, validator: Validator[Any, A]) -> None:
+    def __init__(self, validator: Validator[A]) -> None:
         self.validator = UnionValidatorAny(none_validator, validator)
 
     async def validate_async(self, val: Any) -> ValidationResult[Optional[A]]:

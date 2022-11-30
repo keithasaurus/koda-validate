@@ -34,7 +34,7 @@ from koda_validate.base import (
 _ResultTupleUnsafe = Tuple[bool, Any]
 
 
-class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
+class _ToTupleValidatorUnsafe(Validator[SuccessT]):
     """
     This `Validator` subclass exists for optimization. When we call
     nested validators it's much less computation to deal with simple
@@ -68,10 +68,10 @@ class _ToTupleValidatorUnsafe(Validator[InputT, SuccessT]):
 
 
 def validate_dict_to_tuple(
-    source_validator: Validator[Any, Any],
+    source_validator: Validator[Any],
     preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
-    fast_keys: List[Tuple[Hashable, Validator[Any, Any], bool, bool]],
-    schema: Dict[Any, Validator[Any, Any]],
+    fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
+    schema: Dict[Any, Validator[Any]],
     unknown_keys_err: Tuple[bool, InvalidExtraKeys],
     data: Any,
 ) -> _ResultTupleUnsafe:
@@ -121,10 +121,10 @@ def validate_dict_to_tuple(
 
 
 async def validate_dict_to_tuple_async(
-    source_validator: Validator[Any, Any],
+    source_validator: Validator[Any],
     preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
-    fast_keys: List[Tuple[Hashable, Validator[Any, Any], bool, bool]],
-    schema: Dict[Any, Validator[Any, Any]],
+    fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
+    schema: Dict[Any, Validator[Any]],
     unknown_keys_err: Tuple[bool, InvalidExtraKeys],
     data: Any,
 ) -> _ResultTupleUnsafe:
@@ -190,7 +190,7 @@ def _async_predicates_warning(cls: Type[Any]) -> NoReturn:
     )
 
 
-class _ExactTypeValidator(_ToTupleValidatorUnsafe[Any, SuccessT]):
+class _ExactTypeValidator(_ToTupleValidatorUnsafe[SuccessT]):
     """
     This `Validator` subclass exists primarily for code cleanliness and standardization.
     It allows us to have very simple Scalar validators.
@@ -270,7 +270,7 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[Any, SuccessT]):
         return False, self._type_err
 
 
-class _CoercingValidator(_ToTupleValidatorUnsafe[InputT, SuccessT]):
+class _CoercingValidator(_ToTupleValidatorUnsafe[SuccessT]):
     """
     This `Validator` subclass exists primarily for code cleanliness and standardization.
     It allows us to have very simple Scalar validators.

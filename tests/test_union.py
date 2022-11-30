@@ -41,7 +41,7 @@ def test_union_validator_any() -> None:
 
 @pytest.mark.asyncio
 async def test_union_validator_any_async() -> None:
-    class TestNoneValidator(Validator[Any, None]):
+    class TestNoneValidator(Validator[None]):
         async def validate_async(self, val: Any) -> ValidationResult[None]:
             return self(val)
 

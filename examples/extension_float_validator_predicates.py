@@ -6,7 +6,7 @@ from koda_validate.base import InvalidPredicates, InvalidType, ValidationResult
 
 
 @dataclass
-class SimpleFloatValidator2(Validator[Any, float]):
+class SimpleFloatValidator2(Validator[float]):
     predicate: Optional[Predicate[float]] = None
 
     def __call__(self, val: Any) -> ValidationResult[float]:
@@ -48,7 +48,7 @@ assert range_validator(0.01) == Invalid(
 
 
 @dataclass
-class SimpleFloatValidator3(Validator[Any, float]):
+class SimpleFloatValidator3(Validator[float]):
     predicate: Optional[Predicate[float]] = None
     preprocessor: Optional[Processor[float]] = None
 

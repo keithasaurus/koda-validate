@@ -7,13 +7,13 @@ from koda_validate import Invalid, Valid
 from koda_validate.base import InvalidVariants, ValidationResult, Validator
 
 
-class OneOf2(Validator[Any, Either[A, B]]):
+class OneOf2(Validator[Either[A, B]]):
     __match_args__ = ("variant_1", "variant_2")
 
     def __init__(
         self,
-        variant_1: Validator[Any, A],
-        variant_2: Validator[Any, B],
+        variant_1: Validator[A],
+        variant_2: Validator[B],
     ) -> None:
         self.variant_1 = variant_1
         self.variant_2 = variant_2
@@ -37,14 +37,14 @@ class OneOf2(Validator[Any, Either[A, B]]):
                 return Invalid(InvalidVariants(self, [v1_result.val, v2_result.val]))
 
 
-class OneOf3(Validator[Any, Either3[A, B, C]]):
+class OneOf3(Validator[Either3[A, B, C]]):
     __match_args__ = ("variant_1", "variant_2", "variant_3")
 
     def __init__(
         self,
-        variant_1: Validator[Any, A],
-        variant_2: Validator[Any, B],
-        variant_3: Validator[Any, C],
+        variant_1: Validator[A],
+        variant_2: Validator[B],
+        variant_3: Validator[C],
     ) -> None:
         self.variant_1 = variant_1
         self.variant_2 = variant_2

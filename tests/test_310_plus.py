@@ -157,7 +157,7 @@ def test_dict_any_match_args() -> None:
         else:
             return Valid(p)
 
-    schema_: Dict[Hashable, Validator[Any, Any]] = {
+    schema_: Dict[Hashable, Validator[Any]] = {
         "name": StringValidator(),
         "age": IntValidator(),
     }

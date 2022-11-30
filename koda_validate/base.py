@@ -16,7 +16,7 @@ from typing import (
 
 from koda import Err, Ok, Result
 
-from koda_validate._generics import A, FailT, InputT, SuccessT
+from koda_validate._generics import A, FailT, SuccessT
 
 
 class Valid(Generic[A]):
@@ -66,7 +66,7 @@ class ValidatorErrorBase:
     Simple base class which merely includes the originating validator for transparency
     """
 
-    validator: "Validator[Any, Any]"
+    validator: "Validator[Any]"
 
 
 @dataclass
@@ -179,24 +179,24 @@ ValidationErr = Union[
 ValidationResult = Validated[A, ValidationErr]
 
 
-class Validator(Generic[InputT, SuccessT]):
+class Validator(Generic[SuccessT]):
     """
-    Essentially a `Callable[[A], Result[B, ValidationErr]]`, but allows us to
+    Essentially a `Callable[[Any], Result[SuccessT, ValidationErr]]`, but allows us to
     retain metadata from the validator (instead of hiding inside a closure). For
     instance, we can later access `5` from something like `MaxLength(5)`.
     """
 
-    async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
+    async def validate_async(self, val: Any) -> ValidationResult[SuccessT]:
         """
         make it possible for all validators to be async-compatible
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
+    def __call__(self, val: Any) -> ValidationResult[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
 
-class Predicate(Generic[InputT]):
+class Predicate(Generic[A]):
     """
     The important aspect of a `Predicate` is that it is not
     possible to change the data passed in (it is technically possible to mutate
@@ -208,17 +208,17 @@ class Predicate(Generic[InputT]):
     """
 
     @abstractmethod
-    def __call__(self, val: InputT) -> bool:  # pragma: no cover
+    def __call__(self, val: A) -> bool:  # pragma: no cover
         raise NotImplementedError()  # pragma: no cover
 
 
-class PredicateAsync(Generic[InputT]):
+class PredicateAsync(Generic[A]):
     """
     For async-only validation.
     """
 
     @abstractmethod
-    async def validate_async(self, val: InputT) -> bool:  # pragma: no cover
+    async def validate_async(self, val: A) -> bool:  # pragma: no cover
         raise NotImplementedError()  # pragma: no cover
 
 

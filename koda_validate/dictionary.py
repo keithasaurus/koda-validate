@@ -60,13 +60,13 @@ from koda_validate.base import (
 )
 
 
-class KeyNotRequired(Validator[Any, Maybe[A]]):
+class KeyNotRequired(Validator[Maybe[A]]):
     """
     For complex type reasons in the KeyValidator definition,
     this does not subclass Validator (even though it probably should)
     """
 
-    def __init__(self, validator: Validator[Any, A]):
+    def __init__(self, validator: Validator[A]):
         self.validator = validator
 
     async def validate_async(self, val: Any) -> ValidationResult[Maybe[A]]:
@@ -86,11 +86,11 @@ class KeyNotRequired(Validator[Any, Maybe[A]]):
 
 KeyValidator = Tuple[
     Hashable,
-    Validator[Any, A],
+    Validator[A],
 ]
 
 
-class MapValidator(Validator[Any, Dict[T1, T2]]):
+class MapValidator(Validator[Dict[T1, T2]]):
     __match_args__ = (
         "key_validator",
         "value_validator",
@@ -102,8 +102,8 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
     def __init__(
         self,
         *,
-        key: Validator[Any, T1],
-        value: Validator[Any, T2],
+        key: Validator[T1],
+        value: Validator[T2],
         predicates: Optional[List[Predicate[Dict[T1, T2]]]] = None,
         predicates_async: Optional[List[PredicateAsync[Dict[T1, T2]]]] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
@@ -210,7 +210,7 @@ class MapValidator(Validator[Any, Dict[T1, T2]]):
             return Invalid(InvalidType(self, dict))
 
 
-class IsDictValidator(_ToTupleValidatorUnsafe[Any, Dict[Any, Any]]):
+class IsDictValidator(_ToTupleValidatorUnsafe[Dict[Any, Any]]):
     def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         if isinstance(val, dict):
             return True, val
@@ -240,7 +240,7 @@ class MaxKeys(Predicate[Dict[Any, Any]]):
         return len(val) <= self.size
 
 
-class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
+class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
     __match_args__ = (
         "keys",
         "into",
@@ -956,7 +956,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Any, Ret]):
                 return True, obj
 
 
-class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
+class DictValidatorAny(_ToTupleValidatorUnsafe[Any]):
     """
     This differs from RecordValidator in a few ways:
     - if valid, it returns a dict; it does not allow another target to be specified
@@ -983,7 +983,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
 
     def __init__(
         self,
-        schema: Dict[Any, Validator[Any, Any]],
+        schema: Dict[Any, Validator[Any]],
         *,
         validate_object: Optional[
             Callable[[Dict[Hashable, Any]], ValidationResult[Dict[Any, Any]]]
@@ -996,7 +996,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
-        self.schema: Dict[Any, Validator[Any, Any]] = schema
+        self.schema: Dict[Any, Validator[Any]] = schema
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 

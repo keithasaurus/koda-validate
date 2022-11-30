@@ -262,7 +262,7 @@ from typing import Any
 from koda_validate import * 
 
 
-class SimpleFloatValidator(Validator[Any, float, Serializable]):
+class SimpleFloatValidator(Validator[float]):
     def __call__(self, val: Any) -> Validated[float, Serializable]:
         if isinstance(val, float):
             return Valid(val)
@@ -301,7 +301,7 @@ from typing import Any, Optional
 from koda_validate import *
 
 @dataclass
-class SimpleFloatValidator2(Validator[Any, float, Serializable]):
+class SimpleFloatValidator2(Validator[float]):
     predicate: Optional[Predicate[float, Serializable]] = None
 
     def __call__(self, val: Any) -> Validated[float, Serializable]:
@@ -354,7 +354,7 @@ value of that type. In our case, we want to preprocess our `float`s by convertin
 # (continuing from previous example)
 
 @dataclass
-class SimpleFloatValidator3(Validator[Any, float, Serializable]):
+class SimpleFloatValidator3(Validator[float]):
     predicate: Optional[Predicate[float, Serializable]] = None
     preprocessor: Optional[Processor[float]] = None
 
@@ -581,7 +581,7 @@ from typing import Any
 from koda_validate import *
 
 
-class SimpleFloatValidator(Validator[Any, float, Serializable]):
+class SimpleFloatValidator(Validator[float]):
     def __call__(self, val: Any) -> Validated[float, Serializable]:
         if isinstance(val, float):
             return Valid(val)
@@ -619,7 +619,7 @@ from typing import Any
 from koda_validate import * 
 
 
-def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]) -> str:
+def describe_validator(validator: Validator[Any, Any] | Predicate[Any, Any]) -> str:
     # use `isinstance(...)` in python <= 3.10
     match validator:
         case StringValidator(predicates):

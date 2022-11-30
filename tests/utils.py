@@ -4,7 +4,7 @@ from koda_validate import Invalid, Valid, Validator
 from koda_validate.base import InvalidType, ValidationResult
 
 
-class BasicNoneValidator(Validator[Any, None]):
+class BasicNoneValidator(Validator[None]):
     """
     Since most validators are _ToTuplevalidatorUnsafe*, this gives us a
     way to make sure we are still exercising the normal `Validator` paths

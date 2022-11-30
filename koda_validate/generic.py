@@ -22,7 +22,7 @@ from koda_validate.base import (
 EnumT = TypeVar("EnumT", str, int)
 
 
-class Lazy(Validator[A, Ret]):
+class Lazy(Validator[Ret]):
     __match_args__ = (
         "validator",
         "recurrent",
@@ -30,7 +30,7 @@ class Lazy(Validator[A, Ret]):
 
     def __init__(
         self,
-        validator: Thunk[Validator[A, Ret]],
+        validator: Thunk[Validator[Ret]],
         recurrent: bool = True,
     ) -> None:
         """
@@ -43,10 +43,10 @@ class Lazy(Validator[A, Ret]):
         self.validator = validator
         self.recurrent = recurrent
 
-    async def validate_async(self, data: A) -> ValidationResult[Ret]:
+    async def validate_async(self, data: Any) -> ValidationResult[Ret]:
         return await self.validator().validate_async(data)
 
-    def __call__(self, data: A) -> ValidationResult[Ret]:
+    def __call__(self, data: Any) -> ValidationResult[Ret]:
         return self.validator()(data)
 
 
@@ -123,7 +123,7 @@ class EqualTo(Predicate[ExactMatchT]):
 
 
 @dataclass(init=False)
-class EqualsValidator(Validator[Any, ExactMatchT]):
+class EqualsValidator(Validator[ExactMatchT]):
     match: ExactMatchT
     preprocessors: Optional[List[Processor[ExactMatchT]]] = None
 
@@ -153,17 +153,17 @@ class EqualsValidator(Validator[Any, ExactMatchT]):
             return Invalid(InvalidType(self, match_type))
 
 
-class AlwaysValid(_ToTupleValidatorUnsafe[A, A]):
+class AlwaysValid(_ToTupleValidatorUnsafe[A]):
     __match_args__ = ()
 
-    def validate_to_tuple(self, val: A) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         return True, val
 
-    async def validate_to_tuple_async(self, val: A) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
         return True, val
 
 
-always_valid: _ToTupleValidatorUnsafe[Any, Any] = AlwaysValid()
+always_valid: _ToTupleValidatorUnsafe[Any] = AlwaysValid()
 ListOrTupleAny = TypeVar("ListOrTupleAny", List[Any], Tuple[Any, ...])
 
 

@@ -18,12 +18,12 @@ from koda_validate.base import (
 )
 
 
-class ListValidator(_ToTupleValidatorUnsafe[Any, List[A]]):
+class ListValidator(_ToTupleValidatorUnsafe[List[A]]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
 
     def __init__(
         self,
-        item_validator: Validator[Any, A],
+        item_validator: Validator[A],
         *,
         predicates: Optional[List[Predicate[List[A]]]] = None,
         predicates_async: Optional[List[PredicateAsync[List[A]]]] = None,

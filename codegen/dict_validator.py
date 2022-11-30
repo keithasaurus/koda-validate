@@ -76,8 +76,8 @@ EXPECTED_DICT_ERR: Final[Tuple[Literal[False], Dict[str, List[ValidationError]]]
 KEY_MISSING_MSG: Final[Serializable] = ["key missing"]
 
 
-class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):
-    def __init__(self, validator: Validator[Any, A, Serializable]):
+class KeyNotRequired(Validator[Maybe[A]]):
+    def __init__(self, validator: Validator[A]):
         self.validator = validator
 
     def __call__(self, val: Any) -> Validated[Maybe[A], Serializable]:
@@ -89,11 +89,11 @@ class KeyNotRequired(Validator[Any, Maybe[A], Serializable]):
 
 KeyValidator = Tuple[
     Hashable,
-    Validator[Any, A, Serializable],
+    Validator[A],
 ]
 
 
-class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
+class MapValidator(Validator[Dict[T1, T2]]):
     __slots__ = (
         "key_validator",
         "value_validator",
@@ -112,8 +112,8 @@ class MapValidator(Validator[Any, Dict[T1, T2], Serializable]):
     def __init__(
         self,
         *,
-        key: Validator[Any, T1, Serializable],
-        value: Validator[Any, T2, Serializable],
+        key: Validator[T1],
+        value: Validator[T2],
         predicates: Optional[List[Predicate[Dict[T1, T2], Serializable]]] = None,
         predicates_async: Optional[
             List[PredicateAsync[Dict[T1, T2], Serializable]]
@@ -510,7 +510,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
 
     def __init__(
         self,
-        schema: Dict[Any, Validator[Any, Any, Serializable]],
+        schema: Dict[Any, Validator[Any]],
         *,
         validate_object: Optional[
             Callable[[Dict[Hashable, Any]], Validated[Dict[Any, Any], Serializable]]
@@ -523,7 +523,7 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any, Any, Serializable]):
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
-        self.schema: Dict[Any, Validator[Any, Any, Serializable]] = schema
+        self.schema: Dict[Any, Validator[Any]] = schema
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 

@@ -4,7 +4,7 @@ from koda_validate._internal import _ResultTupleUnsafe, _ToTupleValidatorUnsafe
 from koda_validate.base import InvalidVariants, Validator
 
 
-class UnionValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
+class UnionValidatorAny(_ToTupleValidatorUnsafe[Any]):
     """
     Until we're comfortable using variadic args, we'll just keep this private
     """
@@ -14,10 +14,10 @@ class UnionValidatorAny(_ToTupleValidatorUnsafe[Any, Any]):
     def __init__(
         self,
         # just a way to enforce at least one validator is defined
-        validator_1: Validator[Any, Any],
-        *validators: Validator[Any, Any],
+        validator_1: Validator[Any],
+        *validators: Validator[Any],
     ) -> None:
-        self.validators: Tuple[Validator[Any, Any], ...] = (validator_1,) + validators
+        self.validators: Tuple[Validator[Any], ...] = (validator_1,) + validators
 
     def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
         errs = []
