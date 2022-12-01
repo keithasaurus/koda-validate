@@ -97,6 +97,9 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
                 return TupleHomogenousValidator(get_typehint_validator(args[0]))
             else:
                 return TupleNValidatorAny(*[get_typehint_validator(a) for a in args])
+        if sys.version_info >= (3, 9) and origin is typing.Annotated:
+            return get_typehint_validator(args[0])
+
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
 
