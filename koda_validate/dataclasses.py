@@ -12,10 +12,6 @@ from koda_validate._internal import (
 
 if sys.version_info >= (3, 10):
     from types import UnionType
-if sys.version_info >= (3, 9):
-    from typing import Annotated
-else:
-    Annotated = None
 
 from typing import (
     Any,
@@ -32,6 +28,12 @@ from typing import (
     get_origin,
     get_type_hints,
 )
+
+if sys.version_info >= (3, 9):
+    from typing import Annotated
+else:
+    Annotated: Any = None
+
 from uuid import UUID
 
 from koda_validate import (
