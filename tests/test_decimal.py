@@ -27,7 +27,7 @@ def test_decimal() -> None:
     assert d_v("a string") == Invalid(
         d_v,
         CoercionErr(
-            [str, int, Decimal],
+            {str, int, Decimal},
             Decimal,
         ),
     )
@@ -35,7 +35,7 @@ def test_decimal() -> None:
     assert d_v(5.5) == Invalid(
         d_v,
         CoercionErr(
-            [str, int, Decimal],
+            {str, int, Decimal},
             Decimal,
         ),
     )
@@ -60,7 +60,7 @@ async def test_decimal_async() -> None:
     assert await d_v.validate_async("abc") == Invalid(
         d_v,
         CoercionErr(
-            [str, int, Decimal],
+            {str, int, Decimal},
             Decimal,
         ),
     )
@@ -68,7 +68,7 @@ async def test_decimal_async() -> None:
     assert await d_v.validate_async(5.5) == Invalid(
         d_v,
         CoercionErr(
-            [str, int, Decimal],
+            {str, int, Decimal},
             Decimal,
         ),
     )

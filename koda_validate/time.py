@@ -16,7 +16,7 @@ class DateValidator(_CoercingValidator[date]):
                 return False, Invalid(
                     self,
                     CoercionErr(
-                        [str, date],
+                        {str, date},
                         date,
                     ),
                 )
@@ -32,4 +32,4 @@ class DatetimeValidator(_CoercingValidator[datetime]):
                 # to add the dependency at some point
                 return True, datetime.fromisoformat(val)
             except (ValueError, TypeError):
-                return False, Invalid(self, CoercionErr([str, datetime], datetime))
+                return False, Invalid(self, CoercionErr({str, datetime}, datetime))

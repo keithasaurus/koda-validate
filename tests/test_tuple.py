@@ -33,7 +33,7 @@ from tests.utils import BasicNoneValidator
 
 def test_tuple2() -> None:
     validator = Tuple2Validator(StringValidator(), IntValidator())
-    assert validator({}) == Invalid(validator, CoercionErr([list, tuple], tuple))
+    assert validator({}) == Invalid(validator, CoercionErr({list, tuple}, tuple))
 
     assert validator([]) == Invalid(validator, PredicateErrs([ExactItemCount(2)]))
 
@@ -82,7 +82,7 @@ async def test_tuple2_async() -> None:
     s_v = StringValidator()
     validator = Tuple2Validator(s_v, IntValidator())
     assert await validator.validate_async({}) == Invalid(
-        validator, CoercionErr([list, tuple], tuple)
+        validator, CoercionErr({list, tuple}, tuple)
     )
 
     assert await validator.validate_async([]) == Invalid(
@@ -134,7 +134,7 @@ def test_tuple3() -> None:
     i_v = IntValidator()
     b_v = BoolValidator()
     validator = Tuple3Validator(s_v, i_v, b_v)
-    assert validator({}) == Invalid(validator, CoercionErr([list, tuple], tuple))
+    assert validator({}) == Invalid(validator, CoercionErr({list, tuple}, tuple))
 
     assert validator([]) == Invalid(validator, PredicateErrs([ExactItemCount(3)]))
 
@@ -183,7 +183,7 @@ async def test_tuple3_async() -> None:
     bool_v = BoolValidator()
     validator = Tuple3Validator(str_v, int_v, bool_v)
     assert await validator.validate_async({}) == Invalid(
-        validator, CoercionErr([list, tuple], tuple)
+        validator, CoercionErr({list, tuple}, tuple)
     )
 
     assert await validator.validate_async([]) == Invalid(

@@ -18,10 +18,10 @@ class ReverseUUID(Processor[UUID]):
 def test_UUID() -> None:
     uuid_validator = UUIDValidator()
     assert uuid_validator("a string") == Invalid(
-        uuid_validator, CoercionErr([str, UUID], UUID)
+        uuid_validator, CoercionErr({str, UUID}, UUID)
     )
 
-    assert uuid_validator(5.5) == Invalid(uuid_validator, CoercionErr([str, UUID], UUID))
+    assert uuid_validator(5.5) == Invalid(uuid_validator, CoercionErr({str, UUID}, UUID))
 
     assert uuid_validator(UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222")) == Valid(
         UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222")
@@ -56,13 +56,13 @@ async def test_UUID_async() -> None:
     assert await uuid_validator.validate_async("abc") == Invalid(
         uuid_validator,
         CoercionErr(
-            [str, UUID],
+            {str, UUID},
             UUID,
         ),
     )
 
     assert await uuid_validator.validate_async(5.5) == Invalid(
-        uuid_validator, CoercionErr([str, UUID], UUID)
+        uuid_validator, CoercionErr({str, UUID}, UUID)
     )
 
     assert await uuid_validator.validate_async(

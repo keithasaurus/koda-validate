@@ -23,7 +23,7 @@ class CoercionErr:
     When one or more types can be coerced to a destination type
     """
 
-    compatible_types: List[Type[Any]]
+    compatible_types: Set[Type[Any]]
     dest_type: Type[Any]
 
 

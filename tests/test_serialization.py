@@ -69,8 +69,8 @@ def test_key_missing_returns_list_str() -> None:
 
 def test_coercion_err_uses_message() -> None:
     assert serializable_validation_err(
-        Invalid(DecimalValidator(), CoercionErr([str, int, Decimal], Decimal))
-    ) == ["could not coerce to Decimal (compatible with str, int, Decimal)"]
+        Invalid(DecimalValidator(), CoercionErr({str, int, Decimal}, Decimal))
+    ) == ["could not coerce to Decimal (compatible with Decimal, int, str)"]
 
 
 def test_iterable_errs() -> None:

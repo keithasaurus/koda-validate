@@ -62,7 +62,7 @@ class TupleNValidatorAny(_ToTupleValidator[Tuple[Any, ...]]):
                 return True, tuple(vals)
 
         else:
-            return False, Invalid(self, CoercionErr([list, tuple], tuple))
+            return False, Invalid(self, CoercionErr({list, tuple}, tuple))
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Tuple[Any, ...]]:
         val_type = type(val)
@@ -92,7 +92,7 @@ class TupleNValidatorAny(_ToTupleValidator[Tuple[Any, ...]]):
                 return True, tuple(vals)
 
         else:
-            return False, Invalid(self, CoercionErr([list, tuple], tuple))
+            return False, Invalid(self, CoercionErr({list, tuple}, tuple))
 
 
 # todo: auto-generate

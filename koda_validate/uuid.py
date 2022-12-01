@@ -17,7 +17,7 @@ class UUIDValidator(_CoercingValidator[UUID]):
                 return False, Invalid(
                     self,
                     CoercionErr(
-                        [str, UUID],
+                        {str, UUID},
                         UUID,
                     ),
                 )
@@ -26,7 +26,7 @@ class UUIDValidator(_CoercingValidator[UUID]):
             return False, Invalid(
                 self,
                 CoercionErr(
-                    [str, UUID],
+                    {str, UUID},
                     UUID,
                 ),
             )

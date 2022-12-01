@@ -157,7 +157,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             return False, Invalid(
                 self,
                 CoercionErr(
-                    [dict, self.data_cls],
+                    {dict, self.data_cls},
                     self.data_cls,
                 ),
             )
@@ -188,7 +188,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             return False, Invalid(
                 self,
                 CoercionErr(
-                    [dict, self.data_cls],
+                    {dict, self.data_cls},
                     self.data_cls,
                 ),
             )

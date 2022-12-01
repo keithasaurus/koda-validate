@@ -19,7 +19,7 @@ class DecimalValidator(_CoercingValidator[Decimal]):
         return False, Invalid(
             self,
             CoercionErr(
-                compatible_types=[str, int, Decimal],
+                compatible_types={str, int, Decimal},
                 dest_type=Decimal,
             ),
         )

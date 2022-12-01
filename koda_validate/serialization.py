@@ -89,7 +89,7 @@ def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str
 def serializable_validation_err(invalid: Invalid) -> Serializable:
     err = invalid.err_type
     if isinstance(err, CoercionErr):
-        compatible_names = [t.__name__ for t in err.compatible_types]
+        compatible_names = sorted([t.__name__ for t in err.compatible_types])
         return [
             f"could not coerce to {err.dest_type.__name__} "
             f"(compatible with {', '.join(compatible_names)})"
