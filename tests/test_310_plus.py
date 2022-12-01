@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Hashable, List, Optional, Union, cast
+from typing import Annotated, Any, Dict, Hashable, List, Optional, Union, cast
 
 from koda import Maybe
 
@@ -590,3 +590,9 @@ def test_get_typehint_validator_tuple_homogenous() -> None:
     tuple_homogeneous_validator_1 = get_typehint_validator(tuple[str, ...])
     assert isinstance(tuple_homogeneous_validator_1, TupleHomogenousValidator)
     assert isinstance(tuple_homogeneous_validator_1.item_validator, StringValidator)
+
+
+def test_get_typehint_validator_ignores_annotated() -> None:
+    assert isinstance(
+        get_typehint_validator(Annotated[str, "something"]), StringValidator
+    )

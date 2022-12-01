@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Annotated, Optional, Tuple
+from typing import Optional, Tuple
 from uuid import UUID, uuid4
 
 import pytest
@@ -335,9 +335,3 @@ def test_get_typehint_validator_bare_tuple() -> None:
     for t_validator in [get_typehint_validator(tuple), get_typehint_validator(Tuple)]:
         assert isinstance(t_validator, TupleHomogenousValidator)
         assert isinstance(t_validator.item_validator, AlwaysValid)
-
-
-def test_get_typehint_validator_ignores_annotated() -> None:
-    assert isinstance(
-        get_typehint_validator(Annotated[str, "something"]), StringValidator
-    )
