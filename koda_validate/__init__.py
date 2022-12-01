@@ -2,7 +2,7 @@ __all__ = (
     # base.py
     "Valid",
     "Invalid",
-    "Validated",
+    "ValidationResult",
     "Validator",
     "Predicate",
     "PredicateAsync",
@@ -77,7 +77,7 @@ from koda_validate.base import (
     PredicateAsync,
     Processor,
     Valid,
-    Validated,
+    ValidationResult,
     Validator,
 )
 from koda_validate.boolean import BoolValidator

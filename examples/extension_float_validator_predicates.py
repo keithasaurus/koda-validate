@@ -2,14 +2,14 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 from koda_validate import *
-from koda_validate.base import InvalidPredicates, InvalidType, Validated
+from koda_validate.base import InvalidPredicates, InvalidType, ValidationResult
 
 
 @dataclass
 class SimpleFloatValidator2(Validator[float]):
     predicate: Optional[Predicate[float]] = None
 
-    def __call__(self, val: Any) -> Validated[float]:
+    def __call__(self, val: Any) -> ValidationResult[float]:
         if isinstance(val, float):
             if self.predicate:
                 return (
@@ -52,7 +52,7 @@ class SimpleFloatValidator3(Validator[float]):
     predicate: Optional[Predicate[float]] = None
     preprocessor: Optional[Processor[float]] = None
 
-    def __call__(self, val: Any) -> Validated[float]:
+    def __call__(self, val: Any) -> ValidationResult[float]:
         if isinstance(val, float):
             if self.preprocessor:
                 val = self.preprocessor(val)

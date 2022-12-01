@@ -45,7 +45,7 @@ from koda_validate.base import (
     InvalidSimple,
     InvalidType,
     InvalidVariants,
-    Validated,
+    ValidationResult,
 )
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
 from koda_validate.dictionary import (
@@ -115,7 +115,7 @@ def test_match_args() -> None:
 
 
 def test_record_validator_match_args() -> None:
-    def validate_person(p: Person) -> Validated[Person]:
+    def validate_person(p: Person) -> ValidationResult[Person]:
         if len(p.name) > p.age.get_or_else(100):
             return Invalid(InvalidSimple("your name cannot be longer than your age"))
         else:
@@ -151,7 +151,7 @@ def test_record_validator_match_args() -> None:
 
 
 def test_dict_any_match_args() -> None:
-    def validate_person_dict_any(p: Dict[Any, Any]) -> Validated[Dict[Any, Any]]:
+    def validate_person_dict_any(p: Dict[Any, Any]) -> ValidationResult[Dict[Any, Any]]:
         if len(p["name"]) > p["age"]:
             return Invalid(InvalidSimple("your name cannot be longer than your name"))
         else:

@@ -25,7 +25,7 @@ from koda_validate.base import (
     InvalidType,
     PredicateAsync,
     Processor,
-    Validated,
+    ValidationResult,
 )
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator, TupleHomogenousValidator
 from tests.utils import BasicNoneValidator
@@ -55,7 +55,9 @@ def test_tuple2() -> None:
         )
     )
 
-    def must_be_a_if_integer_is_1(ab: Tuple[str, int]) -> Validated[Tuple[str, int]]:
+    def must_be_a_if_integer_is_1(
+        ab: Tuple[str, int]
+    ) -> ValidationResult[Tuple[str, int]]:
         if ab[1] == 1:
             if ab[0] == "a":
                 return Valid(ab)
@@ -106,7 +108,9 @@ async def test_tuple2_async() -> None:
         )
     )
 
-    def must_be_a_if_integer_is_1(ab: Tuple[str, int]) -> Validated[Tuple[str, int]]:
+    def must_be_a_if_integer_is_1(
+        ab: Tuple[str, int]
+    ) -> ValidationResult[Tuple[str, int]]:
         if ab[1] == 1:
             if ab[0] == "a":
                 return Valid(ab)
@@ -154,7 +158,7 @@ def test_tuple3() -> None:
 
     def must_be_a_if_1_and_true(
         abc: Tuple[str, int, bool]
-    ) -> Validated[Tuple[str, int, bool]]:
+    ) -> ValidationResult[Tuple[str, int, bool]]:
         if abc[1] == 1 and abc[2] is True:
             if abc[0] == "a":
                 return Valid(abc)
@@ -208,7 +212,7 @@ async def test_tuple3_async() -> None:
 
     def must_be_a_if_1_and_true(
         abc: Tuple[str, int, bool]
-    ) -> Validated[Tuple[str, int, bool]]:
+    ) -> ValidationResult[Tuple[str, int, bool]]:
         if abc[1] == 1 and abc[2] is True:
             if abc[0] == "a":
                 return Valid(abc)
