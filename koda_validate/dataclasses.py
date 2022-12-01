@@ -12,6 +12,10 @@ from koda_validate._internal import (
 
 if sys.version_info >= (3, 10):
     from types import UnionType
+if sys.version_info >= (3, 9):
+    from typing import Annotated
+else:
+    Annotated = None
 
 from typing import (
     Any,
@@ -97,7 +101,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
                 return TupleHomogenousValidator(get_typehint_validator(args[0]))
             else:
                 return TupleNValidatorAny(*[get_typehint_validator(a) for a in args])
-        if sys.version_info >= (3, 9) and origin is typing.Annotated:
+        if sys.version_info >= (3, 9) and origin is Annotated:
             return get_typehint_validator(args[0])
 
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
