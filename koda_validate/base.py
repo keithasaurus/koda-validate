@@ -138,14 +138,14 @@ class Valid(Generic[A]):
 @dataclass
 class Invalid:
     validator: "Validator[Any]"
-    error_detail: "ErrorDetail"
+    err_type: "ErrType"
     is_valid: ClassVar[Literal[False]] = False
 
 
 ValidationResult = Union[Valid[A], Invalid]
 
 
-ErrorDetail = Union[
+ErrType = Union[
     CoercionErr,
     DictErr,
     ExtraKeysErr,

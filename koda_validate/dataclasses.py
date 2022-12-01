@@ -43,7 +43,7 @@ from koda_validate import (
     Validator,
     always_valid,
 )
-from koda_validate.base import CoercionErr, ErrorDetail, ExtraKeysErr, Invalid
+from koda_validate.base import CoercionErr, ErrType, ExtraKeysErr, Invalid
 from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny
 
@@ -109,7 +109,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         data_cls: Type[_DCT],
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
-        validate_object: Optional[typing.Callable[[_DCT], Optional[ErrorDetail]]] = None,
+        validate_object: Optional[typing.Callable[[_DCT], Optional[ErrType]]] = None,
     ) -> None:
         self.data_cls = data_cls
         overrides = overrides or {}

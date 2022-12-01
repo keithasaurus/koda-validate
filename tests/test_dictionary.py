@@ -29,7 +29,7 @@ from koda_validate._generics import A
 from koda_validate.base import (
     BasicErr,
     DictErr,
-    ErrorDetail,
+    ErrType,
     ExtraKeysErr,
     KeyValErrs,
     MapErr,
@@ -319,7 +319,7 @@ def test_record_3() -> None:
 
 def _nobody_named_jones_has_brown_eyes(
     person: PersonLike,
-) -> Optional[ErrorDetail]:
+) -> Optional[ErrType]:
     if person.last_name.lower() == "jones" and person.eye_color == "brown":
         return _JONES_ERROR_MSG
     return None
@@ -701,7 +701,7 @@ def test_record_int_keys() -> None:
     test_age = 10
     test_name = "bob"
 
-    def asserted_ok(p: Person) -> Optional[ErrorDetail]:
+    def asserted_ok(p: Person) -> Optional[ErrType]:
         assert p.age == test_age
         assert p.name == test_name
         return None
@@ -726,7 +726,7 @@ def test_record_tuple_str_keys() -> None:
     test_age = 10
     test_name = "bob"
 
-    def asserted_ok(p: Person) -> Optional[ErrorDetail]:
+    def asserted_ok(p: Person) -> Optional[ErrType]:
         assert p.age == test_age
         assert p.name == test_name
         return None
@@ -750,7 +750,7 @@ def test_record_decimal_keys() -> None:
     test_age = 10
     test_name = "bob"
 
-    def asserted_ok(p: Person) -> Optional[ErrorDetail]:
+    def asserted_ok(p: Person) -> Optional[ErrType]:
         assert p.age == test_age
         assert p.name == test_name
         return None
@@ -797,7 +797,7 @@ def test_dict_validator_any_empty() -> None:
 
 def _nobody_named_jones_has_first_name_alice_dict(
     person: Dict[Hashable, Any],
-) -> Optional[ErrorDetail]:
+) -> Optional[ErrType]:
     if person["last_name"].lower() == "jones" and person["first_name"] == Just("alice"):
         return _JONES_ERROR_MSG
     else:
@@ -972,7 +972,7 @@ async def test_dict_validator_any_async_processor() -> None:
 
 @pytest.mark.asyncio
 async def test_dict_validator_any_with_validate_object_async() -> None:
-    async def val_obj_async(obj: Dict[Hashable, Any]) -> Optional[ErrorDetail]:
+    async def val_obj_async(obj: Dict[Hashable, Any]) -> Optional[ErrType]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_has_first_name_alice_dict(obj)
 
@@ -1028,7 +1028,7 @@ async def test_dict_validator_any_no_validate_object() -> None:
 
 
 def test_dict_validator_any_cannot_have_validate_object_and_validate_object_async() -> None:  # noqa:m E501
-    async def val_obj_async(obj: Dict[Hashable, Any]) -> Optional[ErrorDetail]:
+    async def val_obj_async(obj: Dict[Hashable, Any]) -> Optional[ErrType]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_has_first_name_alice_dict(obj)
 
@@ -1051,13 +1051,13 @@ def test_dict_validator_cannot_have_validate_object_and_validate_object_async() 
 
     def _nobody_named_jones_is_100(
         person: Person,
-    ) -> Optional[ErrorDetail]:
+    ) -> Optional[ErrType]:
         if person.name.lower() == "jones" and person.age == 100:
             return BasicErr("Cannot be jones and 100")
         else:
             return None
 
-    async def val_obj_async(obj: Person) -> Optional[ErrorDetail]:
+    async def val_obj_async(obj: Person) -> Optional[ErrType]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_is_100(obj)
 
@@ -1082,12 +1082,12 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     def _nobody_named_jones_is_100(
         person: Person,
-    ) -> Optional[ErrorDetail]:
+    ) -> Optional[ErrType]:
         if person.name.lower() == "jones" and person.age == 100:
             return BasicErr("Cannot be jones and 100")
         return None
 
-    async def val_obj_async(obj: Person) -> Optional[ErrorDetail]:
+    async def val_obj_async(obj: Person) -> Optional[ErrType]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_is_100(obj)
 

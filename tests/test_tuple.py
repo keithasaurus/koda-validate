@@ -20,7 +20,7 @@ from koda_validate._generics import A
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
-    ErrorDetail,
+    ErrType,
     IterableErr,
     PredicateAsync,
     PredicateErrs,
@@ -55,7 +55,7 @@ def test_tuple2() -> None:
         ),
     )
 
-    def must_be_a_if_integer_is_1(ab: Tuple[str, int]) -> Optional[ErrorDetail]:
+    def must_be_a_if_integer_is_1(ab: Tuple[str, int]) -> Optional[ErrType]:
         if ab[1] == 1:
             if ab[0] == "a":
                 return None
@@ -106,7 +106,7 @@ async def test_tuple2_async() -> None:
         ),
     )
 
-    def must_be_a_if_integer_is_1(ab: Tuple[str, int]) -> Optional[ErrorDetail]:
+    def must_be_a_if_integer_is_1(ab: Tuple[str, int]) -> Optional[ErrType]:
         if ab[1] == 1:
             if ab[0] == "a":
                 return None
@@ -153,7 +153,7 @@ def test_tuple3() -> None:
         ),
     )
 
-    def must_be_a_if_1_and_true(abc: Tuple[str, int, bool]) -> Optional[ErrorDetail]:
+    def must_be_a_if_1_and_true(abc: Tuple[str, int, bool]) -> Optional[ErrType]:
         if abc[1] == 1 and abc[2] is True:
             if abc[0] == "a":
                 return None
@@ -205,7 +205,7 @@ async def test_tuple3_async() -> None:
         ),
     )
 
-    def must_be_a_if_1_and_true(abc: Tuple[str, int, bool]) -> Optional[ErrorDetail]:
+    def must_be_a_if_1_and_true(abc: Tuple[str, int, bool]) -> Optional[ErrType]:
         if abc[1] == 1 and abc[2] is True:
             if abc[0] == "a":
                 return None

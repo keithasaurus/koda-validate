@@ -1,10 +1,10 @@
 from typing import Any, Dict, Hashable, Optional
 
 from koda_validate import *
-from koda_validate.base import BasicErr, ErrorDetail
+from koda_validate.base import BasicErr, ErrType
 
 
-def no_dwight_regional_manager(employee: Dict[Hashable, Any]) -> Optional[ErrorDetail]:
+def no_dwight_regional_manager(employee: Dict[Hashable, Any]) -> Optional[ErrType]:
     if (
         "schrute" in employee["name"].lower()
         and employee["title"].lower() == "assistant regional manager"

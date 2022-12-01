@@ -15,7 +15,7 @@ from koda_validate._internal import (
 )
 from koda_validate.base import (
     CoercionErr,
-    ErrorDetail,
+    ErrType,
     Invalid,
     IterableErr,
     Predicate,
@@ -104,7 +104,7 @@ class Tuple2Validator(_ToTupleValidator[Tuple[A, B]]):
         self,
         slot1_validator: Validator[A],
         slot2_validator: Validator[B],
-        tuple_validator: Optional[Callable[[Tuple[A, B]], Optional[ErrorDetail]]] = None,
+        tuple_validator: Optional[Callable[[Tuple[A, B]], Optional[ErrType]]] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator
@@ -163,9 +163,7 @@ class Tuple3Validator(_ToTupleValidator[Tuple[A, B, C]]):
         slot1_validator: Validator[A],
         slot2_validator: Validator[B],
         slot3_validator: Validator[C],
-        tuple_validator: Optional[
-            Callable[[Tuple[A, B, C]], Optional[ErrorDetail]]
-        ] = None,
+        tuple_validator: Optional[Callable[[Tuple[A, B, C]], Optional[ErrType]]] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator

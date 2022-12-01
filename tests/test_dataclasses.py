@@ -10,7 +10,7 @@ from koda_validate.base import (
     BasicErr,
     CoercionErr,
     DictErr,
-    ErrorDetail,
+    ErrType,
     PredicateErrs,
     TypeErr,
 )
@@ -145,7 +145,7 @@ def test_validate_object_works() -> None:
         first_name: str
         last_name: str
 
-    def first_name_last_name_are_different(obj: A) -> Optional[ErrorDetail]:
+    def first_name_last_name_are_different(obj: A) -> Optional[ErrType]:
         if obj.first_name == obj.last_name:
             return BasicErr("first name cannot be last name")
         return None
@@ -174,7 +174,7 @@ async def test_validate_object_works_async() -> None:
         first_name: str
         last_name: str
 
-    def first_name_last_name_are_different(obj: A) -> Optional[ErrorDetail]:
+    def first_name_last_name_are_different(obj: A) -> Optional[ErrType]:
         if obj.first_name == obj.last_name:
             return BasicErr("first name cannot be last name")
         return None

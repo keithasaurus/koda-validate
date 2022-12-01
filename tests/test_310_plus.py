@@ -40,7 +40,7 @@ from koda_validate import (
 from koda_validate.base import (
     BasicErr,
     DictErr,
-    ErrorDetail,
+    ErrType,
     KeyValErrs,
     MapErr,
     MissingKeyErr,
@@ -115,7 +115,7 @@ def test_match_args() -> None:
 
 
 def test_record_validator_match_args() -> None:
-    def validate_person(p: Person) -> Optional[ErrorDetail]:
+    def validate_person(p: Person) -> Optional[ErrType]:
         if len(p.name) > p.age.get_or_else(100):
             return BasicErr("your name cannot be longer than your age")
         else:
@@ -151,7 +151,7 @@ def test_record_validator_match_args() -> None:
 
 
 def test_dict_any_match_args() -> None:
-    def validate_person_dict_any(p: Dict[Any, Any]) -> Optional[ErrorDetail]:
+    def validate_person_dict_any(p: Dict[Any, Any]) -> Optional[ErrType]:
         if len(p["name"]) > p["age"]:
             return BasicErr("your name cannot be longer than your name")
         else:

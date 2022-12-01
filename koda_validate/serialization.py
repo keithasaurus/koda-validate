@@ -87,7 +87,7 @@ def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str
 
 
 def serializable_validation_err(invalid: Invalid) -> Serializable:
-    err = invalid.error_detail
+    err = invalid.err_type
     if isinstance(err, CoercionErr):
         compatible_names = [t.__name__ for t in err.compatible_types]
         return [

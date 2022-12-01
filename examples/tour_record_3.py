@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from koda_validate import *
-from koda_validate.base import BasicErr, ErrorDetail
+from koda_validate.base import BasicErr, ErrType
 
 
 @dataclass
@@ -11,7 +11,7 @@ class Employee:
     name: str
 
 
-def no_dwight_regional_manager(employee: Employee) -> Optional[ErrorDetail]:
+def no_dwight_regional_manager(employee: Employee) -> Optional[ErrType]:
     if (
         "schrute" in employee.name.lower()
         and employee.title.lower() == "assistant regional manager"
