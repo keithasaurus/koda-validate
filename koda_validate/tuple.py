@@ -4,14 +4,14 @@ with a generic TupleValidator... (2 and 3 can still use the new one
 under the hood, if needed)
 """
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 
 from koda_validate import ExactItemCount
 from koda_validate._generics import A, B, C
 from koda_validate._internal import (
+    ResultTuple,
     _async_predicates_warning,
-    _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
+    _ToTupleValidator,
 )
 from koda_validate.base import (
     InvalidCoercion,
@@ -28,7 +28,7 @@ from koda_validate.base import (
 )
 
 
-class TupleNValidatorAny(_ToTupleValidatorUnsafe[Tuple[Any, ...]]):
+class TupleNValidatorAny(_ToTupleValidator[Tuple[Any, ...]]):
     """
     Will be type-safe when we have variadic args available generally
     """
@@ -37,7 +37,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Tuple[Any, ...]]):
         self.validators = validators
         self._len_predicate = ExactItemCount(len(validators))
 
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[Tuple[Any, ...]]:
         val_type = type(val)
         if val_type is tuple or val_type is list:
             if not self._len_predicate(val):
@@ -45,7 +45,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Tuple[Any, ...]]):
             errs: Dict[int, ValidationErr] = {}
             vals = []
             for i, (validator, tuple_val) in enumerate(zip(self.validators, val)):
-                if isinstance(validator, _ToTupleValidatorUnsafe):
+                if isinstance(validator, _ToTupleValidator):
                     succeeded, new_val = validator.validate_to_tuple(tuple_val)
                     if succeeded:
                         vals.append(new_val)
@@ -65,7 +65,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Tuple[Any, ...]]):
         else:
             return False, InvalidCoercion([list, tuple], tuple)
 
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Tuple[Any, ...]]:
         val_type = type(val)
         if val_type is tuple or val_type is list:
             if not self._len_predicate(val):
@@ -73,7 +73,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Tuple[Any, ...]]):
             errs: Dict[int, ValidationErr] = {}
             vals = []
             for i, (validator, tuple_val) in enumerate(zip(self.validators, val)):
-                if isinstance(validator, _ToTupleValidatorUnsafe):
+                if isinstance(validator, _ToTupleValidator):
                     succeeded, new_val = await validator.validate_to_tuple_async(
                         tuple_val
                     )
@@ -97,7 +97,7 @@ class TupleNValidatorAny(_ToTupleValidatorUnsafe[Tuple[Any, ...]]):
 
 
 # todo: auto-generate
-class Tuple2Validator(_ToTupleValidatorUnsafe[Tuple[A, B]]):
+class Tuple2Validator(_ToTupleValidator[Tuple[A, B]]):
     __match_args__ = ("slot1_validator", "slot2_validator", "tuple_validator")
     required_length: int = 2
 
@@ -115,37 +115,44 @@ class Tuple2Validator(_ToTupleValidatorUnsafe[Tuple[A, B]]):
 
         self._validator = TupleNValidatorAny(slot1_validator, slot2_validator)
 
-    async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
-        success, new_val = await self._validator.validate_to_tuple_async(data)
-        if success:
+    async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Tuple[A, B]]:
+        result = await self._validator.validate_to_tuple_async(data)
+        if result[0]:
+            new_val = cast(Tuple[A, B], result[1])
             if self.tuple_validator is None:
                 return True, new_val
             else:
-                result = self.tuple_validator(new_val)
-                if result.is_valid:
-                    return True, result.val
+                tup_result = self.tuple_validator(new_val)
+                if tup_result.is_valid:
+                    return True, tup_result.val
                 else:
-                    return False, result.val
+                    return False, tup_result.val
         else:
-            if isinstance(new_val, ValidatorErrorBase):
-                new_val.validator = self
-            return False, new_val
+            err_val = result[1]
+            if isinstance(err_val, ValidatorErrorBase):
+                err_val.validator = self
+            return False, err_val
 
-    def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
-        success, new_val = self._validator.validate_to_tuple(data)
-        if success:
+    def validate_to_tuple(self, data: Any) -> ResultTuple[Tuple[A, B]]:
+        result = self._validator.validate_to_tuple(data)
+        if result[0]:
+            new_val = cast(Tuple[A, B], result[1])
             if self.tuple_validator is None:
                 return True, new_val
             else:
-                result = self.tuple_validator(new_val)
-                return result.is_valid, result.val
+                tup_result = self.tuple_validator(new_val)
+                if tup_result.is_valid:
+                    return True, tup_result.val
+                else:
+                    return False, tup_result.val
         else:
-            if isinstance(new_val, ValidatorErrorBase):
-                new_val.validator = self
-            return False, new_val
+            err_val = result[1]
+            if isinstance(err_val, ValidatorErrorBase):
+                err_val.validator = self
+            return False, err_val
 
 
-class Tuple3Validator(_ToTupleValidatorUnsafe[Tuple[A, B, C]]):
+class Tuple3Validator(_ToTupleValidator[Tuple[A, B, C]]):
     __match_args__ = (
         "slot1_validator",
         "slot2_validator",
@@ -171,34 +178,44 @@ class Tuple3Validator(_ToTupleValidatorUnsafe[Tuple[A, B, C]]):
             slot1_validator, slot2_validator, slot3_validator
         )
 
-    async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
-        success, new_val = await self._validator.validate_to_tuple_async(data)
-        if success:
+    async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Tuple[A, B, C]]:
+        result = await self._validator.validate_to_tuple_async(data)
+        if result[0]:
+            new_val = cast(Tuple[A, B, C], result[1])
             if self.tuple_validator is None:
                 return True, new_val
             else:
-                result = self.tuple_validator(new_val)
-                return result.is_valid, result.val
+                tup_result = self.tuple_validator(new_val)
+                if tup_result.is_valid:
+                    return True, tup_result.val
+                else:
+                    return False, tup_result.val
         else:
-            if isinstance(new_val, ValidatorErrorBase):
-                new_val.validator = self
-            return False, new_val
+            err_val = result[1]
+            if isinstance(err_val, ValidatorErrorBase):
+                err_val.validator = self
+            return False, err_val
 
-    def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
-        success, new_val = self._validator.validate_to_tuple(data)
-        if success:
+    def validate_to_tuple(self, data: Any) -> ResultTuple[Tuple[A, B, C]]:
+        result = self._validator.validate_to_tuple(data)
+        if result[0]:
+            new_val = cast(Tuple[A, B, C], result[1])
             if self.tuple_validator is None:
                 return True, new_val
             else:
-                result = self.tuple_validator(new_val)
-                return result.is_valid, result.val
+                tup_result = self.tuple_validator(new_val)
+                if tup_result.is_valid:
+                    return True, tup_result.val
+                else:
+                    return False, tup_result.val
         else:
-            if isinstance(new_val, ValidatorErrorBase):
-                new_val.validator = self
-            return False, new_val
+            err_val = result[1]
+            if isinstance(err_val, ValidatorErrorBase):
+                err_val.validator = self
+            return False, err_val
 
 
-class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Tuple[A, ...]]):
+class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
 
     def __init__(
@@ -214,11 +231,9 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Tuple[A, ...]]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-        self._item_validator_is_tuple = isinstance(
-            item_validator, _ToTupleValidatorUnsafe
-        )
+        self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
 
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[Tuple[A, ...]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -257,7 +272,7 @@ class TupleHomogenousValidator(_ToTupleValidatorUnsafe[Tuple[A, ...]]):
         else:
             return False, InvalidType(tuple)
 
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Tuple[A, ...]]:
         if isinstance(val, tuple):
             if self.preprocessors:
                 for processor in self.preprocessors:

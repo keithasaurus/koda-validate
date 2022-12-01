@@ -56,7 +56,7 @@ class Invalid:
         return f"Invalid(validator={repr(self.validator)}, error_detail={repr(self.error_detail)})"
 
 
-Validated = Union[Valid[A], Invalid]
+ValidationResult = Union[Valid[A], Invalid]
 
 
 @dataclass
@@ -179,8 +179,6 @@ ValidationErr = Union[
     InvalidPredicates[Any],
     ValidatorErrorBase,
 ]
-
-ValidationResult = Validated[A]
 
 
 class Validator(Generic[SuccessT]):

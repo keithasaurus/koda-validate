@@ -6,6 +6,7 @@ from typing import (
     Dict,
     Hashable,
     List,
+    Literal,
     NoReturn,
     Optional,
     Tuple,
@@ -16,7 +17,7 @@ from typing import (
 from koda import nothing
 
 from koda_validate import Invalid, Valid
-from koda_validate._generics import SuccessT
+from koda_validate._generics import A, InputT, SuccessT
 from koda_validate.base import (
     InvalidDict,
     InvalidExtraKeys,
@@ -33,8 +34,10 @@ from koda_validate.base import (
 
 _ResultTupleUnsafe = Tuple[bool, Any]
 
+ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], ValidationErr]]
 
-class _ToTupleValidatorUnsafe(Validator[SuccessT]):
+
+class _ToTupleValidator(Validator[SuccessT]):
     """
     This `Validator` subclass exists for optimization. When we call
     nested validators it's much less computation to deal with simple
@@ -46,25 +49,25 @@ class _ToTupleValidatorUnsafe(Validator[SuccessT]):
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
 
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: InputT) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: InputT) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
-    async def validate_async(self, val: Any) -> ValidationResult[SuccessT]:
-        valid, result_val = await self.validate_to_tuple_async(val)
-        if valid:
-            return Valid(result_val)
+    async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
+        result = await self.validate_to_tuple_async(val)
+        if result[0]:
+            return Valid(result[1])
         else:
-            return Invalid(self, result_val)
+            return Invalid(self, result[1])
 
-    def __call__(self, val: Any) -> ValidationResult[SuccessT]:
-        valid, result_val = self.validate_to_tuple(val)
-        if valid:
-            return Valid(result_val)
+    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
+        result = self.validate_to_tuple(val)
+        if result[0]:
+            return Valid(result[1])
         else:
-            return Invalid(self, result_val)
+            return Invalid(self, result[1])
 
 
 def validate_dict_to_tuple(
@@ -72,9 +75,9 @@ def validate_dict_to_tuple(
     preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
     fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
     schema: Dict[Any, Validator[Any]],
-    unknown_keys_err: Tuple[bool, InvalidExtraKeys],
+    unknown_keys_err: Tuple[Literal[False], InvalidExtraKeys],
     data: Any,
-) -> _ResultTupleUnsafe:
+) -> ResultTuple[Dict[Any, Any]]:
     if not isinstance(data, dict):
         return False, InvalidType(source_validator, dict)
 
@@ -100,7 +103,7 @@ def validate_dict_to_tuple(
         else:
             if is_tuple_validator:
                 if TYPE_CHECKING:
-                    assert isinstance(validator, _ToTupleValidatorUnsafe)
+                    assert isinstance(validator, _ToTupleValidator)
                 success, new_val = validator.validate_to_tuple(val)
             else:
                 success, new_val = (
@@ -125,9 +128,9 @@ async def validate_dict_to_tuple_async(
     preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
     fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
     schema: Dict[Any, Validator[Any]],
-    unknown_keys_err: Tuple[bool, InvalidExtraKeys],
+    unknown_keys_err: Tuple[Literal[False], InvalidExtraKeys],
     data: Any,
-) -> _ResultTupleUnsafe:
+) -> ResultTuple[Dict[Any, Any]]:
     if not isinstance(data, dict):
         return False, InvalidType(source_validator, dict)
 
@@ -153,7 +156,7 @@ async def validate_dict_to_tuple_async(
         else:
             if is_tuple_validator:
                 if TYPE_CHECKING:
-                    assert isinstance(validator, _ToTupleValidatorUnsafe)
+                    assert isinstance(validator, _ToTupleValidator)
                 success, new_val = await validator.validate_to_tuple_async(val)
             else:
                 success, new_val = (
@@ -190,7 +193,7 @@ def _async_predicates_warning(cls: Type[Any]) -> NoReturn:
     )
 
 
-class _ExactTypeValidator(_ToTupleValidatorUnsafe[SuccessT]):
+class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
     """
     This `Validator` subclass exists primarily for code cleanliness and standardization.
     It allows us to have very simple Scalar validators.
@@ -226,7 +229,7 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[SuccessT]):
                 self._TYPE, _type_err
             )
 
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -245,7 +248,7 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[SuccessT]):
                 return True, val
         return False, self._type_err
 
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[SuccessT]:
         if type(val) is self._TYPE:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -269,8 +272,22 @@ class _ExactTypeValidator(_ToTupleValidatorUnsafe[SuccessT]):
                 return True, val
         return False, self._type_err
 
+    async def validate_async(self, val: InputT) -> ValidationResult[SuccessT]:
+        result = await self.validate_to_tuple_async(val)
+        if result[0]:
+            return Valid(result[1])
+        else:
+            return Invalid(result[1])
 
-class _CoercingValidator(_ToTupleValidatorUnsafe[SuccessT]):
+    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
+        result = self.validate_to_tuple(val)
+        if result[0]:
+            return Valid(result[1])
+        else:
+            return Invalid(result[1])
+
+
+class _CoercingValidator(_ToTupleValidator[SuccessT]):
     """
     This `Validator` subclass exists primarily for code cleanliness and standardization.
     It allows us to have very simple Scalar validators.
@@ -294,15 +311,16 @@ class _CoercingValidator(_ToTupleValidatorUnsafe[SuccessT]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def coerce_to_type(self, val: Any) -> _ResultTupleUnsafe:
+    def coerce_to_type(self, val: InputT) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: InputT) -> ResultTuple[SuccessT]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
-        succeeded, val_or_type_err = self.coerce_to_type(val)
-        if succeeded:
+        result = self.coerce_to_type(val)
+        if result[0]:
+            val_or_type_err = result[1]
             if self.preprocessors:
                 for proc in self.preprocessors:
                     val_or_type_err = proc(val_or_type_err)
@@ -317,11 +335,12 @@ class _CoercingValidator(_ToTupleValidatorUnsafe[SuccessT]):
                     return True, val_or_type_err
             else:
                 return True, val_or_type_err
-        return False, val_or_type_err
+        return False, result[1]
 
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
-        succeeded, val_or_type_err = self.coerce_to_type(val)
-        if succeeded:
+    async def validate_to_tuple_async(self, val: InputT) -> ResultTuple[SuccessT]:
+        result = self.coerce_to_type(val)
+        if result[0]:
+            val_or_type_err = result[1]
             if self.preprocessors:
                 for proc in self.preprocessors:
                     val_or_type_err = proc(val_or_type_err)
@@ -342,4 +361,4 @@ class _CoercingValidator(_ToTupleValidatorUnsafe[SuccessT]):
                 return False, InvalidPredicates(errors)
             else:
                 return True, val_or_type_err
-        return False, val_or_type_err
+        return False, result[1]

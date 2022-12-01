@@ -259,11 +259,11 @@ need to be limited to new functionality; it can also be writing alternatives to 
 
 ```python3
 from typing import Any
-from koda_validate import * 
+from koda_validate import *
 
 
 class SimpleFloatValidator(Validator[float]):
-    def __call__(self, val: Any) -> Validated[float, Serializable]:
+    def __call__(self, val: Any) -> ValidationResult[float, Serializable]:
         if isinstance(val, float):
             return Valid(val)
         else:
@@ -300,11 +300,12 @@ from dataclasses import dataclass
 from typing import Any, Optional
 from koda_validate import *
 
+
 @dataclass
 class SimpleFloatValidator2(Validator[float]):
     predicate: Optional[Predicate[float, Serializable]] = None
 
-    def __call__(self, val: Any) -> Validated[float, Serializable]:
+    def __call__(self, val: Any) -> ValidationResult[float, Serializable]:
         if isinstance(val, float):
             if self.predicate:
                 return self.predicate(val)
@@ -574,6 +575,7 @@ or `Predicate`, implementing whatever concurrency needs you have.
 For custom async `Validator`s, all you need to do is implement the `validate_async` method on a `Validator` class. There is no
 separate async-only `Validator` class. This is because we might want to re-use synchronous validators in either synchronous
 or asynchronous contexts. Here's an example of making a `SimpleFloatValidator` async-compatible:
+
 ```python3
 import asyncio
 from typing import Any
@@ -582,14 +584,14 @@ from koda_validate import *
 
 
 class SimpleFloatValidator(Validator[float]):
-    def __call__(self, val: Any) -> Validated[float, Serializable]:
+    def __call__(self, val: Any) -> ValidationResult[float, Serializable]:
         if isinstance(val, float):
             return Valid(val)
         else:
             return Invalid("expected a float")
 
     # this validator doesn't do any IO, so we can just use the `__call__` method
-    async def validate_async(self, val: Any) -> Validated[float, Serializable]:
+    async def validate_async(self, val: Any) -> ValidationResult[float, Serializable]:
         return self(val)
 
 
@@ -742,6 +744,7 @@ In the opinion of this library, yes, dictionaries that use integers, bools, and 
 validate it :sparkles:
 
 In `RecordValidator`, you can also validate the entire object after keys are validated by providing a `validate_object` argument.
+
 ```python3
 from dataclasses import dataclass
 
@@ -754,10 +757,10 @@ class Employee:
     name: str
 
 
-def no_dwight_regional_manager(employee: Employee) -> Validated[Employee, Serializable]:
+def no_dwight_regional_manager(employee: Employee) -> ValidationResult[Employee, Serializable]:
     if (
-        "schrute" in employee.name.lower()
-        and employee.title.lower() == "assistant regional manager"
+            "schrute" in employee.name.lower()
+            and employee.title.lower() == "assistant regional manager"
     ):
         return Invalid("Assistant TO THE Regional Manager!")
     else:
@@ -773,7 +776,6 @@ employee_validator = RecordValidator(
     # After we've validated individual fields, we may want to validate them as a whole
     validate_object=no_dwight_regional_manager,
 )
-
 
 # The fields are valid but the object as a whole is not.
 assert employee_validator(
@@ -810,7 +812,7 @@ python /path/to/koda-validate/codegen/generate.py /your/target/directory --num-k
 - It passes along the keys, so the validated object may appear quite similar to the input. Note that 
 it will always return a new dictionary (if valid), and it is legal for values to differ from the input.
 
-This is an equivalent example to the last `RecordValidator` example above. 
+This is an equivalent example to the last `RecordValidator` example above.
 
 ```python3
 from typing import Any, Dict, Hashable
@@ -819,11 +821,11 @@ from koda_validate import *
 
 
 def no_dwight_regional_manager(
-    employee: Dict[Hashable, Any]
-) -> Validated[Dict[Hashable, Any], Serializable]:
+        employee: Dict[Hashable, Any]
+) -> ValidationResult[Dict[Hashable, Any], Serializable]:
     if (
-        "schrute" in employee["name"].lower()
-        and employee["title"].lower() == "assistant regional manager"
+            "schrute" in employee["name"].lower()
+            and employee["title"].lower() == "assistant regional manager"
     ):
         return Invalid("Assistant TO THE Regional Manager!")
     else:

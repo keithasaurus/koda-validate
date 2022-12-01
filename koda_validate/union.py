@@ -1,10 +1,10 @@
 from typing import Any, Tuple
 
-from koda_validate._internal import _ResultTupleUnsafe, _ToTupleValidatorUnsafe
+from koda_validate._internal import ResultTuple, _ToTupleValidator
 from koda_validate.base import Invalid, InvalidVariants, Validator
 
 
-class UnionValidatorAny(_ToTupleValidatorUnsafe[Any]):
+class UnionValidatorAny(_ToTupleValidator[Any]):
     """
     Until we're comfortable using variadic args, we'll just keep this private
     """
@@ -19,10 +19,10 @@ class UnionValidatorAny(_ToTupleValidatorUnsafe[Any]):
     ) -> None:
         self.validators: Tuple[Validator[Any], ...] = (validator_1,) + validators
 
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[Any]:
         errs = []
         for validator in self.validators:
-            if isinstance(validator, _ToTupleValidatorUnsafe):
+            if isinstance(validator, _ToTupleValidator):
                 success, new_val = validator.validate_to_tuple(val)
                 if success:
                     return True, new_val
@@ -36,10 +36,10 @@ class UnionValidatorAny(_ToTupleValidatorUnsafe[Any]):
                     errs.append(result)
         return False, Invalid(self, InvalidVariants(errs))
 
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Any]:
         errs = []
         for validator in self.validators:
-            if isinstance(validator, _ToTupleValidatorUnsafe):
+            if isinstance(validator, _ToTupleValidator):
                 success, new_val = await validator.validate_to_tuple_async(val)
                 if success:
                     return True, new_val

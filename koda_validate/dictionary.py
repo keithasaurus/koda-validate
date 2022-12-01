@@ -7,6 +7,7 @@ from typing import (
     Dict,
     Hashable,
     List,
+    Literal,
     Optional,
     Tuple,
     Union,
@@ -37,9 +38,9 @@ from koda_validate._generics import (
     Ret,
 )
 from koda_validate._internal import (
+    ResultTuple,
     _async_predicates_warning,
-    _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
+    _ToTupleValidator,
     validate_dict_to_tuple,
     validate_dict_to_tuple_async,
 )
@@ -210,14 +211,14 @@ class MapValidator(Validator[Dict[T1, T2]]):
             return Invalid(InvalidType(dict))
 
 
-class IsDictValidator(_ToTupleValidatorUnsafe[Dict[Any, Any]]):
-    def validate_to_tuple(self, val: Any) -> _ResultTupleUnsafe:
+class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
+    def validate_to_tuple(self, val: Any) -> ResultTuple[Dict[Any, Any]]:
         if isinstance(val, dict):
             return True, val
         else:
             return False, InvalidType(dict)
 
-    async def validate_to_tuple_async(self, val: Any) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Dict[Any, Any]]:
         return self.validate_to_tuple(val)
 
 
@@ -240,7 +241,7 @@ class MaxKeys(Predicate[Dict[Any, Any]]):
         return len(val) <= self.size
 
 
-class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
+class RecordValidator(_ToTupleValidator[Ret]):
     __match_args__ = (
         "keys",
         "into",
@@ -838,13 +839,15 @@ class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
                 key,
                 val,
                 not isinstance(val, KeyNotRequired),
-                isinstance(val, _ToTupleValidatorUnsafe),
+                isinstance(val, _ToTupleValidator),
             )
             for key, val in keys
         ]
-        self._unknown_keys_err = False, Invalid(self, InvalidExtraKeys(_key_set))
+        self._unknown_keys_err: Tuple[Literal[False], Invalid] = False, Invalid(
+            self, InvalidExtraKeys(_key_set)
+        )
 
-    def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
+    def validate_to_tuple(self, data: Any) -> ResultTuple[Ret]:
         if not isinstance(data, dict):
             return False, InvalidType(dict)
 
@@ -855,7 +858,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return False, InvalidExtraKeys(self, self._key_set)
+                return False, Invalid(self, InvalidExtraKeys(self._key_set))
 
         args: List[Any] = []
         errs: Dict[Hashable, ValidationErr] = {}
@@ -864,13 +867,13 @@ class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs[key_] = InvalidMissingKey(self)
+                    errs[key_] = Invalid(self, InvalidMissingKey())
                 else:
                     args.append(nothing)
             else:
                 if is_tuple_validator:
                     if TYPE_CHECKING:
-                        assert isinstance(validator, _ToTupleValidatorUnsafe)
+                        assert isinstance(validator, _ToTupleValidator)
                     success, new_val = validator.validate_to_tuple(val)
                 else:
                     success, new_val = (
@@ -898,7 +901,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
                 else:
                     return False, result.val
 
-    async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
+    async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Ret]:
         if not isinstance(data, dict):
             return False, InvalidType(dict)
 
@@ -956,7 +959,7 @@ class RecordValidator(_ToTupleValidatorUnsafe[Ret]):
                 return True, obj
 
 
-class DictValidatorAny(_ToTupleValidatorUnsafe[Any]):
+class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
     """
     This differs from RecordValidator in a few ways:
     - if valid, it returns a dict; it does not allow another target to be specified
@@ -1012,15 +1015,17 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any]):
                 key,
                 val,
                 not isinstance(val, KeyNotRequired),
-                isinstance(val, _ToTupleValidatorUnsafe),
+                isinstance(val, _ToTupleValidator),
             )
             for key, val in schema.items()
         ]
 
-        self._unknown_keys_err = False, InvalidExtraKeys(self, set(schema.keys()))
+        self._unknown_keys_err: Tuple[
+            Literal[False], InvalidExtraKeys
+        ] = False, InvalidExtraKeys(self, set(schema.keys()))
 
-    def validate_to_tuple(self, data: Any) -> _ResultTupleUnsafe:
-        succeeded, new_val = validate_dict_to_tuple(
+    def validate_to_tuple(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
+        result_tup = validate_dict_to_tuple(
             self,
             self.preprocessors,
             self._fast_keys,
@@ -1028,20 +1033,20 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any]):
             self._unknown_keys_err,
             data,
         )
-        if not succeeded:
-            return succeeded, new_val
+        if not result_tup[0]:
+            return False, result_tup[1]
         else:
             if self.validate_object is not None:
-                result = self.validate_object(new_val)
+                result = self.validate_object(result_tup[1])
                 if result.is_valid:
                     return True, result.val
                 else:
                     return False, result.val
             else:
-                return True, new_val
+                return True, result_tup[1]
 
-    async def validate_to_tuple_async(self, data: Any) -> _ResultTupleUnsafe:
-        succeeded, new_val = await validate_dict_to_tuple_async(
+    async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
+        result_tup = await validate_dict_to_tuple_async(
             self,
             self.preprocessors,
             self._fast_keys,
@@ -1049,20 +1054,20 @@ class DictValidatorAny(_ToTupleValidatorUnsafe[Any]):
             self._unknown_keys_err,
             data,
         )
-        if not succeeded:
-            return succeeded, new_val
+        if not result_tup[0]:
+            return False, result_tup[1]
         else:
             if self.validate_object is not None:
-                result = self.validate_object(new_val)
+                result = self.validate_object(result_tup[1])
                 if result.is_valid:
                     return True, result.val
                 else:
                     return False, result.val
             elif self.validate_object_async is not None:
-                result = await self.validate_object_async(new_val)
+                result = await self.validate_object_async(result_tup[1])
                 if result.is_valid:
                     return True, result.val
                 else:
                     return False, result.val
             else:
-                return True, new_val
+                return True, result_tup[1]
