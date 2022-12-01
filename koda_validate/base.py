@@ -185,25 +185,9 @@ ValidationResult = Union[Valid[A], Invalid]
 
 
 @dataclass
-class ValidatorErrorBase:
-    """
-    Simple base class which merely includes the originating validator for transparency
-    """
-
+class ValidatorError:
     validator: "Validator[Any]"
-
-
-@dataclass
-class ValidatorError(ValidatorErrorBase):
     details: Any
-
-
-ValidationErr = Union[
-    BasicErr,
-    # todo: add explicit wrapper, consider properly parameterizing
-    PredicateErrs[Any],
-    ValidatorErrorBase,
-]
 
 
 class Validator(Generic[SuccessT]):

@@ -30,8 +30,6 @@ from koda_validate.base import (
     Validator,
 )
 
-_ResultTupleUnsafe = Tuple[bool, Any]
-
 ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], Invalid]]
 
 
@@ -175,10 +173,13 @@ async def validate_dict_to_tuple_async(
 
 
 def _simple_type_validator(
-    type_: Type[Any], type_err: Invalid
-) -> Callable[[Any], _ResultTupleUnsafe]:
-    def inner(val: Any) -> _ResultTupleUnsafe:
-        return (True, val) if type(val) is type_ else (False, type_err)
+    type_: Type[A], type_err: Invalid
+) -> Callable[[Any], ResultTuple[A]]:
+    def inner(val: Any) -> ResultTuple[A]:
+        if type(val) is type_:
+            return True, val
+        else:
+            return False, type_err
 
     return inner
 
