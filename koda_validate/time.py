@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Any
 
 from koda_validate._internal import ResultTuple, _CoercingValidator
-from koda_validate.base import InvalidCoercion
+from koda_validate.base import Invalid, InvalidCoercion
 
 
 class DateValidator(_CoercingValidator[date]):
@@ -13,9 +13,12 @@ class DateValidator(_CoercingValidator[date]):
             try:
                 return True, date.fromisoformat(val)
             except (ValueError, TypeError):
-                return False, InvalidCoercion(
-                    [str, date],
-                    date,
+                return False, Invalid(
+                    self,
+                    InvalidCoercion(
+                        [str, date],
+                        date,
+                    ),
                 )
 
 
@@ -29,4 +32,4 @@ class DatetimeValidator(_CoercingValidator[datetime]):
                 # to add the dependency at some point
                 return True, datetime.fromisoformat(val)
             except (ValueError, TypeError):
-                return False, InvalidCoercion([str, datetime], datetime)
+                return False, Invalid(self, InvalidCoercion([str, datetime], datetime))

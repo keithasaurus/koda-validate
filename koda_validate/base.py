@@ -17,8 +17,117 @@ from typing import (
 from koda_validate._generics import A, SuccessT
 
 
-class ErrorDetail:
-    pass
+@dataclass
+class InvalidCoercion:
+    """
+    When one or more types can be coerced to a destination type
+    """
+
+    compatible_types: List[Type[Any]]
+    dest_type: Type[Any]
+
+
+class InvalidMissingKey:
+    """
+    A key is missing from a dictionary
+    """
+
+    _instance: ClassVar["InvalidMissingKey"] = None
+
+    def __new__(cls) -> "InvalidMissingKey":
+        """
+        Make a singleton
+        """
+        if cls._instance is None:
+            cls._instance = super(InvalidMissingKey, cls).__new__(cls)
+        return cls._instance
+
+
+invalid_missing_key = InvalidMissingKey()
+
+
+@dataclass
+class InvalidExtraKeys:
+    """
+    extra keys were present in a dictionary
+    """
+
+    expected_keys: Set[Hashable]
+
+
+@dataclass
+class InvalidDict:
+    """
+    validation failures for key/value pairs on a record-like
+    dictionary
+    """
+
+    # todo: add validator, rename
+    keys: Dict[Any, "Invalid"]
+
+
+@dataclass
+class InvalidKeyVal:
+    """
+    key and/or value errors from a single key/value pair
+    """
+
+    key: Optional["Invalid"]
+    val: Optional["Invalid"]
+
+
+@dataclass
+class InvalidMap:
+    """
+    errors from key/value pairs of a map-like dictionary
+    """
+
+    keys: Dict[Any, InvalidKeyVal]
+
+
+@dataclass
+class InvalidIterable:
+    """
+    dictionary of validation errors by index
+    """
+
+    indexes: Dict[int, "Invalid"]
+
+
+@dataclass
+class InvalidVariants:
+    """
+    none of these validators was satisfied by a given value
+    """
+
+    variants: List["Invalid"]
+
+
+@dataclass
+class InvalidPredicates(Generic[A]):
+    """
+    A grouping of failed Predicates
+    """
+
+    predicates: List[Union["Predicate[A]", "PredicateAsync[A]"]]
+
+
+@dataclass
+class InvalidSimple:
+    """
+    If all you want to do is produce a message, this can be useful
+    """
+
+    err_message: str
+
+
+@dataclass
+class InvalidType:
+    """
+    A specific type was required but not provided
+    """
+
+    expected_type: Type[Any]
 
 
 class Valid(Generic[A]):
@@ -34,6 +143,20 @@ class Valid(Generic[A]):
 
     def __repr__(self) -> str:
         return f"Valid({repr(self.val)})"
+
+
+ErrorDetail = Union[
+    InvalidCoercion,
+    InvalidDict,
+    InvalidExtraKeys,
+    InvalidIterable,
+    InvalidMap,
+    InvalidMissingKey,
+    InvalidPredicates,
+    InvalidSimple,
+    InvalidType,
+    InvalidVariants,
+]
 
 
 class Invalid:
@@ -71,106 +194,6 @@ class ValidatorErrorBase:
 @dataclass
 class ValidatorError(ValidatorErrorBase):
     details: Any
-
-
-@dataclass
-class InvalidCoercion(ErrorDetail):
-    """
-    When one or more types can be coerced to a destination type
-    """
-
-    compatible_types: List[Type[Any]]
-    dest_type: Type[Any]
-
-
-class InvalidMissingKey(ErrorDetail):
-    """
-    A key is missing from a dictionary
-    """
-
-
-@dataclass
-class InvalidExtraKeys(ErrorDetail):
-    """
-    extra keys were present in a dictionary
-    """
-
-    expected_keys: Set[Hashable]
-
-
-@dataclass
-class InvalidDict(ErrorDetail):
-    """
-    validation failures for key/value pairs on a record-like
-    dictionary
-    """
-
-    # todo: add validator, rename
-    keys: Dict[Hashable, "ValidationErr"]
-
-
-@dataclass
-class InvalidKeyVal(ErrorDetail):
-    """
-    key and/or value errors from a single key/value pair
-    """
-
-    key: Optional["ValidationErr"]
-    val: Optional["ValidationErr"]
-
-
-@dataclass
-class InvalidMap(ErrorDetail):
-    """
-    errors from key/value pairs of a map-like dictionary
-    """
-
-    keys: Dict[Hashable, InvalidKeyVal]
-
-
-@dataclass
-class InvalidIterable(ErrorDetail):
-    """
-    dictionary of validation errors by index
-    """
-
-    indexes: Dict[int, "ValidationErr"]
-
-
-@dataclass
-class InvalidVariants(ErrorDetail):
-    """
-    none of these validators was satisfied by a given value
-    """
-
-    variants: List[Invalid]
-
-
-@dataclass
-class InvalidPredicates(Generic[A], ErrorDetail):
-    """
-    A grouping of failed Predicates
-    """
-
-    predicates: List[Union["Predicate[A]", "PredicateAsync[A]"]]
-
-
-@dataclass
-class InvalidSimple(ErrorDetail):
-    """
-    If all you want to do is produce a message, this can be useful
-    """
-
-    err_message: str
-
-
-@dataclass
-class InvalidType(ErrorDetail):
-    """
-    A specific type was required but not provided
-    """
-
-    expected_type: Type[Any]
 
 
 ValidationErr = Union[

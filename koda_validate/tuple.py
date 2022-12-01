@@ -14,6 +14,8 @@ from koda_validate._internal import (
     _ToTupleValidator,
 )
 from koda_validate.base import (
+    ErrorDetail,
+    Invalid,
     InvalidCoercion,
     InvalidIterable,
     InvalidPredicates,
@@ -41,8 +43,8 @@ class TupleNValidatorAny(_ToTupleValidator[Tuple[Any, ...]]):
         val_type = type(val)
         if val_type is tuple or val_type is list:
             if not self._len_predicate(val):
-                return False, InvalidPredicates([self._len_predicate])
-            errs: Dict[int, ValidationErr] = {}
+                return False, Invalid(self, InvalidPredicates([self._len_predicate]))
+            errs: Dict[int, Invalid] = {}
             vals = []
             for i, (validator, tuple_val) in enumerate(zip(self.validators, val)):
                 if isinstance(validator, _ToTupleValidator):
@@ -56,20 +58,20 @@ class TupleNValidatorAny(_ToTupleValidator[Tuple[Any, ...]]):
                     if result.is_valid:
                         vals.append(result.val)
                     else:
-                        errs[i] = result.val
+                        errs[i] = result
             if errs:
-                return False, InvalidIterable(errs)
+                return False, Invalid(self, InvalidIterable(errs))
             else:
                 return True, tuple(vals)
 
         else:
-            return False, InvalidCoercion([list, tuple], tuple)
+            return False, Invalid(self, InvalidCoercion([list, tuple], tuple))
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Tuple[Any, ...]]:
         val_type = type(val)
         if val_type is tuple or val_type is list:
             if not self._len_predicate(val):
-                return False, InvalidPredicates([self._len_predicate])
+                return False, Invalid(self, InvalidPredicates([self._len_predicate]))
             errs: Dict[int, ValidationErr] = {}
             vals = []
             for i, (validator, tuple_val) in enumerate(zip(self.validators, val)):
@@ -86,14 +88,14 @@ class TupleNValidatorAny(_ToTupleValidator[Tuple[Any, ...]]):
                     if result.is_valid:
                         vals.append(result.val)
                     else:
-                        errs[i] = result.val
+                        errs[i] = result
             if errs:
-                return False, InvalidIterable(errs)
+                return False, Invalid(self, InvalidIterable(errs))
             else:
                 return True, tuple(vals)
 
         else:
-            return False, InvalidCoercion([list, tuple], tuple)
+            return False, Invalid(self, InvalidCoercion([list, tuple], tuple))
 
 
 # todo: auto-generate
@@ -123,13 +125,13 @@ class Tuple2Validator(_ToTupleValidator[Tuple[A, B]]):
                 return True, new_val
             else:
                 tup_result = self.tuple_validator(new_val)
-                if tup_result.is_valid:
-                    return True, tup_result.val
+                if tup_result is None:
+                    return True, new_val
                 else:
-                    return False, tup_result.val
+                    return False, Invalid(self, tup_result)
         else:
             err_val = result[1]
-            if isinstance(err_val, ValidatorErrorBase):
+            if isinstance(err_val, Invalid):
                 err_val.validator = self
             return False, err_val
 
@@ -141,13 +143,13 @@ class Tuple2Validator(_ToTupleValidator[Tuple[A, B]]):
                 return True, new_val
             else:
                 tup_result = self.tuple_validator(new_val)
-                if tup_result.is_valid:
-                    return True, tup_result.val
+                if tup_result is None:
+                    return True, new_val
                 else:
-                    return False, tup_result.val
+                    return False, Invalid(self, tup_result)
         else:
             err_val = result[1]
-            if isinstance(err_val, ValidatorErrorBase):
+            if isinstance(err_val, Invalid):
                 err_val.validator = self
             return False, err_val
 
@@ -167,7 +169,7 @@ class Tuple3Validator(_ToTupleValidator[Tuple[A, B, C]]):
         slot2_validator: Validator[B],
         slot3_validator: Validator[C],
         tuple_validator: Optional[
-            Callable[[Tuple[A, B, C]], ValidationResult[Tuple[A, B, C]]]
+            Callable[[Tuple[A, B, C]], Optional[ErrorDetail]]
         ] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
@@ -186,13 +188,13 @@ class Tuple3Validator(_ToTupleValidator[Tuple[A, B, C]]):
                 return True, new_val
             else:
                 tup_result = self.tuple_validator(new_val)
-                if tup_result.is_valid:
-                    return True, tup_result.val
+                if tup_result is None:
+                    return True, new_val
                 else:
-                    return False, tup_result.val
+                    return False, Invalid(self, tup_result)
         else:
             err_val = result[1]
-            if isinstance(err_val, ValidatorErrorBase):
+            if isinstance(err_val, Invalid):
                 err_val.validator = self
             return False, err_val
 
@@ -204,13 +206,13 @@ class Tuple3Validator(_ToTupleValidator[Tuple[A, B, C]]):
                 return True, new_val
             else:
                 tup_result = self.tuple_validator(new_val)
-                if tup_result.is_valid:
-                    return True, tup_result.val
+                if tup_result is None:
+                    return True, new_val
                 else:
-                    return False, tup_result.val
+                    return False, Invalid(self, tup_result)
         else:
             err_val = result[1]
-            if isinstance(err_val, ValidatorErrorBase):
+            if isinstance(err_val, Invalid):
                 err_val.validator = self
             return False, err_val
 
@@ -249,16 +251,18 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
 
                 # Not running async validators! They shouldn't be set!
                 if tuple_errors:
-                    return False, InvalidPredicates(tuple_errors)
+                    return False, Invalid(self, InvalidPredicates(tuple_errors))
 
             return_list: List[A] = []
-            index_errors: Dict[int, ValidationErr] = {}
+            index_errors: Dict[int, Invalid] = {}
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
                     is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501
                 else:
                     _result = self.item_validator(item)
-                    is_valid, item_result = (_result.is_valid, _result.val)
+                    is_valid, item_result = (
+                        (True, _result.val) if _result.is_valid else (False, _result)
+                    )
 
                 if not is_valid:
                     index_errors[i] = item_result
@@ -266,11 +270,11 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
                     return_list.append(item_result)
 
             if index_errors:
-                return False, InvalidIterable(index_errors)
+                return False, Invalid(self, InvalidIterable(index_errors))
             else:
                 return True, tuple(return_list)
         else:
-            return False, InvalidType(tuple)
+            return False, Invalid(self, InvalidType(tuple))
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Tuple[A, ...]]:
         if isinstance(val, tuple):
@@ -290,7 +294,7 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
 
             # Not running async validators! They shouldn't be set!
             if tuple_errors:
-                return False, InvalidPredicates(tuple_errors)
+                return False, Invalid(self, InvalidPredicates(tuple_errors))
 
             return_list: List[A] = []
             index_errors: Dict[int, ValidationErr] = {}
@@ -304,7 +308,9 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
                     )
                 else:
                     _result = await self.item_validator.validate_async(item)
-                    is_valid, item_result = (_result.is_valid, _result.val)
+                    is_valid, item_result = (
+                        (True, _result.val) if _result.is_valid else (False, _result)
+                    )
 
                 if not is_valid:
                     index_errors[i] = item_result
@@ -312,8 +318,8 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
                     return_list.append(item_result)
 
             if index_errors:
-                return False, InvalidIterable(index_errors)
+                return False, Invalid(self, InvalidIterable(index_errors))
             else:
                 return True, tuple(return_list)
         else:
-            return False, InvalidType(tuple)
+            return False, Invalid(self, InvalidType(tuple))

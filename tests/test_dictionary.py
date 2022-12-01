@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Hashable, List, Protocol
+from typing import Any, Dict, Hashable, List, Optional, Protocol
 
 import pytest
 from koda import Just, Maybe, nothing
@@ -27,6 +27,7 @@ from koda_validate import (
 )
 from koda_validate._generics import A
 from koda_validate.base import (
+    ErrorDetail,
     InvalidDict,
     InvalidExtraKeys,
     InvalidKeyVal,
@@ -37,6 +38,7 @@ from koda_validate.base import (
     InvalidType,
     ValidationErr,
     ValidationResult,
+    invalid_missing_key,
 )
 from koda_validate.dictionary import (
     DictValidatorAny,
@@ -58,7 +60,7 @@ _JONES_ERROR_MSG: ValidationErr = InvalidSimple(
 
 def test_is_dict() -> None:
     assert is_dict_validator({}) == Valid({})
-    assert is_dict_validator(None) == Invalid(InvalidType(is_dict_validator, dict))
+    assert is_dict_validator(None) == Invalid(is_dict_validator, InvalidType(dict))
     assert is_dict_validator({"a": 1, "b": 2, 5: "whatever"}) == Valid(
         {"a": 1, "b": 2, 5: "whatever"}
     )
@@ -68,7 +70,7 @@ def test_is_dict() -> None:
 async def test_is_dict_async() -> None:
     assert await is_dict_validator.validate_async({}) == Valid({})
     assert await is_dict_validator.validate_async(None) == Invalid(
-        InvalidType(is_dict_validator, dict)
+        is_dict_validator, InvalidType(dict)
     )
     assert await is_dict_validator.validate_async(
         {"a": 1, "b": 2, 5: "whatever"}
@@ -79,11 +81,11 @@ def test_map_validator() -> None:
     s_v = StringValidator()
     m_v_s_f = MapValidator(key=s_v, value=FloatValidator())
 
-    assert m_v_s_f(None) == Invalid(InvalidType(m_v_s_f, dict))
+    assert m_v_s_f(None) == Invalid(m_v_s_f, InvalidType(dict))
 
     m_v_s_s = MapValidator(key=s_v, value=s_v)
 
-    assert m_v_s_s(5) == Invalid(InvalidType(m_v_s_s, dict))
+    assert m_v_s_s(5) == Invalid(m_v_s_s, InvalidType(dict))
 
     assert MapValidator(key=s_v, value=s_v)({}) == Valid({})
 
@@ -92,15 +94,15 @@ def test_map_validator() -> None:
 
     m_s_i_v = MapValidator(key=s_v, value=i_v)
     assert m_s_i_v({5: None}) == Invalid(
+        m_s_i_v,
         InvalidMap(
-            m_s_i_v,
             {
                 5: InvalidKeyVal(
-                    key=InvalidType(s_v, str),
-                    val=InvalidType(i_v, int),
+                    key=Invalid(s_v, InvalidType(str)),
+                    val=Invalid(i_v, InvalidType(int)),
                 )
             },
-        )
+        ),
     )
 
     @dataclass
@@ -138,11 +140,11 @@ async def test_map_validator_async() -> None:
     s_v = StringValidator()
     m_v_s_f = MapValidator(key=s_v, value=FloatValidator())
 
-    assert await m_v_s_f.validate_async(None) == Invalid(InvalidType(m_v_s_f, dict))
+    assert await m_v_s_f.validate_async(None) == Invalid(m_v_s_f, InvalidType(dict))
 
     m_v_s_s = MapValidator(key=s_v, value=s_v)
 
-    assert await m_v_s_s.validate_async(5) == Invalid(InvalidType(m_v_s_s, dict))
+    assert await m_v_s_s.validate_async(5) == Invalid(m_v_s_s, InvalidType(dict))
 
     assert await MapValidator(
         key=StringValidator(), value=StringValidator()
@@ -156,15 +158,15 @@ async def test_map_validator_async() -> None:
     m_s_i_v = MapValidator(key=s_v, value=i_v)
 
     assert await m_s_i_v.validate_async({5: None}) == Invalid(
+        m_s_i_v,
         InvalidMap(
-            m_s_i_v,
             {
                 5: InvalidKeyVal(
-                    key=InvalidType(s_v, str),
-                    val=InvalidType(i_v, int),
+                    key=Invalid(s_v, InvalidType(str)),
+                    val=Invalid(i_v, InvalidType(int)),
                 )
             },
-        )
+        ),
     )
 
     @dataclass
@@ -236,18 +238,18 @@ def test_record_1() -> None:
 
     validator = RecordValidator(into=Person, keys=(("name", s_v),))
 
-    assert validator("not a dict") == Invalid(InvalidType(validator, dict))
+    assert validator("not a dict") == Invalid(validator, InvalidType(dict))
 
     assert validator({}) == Invalid(
-        InvalidDict(validator, {"name": InvalidMissingKey(validator)})
+        validator, InvalidDict({"name": Invalid(validator, InvalidMissingKey())})
     )
 
     assert validator({"name": 5}) == Invalid(
-        InvalidDict(validator, keys={"name": InvalidType(s_v, str)})
+        validator, InvalidDict(keys={"name": Invalid(s_v, InvalidType(str))})
     )
 
     assert validator({"name": "bob", "age": 50}) == Invalid(
-        InvalidExtraKeys(validator, {"name"})
+        validator, InvalidExtraKeys({"name"})
     )
 
     assert validator({"name": "bob"}) == Valid(Person("bob"))
@@ -267,24 +269,25 @@ def test_record_2() -> None:
         keys=(("name", s_v), ("age", KeyNotRequired(i_v))),
     )
 
-    assert validator("not a dict") == Invalid(InvalidType(validator, dict))
+    assert validator("not a dict") == Invalid(validator, InvalidType(dict))
 
     assert validator({}) == Invalid(
-        InvalidDict(validator, {"name": InvalidMissingKey(validator)})
+        validator, InvalidDict({"name": Invalid(validator, InvalidMissingKey())})
     )
 
     assert validator({"name": 5, "age": "50"}) == Invalid(
+        validator,
         InvalidDict(
-            validator,
             {
-                "name": InvalidType(s_v, str),
-                "age": InvalidType(i_v, int),
+                "name": Invalid(s_v, InvalidType(str)),
+                "age": Invalid(i_v, InvalidType(int)),
             },
-        )
+        ),
     )
 
     assert validator({"name": "bob", "age": 50, "eye_color": "brown"}) == Invalid(
-        InvalidExtraKeys(validator, {"name", "age"}),
+        validator,
+        InvalidExtraKeys({"name", "age"}),
     )
 
     assert validator({"name": "bob", "age": 50}) == Valid(Person("bob", Just(50)))
@@ -315,16 +318,14 @@ def test_record_3() -> None:
         Person("bob", "smith", 50)
     )
 
-    assert validator("") == Invalid(InvalidType(validator, dict))
+    assert validator("") == Invalid(validator, InvalidType(dict))
 
 
 def _nobody_named_jones_has_brown_eyes(
     person: PersonLike,
-) -> ValidationResult[PersonLike]:
+) -> Optional[ErrorDetail]:
     if person.last_name.lower() == "jones" and person.eye_color == "brown":
-        return Invalid(_JONES_ERROR_MSG)
-    else:
-        return Valid(person)
+        return _JONES_ERROR_MSG
 
 
 def test_record_4() -> None:
@@ -352,9 +353,9 @@ def test_record_4() -> None:
 
     assert validator(
         {"first_name": "bob", "last_name": "Jones", "age": 50, "eye color": "brown"}
-    ) == Invalid(_JONES_ERROR_MSG)
+    ) == Invalid(validator, _JONES_ERROR_MSG)
 
-    assert validator("") == Invalid(InvalidType(validator, dict))
+    assert validator("") == Invalid(validator, InvalidType(dict))
 
 
 def test_record_4_mix_and_match_key_types() -> None:
@@ -382,21 +383,21 @@ def test_record_4_mix_and_match_key_types() -> None:
 
     assert validator(
         {"first_name": "bob", 5: "Jones", ("age", "field"): 50, Decimal(6): "brown"}
-    ) == Invalid(_JONES_ERROR_MSG)
+    ) == Invalid(validator, _JONES_ERROR_MSG)
 
     assert validator({"bad field": 1}) == Invalid(
+        validator,
         InvalidExtraKeys(
-            validator,
             {
                 "first_name",
                 5,
                 ("age", "field"),
                 Decimal(6),
             },
-        )
+        ),
     )
 
-    assert validator("") == Invalid(InvalidType(validator, dict))
+    assert validator("") == Invalid(validator, InvalidType(dict))
 
 
 def test_record_5() -> None:
@@ -438,9 +439,9 @@ def test_record_5() -> None:
             "eye color": "brown",
             "can-fly": True,
         }
-    ) == Invalid(_JONES_ERROR_MSG)
+    ) == Invalid(validator, _JONES_ERROR_MSG)
 
-    assert validator("") == Invalid(InvalidType(validator, dict))
+    assert validator("") == Invalid(validator, InvalidType(dict))
 
 
 def test_record_6() -> None:
@@ -476,7 +477,7 @@ def test_record_6() -> None:
         }
     ) == Valid(Person("bob", "smith", 50, "brown", True, 6.5))
 
-    assert validator("") == Invalid(InvalidType(validator, dict))
+    assert validator("") == Invalid(validator, InvalidType(dict))
 
 
 def test_record_7() -> None:
@@ -515,7 +516,7 @@ def test_record_7() -> None:
         }
     ) == Valid(Person("bob", "smith", 50, "brown", True, 6.5, 9.8))
 
-    assert validator("") == Invalid(InvalidType(validator, dict))
+    assert validator("") == Invalid(validator, InvalidType(dict))
 
 
 def test_record_8() -> None:
@@ -581,9 +582,9 @@ def test_record_8() -> None:
             "number of toes": 9.8,
             "favorite_color": "blue",
         }
-    ) == Invalid(_JONES_ERROR_MSG)
+    ) == Invalid(validator, _JONES_ERROR_MSG)
 
-    assert validator("") == Invalid(InvalidType(validator, dict))
+    assert validator("") == Invalid(validator, InvalidType(dict))
 
 
 def test_record_9() -> None:
@@ -629,7 +630,7 @@ def test_record_9() -> None:
         }
     ) == Valid(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, Just("blue"), None))
 
-    assert validator("") == Invalid(InvalidType(validator, dict))
+    assert validator("") == Invalid(validator, InvalidType(dict))
 
 
 def test_record_10() -> None:
@@ -691,7 +692,7 @@ def test_record_10() -> None:
         )
     )
 
-    assert validator("") == Invalid(InvalidType(validator, dict))
+    assert validator("") == Invalid(validator, InvalidType(dict))
 
 
 def test_record_int_keys() -> None:
@@ -703,10 +704,10 @@ def test_record_int_keys() -> None:
     test_age = 10
     test_name = "bob"
 
-    def asserted_ok(p: Person) -> ValidationResult[Person]:
+    def asserted_ok(p: Person) -> Optional[ErrorDetail]:
         assert p.age == test_age
         assert p.name == test_name
-        return Valid(p)
+        return None
 
     dv = RecordValidator(
         into=Person,
@@ -728,10 +729,10 @@ def test_record_tuple_str_keys() -> None:
     test_age = 10
     test_name = "bob"
 
-    def asserted_ok(p: Person) -> ValidationResult[Person]:
+    def asserted_ok(p: Person) -> Optional[ErrorDetail]:
         assert p.age == test_age
         assert p.name == test_name
-        return Valid(p)
+        return None
 
     dv = RecordValidator(
         into=Person,
@@ -752,10 +753,10 @@ def test_record_decimal_keys() -> None:
     test_age = 10
     test_name = "bob"
 
-    def asserted_ok(p: Person) -> ValidationResult[Person]:
+    def asserted_ok(p: Person) -> Optional[ErrorDetail]:
         assert p.age == test_age
         assert p.name == test_name
-        return Valid(p)
+        return None
 
     dv = RecordValidator(
         into=Person,
@@ -791,17 +792,15 @@ def test_dict_validator_any_empty() -> None:
     assert empty_dict_validator({}).val == {}
 
     assert empty_dict_validator({"oops": 5}) == Invalid(
-        InvalidExtraKeys(empty_dict_validator, set())
+        empty_dict_validator, InvalidExtraKeys(set())
     )
 
 
 def _nobody_named_jones_has_first_name_alice_dict(
     person: Dict[Hashable, Any],
-) -> ValidationResult[Dict[Hashable, Any]]:
+) -> Optional[ErrorDetail]:
     if person["last_name"].lower() == "jones" and person["first_name"] == Just("alice"):
-        return Invalid(_JONES_ERROR_MSG)
-    else:
-        return Valid(person)
+        return _JONES_ERROR_MSG
 
 
 def test_dict_validator_any() -> None:
@@ -863,7 +862,7 @@ def test_dict_validator_any() -> None:
         }
     )
 
-    assert validator("") == Invalid(InvalidType(validator, dict))
+    assert validator("") == Invalid(validator, InvalidType(dict))
 
 
 def test_dict_validator_any_key_missing() -> None:
@@ -886,13 +885,13 @@ def test_dict_validator_any_key_missing() -> None:
     )
 
     assert validator({"first_name": 5}) == Invalid(
+        validator,
         InvalidDict(
-            validator,
             {
-                "last_name": InvalidMissingKey(validator),
-                "first_name": InvalidType(s_v_1, str),
+                "last_name": Invalid(validator, InvalidMissingKey()),
+                "first_name": Invalid(s_v_1, InvalidType(str)),
             },
-        )
+        ),
     )
 
 
@@ -919,7 +918,7 @@ async def test_validate_dictionary_any_async() -> None:
         validate_object=_nobody_named_jones_has_first_name_alice_dict,
     )
 
-    assert await validator.validate_async(None) == Invalid(InvalidType(validator, dict))
+    assert await validator.validate_async(None) == Invalid(validator, InvalidType(dict))
 
     assert await validator.validate_async(
         {"first_name": " bob ", "last_name": "smith"}
@@ -935,17 +934,17 @@ async def test_validate_dictionary_any_async() -> None:
     )
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
+        validator,
         InvalidDict(
-            validator,
             {
-                "last_name": InvalidMissingKey(validator),
-                "first_name": InvalidType(s_v, str),
+                "last_name": Invalid(validator, invalid_missing_key),
+                "first_name": Invalid(s_v, InvalidType(str)),
             },
-        )
+        ),
     )
 
     assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Invalid(
-        InvalidExtraKeys(validator, {"first_name", "last_name"})
+        validator, InvalidExtraKeys({"first_name", "last_name"})
     )
 
 
@@ -1002,18 +1001,18 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
     )
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
+        validator,
         InvalidDict(
-            validator,
             {
-                "last_name": InvalidMissingKey(validator),
-                "first_name": InvalidType(s_v, str),
+                "last_name": Invalid(validator, invalid_missing_key),
+                "first_name": Invalid(s_v, InvalidType(str)),
             },
-        )
+        ),
     )
 
     assert await validator.validate_async(
         {"last_name": "jones", "first_name": "alice"}
-    ) == Invalid(_JONES_ERROR_MSG)
+    ) == Invalid(validator, _JONES_ERROR_MSG)
 
 
 @pytest.mark.asyncio
@@ -1086,13 +1085,11 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     def _nobody_named_jones_is_100(
         person: Person,
-    ) -> ValidationResult[Person]:
+    ) -> Optional[ErrorDetail]:
         if person.name.lower() == "jones" and person.age == 100:
-            return Invalid(InvalidSimple("Cannot be jones and 100"))
-        else:
-            return Valid(person)
+            return InvalidSimple("Cannot be jones and 100")
 
-    async def val_obj_async(obj: Person) -> ValidationResult[Person]:
+    async def val_obj_async(obj: Person) -> Optional[ErrorDetail]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_is_100(obj)
 
@@ -1107,7 +1104,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     # calling sync validate_object, even within async context
     assert await validator_sync.validate_async({"name": "jones", "age": 100}) == Invalid(
-        InvalidSimple("Cannot be jones and 100")
+        validator_sync, InvalidSimple("Cannot be jones and 100")
     )
 
     validator_async = RecordValidator(
@@ -1121,7 +1118,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     # calling sync validate_object_async within async context
     assert await validator_async.validate_async({"name": "jones", "age": 100}) == Invalid(
-        InvalidSimple("Cannot be jones and 100")
+        validator_async, InvalidSimple("Cannot be jones and 100")
     )
 
     # calling sync validate_object_async within async context
@@ -1147,7 +1144,7 @@ async def test_validate_dictionary_async() -> None:
         ),
     )
 
-    assert await validator.validate_async(None) == Invalid(InvalidType(validator, dict))
+    assert await validator.validate_async(None) == Invalid(validator, InvalidType(dict))
 
     assert await validator.validate_async(
         {"first_name": " bob ", "last_name": "smith"}
@@ -1158,17 +1155,17 @@ async def test_validate_dictionary_async() -> None:
     )
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
+        validator,
         InvalidDict(
-            validator,
             {
-                "last_name": InvalidMissingKey(validator),
-                "first_name": InvalidType(s_v, str),
+                "last_name": Invalid(validator, invalid_missing_key),
+                "first_name": Invalid(s_v, InvalidType(str)),
             },
-        )
+        ),
     )
 
     assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Invalid(
-        InvalidExtraKeys(validator, {"first_name", "last_name"})
+        validator, InvalidExtraKeys({"first_name", "last_name"})
     )
 
 

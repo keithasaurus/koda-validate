@@ -8,6 +8,7 @@ from koda_validate._internal import (
     _ToTupleValidator,
 )
 from koda_validate.base import (
+    Invalid,
     InvalidIterable,
     InvalidPredicates,
     InvalidType,
@@ -52,7 +53,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
                 ]
 
                 if list_errors:
-                    return False, InvalidPredicates(list_errors)
+                    return False, Invalid(self, InvalidPredicates(list_errors))
 
             return_list: List[A] = []
             index_errs: Dict[int, ValidationErr] = {}
@@ -61,7 +62,9 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501
                 else:
                     _result = self.item_validator(item)
-                    is_valid, item_result = (_result.is_valid, _result.val)
+                    is_valid, item_result = (
+                        (True, _result.val) if _result.is_valid else (False, _result)
+                    )
 
                 if not is_valid:
                     index_errs[i] = item_result
@@ -69,11 +72,11 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, InvalidIterable(index_errs)
+                return False, Invalid(self, InvalidIterable(index_errs))
             else:
                 return True, return_list
         else:
-            return False, InvalidType(list)
+            return False, Invalid(self, InvalidType(list))
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[List[A]]:
         if isinstance(val, list):
@@ -95,7 +98,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
                         predicate_errors.append(pred_async)
 
             if predicate_errors:
-                return False, InvalidPredicates(predicate_errors)
+                return False, Invalid(self, InvalidPredicates(predicate_errors))
 
             return_list: List[A] = []
             index_errs = {}
@@ -109,7 +112,9 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     )
                 else:
                     _result = await self.item_validator.validate_async(item)
-                    is_valid, item_result = (_result.is_valid, _result.val)
+                    is_valid, item_result = (
+                        (True, _result.val) if _result.is_valid else (False, _result)
+                    )
 
                 if not is_valid:
                     index_errs[i] = item_result
@@ -117,8 +122,8 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, InvalidIterable(index_errs)
+                return False, Invalid(self, InvalidIterable(index_errs))
             else:
                 return True, return_list
         else:
-            return False, InvalidType(list)
+            return False, Invalid(self, InvalidType(list))

@@ -41,6 +41,5 @@ class OptionalValidator(Validator[Optional[A]]):
         if result.is_valid:
             return result
         else:
-            if isinstance(result.val, ValidatorErrorBase):
-                result.val.validator = self
+            result.validator = self
             return result

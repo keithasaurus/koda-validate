@@ -39,7 +39,7 @@ def test_equals_validator() -> None:
         equals_dec_11, InvalidPredicates([EqualTo(Decimal("1.1"))])
     )
     e_f_v = EqualsValidator(4.4)
-    assert e_f_v("5.5") == Invalid(InvalidType(e_f_v, float))
+    assert e_f_v("5.5") == Invalid(e_f_v, InvalidType(float))
     equals_true_validator = EqualsValidator(True)
 
     assert equals_true_validator(True) == Valid(True)
@@ -48,7 +48,7 @@ def test_equals_validator() -> None:
         equals_true_validator, InvalidPredicates([EqualTo(True)])
     )
     e_i_v = EqualsValidator(4)
-    assert e_i_v(4.0) == Invalid(InvalidType(e_i_v, int))
+    assert e_i_v(4.0) == Invalid(e_i_v, InvalidType(int))
 
 
 @pytest.mark.asyncio
@@ -75,7 +75,7 @@ async def test_equals_validator_async() -> None:
     )
     e_f_v = EqualsValidator(4.4)
     assert await EqualsValidator(4.4).validate_async("5.5") == Invalid(
-        InvalidType(e_f_v, float)
+        e_f_v, InvalidType(float)
     )
     equals_true_validator = EqualsValidator(True)
     assert await equals_true_validator.validate_async(True) == Valid(True)
@@ -84,7 +84,7 @@ async def test_equals_validator_async() -> None:
         equals_true_validator, InvalidPredicates([EqualTo(True)])
     )
     e_i_v = EqualsValidator(4)
-    assert await e_i_v.validate_async(4.0) == Invalid(InvalidType(e_i_v, int))
+    assert await e_i_v.validate_async(4.0) == Invalid(e_i_v, InvalidType(int))
 
 
 def test_choices() -> None:

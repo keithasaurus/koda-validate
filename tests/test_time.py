@@ -22,11 +22,11 @@ async def test_date_validator_async() -> None:
     d_v = DateValidator()
     assert await d_v.validate_async("2021-03-21") == Valid(date(2021, 3, 21))
     assert await d_v.validate_async("2021-3-21") == Invalid(
+        d_v,
         InvalidCoercion(
-            d_v,
             [str, date],
             date,
-        )
+        ),
     )
 
 

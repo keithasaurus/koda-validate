@@ -64,8 +64,8 @@ async def test_union_validator_any_async() -> None:
     assert result == Invalid(
         str_int_float_validator,
         InvalidVariants(
-            []
-            # Invalid(s_v, InvalidType(str))]
+            [Invalid(s_v, InvalidType(str))]
+            #
         ),
     )
     #             Invalid(i_v, InvalidType(int)),

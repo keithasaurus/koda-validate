@@ -22,13 +22,13 @@ from tests.utils import BasicNoneValidator
 
 def test_list_validator() -> None:
     l_f_v = ListValidator(FloatValidator())
-    assert l_f_v("a string") == Invalid(InvalidType(l_f_v, list))
+    assert l_f_v("a string") == Invalid(l_f_v, InvalidType(list))
 
     assert l_f_v([5.5, "something else"]) == Invalid(
+        l_f_v,
         InvalidIterable(
-            l_f_v,
-            {1: InvalidType(l_f_v.item_validator, float)},
-        )
+            {1: Invalid(l_f_v.item_validator, InvalidType(float))},
+        ),
     )
 
     assert ListValidator(FloatValidator())([5.5, 10.1]) == Valid([5.5, 10.1])
@@ -53,20 +53,20 @@ def test_list_validator() -> None:
     assert n_v([None, None]) == Valid([None, None])
 
     assert n_v([None, 1]) == Invalid(
-        InvalidIterable(n_v, {1: InvalidType(n_v.item_validator, type(None))})
+        n_v, InvalidIterable({1: Invalid(n_v.item_validator, InvalidType(type(None)))})
     )
 
 
 @pytest.mark.asyncio
 async def test_list_async() -> None:
     l_f_v = ListValidator(FloatValidator())
-    assert await l_f_v.validate_async("a string") == Invalid(InvalidType(l_f_v, list))
+    assert await l_f_v.validate_async("a string") == Invalid(l_f_v, InvalidType(list))
 
     assert await l_f_v.validate_async([5.5, "something else"]) == Invalid(
+        l_f_v,
         InvalidIterable(
-            l_f_v,
-            {1: InvalidType(l_f_v.item_validator, float)},
-        )
+            {1: Invalid(l_f_v.item_validator, InvalidType(float))},
+        ),
     )
 
     assert await ListValidator(FloatValidator()).validate_async([5.5, 10.1]) == Valid(
@@ -87,7 +87,7 @@ async def test_list_async() -> None:
     assert await n_v.validate_async([None, None]) == Valid([None, None])
 
     assert await n_v.validate_async([None, 1]) == Invalid(
-        InvalidIterable(n_v, {1: InvalidType(n_v.item_validator, type(None))})
+        n_v, InvalidIterable({1: Invalid(n_v.item_validator, InvalidType(type(None)))})
     )
 
 

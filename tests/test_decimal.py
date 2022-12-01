@@ -25,19 +25,19 @@ class Add1Decimal(Processor[Decimal]):
 def test_decimal() -> None:
     d_v = DecimalValidator()
     assert d_v("a string") == Invalid(
+        d_v,
         InvalidCoercion(
-            d_v,
             [str, int, Decimal],
             Decimal,
-        )
+        ),
     )
 
     assert d_v(5.5) == Invalid(
+        d_v,
         InvalidCoercion(
-            d_v,
             [str, int, Decimal],
             Decimal,
-        )
+        ),
     )
 
     assert DecimalValidator()(Decimal("5.5")) == Valid(Decimal("5.5"))
@@ -58,19 +58,19 @@ def test_decimal() -> None:
 async def test_decimal_async() -> None:
     d_v = DecimalValidator()
     assert await d_v.validate_async("abc") == Invalid(
+        d_v,
         InvalidCoercion(
-            d_v,
             [str, int, Decimal],
             Decimal,
-        )
+        ),
     )
 
     assert await d_v.validate_async(5.5) == Invalid(
+        d_v,
         InvalidCoercion(
-            d_v,
             [str, int, Decimal],
             Decimal,
-        )
+        ),
     )
 
     @dataclass

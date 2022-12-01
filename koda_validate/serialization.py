@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Tuple, Union
 
 from koda_validate.base import (
+    Invalid,
     InvalidCoercion,
     InvalidDict,
     InvalidExtraKeys,
@@ -86,7 +87,8 @@ def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str
         raise TypeError(f"unhandled type: {type(pred)}")
 
 
-def serializable_validation_err(err: ValidationErr) -> Serializable:
+def serializable_validation_err(invalid: Invalid) -> Serializable:
+    err = invalid.error_detail
     if isinstance(err, InvalidCoercion):
         compatible_names = [t.__name__ for t in err.compatible_types]
         return [
