@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Tuple
+from typing import Optional, Tuple
 from uuid import UUID, uuid4
 
 import pytest
 
 from koda_validate import AlwaysValid, Invalid, MaxLength, StringValidator, Valid
 from koda_validate.base import (
+    ErrorDetail,
     InvalidCoercion,
     InvalidDict,
     InvalidPredicates,
@@ -105,9 +106,14 @@ def test_explicit_overrides_work() -> None:
 
     v1 = DataclassValidator(A, overrides={"first_name": StringValidator(MaxLength(3))})
     assert v1(test_dict) == Invalid(
+        v1,
         InvalidDict(
-            v1, {"first_name": InvalidPredicates(v1.schema["first_name"], [MaxLength(3)])}
-        )
+            {
+                "first_name": Invalid(
+                    v1.schema["first_name"], InvalidPredicates([MaxLength(3)])
+                )
+            }
+        ),
     )
 
 
@@ -125,9 +131,14 @@ async def test_explicit_overrides_work_async() -> None:
 
     v1 = DataclassValidator(A, overrides={"first_name": StringValidator(MaxLength(3))})
     assert await v1.validate_async(test_dict) == Invalid(
+        v1,
         InvalidDict(
-            v1, {"first_name": InvalidPredicates(v1.schema["first_name"], [MaxLength(3)])}
-        )
+            {
+                "first_name": Invalid(
+                    v1.schema["first_name"], InvalidPredicates([MaxLength(3)])
+                )
+            }
+        ),
     )
 
 
@@ -137,15 +148,16 @@ def test_validate_object_works() -> None:
         first_name: str
         last_name: str
 
-    def first_name_last_name_are_different(obj: A) -> ValidationResult[A]:
+    def first_name_last_name_are_different(obj: A) -> Optional[ErrorDetail]:
         if obj.first_name == obj.last_name:
-            return Invalid(InvalidSimple("first name cannot be last name"))
-        else:
-            return Valid(obj)
+            return InvalidSimple("first name cannot be last name")
+        return None
 
     v1 = DataclassValidator(A, validate_object=first_name_last_name_are_different)
     test_dict_same = {"first_name": "same", "last_name": "same"}
-    assert v1(test_dict_same) == Invalid(InvalidSimple("first name cannot be last name"))
+    assert v1(test_dict_same) == Invalid(
+        v1, InvalidSimple("first name cannot be last name")
+    )
 
     test_dict_different = {"first_name": "different", "last_name": "names"}
 
@@ -153,7 +165,9 @@ def test_validate_object_works() -> None:
 
     # should also work with dataclasses
     test_dc_same = A("same", "same")
-    assert v1(test_dc_same) == Invalid(InvalidSimple("first name cannot be last name"))
+    assert v1(test_dc_same) == Invalid(
+        v1, InvalidSimple("first name cannot be last name")
+    )
 
     test_dc_different = A("different", "names")
 
@@ -167,16 +181,15 @@ async def test_validate_object_works_async() -> None:
         first_name: str
         last_name: str
 
-    def first_name_last_name_are_different(obj: A) -> ValidationResult[A]:
+    def first_name_last_name_are_different(obj: A) -> Optional[ErrorDetail]:
         if obj.first_name == obj.last_name:
-            return Invalid(InvalidSimple("first name cannot be last name"))
-        else:
-            return Valid(obj)
+            return InvalidSimple("first name cannot be last name")
+        return None
 
     v1 = DataclassValidator(A, validate_object=first_name_last_name_are_different)
     test_dict_same = {"first_name": "same", "last_name": "same"}
     assert await v1.validate_async(test_dict_same) == Invalid(
-        InvalidSimple("first name cannot be last name")
+        v1, InvalidSimple("first name cannot be last name")
     )
 
     test_dict_different = {"first_name": "different", "last_name": "names"}
@@ -186,7 +199,7 @@ async def test_validate_object_works_async() -> None:
     # should also work with dataclasses
     test_dc_same = A("same", "same")
     assert await v1.validate_async(test_dc_same) == Invalid(
-        InvalidSimple("first name cannot be last name")
+        v1, InvalidSimple("first name cannot be last name")
     )
 
     test_dc_different = A("different", "names")
@@ -205,10 +218,10 @@ def test_validates_proper_string_type() -> None:
 
     # not type-safe, but still validate
     assert dc_validator(Example(5)) == Invalid(  # type: ignore
+        dc_validator,
         InvalidDict(
-            dc_validator,
-            {"name": InvalidType(dc_validator.schema["name"], str)},
-        )
+            {"name": Invalid(dc_validator.schema["name"], InvalidType(str))},
+        ),
     )
 
 
@@ -222,10 +235,10 @@ def test_validates_proper_int_type() -> None:
     assert dc_validator(Example(5)) == Valid(Example(5))
     # not type-safe, but still validate
     assert dc_validator(Example("bad")) == Invalid(  # type: ignore
+        dc_validator,
         InvalidDict(
-            dc_validator,
-            {"name": InvalidType(dc_validator.schema["name"], int)},
-        )
+            {"name": Invalid(dc_validator.schema["name"], InvalidType(int))},
+        ),
     )
 
 
@@ -238,10 +251,10 @@ def test_validates_proper_float_type() -> None:
 
     assert dc_validator(Example(5.0)) == Valid(Example(5.0))
     assert dc_validator(Example(5)) == Invalid(
+        dc_validator,
         InvalidDict(
-            dc_validator,
-            {"name": InvalidType(dc_validator.schema["name"], float)},
-        )
+            {"name": Invalid(dc_validator.schema["name"], InvalidType(float))},
+        ),
     )
 
 
@@ -255,10 +268,10 @@ def test_validates_proper_bool_type() -> None:
     assert dc_validator(Example(False)) == Valid(Example(False))
     # not type-safe, but still validate
     assert dc_validator(Example(1)) == Invalid(  # type: ignore
+        dc_validator,
         InvalidDict(
-            dc_validator,
-            {"name": InvalidType(dc_validator.schema["name"], bool)},
-        )
+            {"name": Invalid(dc_validator.schema["name"], InvalidType(bool))},
+        ),
     )
 
 
@@ -273,16 +286,18 @@ def test_validates_proper_decimal_type() -> None:
 
     # not type-safe, but still validate
     assert dc_validator(Example(5.6)) == Invalid(  # type: ignore
+        dc_validator,
         InvalidDict(
-            dc_validator,
             {
-                "name": InvalidCoercion(
+                "name": Invalid(
                     dc_validator.schema["name"],
-                    [str, int, Decimal],
-                    Decimal,
+                    InvalidCoercion(
+                        [str, int, Decimal],
+                        Decimal,
+                    ),
                 )
             },
-        )
+        ),
     )
 
 
@@ -301,10 +316,14 @@ def test_validates_proper_uuid_type() -> None:
     )
 
     assert dc_validator(Example(123)) == Invalid(  # type: ignore
+        dc_validator,
         InvalidDict(
-            dc_validator,
-            {"name": InvalidCoercion(dc_validator.schema["name"], [str, UUID], UUID)},
-        )
+            {
+                "name": Invalid(
+                    dc_validator.schema["name"], InvalidCoercion([str, UUID], UUID)
+                )
+            },
+        ),
     )
 
 

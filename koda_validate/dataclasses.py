@@ -43,7 +43,13 @@ from koda_validate import (
     Validator,
     always_valid,
 )
-from koda_validate.base import InvalidCoercion, InvalidExtraKeys, ValidationResult
+from koda_validate.base import (
+    ErrorDetail,
+    Invalid,
+    InvalidCoercion,
+    InvalidExtraKeys,
+    ValidationResult,
+)
 from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny
 
@@ -106,7 +112,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         data_cls: Type[_DCT],
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
-        validate_object: Optional[typing.Callable[[_DCT], ValidationResult[_DCT]]] = None,
+        validate_object: Optional[typing.Callable[[_DCT], Optional[ErrorDetail]]] = None,
     ) -> None:
         self.data_cls = data_cls
         overrides = overrides or {}
@@ -135,9 +141,9 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             )
             for key, val in self.schema.items()
         ]
-        self._unknown_keys_err: Tuple[
-            typing.Literal[False], InvalidExtraKeys
-        ] = False, InvalidExtraKeys(self, set(self.schema.keys()))
+        self._unknown_keys_err: Tuple[typing.Literal[False], Invalid] = False, Invalid(
+            self, InvalidExtraKeys(set(self.schema.keys()))
+        )
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
         if isinstance(val, dict):
@@ -145,9 +151,12 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         elif isinstance(val, self.data_cls):
             data = val.__dict__
         else:
-            return False, InvalidCoercion(
-                [dict, self.data_cls],
-                self.data_cls,
+            return False, Invalid(
+                self,
+                InvalidCoercion(
+                    [dict, self.data_cls],
+                    self.data_cls,
+                ),
             )
 
         result_tup = validate_dict_to_tuple(
@@ -160,10 +169,10 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             obj = self.data_cls(**result_tup[1])
             if self.validate_object:
                 result = self.validate_object(obj)
-                if result.is_valid:
-                    return True, result.val
+                if result is None:
+                    return True, obj
                 else:
-                    return False, result.val
+                    return False, Invalid(self, result)
             else:
                 return True, obj
 
@@ -173,9 +182,12 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         elif isinstance(val, self.data_cls):
             data = val.__dict__
         else:
-            return False, InvalidCoercion(
-                [dict, self.data_cls],
-                self.data_cls,
+            return False, Invalid(
+                self,
+                InvalidCoercion(
+                    [dict, self.data_cls],
+                    self.data_cls,
+                ),
             )
 
         result_tup = await validate_dict_to_tuple_async(
@@ -188,9 +200,9 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             obj = self.data_cls(**result_tup[1])
             if self.validate_object:
                 result = self.validate_object(obj)
-                if result.is_valid:
-                    return True, result.val
+                if result is None:
+                    return True, obj
                 else:
-                    return False, result.val
+                    return False, Invalid(self, result)
             else:
                 return True, obj

@@ -412,20 +412,31 @@ def test_complex_union_dataclass() -> None:
 
     validators_schema_key_a = cast(UnionValidatorAny, example_validator.schema["a"])
     assert example_validator({"a": False}) == Invalid(
+        example_validator,
         InvalidDict(
-            example_validator,
             {
-                "a": InvalidVariants(
+                "a": Invalid(
                     example_validator.schema["a"],
-                    [
-                        InvalidType(validators_schema_key_a.validators[0], str),
-                        InvalidType(validators_schema_key_a.validators[1], type(None)),
-                        InvalidType(validators_schema_key_a.validators[2], float),
-                        InvalidType(validators_schema_key_a.validators[3], int),
-                    ],
+                    InvalidVariants(
+                        [
+                            Invalid(
+                                validators_schema_key_a.validators[0], InvalidType(str)
+                            ),
+                            Invalid(
+                                validators_schema_key_a.validators[1],
+                                InvalidType(type(None)),
+                            ),
+                            Invalid(
+                                validators_schema_key_a.validators[2], InvalidType(float)
+                            ),
+                            Invalid(
+                                validators_schema_key_a.validators[3], InvalidType(int)
+                            ),
+                        ],
+                    ),
                 )
             },
-        )
+        ),
     )
 
 
@@ -473,7 +484,9 @@ def test_nested_dataclass() -> None:
                 "something": {},
             },
         }
-    ) == Invalid(InvalidDict(b_validator, {"name": InvalidMissingKey(b_validator)}))
+    ) == Invalid(
+        b_validator, InvalidDict({"name": Invalid(b_validator, InvalidMissingKey())})
+    )
 
     assert b_validator(
         {
@@ -487,28 +500,34 @@ def test_nested_dataclass() -> None:
             },
         }
     ) == Invalid(
+        b_validator,
         InvalidDict(
-            b_validator,
             {
-                "a": InvalidDict(
+                "a": Invalid(
                     b_validator.schema["a"],
-                    {
-                        "something": InvalidMap(
-                            b_validator.schema["a"].schema["something"],  # type: ignore
-                            {
-                                5: InvalidKeyVal(
-                                    key=InvalidType(
-                                        b_validator.schema["a"].schema["something"].key_validator,  # type: ignore  # noqa: E501
-                                        str,
-                                    ),
-                                    val=None,
-                                )
-                            },
-                        )
-                    },
+                    InvalidDict(
+                        {
+                            "something": Invalid(
+                                b_validator.schema["a"].schema["something"],  # type: ignore
+                                InvalidMap(
+                                    {
+                                        5: InvalidKeyVal(
+                                            key=Invalid(
+                                                b_validator.schema["a"].schema["something"].key_validator,  # type: ignore  # noqa: E501
+                                                InvalidType(
+                                                    str,
+                                                ),
+                                            ),
+                                            val=None,
+                                        )
+                                    },
+                                ),
+                            )
+                        },
+                    ),
                 )
             },
-        )
+        ),
     )
 
 

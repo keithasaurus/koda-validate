@@ -75,7 +75,7 @@ def validate_dict_to_tuple(
     preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
     fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
     schema: Dict[Any, Validator[Any]],
-    unknown_keys_err: Tuple[Literal[False], InvalidExtraKeys],
+    unknown_keys_err: Tuple[Literal[False], Invalid],
     data: Any,
 ) -> ResultTuple[Dict[Any, Any]]:
     if not isinstance(data, dict):
@@ -91,7 +91,7 @@ def validate_dict_to_tuple(
             return unknown_keys_err
 
     success_dict: Dict[Hashable, Any] = {}
-    errs: Dict[Hashable, ValidationErr] = {}
+    errs: Dict[Hashable, Invalid] = {}
     for key_, validator, key_required, is_tuple_validator in fast_keys:
         try:
             val = data[key_]
@@ -128,7 +128,7 @@ async def validate_dict_to_tuple_async(
     preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
     fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
     schema: Dict[Any, Validator[Any]],
-    unknown_keys_err: Tuple[Literal[False], InvalidExtraKeys],
+    unknown_keys_err: Tuple[Literal[False], Invalid],
     data: Any,
 ) -> ResultTuple[Dict[Any, Any]]:
     if not isinstance(data, dict):
@@ -144,7 +144,7 @@ async def validate_dict_to_tuple_async(
             return unknown_keys_err
 
     success_dict: Dict[Hashable, Any] = {}
-    errs: Dict[Hashable, ValidationErr] = {}
+    errs: Dict[Hashable, Invalid] = {}
     for key_, validator, key_required, is_tuple_validator in fast_keys:
         try:
             val = data[key_]

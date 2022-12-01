@@ -1054,11 +1054,11 @@ def test_dict_validator_cannot_have_validate_object_and_validate_object_async() 
 
     def _nobody_named_jones_is_100(
         person: Person,
-    ) -> ValidationResult[Person]:
+    ) -> Optional[ErrorDetail]:
         if person.name.lower() == "jones" and person.age == 100:
-            return Invalid(InvalidSimple("Cannot be jones and 100"))
+            return InvalidSimple("Cannot be jones and 100")
         else:
-            return Valid(person)
+            return None
 
     async def val_obj_async(obj: Person) -> ValidationResult[Person]:
         await asyncio.sleep(0.001)
@@ -1088,6 +1088,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
     ) -> Optional[ErrorDetail]:
         if person.name.lower() == "jones" and person.age == 100:
             return InvalidSimple("Cannot be jones and 100")
+        return None
 
     async def val_obj_async(obj: Person) -> Optional[ErrorDetail]:
         await asyncio.sleep(0.001)

@@ -32,7 +32,7 @@ class InvalidMissingKey:
     A key is missing from a dictionary
     """
 
-    _instance: ClassVar["InvalidMissingKey"] = None
+    _instance: ClassVar[Optional["InvalidMissingKey"]] = None
 
     def __new__(cls) -> "InvalidMissingKey":
         """
