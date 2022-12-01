@@ -129,19 +129,20 @@ class TypeErr:
     expected_type: Type[Any]
 
 
+@dataclass
 class Valid(Generic[A]):
-    __match_args__ = ("val",)
-
+    val: A
     is_valid: ClassVar[Literal[True]] = True
 
-    def __init__(self, val: A) -> None:
-        self.val: A = val
 
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, Valid) and other.val == self.val
+@dataclass
+class Invalid:
+    validator: "Validator[Any]"
+    error_detail: "ErrorDetail"
+    is_valid: ClassVar[Literal[False]] = False
 
-    def __repr__(self) -> str:
-        return f"Valid({repr(self.val)})"
+
+ValidationResult = Union[Valid[A], Invalid]
 
 
 ErrorDetail = Union[
@@ -156,38 +157,6 @@ ErrorDetail = Union[
     TypeErr,
     VariantErrs,
 ]
-
-
-class Invalid:
-    __match_args__ = ("validator", "error_detail")
-
-    is_valid: ClassVar[Literal[False]] = False
-
-    def __init__(self, validator: "Validator[Any]", error_detail: ErrorDetail) -> None:
-        self.validator = validator
-        self.error_detail = error_detail
-
-    def __eq__(self, other: Any) -> bool:
-        return (
-            isinstance(other, Invalid)
-            and other.validator == self.validator
-            and other.error_detail == self.error_detail
-        )
-
-    def __repr__(self) -> str:
-        return (
-            f"Invalid(validator={repr(self.validator)}, "
-            f"error_detail={repr(self.error_detail)})"
-        )
-
-
-ValidationResult = Union[Valid[A], Invalid]
-
-
-@dataclass
-class ValidatorError:
-    validator: "Validator[Any]"
-    details: Any
 
 
 class Validator(Generic[SuccessT]):

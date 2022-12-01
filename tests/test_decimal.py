@@ -86,7 +86,7 @@ async def test_decimal_async() -> None:
     assert result == Invalid(add_1_dec_v, PredicateErrs([LessThan4()]))
     assert await DecimalValidator(
         preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
-    ).validate_async(2) == Valid(3)
+    ).validate_async(2) == Valid(Decimal(3))
 
     assert await DecimalValidator(
         preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
