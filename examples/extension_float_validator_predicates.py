@@ -15,12 +15,12 @@ class SimpleFloatValidator2(Validator[float]):
                 return (
                     Valid(val)
                     if self.predicate(val)
-                    else Invalid(InvalidPredicates(self, [self.predicate]))
+                    else Invalid(self, InvalidPredicates([self.predicate]))
                 )
             else:
                 return Valid(val)
         else:
-            return Invalid(InvalidType(float))
+            return Invalid(self, InvalidType(float))
 
 
 @dataclass
@@ -43,7 +43,7 @@ test_val = 0.7
 assert range_validator(test_val) == Valid(test_val)
 
 assert range_validator(0.01) == Invalid(
-    InvalidPredicates(range_validator, [Range(0.5, 1.0)])
+    range_validator, InvalidPredicates([Range(0.5, 1.0)])
 )
 
 
@@ -61,12 +61,12 @@ class SimpleFloatValidator3(Validator[float]):
                 return (
                     Valid(val)
                     if self.predicate(val)
-                    else Invalid(InvalidPredicates(self, [self.predicate]))
+                    else Invalid(self, InvalidPredicates([self.predicate]))
                 )
             else:
                 return Valid(val)
         else:
-            return Invalid(InvalidType(float))
+            return Invalid(self, InvalidType(float))
 
 
 class AbsValue(Processor[float]):
@@ -83,5 +83,5 @@ test_val = -0.7
 assert range_validator_2(test_val) == Valid(abs(test_val))
 
 assert range_validator_2(-0.01) == Invalid(
-    InvalidPredicates(range_validator_2, [Range(0.5, 1.0)])
+    range_validator_2, InvalidPredicates([Range(0.5, 1.0)])
 )

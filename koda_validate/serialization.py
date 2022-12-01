@@ -14,7 +14,6 @@ from koda_validate.base import (
     InvalidVariants,
     Predicate,
     PredicateAsync,
-    ValidationErr,
 )
 from koda_validate.dictionary import MaxKeys, MinKeys
 from koda_validate.generic import (

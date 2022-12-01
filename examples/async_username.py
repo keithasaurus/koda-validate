@@ -20,7 +20,7 @@ username_validator = StringValidator(MinLength(1), predicates_async=[IsActiveUse
 
 assert asyncio.run(username_validator.validate_async("michael")) == Valid("michael")
 assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(
-    InvalidPredicates(username_validator, [IsActiveUsername()])
+    username_validator, InvalidPredicates([IsActiveUsername()])
 )
 
 # calling in sync mode raises an AssertionError!

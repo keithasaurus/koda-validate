@@ -19,7 +19,7 @@ def run_kv(objs: Any) -> None:
         if isinstance(result := string_validator(obj), Valid):
             _ = result.val
         else:
-            _ = result.val
+            _ = result.validator
 
 
 class BasicString(BaseModel):

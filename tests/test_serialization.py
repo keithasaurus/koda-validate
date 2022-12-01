@@ -117,9 +117,11 @@ def test_invalid_custom() -> None:
 
 def test_extra_keys() -> None:
     invalid_keys = Invalid(DictValidatorAny({}), InvalidExtraKeys({"a", "b", "cde"}))
+    error_detail = invalid_keys.error_detail
+    assert isinstance(error_detail, InvalidExtraKeys)
     assert serializable_validation_err(invalid_keys) == [
         "Received unknown keys. Only expected "
-        + ", ".join(sorted([repr(k) for k in invalid_keys.error_detail.expected_keys]))
+        + ", ".join(sorted([repr(k) for k in error_detail.expected_keys]))
         + "."
     ]
 

@@ -15,7 +15,6 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
-    ValidationErr,
     Validator,
 )
 
@@ -56,7 +55,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     return False, Invalid(self, InvalidPredicates(list_errors))
 
             return_list: List[A] = []
-            index_errs: Dict[int, ValidationErr] = {}
+            index_errs: Dict[int, Invalid] = {}
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
                     is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501

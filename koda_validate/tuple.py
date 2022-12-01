@@ -23,10 +23,7 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
-    ValidationErr,
-    ValidationResult,
     Validator,
-    ValidatorErrorBase,
 )
 
 
@@ -72,7 +69,7 @@ class TupleNValidatorAny(_ToTupleValidator[Tuple[Any, ...]]):
         if val_type is tuple or val_type is list:
             if not self._len_predicate(val):
                 return False, Invalid(self, InvalidPredicates([self._len_predicate]))
-            errs: Dict[int, ValidationErr] = {}
+            errs: Dict[int, Invalid] = {}
             vals = []
             for i, (validator, tuple_val) in enumerate(zip(self.validators, val)):
                 if isinstance(validator, _ToTupleValidator):
@@ -107,9 +104,7 @@ class Tuple2Validator(_ToTupleValidator[Tuple[A, B]]):
         self,
         slot1_validator: Validator[A],
         slot2_validator: Validator[B],
-        tuple_validator: Optional[
-            Callable[[Tuple[A, B]], ValidationResult[Tuple[A, B]]]
-        ] = None,
+        tuple_validator: Optional[Callable[[Tuple[A, B]], Optional[ErrorDetail]]] = None,
     ) -> None:
         self.slot1_validator = slot1_validator
         self.slot2_validator = slot2_validator
@@ -297,7 +292,7 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
                 return False, Invalid(self, InvalidPredicates(tuple_errors))
 
             return_list: List[A] = []
-            index_errors: Dict[int, ValidationErr] = {}
+            index_errors: Dict[int, Invalid] = {}
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
                     (

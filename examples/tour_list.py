@@ -7,15 +7,15 @@ binary_list_validator = ListValidator(binary_int_validator, predicates=[MinItems
 assert binary_list_validator([1, 0, 0, 1, 0]) == Valid([1, 0, 0, 1, 0])
 
 assert binary_list_validator([1]) == Invalid(
-    InvalidPredicates(binary_list_validator, [MinItems(2)])
+    binary_list_validator, InvalidPredicates([MinItems(2)])
 )
 
 assert binary_list_validator([0, 1.0, "0"]) == Invalid(
+    binary_list_validator,
     InvalidIterable(
-        binary_list_validator,
         {
-            1: InvalidType(binary_int_validator, int),
-            2: InvalidType(binary_int_validator, int),
+            1: Invalid(binary_int_validator, InvalidType(int)),
+            2: Invalid(binary_int_validator, InvalidType(int)),
         },
-    )
+    ),
 )

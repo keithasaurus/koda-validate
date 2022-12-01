@@ -160,7 +160,7 @@ ErrorDetail = Union[
 
 
 class Invalid:
-    __match_args__ = ("val",)
+    __match_args__ = ("validator", "error_detail")
 
     is_valid: ClassVar[Literal[False]] = False
 
@@ -176,7 +176,10 @@ class Invalid:
         )
 
     def __repr__(self) -> str:
-        return f"Invalid(validator={repr(self.validator)}, error_detail={repr(self.error_detail)})"
+        return (
+            f"Invalid(validator={repr(self.validator)}, "
+            f"error_detail={repr(self.error_detail)})"
+        )
 
 
 ValidationResult = Union[Valid[A], Invalid]

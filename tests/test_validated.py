@@ -1,7 +1,5 @@
 from decimal import Decimal
 
-from koda import Err, Ok
-
 from koda_validate import Invalid, StringValidator, Valid
 from koda_validate.base import InvalidType
 

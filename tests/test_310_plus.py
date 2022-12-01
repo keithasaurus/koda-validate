@@ -38,6 +38,7 @@ from koda_validate import (
     strip,
 )
 from koda_validate.base import (
+    ErrorDetail,
     InvalidDict,
     InvalidKeyVal,
     InvalidMap,
@@ -45,7 +46,6 @@ from koda_validate.base import (
     InvalidSimple,
     InvalidType,
     InvalidVariants,
-    ValidationResult,
 )
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
 from koda_validate.dictionary import (
@@ -115,11 +115,11 @@ def test_match_args() -> None:
 
 
 def test_record_validator_match_args() -> None:
-    def validate_person(p: Person) -> ValidationResult[Person]:
+    def validate_person(p: Person) -> Optional[ErrorDetail]:
         if len(p.name) > p.age.get_or_else(100):
-            return Invalid(InvalidSimple("your name cannot be longer than your age"))
+            return InvalidSimple("your name cannot be longer than your age")
         else:
-            return Valid(p)
+            return None
 
     dv_validator = RecordValidator(
         into=(into_ := Person),
@@ -151,11 +151,11 @@ def test_record_validator_match_args() -> None:
 
 
 def test_dict_any_match_args() -> None:
-    def validate_person_dict_any(p: Dict[Any, Any]) -> ValidationResult[Dict[Any, Any]]:
+    def validate_person_dict_any(p: Dict[Any, Any]) -> Optional[ErrorDetail]:
         if len(p["name"]) > p["age"]:
-            return Invalid(InvalidSimple("your name cannot be longer than your name"))
+            return InvalidSimple("your name cannot be longer than your name")
         else:
-            return Valid(p)
+            return None
 
     schema_: Dict[Hashable, Validator[Any]] = {
         "name": StringValidator(),
@@ -508,7 +508,7 @@ def test_nested_dataclass() -> None:
                     InvalidDict(
                         {
                             "something": Invalid(
-                                b_validator.schema["a"].schema["something"],  # type: ignore
+                                b_validator.schema["a"].schema["something"],  # type: ignore  # noqa: E501
                                 InvalidMap(
                                     {
                                         5: InvalidKeyVal(

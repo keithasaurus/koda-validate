@@ -13,7 +13,6 @@ from koda_validate.base import (
     InvalidPredicates,
     InvalidSimple,
     InvalidType,
-    ValidationResult,
 )
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
 from koda_validate.tuple import TupleHomogenousValidator

@@ -1,19 +1,17 @@
-from typing import Any, Dict, Hashable
+from typing import Any, Dict, Hashable, Optional
 
 from koda_validate import *
-from koda_validate.base import InvalidSimple, ValidationResult
+from koda_validate.base import ErrorDetail, InvalidSimple
 
 
-def no_dwight_regional_manager(
-    employee: Dict[Hashable, Any]
-) -> ValidationResult[Dict[Hashable, Any]]:
+def no_dwight_regional_manager(employee: Dict[Hashable, Any]) -> Optional[ErrorDetail]:
     if (
         "schrute" in employee["name"].lower()
         and employee["title"].lower() == "assistant regional manager"
     ):
-        return Invalid(InvalidSimple("Assistant TO THE Regional Manager!"))
+        return InvalidSimple("Assistant TO THE Regional Manager!")
     else:
-        return Valid(employee)
+        return None
 
 
 employee_validator = DictValidatorAny(
@@ -34,4 +32,4 @@ assert employee_validator(
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     }
-) == Invalid(InvalidSimple("Assistant TO THE Regional Manager!"))
+) == Invalid(employee_validator, InvalidSimple("Assistant TO THE Regional Manager!"))

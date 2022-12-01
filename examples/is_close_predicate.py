@@ -24,5 +24,5 @@ close_to_validator = FloatValidator(IsClose(0.05, 0.02))
 a = 0.06
 assert close_to_validator(a) == Valid(a)
 assert close_to_validator(0.01) == Invalid(
-    InvalidPredicates(close_to_validator, [IsClose(0.05, 0.02)])
+    close_to_validator, InvalidPredicates([IsClose(0.05, 0.02)])
 )

@@ -36,8 +36,6 @@ from koda_validate.base import (
     InvalidPredicates,
     InvalidSimple,
     InvalidType,
-    ValidationErr,
-    ValidationResult,
     invalid_missing_key,
 )
 from koda_validate.dictionary import (
@@ -53,9 +51,7 @@ class PersonLike(Protocol):
     eye_color: str
 
 
-_JONES_ERROR_MSG: ValidationErr = InvalidSimple(
-    "can't have last_name of jones and eye color of brown"
-)
+_JONES_ERROR_MSG = InvalidSimple("can't have last_name of jones and eye color of brown")
 
 
 def test_is_dict() -> None:
@@ -326,6 +322,7 @@ def _nobody_named_jones_has_brown_eyes(
 ) -> Optional[ErrorDetail]:
     if person.last_name.lower() == "jones" and person.eye_color == "brown":
         return _JONES_ERROR_MSG
+    return None
 
 
 def test_record_4() -> None:
@@ -789,7 +786,9 @@ def test_dict_validator_preprocessors() -> None:
 def test_dict_validator_any_empty() -> None:
     empty_dict_validator = DictValidatorAny({})
 
-    assert empty_dict_validator({}).val == {}
+    empty_result = empty_dict_validator({})
+    assert isinstance(empty_result, Valid)
+    assert empty_result.val == {}
 
     assert empty_dict_validator({"oops": 5}) == Invalid(
         empty_dict_validator, InvalidExtraKeys(set())
@@ -801,6 +800,8 @@ def _nobody_named_jones_has_first_name_alice_dict(
 ) -> Optional[ErrorDetail]:
     if person["last_name"].lower() == "jones" and person["first_name"] == Just("alice"):
         return _JONES_ERROR_MSG
+    else:
+        return None
 
 
 def test_dict_validator_any() -> None:
@@ -971,9 +972,7 @@ async def test_dict_validator_any_async_processor() -> None:
 
 @pytest.mark.asyncio
 async def test_dict_validator_any_with_validate_object_async() -> None:
-    async def val_obj_async(
-        obj: Dict[Hashable, Any]
-    ) -> ValidationResult[Dict[Hashable, Any]]:
+    async def val_obj_async(obj: Dict[Hashable, Any]) -> Optional[ErrorDetail]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_has_first_name_alice_dict(obj)
 
@@ -1029,9 +1028,7 @@ async def test_dict_validator_any_no_validate_object() -> None:
 
 
 def test_dict_validator_any_cannot_have_validate_object_and_validate_object_async() -> None:  # noqa:m E501
-    async def val_obj_async(
-        obj: Dict[Hashable, Any]
-    ) -> ValidationResult[Dict[Hashable, Any]]:
+    async def val_obj_async(obj: Dict[Hashable, Any]) -> Optional[ErrorDetail]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_has_first_name_alice_dict(obj)
 
@@ -1060,7 +1057,7 @@ def test_dict_validator_cannot_have_validate_object_and_validate_object_async() 
         else:
             return None
 
-    async def val_obj_async(obj: Person) -> ValidationResult[Person]:
+    async def val_obj_async(obj: Person) -> Optional[ErrorDetail]:
         await asyncio.sleep(0.001)
         return _nobody_named_jones_is_100(obj)
 

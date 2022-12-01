@@ -55,34 +55,32 @@ async def test_union_validator_any_async() -> None:
     i_v = IntValidator()
     f_v = FloatValidator()
     n_v = TestNoneValidator()
-    str_int_float_validator = UnionValidatorAny(s_v)
+    str_int_float_validator = UnionValidatorAny(s_v, i_v, f_v, n_v)
 
     assert await str_int_float_validator.validate_async("abc") == Valid("abc")
-    # assert await str_int_float_validator.validate_async(5) == Valid(5)
-    # assert await str_int_float_validator.validate_async(None) == Valid(None)
+    assert await str_int_float_validator.validate_async(5) == Valid(5)
+    assert await str_int_float_validator.validate_async(None) == Valid(None)
     result = await str_int_float_validator.validate_async([])
     assert result == Invalid(
         str_int_float_validator,
         InvalidVariants(
-            [Invalid(s_v, InvalidType(str))]
-            #
+            [
+                Invalid(s_v, InvalidType(str)),
+                Invalid(i_v, InvalidType(int)),
+                Invalid(f_v, InvalidType(float)),
+                Invalid(n_v, InvalidType(type(None))),
+            ]
         ),
     )
-    #             Invalid(i_v, InvalidType(int)),
-    #             Invalid(f_v, InvalidType(float)),
-    #             Invalid(n_v, InvalidType(type(None))),
-    #         ],
-    #     ),
-    # )
-    #
-    # assert await str_int_float_validator.validate_async(False) == Invalid(
-    #     str_int_float_validator,
-    #     InvalidVariants(
-    #         [
-    #             Invalid(s_v, InvalidType(str)),
-    #             Invalid(i_v, InvalidType(int)),
-    #             Invalid(f_v, InvalidType(float)),
-    #             Invalid(n_v, InvalidType(type(None))),
-    #         ],
-    #     )
-    # )
+
+    assert await str_int_float_validator.validate_async(False) == Invalid(
+        str_int_float_validator,
+        InvalidVariants(
+            [
+                Invalid(s_v, InvalidType(str)),
+                Invalid(i_v, InvalidType(int)),
+                Invalid(f_v, InvalidType(float)),
+                Invalid(n_v, InvalidType(type(None))),
+            ],
+        ),
+    )

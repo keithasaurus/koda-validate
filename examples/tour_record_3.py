@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from koda_validate import *
-from koda_validate.base import InvalidSimple, ValidationResult
+from koda_validate.base import ErrorDetail, InvalidSimple
 
 
 @dataclass
@@ -10,14 +11,14 @@ class Employee:
     name: str
 
 
-def no_dwight_regional_manager(employee: Employee) -> ValidationResult[Employee]:
+def no_dwight_regional_manager(employee: Employee) -> Optional[ErrorDetail]:
     if (
         "schrute" in employee.name.lower()
         and employee.title.lower() == "assistant regional manager"
     ):
-        return Invalid(InvalidSimple("Assistant TO THE Regional Manager!"))
+        return InvalidSimple("Assistant TO THE Regional Manager!")
     else:
-        return Valid(employee)
+        return None
 
 
 employee_validator = RecordValidator(
@@ -37,4 +38,4 @@ assert employee_validator(
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     }
-) == Invalid(InvalidSimple("Assistant TO THE Regional Manager!"))
+) == Invalid(employee_validator, InvalidSimple("Assistant TO THE Regional Manager!"))

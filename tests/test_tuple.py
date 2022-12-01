@@ -26,7 +26,6 @@ from koda_validate.base import (
     InvalidType,
     PredicateAsync,
     Processor,
-    ValidationResult,
 )
 from koda_validate.tuple import Tuple2Validator, Tuple3Validator, TupleHomogenousValidator
 from tests.utils import BasicNoneValidator

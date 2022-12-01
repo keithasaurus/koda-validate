@@ -56,7 +56,6 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     Processor,
-    ValidationErr,
     ValidationResult,
     Validator,
 )
@@ -990,12 +989,12 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         schema: Dict[Any, Validator[Any]],
         *,
         validate_object: Optional[
-            Callable[[Dict[Hashable, Any]], ValidationResult[Dict[Any, Any]]]
+            Callable[[Dict[Hashable, Any]], Optional[ErrorDetail]]
         ] = None,
         validate_object_async: Optional[
             Callable[
                 [Dict[Any, Any]],
-                Awaitable[ValidationResult[Dict[Any, Any]]],
+                Awaitable[Optional[ErrorDetail]],
             ]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,

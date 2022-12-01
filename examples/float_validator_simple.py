@@ -9,7 +9,7 @@ class SimpleFloatValidator(Validator[float]):
         if isinstance(val, float):
             return Valid(val)
         else:
-            return Invalid(InvalidType(float))
+            return Invalid(self, InvalidType(float))
 
 
 float_validator = SimpleFloatValidator()
@@ -18,4 +18,4 @@ test_val = 5.5
 
 assert float_validator(test_val) == Valid(test_val)
 
-assert float_validator(5) == Invalid(InvalidType(float_validator, float))
+assert float_validator(5) == Invalid(float_validator, InvalidType(float))
