@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass
 
 from koda_validate import *
-from koda_validate.base import InvalidPredicates
+from koda_validate.base import PredicateErrs
 
 
 @dataclass
@@ -24,5 +24,5 @@ close_to_validator = FloatValidator(IsClose(0.05, 0.02))
 a = 0.06
 assert close_to_validator(a) == Valid(a)
 assert close_to_validator(0.01) == Invalid(
-    close_to_validator, InvalidPredicates([IsClose(0.05, 0.02)])
+    close_to_validator, PredicateErrs([IsClose(0.05, 0.02)])
 )

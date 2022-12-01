@@ -1,7 +1,7 @@
 from typing import Any
 
 from koda_validate import Invalid, Valid, Validator
-from koda_validate.base import InvalidType, ValidationResult
+from koda_validate.base import TypeErr, ValidationResult
 
 
 class BasicNoneValidator(Validator[None]):
@@ -17,4 +17,4 @@ class BasicNoneValidator(Validator[None]):
         if val is None:
             return Valid(None)
         else:
-            return Invalid(self, InvalidType(type(None)))
+            return Invalid(self, TypeErr(type(None)))

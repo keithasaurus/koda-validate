@@ -1,28 +1,28 @@
 import pytest
 
 from koda_validate import Invalid, OptionalValidator, StringValidator, Valid
-from koda_validate.base import InvalidType, InvalidVariants
+from koda_validate.base import TypeErr, VariantErrs
 from koda_validate.none import none_validator
 
 
 def test_none() -> None:
-    assert none_validator("a string") == Invalid(none_validator, InvalidType(type(None)))
+    assert none_validator("a string") == Invalid(none_validator, TypeErr(type(None)))
 
     assert none_validator(None) == Valid(None)
 
-    assert none_validator(False) == Invalid(none_validator, InvalidType(type(None)))
+    assert none_validator(False) == Invalid(none_validator, TypeErr(type(None)))
 
 
 @pytest.mark.asyncio
 async def test_none_async() -> None:
     assert await none_validator.validate_async("a string") == Invalid(
-        none_validator, InvalidType(type(None))
+        none_validator, TypeErr(type(None))
     )
 
     assert await none_validator.validate_async(None) == Valid(None)
 
     assert await none_validator.validate_async(False) == Invalid(
-        none_validator, InvalidType(type(None))
+        none_validator, TypeErr(type(None))
     )
 
 
@@ -31,10 +31,10 @@ def test_optional_validator() -> None:
     assert o_v(None) == Valid(None)
     assert o_v(5) == Invalid(
         o_v,
-        InvalidVariants(
+        VariantErrs(
             [
-                Invalid(o_v.validator.validators[0], InvalidType(type(None))),
-                Invalid(o_v.validator.validators[1], InvalidType(str)),
+                Invalid(o_v.validator.validators[0], TypeErr(type(None))),
+                Invalid(o_v.validator.validators[1], TypeErr(str)),
             ],
         ),
     )
@@ -47,10 +47,10 @@ async def test_optional_validator_async() -> None:
     assert await o_v.validate_async(None) == Valid(None)
     assert await o_v.validate_async(5) == Invalid(
         o_v,
-        InvalidVariants(
+        VariantErrs(
             [
-                Invalid(o_v.validator.validators[0], InvalidType(type(None))),
-                Invalid(o_v.validator.validators[1], InvalidType(str)),
+                Invalid(o_v.validator.validators[0], TypeErr(type(None))),
+                Invalid(o_v.validator.validators[1], TypeErr(str)),
             ],
         ),
     )

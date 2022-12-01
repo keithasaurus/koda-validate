@@ -4,20 +4,20 @@ from typing import Any, List, Tuple, Union
 
 from koda_validate import ListValidator
 from koda_validate.base import (
+    BasicErr,
+    CoercionErr,
+    DictErr,
+    ExtraKeysErr,
     Invalid,
-    InvalidCoercion,
-    InvalidDict,
-    InvalidExtraKeys,
-    InvalidIterable,
-    InvalidKeyVal,
-    InvalidMap,
-    InvalidMissingKey,
-    InvalidPredicates,
-    InvalidSimple,
-    InvalidType,
-    InvalidVariants,
+    IterableErr,
+    KeyValErrs,
+    MapErr,
+    MissingKeyErr,
     Predicate,
     PredicateAsync,
+    PredicateErrs,
+    TypeErr,
+    VariantErrs,
 )
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import DictValidatorAny, MapValidator, MaxKeys, MinKeys
@@ -46,7 +46,7 @@ from koda_validate.union import UnionValidatorAny
 
 
 def test_type_err_users_message_in_list() -> None:
-    assert serializable_validation_err(Invalid(StringValidator(), InvalidType(str))) == [
+    assert serializable_validation_err(Invalid(StringValidator(), TypeErr(str))) == [
         "expected str"
     ]
 
@@ -54,7 +54,7 @@ def test_type_err_users_message_in_list() -> None:
 def test_predicate_returns_err_in_list() -> None:
     i_v = IntValidator(Min(15), Max(10))
     assert serializable_validation_err(
-        Invalid(i_v, InvalidPredicates([Min(15), Max(10)]))
+        Invalid(i_v, PredicateErrs([Min(15), Max(10)]))
     ) == [
         pred_to_err_message(Min(15)),
         pred_to_err_message(Max(10)),
@@ -63,28 +63,28 @@ def test_predicate_returns_err_in_list() -> None:
 
 def test_key_missing_returns_list_str() -> None:
     assert serializable_validation_err(
-        Invalid(DictValidatorAny({}), InvalidMissingKey())
+        Invalid(DictValidatorAny({}), MissingKeyErr())
     ) == ["key missing"]
 
 
 def test_coercion_err_uses_message() -> None:
     assert serializable_validation_err(
-        Invalid(DecimalValidator(), InvalidCoercion([str, int, Decimal], Decimal))
+        Invalid(DecimalValidator(), CoercionErr([str, int, Decimal], Decimal))
     ) == ["could not coerce to Decimal (compatible with str, int, Decimal)"]
 
 
 def test_iterable_errs() -> None:
     l_v = ListValidator(StringValidator())
-    assert serializable_validation_err(Invalid(l_v, InvalidIterable({}))) == []
+    assert serializable_validation_err(Invalid(l_v, IterableErr({}))) == []
     assert serializable_validation_err(
         Invalid(
             l_v,
-            InvalidIterable(
+            IterableErr(
                 {
-                    0: Invalid(StringValidator(), InvalidType(str)),
+                    0: Invalid(StringValidator(), TypeErr(str)),
                     5: Invalid(
                         l_v.item_validator,
-                        InvalidPredicates([MaxLength(10), MinLength(2)]),
+                        PredicateErrs([MaxLength(10), MinLength(2)]),
                     ),
                 },
             ),
@@ -99,10 +99,10 @@ def test_invalid_dict() -> None:
     assert serializable_validation_err(
         Invalid(
             DictValidatorAny({}),
-            InvalidDict(
+            DictErr(
                 {
-                    5: Invalid(FloatValidator(), InvalidType(float)),
-                    "ok": Invalid(DictValidatorAny({}), InvalidMissingKey()),
+                    5: Invalid(FloatValidator(), TypeErr(float)),
+                    "ok": Invalid(DictValidatorAny({}), MissingKeyErr()),
                 },
             ),
         )
@@ -110,15 +110,15 @@ def test_invalid_dict() -> None:
 
 
 def test_invalid_custom() -> None:
-    assert serializable_validation_err(
-        Invalid(StringValidator(), InvalidSimple("abc"))
-    ) == ["abc"]
+    assert serializable_validation_err(Invalid(StringValidator(), BasicErr("abc"))) == [
+        "abc"
+    ]
 
 
 def test_extra_keys() -> None:
-    invalid_keys = Invalid(DictValidatorAny({}), InvalidExtraKeys({"a", "b", "cde"}))
+    invalid_keys = Invalid(DictValidatorAny({}), ExtraKeysErr({"a", "b", "cde"}))
     error_detail = invalid_keys.error_detail
-    assert isinstance(error_detail, InvalidExtraKeys)
+    assert isinstance(error_detail, ExtraKeysErr)
     assert serializable_validation_err(invalid_keys) == [
         "Received unknown keys. Only expected "
         + ", ".join(sorted([repr(k) for k in error_detail.expected_keys]))
@@ -131,17 +131,13 @@ def test_map_err() -> None:
     result = serializable_validation_err(
         Invalid(
             MapValidator(key=i_v, value=StringValidator()),
-            InvalidMap(
+            MapErr(
                 {
-                    5: InvalidKeyVal(
-                        key=Invalid(i_v, InvalidPredicates([Min(6)])), val=None
-                    ),
-                    6: InvalidKeyVal(
-                        key=None, val=Invalid(StringValidator(), InvalidType(str))
-                    ),
-                    "7": InvalidKeyVal(
-                        key=Invalid(IntValidator(), InvalidType(int)),
-                        val=Invalid(StringValidator(), InvalidType(str)),
+                    5: KeyValErrs(key=Invalid(i_v, PredicateErrs([Min(6)])), val=None),
+                    6: KeyValErrs(key=None, val=Invalid(StringValidator(), TypeErr(str))),
+                    "7": KeyValErrs(
+                        key=Invalid(IntValidator(), TypeErr(int)),
+                        val=Invalid(StringValidator(), TypeErr(str)),
                     ),
                 },
             ),
@@ -160,10 +156,10 @@ def test_variants() -> None:
     assert serializable_validation_err(
         Invalid(
             UnionValidatorAny(StringValidator(), i_v),
-            InvalidVariants(
+            VariantErrs(
                 [
-                    Invalid(StringValidator(), InvalidType(str)),
-                    Invalid(i_v, InvalidPredicates([Min(5)])),
+                    Invalid(StringValidator(), TypeErr(str)),
+                    Invalid(i_v, PredicateErrs([Min(5)])),
                 ],
             ),
         )

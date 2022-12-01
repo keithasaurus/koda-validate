@@ -43,7 +43,7 @@ from koda_validate import (
     Validator,
     always_valid,
 )
-from koda_validate.base import ErrorDetail, Invalid, InvalidCoercion, InvalidExtraKeys
+from koda_validate.base import CoercionErr, ErrorDetail, ExtraKeysErr, Invalid
 from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
 from koda_validate.union import UnionValidatorAny
 
@@ -136,7 +136,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             for key, val in self.schema.items()
         ]
         self._unknown_keys_err: Tuple[typing.Literal[False], Invalid] = False, Invalid(
-            self, InvalidExtraKeys(set(self.schema.keys()))
+            self, ExtraKeysErr(set(self.schema.keys()))
         )
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
@@ -147,7 +147,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         else:
             return False, Invalid(
                 self,
-                InvalidCoercion(
+                CoercionErr(
                     [dict, self.data_cls],
                     self.data_cls,
                 ),
@@ -178,7 +178,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         else:
             return False, Invalid(
                 self,
-                InvalidCoercion(
+                CoercionErr(
                     [dict, self.data_cls],
                     self.data_cls,
                 ),

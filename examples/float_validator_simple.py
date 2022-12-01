@@ -1,7 +1,7 @@
 from typing import Any
 
 from koda_validate import *
-from koda_validate.base import InvalidType, ValidationResult
+from koda_validate.base import TypeErr, ValidationResult
 
 
 class SimpleFloatValidator(Validator[float]):
@@ -9,7 +9,7 @@ class SimpleFloatValidator(Validator[float]):
         if isinstance(val, float):
             return Valid(val)
         else:
-            return Invalid(self, InvalidType(float))
+            return Invalid(self, TypeErr(float))
 
 
 float_validator = SimpleFloatValidator()
@@ -18,4 +18,4 @@ test_val = 5.5
 
 assert float_validator(test_val) == Valid(test_val)
 
-assert float_validator(5) == Invalid(float_validator, InvalidType(float))
+assert float_validator(5) == Invalid(float_validator, TypeErr(float))

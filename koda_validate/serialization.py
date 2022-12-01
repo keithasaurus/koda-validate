@@ -1,19 +1,19 @@
 from typing import Any, Dict, List, Tuple, Union
 
 from koda_validate.base import (
+    BasicErr,
+    CoercionErr,
+    DictErr,
+    ExtraKeysErr,
     Invalid,
-    InvalidCoercion,
-    InvalidDict,
-    InvalidExtraKeys,
-    InvalidIterable,
-    InvalidMap,
-    InvalidMissingKey,
-    InvalidPredicates,
-    InvalidSimple,
-    InvalidType,
-    InvalidVariants,
+    IterableErr,
+    MapErr,
+    MissingKeyErr,
     Predicate,
     PredicateAsync,
+    PredicateErrs,
+    TypeErr,
+    VariantErrs,
 )
 from koda_validate.dictionary import MaxKeys, MinKeys
 from koda_validate.generic import (
@@ -88,15 +88,15 @@ def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str
 
 def serializable_validation_err(invalid: Invalid) -> Serializable:
     err = invalid.error_detail
-    if isinstance(err, InvalidCoercion):
+    if isinstance(err, CoercionErr):
         compatible_names = [t.__name__ for t in err.compatible_types]
         return [
             f"could not coerce to {err.dest_type.__name__} "
             f"(compatible with {', '.join(compatible_names)})"
         ]
-    elif isinstance(err, InvalidSimple):
+    elif isinstance(err, BasicErr):
         return [err.err_message]
-    elif isinstance(err, InvalidExtraKeys):
+    elif isinstance(err, ExtraKeysErr):
         err_message = "Received unknown keys. " + (
             "Expected empty dictionary."
             if len(err.expected_keys) == 0
@@ -105,15 +105,15 @@ def serializable_validation_err(invalid: Invalid) -> Serializable:
             + "."
         )
         return [err_message]
-    elif isinstance(err, InvalidType):
+    elif isinstance(err, TypeErr):
         return [f"expected {err.expected_type.__name__}"]
-    elif isinstance(err, InvalidPredicates):
+    elif isinstance(err, PredicateErrs):
         return [pred_to_err_message(p) for p in err.predicates]
-    elif isinstance(err, InvalidIterable):
+    elif isinstance(err, IterableErr):
         return [[i, serializable_validation_err(err)] for i, err in err.indexes.items()]
-    elif isinstance(err, InvalidMissingKey):
+    elif isinstance(err, MissingKeyErr):
         return ["key missing"]
-    elif isinstance(err, InvalidMap):
+    elif isinstance(err, MapErr):
         errs_dict: Dict[str, Serializable] = {}
         for key, k_v_errs in err.keys.items():
             kv_dict: Dict[str, Serializable] = {
@@ -123,9 +123,9 @@ def serializable_validation_err(invalid: Invalid) -> Serializable:
             }
             errs_dict[str(key)] = kv_dict
         return errs_dict
-    elif isinstance(err, InvalidDict):
+    elif isinstance(err, DictErr):
         return {str(k): serializable_validation_err(v) for k, v in err.keys.items()}
-    elif isinstance(err, InvalidVariants):
+    elif isinstance(err, VariantErrs):
         return {"variants": [serializable_validation_err(x) for x in err.variants]}
     else:
         raise TypeError(f"got unhandled type: {type(err)}")

@@ -1,5 +1,5 @@
 from koda_validate import *
-from koda_validate.base import InvalidKeyVal, InvalidMap, InvalidType
+from koda_validate.base import KeyValErrs, MapErr, TypeErr
 
 str_validator = StringValidator()
 int_validator = IntValidator()
@@ -11,11 +11,11 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
 
 assert str_to_int_validator({3.14: "pi!"}) == Invalid(
     str_to_int_validator,
-    InvalidMap(
+    MapErr(
         {
-            3.14: InvalidKeyVal(
-                Invalid(str_validator, InvalidType(str)),
-                Invalid(int_validator, InvalidType(int)),
+            3.14: KeyValErrs(
+                Invalid(str_validator, TypeErr(str)),
+                Invalid(int_validator, TypeErr(int)),
             )
         },
     ),

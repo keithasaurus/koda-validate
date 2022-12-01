@@ -2,7 +2,7 @@ import asyncio
 from typing import Any
 
 from koda_validate import *
-from koda_validate.base import InvalidType, ValidationResult
+from koda_validate.base import TypeErr, ValidationResult
 
 
 class SimpleFloatValidator(Validator[float]):
@@ -15,7 +15,7 @@ class SimpleFloatValidator(Validator[float]):
         if isinstance(val, float):
             return Valid(val)
         else:
-            return Invalid(self, InvalidType(float))
+            return Invalid(self, TypeErr(float))
 
 
 float_validator = SimpleFloatValidator()
@@ -25,5 +25,5 @@ test_val = 5.5
 assert asyncio.run(float_validator.validate_async(test_val)) == Valid(test_val)
 
 assert asyncio.run(float_validator.validate_async(5)) == Invalid(
-    float_validator, InvalidType(float)
+    float_validator, TypeErr(float)
 )

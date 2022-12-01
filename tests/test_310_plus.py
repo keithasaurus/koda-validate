@@ -38,14 +38,14 @@ from koda_validate import (
     strip,
 )
 from koda_validate.base import (
+    BasicErr,
+    DictErr,
     ErrorDetail,
-    InvalidDict,
-    InvalidKeyVal,
-    InvalidMap,
-    InvalidMissingKey,
-    InvalidSimple,
-    InvalidType,
-    InvalidVariants,
+    KeyValErrs,
+    MapErr,
+    MissingKeyErr,
+    TypeErr,
+    VariantErrs,
 )
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
 from koda_validate.dictionary import (
@@ -117,7 +117,7 @@ def test_match_args() -> None:
 def test_record_validator_match_args() -> None:
     def validate_person(p: Person) -> Optional[ErrorDetail]:
         if len(p.name) > p.age.get_or_else(100):
-            return InvalidSimple("your name cannot be longer than your age")
+            return BasicErr("your name cannot be longer than your age")
         else:
             return None
 
@@ -153,7 +153,7 @@ def test_record_validator_match_args() -> None:
 def test_dict_any_match_args() -> None:
     def validate_person_dict_any(p: Dict[Any, Any]) -> Optional[ErrorDetail]:
         if len(p["name"]) > p["age"]:
-            return InvalidSimple("your name cannot be longer than your name")
+            return BasicErr("your name cannot be longer than your name")
         else:
             return None
 
@@ -413,25 +413,21 @@ def test_complex_union_dataclass() -> None:
     validators_schema_key_a = cast(UnionValidatorAny, example_validator.schema["a"])
     assert example_validator({"a": False}) == Invalid(
         example_validator,
-        InvalidDict(
+        DictErr(
             {
                 "a": Invalid(
                     example_validator.schema["a"],
-                    InvalidVariants(
+                    VariantErrs(
                         [
-                            Invalid(
-                                validators_schema_key_a.validators[0], InvalidType(str)
-                            ),
+                            Invalid(validators_schema_key_a.validators[0], TypeErr(str)),
                             Invalid(
                                 validators_schema_key_a.validators[1],
-                                InvalidType(type(None)),
+                                TypeErr(type(None)),
                             ),
                             Invalid(
-                                validators_schema_key_a.validators[2], InvalidType(float)
+                                validators_schema_key_a.validators[2], TypeErr(float)
                             ),
-                            Invalid(
-                                validators_schema_key_a.validators[3], InvalidType(int)
-                            ),
+                            Invalid(validators_schema_key_a.validators[3], TypeErr(int)),
                         ],
                     ),
                 )
@@ -484,9 +480,7 @@ def test_nested_dataclass() -> None:
                 "something": {},
             },
         }
-    ) == Invalid(
-        b_validator, InvalidDict({"name": Invalid(b_validator, InvalidMissingKey())})
-    )
+    ) == Invalid(b_validator, DictErr({"name": Invalid(b_validator, MissingKeyErr())}))
 
     assert b_validator(
         {
@@ -501,20 +495,20 @@ def test_nested_dataclass() -> None:
         }
     ) == Invalid(
         b_validator,
-        InvalidDict(
+        DictErr(
             {
                 "a": Invalid(
                     b_validator.schema["a"],
-                    InvalidDict(
+                    DictErr(
                         {
                             "something": Invalid(
                                 b_validator.schema["a"].schema["something"],  # type: ignore  # noqa: E501
-                                InvalidMap(
+                                MapErr(
                                     {
-                                        5: InvalidKeyVal(
+                                        5: KeyValErrs(
                                             key=Invalid(
                                                 b_validator.schema["a"].schema["something"].key_validator,  # type: ignore  # noqa: E501
-                                                InvalidType(
+                                                TypeErr(
                                                     str,
                                                 ),
                                             ),

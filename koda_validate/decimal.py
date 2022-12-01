@@ -3,7 +3,7 @@ from decimal import Decimal as Decimal
 from typing import Any
 
 from koda_validate._internal import ResultTuple, _CoercingValidator
-from koda_validate.base import Invalid, InvalidCoercion
+from koda_validate.base import CoercionErr, Invalid
 
 
 class DecimalValidator(_CoercingValidator[Decimal]):
@@ -18,7 +18,7 @@ class DecimalValidator(_CoercingValidator[Decimal]):
 
         return False, Invalid(
             self,
-            InvalidCoercion(
+            CoercionErr(
                 compatible_types=[str, int, Decimal],
                 dest_type=Decimal,
             ),

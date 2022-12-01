@@ -2,7 +2,7 @@ from typing import Any
 from uuid import UUID
 
 from koda_validate._internal import ResultTuple, _CoercingValidator
-from koda_validate.base import Invalid, InvalidCoercion
+from koda_validate.base import CoercionErr, Invalid
 
 
 class UUIDValidator(_CoercingValidator[UUID]):
@@ -16,7 +16,7 @@ class UUIDValidator(_CoercingValidator[UUID]):
             except ValueError:
                 return False, Invalid(
                     self,
-                    InvalidCoercion(
+                    CoercionErr(
                         [str, UUID],
                         UUID,
                     ),
@@ -25,7 +25,7 @@ class UUIDValidator(_CoercingValidator[UUID]):
         else:
             return False, Invalid(
                 self,
-                InvalidCoercion(
+                CoercionErr(
                     [str, UUID],
                     UUID,
                 ),

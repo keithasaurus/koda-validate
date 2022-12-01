@@ -9,12 +9,12 @@ from koda_validate._internal import (
 )
 from koda_validate.base import (
     Invalid,
-    InvalidIterable,
-    InvalidPredicates,
-    InvalidType,
+    IterableErr,
     Predicate,
     PredicateAsync,
+    PredicateErrs,
     Processor,
+    TypeErr,
     Validator,
 )
 
@@ -52,7 +52,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
                 ]
 
                 if list_errors:
-                    return False, Invalid(self, InvalidPredicates(list_errors))
+                    return False, Invalid(self, PredicateErrs(list_errors))
 
             return_list: List[A] = []
             index_errs: Dict[int, Invalid] = {}
@@ -71,11 +71,11 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, Invalid(self, InvalidIterable(index_errs))
+                return False, Invalid(self, IterableErr(index_errs))
             else:
                 return True, return_list
         else:
-            return False, Invalid(self, InvalidType(list))
+            return False, Invalid(self, TypeErr(list))
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[List[A]]:
         if isinstance(val, list):
@@ -97,7 +97,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
                         predicate_errors.append(pred_async)
 
             if predicate_errors:
-                return False, Invalid(self, InvalidPredicates(predicate_errors))
+                return False, Invalid(self, PredicateErrs(predicate_errors))
 
             return_list: List[A] = []
             index_errs = {}
@@ -121,8 +121,8 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, Invalid(self, InvalidIterable(index_errs))
+                return False, Invalid(self, IterableErr(index_errs))
             else:
                 return True, return_list
         else:
-            return False, Invalid(self, InvalidType(list))
+            return False, Invalid(self, TypeErr(list))

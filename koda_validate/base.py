@@ -18,7 +18,7 @@ from koda_validate._generics import A, SuccessT
 
 
 @dataclass
-class InvalidCoercion:
+class CoercionErr:
     """
     When one or more types can be coerced to a destination type
     """
@@ -27,27 +27,27 @@ class InvalidCoercion:
     dest_type: Type[Any]
 
 
-class InvalidMissingKey:
+class MissingKeyErr:
     """
     A key is missing from a dictionary
     """
 
-    _instance: ClassVar[Optional["InvalidMissingKey"]] = None
+    _instance: ClassVar[Optional["MissingKeyErr"]] = None
 
-    def __new__(cls) -> "InvalidMissingKey":
+    def __new__(cls) -> "MissingKeyErr":
         """
         Make a singleton
         """
         if cls._instance is None:
-            cls._instance = super(InvalidMissingKey, cls).__new__(cls)
+            cls._instance = super(MissingKeyErr, cls).__new__(cls)
         return cls._instance
 
 
-invalid_missing_key = InvalidMissingKey()
+invalid_missing_key = MissingKeyErr()
 
 
 @dataclass
-class InvalidExtraKeys:
+class ExtraKeysErr:
     """
     extra keys were present in a dictionary
     """
@@ -56,18 +56,17 @@ class InvalidExtraKeys:
 
 
 @dataclass
-class InvalidDict:
+class DictErr:
     """
     validation failures for key/value pairs on a record-like
     dictionary
     """
 
-    # todo: add validator, rename
     keys: Dict[Any, "Invalid"]
 
 
 @dataclass
-class InvalidKeyVal:
+class KeyValErrs:
     """
     key and/or value errors from a single key/value pair
     """
@@ -77,16 +76,16 @@ class InvalidKeyVal:
 
 
 @dataclass
-class InvalidMap:
+class MapErr:
     """
     errors from key/value pairs of a map-like dictionary
     """
 
-    keys: Dict[Any, InvalidKeyVal]
+    keys: Dict[Any, KeyValErrs]
 
 
 @dataclass
-class InvalidIterable:
+class IterableErr:
     """
     dictionary of validation errors by index
     """
@@ -95,7 +94,7 @@ class InvalidIterable:
 
 
 @dataclass
-class InvalidVariants:
+class VariantErrs:
     """
     none of these validators was satisfied by a given value
     """
@@ -104,7 +103,7 @@ class InvalidVariants:
 
 
 @dataclass
-class InvalidPredicates(Generic[A]):
+class PredicateErrs(Generic[A]):
     """
     A grouping of failed Predicates
     """
@@ -113,7 +112,7 @@ class InvalidPredicates(Generic[A]):
 
 
 @dataclass
-class InvalidSimple:
+class BasicErr:
     """
     If all you want to do is produce a message, this can be useful
     """
@@ -122,7 +121,7 @@ class InvalidSimple:
 
 
 @dataclass
-class InvalidType:
+class TypeErr:
     """
     A specific type was required but not provided
     """
@@ -146,16 +145,16 @@ class Valid(Generic[A]):
 
 
 ErrorDetail = Union[
-    InvalidCoercion,
-    InvalidDict,
-    InvalidExtraKeys,
-    InvalidIterable,
-    InvalidMap,
-    InvalidMissingKey,
-    InvalidPredicates,
-    InvalidSimple,
-    InvalidType,
-    InvalidVariants,
+    CoercionErr,
+    DictErr,
+    ExtraKeysErr,
+    IterableErr,
+    MapErr,
+    MissingKeyErr,
+    PredicateErrs,
+    BasicErr,
+    TypeErr,
+    VariantErrs,
 ]
 
 
@@ -200,9 +199,9 @@ class ValidatorError(ValidatorErrorBase):
 
 
 ValidationErr = Union[
-    InvalidSimple,
+    BasicErr,
     # todo: add explicit wrapper, consider properly parameterizing
-    InvalidPredicates[Any],
+    PredicateErrs[Any],
     ValidatorErrorBase,
 ]
 

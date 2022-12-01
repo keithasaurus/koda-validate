@@ -11,10 +11,10 @@ from koda_validate import Invalid, Valid
 from koda_validate._generics import Ret
 from koda_validate._internal import ResultTuple, _ToTupleValidator
 from koda_validate.base import (
-    InvalidPredicates,
-    InvalidType,
     Predicate,
+    PredicateErrs,
     Processor,
+    TypeErr,
     ValidationResult,
     Validator,
 )
@@ -148,9 +148,9 @@ class EqualsValidator(Validator[ExactMatchT]):
             if self.predicate(val):
                 return Valid(val)
             else:
-                return Invalid(self, InvalidPredicates([self.predicate]))
+                return Invalid(self, PredicateErrs([self.predicate]))
         else:
-            return Invalid(self, InvalidType(match_type))
+            return Invalid(self, TypeErr(match_type))
 
 
 class AlwaysValid(_ToTupleValidator[A]):

@@ -6,7 +6,7 @@ import pytest
 
 from koda_validate import Invalid, Predicate, PredicateAsync, Processor, Valid
 from koda_validate._generics import A
-from koda_validate.base import InvalidCoercion, InvalidPredicates
+from koda_validate.base import CoercionErr, PredicateErrs
 from koda_validate.uuid import UUIDValidator
 
 
@@ -18,12 +18,10 @@ class ReverseUUID(Processor[UUID]):
 def test_UUID() -> None:
     uuid_validator = UUIDValidator()
     assert uuid_validator("a string") == Invalid(
-        uuid_validator, InvalidCoercion([str, UUID], UUID)
+        uuid_validator, CoercionErr([str, UUID], UUID)
     )
 
-    assert uuid_validator(5.5) == Invalid(
-        uuid_validator, InvalidCoercion([str, UUID], UUID)
-    )
+    assert uuid_validator(5.5) == Invalid(uuid_validator, CoercionErr([str, UUID], UUID))
 
     assert uuid_validator(UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222")) == Valid(
         UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222")
@@ -44,7 +42,7 @@ def test_UUID() -> None:
 
     validator = UUIDValidator(HexStartsWithD(), preprocessors=[ReverseUUID()])
     assert validator(UUID("8309b7b7-728a-253a-3f54-54f07810bf73")) == Invalid(
-        validator, InvalidPredicates([HexStartsWithD()])
+        validator, PredicateErrs([HexStartsWithD()])
     )
 
     assert UUIDValidator(HexStartsWithD(), preprocessors=[ReverseUUID()])(
@@ -57,14 +55,14 @@ async def test_UUID_async() -> None:
     uuid_validator = UUIDValidator()
     assert await uuid_validator.validate_async("abc") == Invalid(
         uuid_validator,
-        InvalidCoercion(
+        CoercionErr(
             [str, UUID],
             UUID,
         ),
     )
 
     assert await uuid_validator.validate_async(5.5) == Invalid(
-        uuid_validator, InvalidCoercion([str, UUID], UUID)
+        uuid_validator, CoercionErr([str, UUID], UUID)
     )
 
     assert await uuid_validator.validate_async(
@@ -79,7 +77,7 @@ async def test_UUID_async() -> None:
 
     v = UUIDValidator(preprocessors=[ReverseUUID()], predicates_async=[HexStartsWithF()])
     result = await v.validate_async("e348c1b4-60bd-11ed-a6e9-6ffb14046222")
-    assert result == Invalid(v, InvalidPredicates([HexStartsWithF()]))
+    assert result == Invalid(v, PredicateErrs([HexStartsWithF()]))
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:

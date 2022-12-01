@@ -19,13 +19,13 @@ from koda import nothing
 from koda_validate import Invalid, Valid
 from koda_validate._generics import A, InputT, SuccessT
 from koda_validate.base import (
-    InvalidDict,
-    InvalidMissingKey,
-    InvalidPredicates,
-    InvalidType,
+    DictErr,
+    MissingKeyErr,
     Predicate,
     PredicateAsync,
+    PredicateErrs,
     Processor,
+    TypeErr,
     ValidationResult,
     Validator,
 )
@@ -77,7 +77,7 @@ def validate_dict_to_tuple(
     data: Any,
 ) -> ResultTuple[Dict[Any, Any]]:
     if not isinstance(data, dict):
-        return False, Invalid(source_validator, InvalidType(dict))
+        return False, Invalid(source_validator, TypeErr(dict))
 
     if preprocessors:
         for preproc in preprocessors:
@@ -95,7 +95,7 @@ def validate_dict_to_tuple(
             val = data[key_]
         except KeyError:
             if key_required:
-                errs[key_] = Invalid(source_validator, InvalidMissingKey())
+                errs[key_] = Invalid(source_validator, MissingKeyErr())
             elif not errs:
                 success_dict[key_] = nothing
         else:
@@ -116,7 +116,7 @@ def validate_dict_to_tuple(
                 success_dict[key_] = new_val
 
     if errs:
-        return False, Invalid(source_validator, InvalidDict(errs))
+        return False, Invalid(source_validator, DictErr(errs))
     else:
         return True, success_dict
 
@@ -130,7 +130,7 @@ async def validate_dict_to_tuple_async(
     data: Any,
 ) -> ResultTuple[Dict[Any, Any]]:
     if not isinstance(data, dict):
-        return False, Invalid(source_validator, InvalidType(dict))
+        return False, Invalid(source_validator, TypeErr(dict))
 
     if preprocessors:
         for preproc in preprocessors:
@@ -148,7 +148,7 @@ async def validate_dict_to_tuple_async(
             val = data[key_]
         except KeyError:
             if key_required:
-                errs[key_] = Invalid(source_validator, InvalidMissingKey())
+                errs[key_] = Invalid(source_validator, MissingKeyErr())
             elif not errs:
                 success_dict[key_] = nothing
         else:
@@ -169,7 +169,7 @@ async def validate_dict_to_tuple_async(
                 success_dict[key_] = new_val
 
     if errs:
-        return False, Invalid(source_validator, InvalidDict(errs))
+        return False, Invalid(source_validator, DictErr(errs))
     else:
         return True, success_dict
 
@@ -218,7 +218,7 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
-        _type_err = Invalid(self, InvalidType(self._TYPE))
+        _type_err = Invalid(self, TypeErr(self._TYPE))
         self._type_err = _type_err
 
         # optimization for simple  validators. can speed up by ~15%
@@ -239,7 +239,7 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
             if self.predicates:
                 errors: List[Any] = [pred for pred in self.predicates if not pred(val)]
                 if errors:
-                    return False, Invalid(self, InvalidPredicates(errors))
+                    return False, Invalid(self, PredicateErrs(errors))
                 else:
                     return True, val
             else:
@@ -265,7 +265,7 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
                     ]
                 )
             if errors:
-                return False, Invalid(self, InvalidPredicates(errors))
+                return False, Invalid(self, PredicateErrs(errors))
             else:
                 return True, val
         return False, self._type_err
@@ -314,7 +314,7 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
                     pred for pred in self.predicates if not pred(val_or_type_err)
                 ]
                 if errors:
-                    return False, Invalid(self, InvalidPredicates(errors))
+                    return False, Invalid(self, PredicateErrs(errors))
                 else:
                     return True, val_or_type_err
             else:
@@ -342,7 +342,7 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
                     ]
                 )
             if errors:
-                return False, Invalid(self, InvalidPredicates(errors))
+                return False, Invalid(self, PredicateErrs(errors))
             else:
                 return True, val_or_type_err
         return False, result[1]

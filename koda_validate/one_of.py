@@ -4,7 +4,7 @@ from koda import Either, Either3, First, Second, Third
 from koda._generics import A, B, C
 
 from koda_validate import Invalid, Valid
-from koda_validate.base import InvalidVariants, ValidationResult, Validator
+from koda_validate.base import ValidationResult, Validator, VariantErrs
 
 
 class OneOf2(Validator[Either[A, B]]):
@@ -25,7 +25,7 @@ class OneOf2(Validator[Either[A, B]]):
             if (v2_result := await self.variant_2.validate_async(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                return Invalid(self, InvalidVariants([v1_result, v2_result]))
+                return Invalid(self, VariantErrs([v1_result, v2_result]))
 
     def __call__(self, val: Any) -> ValidationResult[Either[A, B]]:
         if (v1_result := self.variant_1(val)).is_valid:
@@ -34,7 +34,7 @@ class OneOf2(Validator[Either[A, B]]):
             if (v2_result := self.variant_2(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                return Invalid(self, InvalidVariants([v1_result, v2_result]))
+                return Invalid(self, VariantErrs([v1_result, v2_result]))
 
 
 class OneOf3(Validator[Either3[A, B, C]]):
@@ -62,7 +62,7 @@ class OneOf3(Validator[Either3[A, B, C]]):
                 else:
                     return Invalid(
                         self,
-                        InvalidVariants(
+                        VariantErrs(
                             [
                                 v1_result,
                                 v2_result,
@@ -83,7 +83,7 @@ class OneOf3(Validator[Either3[A, B, C]]):
                 else:
                     return Invalid(
                         self,
-                        InvalidVariants(
+                        VariantErrs(
                             [
                                 v1_result,
                                 v2_result,
