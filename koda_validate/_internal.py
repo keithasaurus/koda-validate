@@ -1,5 +1,4 @@
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     ClassVar,
@@ -20,7 +19,6 @@ from koda_validate import Invalid, Valid
 from koda_validate._generics import A, InputT, SuccessT
 from koda_validate.base import (
     DictErr,
-    MissingKeyErr,
     Predicate,
     PredicateAsync,
     PredicateErrs,
@@ -28,6 +26,7 @@ from koda_validate.base import (
     TypeErr,
     ValidationResult,
     Validator,
+    missing_key_err,
 )
 
 ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], Invalid]]
@@ -93,14 +92,12 @@ def validate_dict_to_tuple(
             val = data[key_]
         except KeyError:
             if key_required:
-                errs[key_] = Invalid(source_validator, MissingKeyErr())
+                errs[key_] = Invalid(source_validator, missing_key_err)
             elif not errs:
                 success_dict[key_] = nothing
         else:
             if is_tuple_validator:
-                if TYPE_CHECKING:
-                    assert isinstance(validator, _ToTupleValidator)
-                success, new_val = validator.validate_to_tuple(val)
+                success, new_val = validator.validate_to_tuple(val)  # type: ignore
             else:
                 success, new_val = (
                     (True, result_.val)
@@ -146,14 +143,12 @@ async def validate_dict_to_tuple_async(
             val = data[key_]
         except KeyError:
             if key_required:
-                errs[key_] = Invalid(source_validator, MissingKeyErr())
+                errs[key_] = Invalid(source_validator, missing_key_err)
             elif not errs:
                 success_dict[key_] = nothing
         else:
             if is_tuple_validator:
-                if TYPE_CHECKING:
-                    assert isinstance(validator, _ToTupleValidator)
-                success, new_val = await validator.validate_to_tuple_async(val)
+                success, new_val = await validator.validate_to_tuple_async(val)  # type: ignore  # noqa: E501
             else:
                 success, new_val = (
                     (True, result_.val)

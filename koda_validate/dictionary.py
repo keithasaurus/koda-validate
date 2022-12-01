@@ -1,6 +1,5 @@
 import dataclasses
 from typing import (
-    TYPE_CHECKING,
     Any,
     Awaitable,
     Callable,
@@ -872,9 +871,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                     args.append(nothing)
             else:
                 if is_tuple_validator:
-                    if TYPE_CHECKING:
-                        assert isinstance(validator, _ToTupleValidator)
-                    success, new_val = validator.validate_to_tuple(val)
+                    success, new_val = validator.validate_to_tuple(val)  # type: ignore
                 else:
                     success, new_val = (
                         (True, result_.val)

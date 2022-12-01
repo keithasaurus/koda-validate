@@ -36,7 +36,7 @@ from koda_validate.base import (
     MissingKeyErr,
     PredicateErrs,
     TypeErr,
-    invalid_missing_key,
+    missing_key_err,
 )
 from koda_validate.dictionary import (
     DictValidatorAny,
@@ -938,7 +938,7 @@ async def test_validate_dictionary_any_async() -> None:
         validator,
         DictErr(
             {
-                "last_name": Invalid(validator, invalid_missing_key),
+                "last_name": Invalid(validator, missing_key_err),
                 "first_name": Invalid(s_v, TypeErr(str)),
             },
         ),
@@ -1003,7 +1003,7 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
         validator,
         DictErr(
             {
-                "last_name": Invalid(validator, invalid_missing_key),
+                "last_name": Invalid(validator, missing_key_err),
                 "first_name": Invalid(s_v, TypeErr(str)),
             },
         ),
@@ -1156,7 +1156,7 @@ async def test_validate_dictionary_async() -> None:
         validator,
         DictErr(
             {
-                "last_name": Invalid(validator, invalid_missing_key),
+                "last_name": Invalid(validator, missing_key_err),
                 "first_name": Invalid(s_v, TypeErr(str)),
             },
         ),

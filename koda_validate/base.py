@@ -43,7 +43,7 @@ class MissingKeyErr:
         return cls._instance
 
 
-invalid_missing_key = MissingKeyErr()
+missing_key_err = MissingKeyErr()
 
 
 @dataclass
