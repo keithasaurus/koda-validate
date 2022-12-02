@@ -150,9 +150,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             )
             for key, val in self.schema.items()
         ]
-        self._unknown_keys_err: Tuple[typing.Literal[False], Invalid] = False, Invalid(
-            self, ExtraKeysErr(set(self.schema.keys()))
-        )
+        self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
         if isinstance(val, dict):
@@ -162,6 +160,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         else:
             return False, Invalid(
                 self,
+                val,
                 CoercionErr(
                     {dict, self.data_cls},
                     self.data_cls,

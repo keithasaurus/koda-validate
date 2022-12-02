@@ -26,7 +26,7 @@ from koda_validate.base import (
     TypeErr,
     ValidationResult,
     Validator,
-    missing_key_err,
+    missing_key_err, ExtraKeysErr,
 )
 
 ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], Invalid]]
@@ -70,11 +70,11 @@ def validate_dict_to_tuple(
     preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
     fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
     schema: Dict[Any, Validator[Any]],
-    unknown_keys_err: Tuple[Literal[False], Invalid],
+    unknown_keys_err: ExtraKeysErr,
     data: Any,
 ) -> ResultTuple[Dict[Any, Any]]:
     if not type(data) is dict:
-        return False, Invalid(source_validator, TypeErr(dict))
+        return False, Invalid(source_validator, data, TypeErr(dict))
 
     if preprocessors:
         for preproc in preprocessors:
@@ -83,7 +83,7 @@ def validate_dict_to_tuple(
     # this seems to be faster than `for key_ in data.keys()`
     for key_ in data:
         if key_ not in schema:
-            return unknown_keys_err
+            return False, Invalid(source_validator, data, unknown_keys_err)
 
     success_dict: Dict[Hashable, Any] = {}
     errs: Dict[Hashable, Invalid] = {}
@@ -92,7 +92,7 @@ def validate_dict_to_tuple(
             val = data[key_]
         except KeyError:
             if key_required:
-                errs[key_] = Invalid(source_validator, missing_key_err)
+                errs[key_] = Invalid(source_validator,data, missing_key_err)
             elif not errs:
                 success_dict[key_] = nothing
         else:
@@ -111,7 +111,7 @@ def validate_dict_to_tuple(
                 success_dict[key_] = new_val
 
     if errs:
-        return False, Invalid(source_validator, KeyErrs(errs))
+        return False, Invalid(source_validator, data, KeyErrs(errs))
     else:
         return True, success_dict
 
@@ -121,11 +121,11 @@ async def validate_dict_to_tuple_async(
     preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
     fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
     schema: Dict[Any, Validator[Any]],
-    unknown_keys_err: Tuple[Literal[False], Invalid],
+    unknown_keys_err: ExtraKeysErr,
     data: Any,
 ) -> ResultTuple[Dict[Any, Any]]:
     if not type(data) is dict:
-        return False, Invalid(source_validator, TypeErr(dict))
+        return False, Invalid(source_validator, data, TypeErr(dict))
 
     if preprocessors:
         for preproc in preprocessors:
@@ -134,7 +134,7 @@ async def validate_dict_to_tuple_async(
     # this seems to be faster than `for key_ in data.keys()`
     for key_ in data:
         if key_ not in schema:
-            return unknown_keys_err
+            return False, Invalid(source_validator, data, unknown_keys_err)
 
     success_dict: Dict[Any, Any] = {}
     errs: Dict[Any, Invalid] = {}
@@ -143,7 +143,7 @@ async def validate_dict_to_tuple_async(
             val = data[key_]
         except KeyError:
             if key_required:
-                errs[key_] = Invalid(source_validator, missing_key_err)
+                errs[key_] = Invalid(source_validator, data, missing_key_err)
             elif not errs:
                 success_dict[key_] = nothing
         else:
@@ -162,19 +162,19 @@ async def validate_dict_to_tuple_async(
                 success_dict[key_] = new_val
 
     if errs:
-        return False, Invalid(source_validator, KeyErrs(errs))
+        return False, Invalid(source_validator, data, KeyErrs(errs))
     else:
         return True, success_dict
 
 
 def _simple_type_validator(
-    type_: Type[A], type_err: Invalid
+    instance: "_ExactTypeValidator[A]", type_: Type[A], type_err: TypeErr
 ) -> Callable[[Any], ResultTuple[A]]:
     def inner(val: Any) -> ResultTuple[A]:
         if type(val) is type_:
             return True, val
         else:
-            return False, type_err
+            return False, Invalid(instance, val, type_err)
 
     return inner
 
@@ -203,7 +203,7 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
 
     # SHOULD BE THE SAME AS SuccessT but mypy can't handle that...? v0.991
     _TYPE: ClassVar[Type[Any]]
-    _type_err: Invalid
+    _type_err: TypeErr
 
     def __init__(
         self,
@@ -214,13 +214,13 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
-        _type_err = Invalid(self, TypeErr(self._TYPE))
+        _type_err = TypeErr(self._TYPE)
         self._type_err = _type_err
 
         # optimization for simple  validators. can speed up by ~15%
         if not predicates and not predicates_async and not preprocessors:
             self.validate_to_tuple = _simple_type_validator(  # type: ignore
-                self._TYPE, _type_err
+                self, self._TYPE, _type_err
             )
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
@@ -235,12 +235,12 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
             if self.predicates:
                 errors: List[Any] = [pred for pred in self.predicates if not pred(val)]
                 if errors:
-                    return False, Invalid(self, PredicateErrs(errors))
+                    return False, Invalid(self, val, PredicateErrs(errors))
                 else:
                     return True, val
             else:
                 return True, val
-        return False, self._type_err
+        return False, Invalid(self, val, self._type_err)
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[SuccessT]:
         if type(val) is self._TYPE:
@@ -261,10 +261,10 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
                     ]
                 )
             if errors:
-                return False, Invalid(self, PredicateErrs(errors))
+                return False, Invalid(self, val, PredicateErrs(errors))
             else:
                 return True, val
-        return False, self._type_err
+        return False, Invalid(self, val, self._type_err)
 
 
 class _CoercingValidator(_ToTupleValidator[SuccessT]):

@@ -47,7 +47,7 @@ def test_boolean() -> None:
     assert BoolValidator(IsTrue(), preprocessors=[Flip()])(False) == Valid(True)
 
     assert (req_true_v := BoolValidator(IsTrue()))(False) == Invalid(
-        req_true_v, PredicateErrs([IsTrue()])
+        req_true_v, False, PredicateErrs([IsTrue()])
     )
 
 
@@ -65,14 +65,14 @@ async def test_boolean_validator_async() -> None:
         )
     ).validate_async(True)
 
-    assert result == Invalid(require_true_v, PredicateErrs([IsTrue()]))
+    assert result == Invalid(require_true_v, False, PredicateErrs([IsTrue()]))
     assert await BoolValidator(
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(False) == Valid(True)
 
     b_v = BoolValidator()
 
-    assert await b_v.validate_async("abc") == Invalid(b_v, TypeErr(bool))
+    assert await b_v.validate_async("abc") == Invalid(b_v, "abc", TypeErr(bool))
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
