@@ -136,8 +136,8 @@ async def validate_dict_to_tuple_async(
         if key_ not in schema:
             return unknown_keys_err
 
-    success_dict: Dict[Hashable, Any] = {}
-    errs: Dict[Hashable, Invalid] = {}
+    success_dict: Dict[Any, Any] = {}
+    errs: Dict[Any, Invalid] = {}
     for key_, validator, key_required, is_tuple_validator in fast_keys:
         try:
             val = data[key_]
