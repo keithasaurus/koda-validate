@@ -1,11 +1,18 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Optional, Tuple
+from typing import Literal, Optional, Tuple
 from uuid import UUID, uuid4
 
 import pytest
 
-from koda_validate import AlwaysValid, Invalid, MaxLength, StringValidator, Valid
+from koda_validate import (
+    AlwaysValid,
+    EqualsValidator,
+    Invalid,
+    MaxLength,
+    StringValidator,
+    Valid,
+)
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
@@ -13,9 +20,12 @@ from koda_validate.base import (
     KeyErrs,
     PredicateErrs,
     TypeErr,
+    VariantErrs,
 )
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
+from koda_validate.generic import EqualTo
 from koda_validate.tuple import TupleHomogenousValidator
+from koda_validate.union import UnionValidatorAny
 
 
 @dataclass
@@ -356,4 +366,43 @@ def test_can_handle_basic_str_types() -> None:
     validator = DataclassValidator(PersonSimple)
     assert validator(Bad("hmm")) == Invalid(
         validator, CoercionErr({dict, PersonSimple}, PersonSimple)
+    )
+
+
+def test_get_type_hint_for_literal() -> None:
+    abc_validator = get_typehint_validator(Literal["abc"])
+    assert isinstance(abc_validator, UnionValidatorAny)
+
+    assert len(abc_validator.validators) == 1
+    assert isinstance(abc_validator.validators[0], EqualsValidator)
+    assert abc_validator("abc") == Valid("abc")
+    assert abc_validator("a") == Invalid(
+        abc_validator,
+        VariantErrs(
+            [Invalid(abc_validator.validators[0], PredicateErrs([EqualTo("abc")]))]
+        ),
+    )
+
+    int_str_bool_validator = get_typehint_validator(Literal[123, "abc", False])
+    assert isinstance(int_str_bool_validator, UnionValidatorAny)
+
+    assert len(int_str_bool_validator.validators) == 3
+    for v in int_str_bool_validator.validators:
+        assert isinstance(v, EqualsValidator)
+
+    assert int_str_bool_validator(123) == Valid(123)
+    assert int_str_bool_validator("abc") == Valid("abc")
+    assert int_str_bool_validator(False) == Valid(False)
+
+    assert int_str_bool_validator("a") == Invalid(
+        int_str_bool_validator,
+        VariantErrs(
+            [
+                Invalid(int_str_bool_validator.validators[0], TypeErr(int)),
+                Invalid(
+                    int_str_bool_validator.validators[1], PredicateErrs([EqualTo("abc")])
+                ),
+                Invalid(int_str_bool_validator.validators[2], TypeErr(bool)),
+            ]
+        ),
     )
