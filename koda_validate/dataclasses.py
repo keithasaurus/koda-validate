@@ -9,6 +9,7 @@ from koda_validate._internal import (
     validate_dict_to_tuple,
     validate_dict_to_tuple_async,
 )
+from koda_validate.set import SetValidator
 
 if sys.version_info >= (3, 10):
     from types import UnionType
@@ -81,6 +82,8 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         return always_valid
     elif annotations is List or annotations is list:
         return ListValidator(always_valid)
+    elif annotations is typing.Set or annotations is set:
+        return SetValidator(always_valid)
     elif annotations is Tuple or annotations is tuple:
         return TupleHomogenousValidator(always_valid)
     elif annotations is Dict or annotations is dict:
@@ -92,6 +95,9 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         if (origin is list or origin is List) and len(args) == 1:
             item_validator = get_typehint_validator(args[0])
             return ListValidator(item_validator)
+        if (origin is set or origin is typing.Set) and len(args) == 1:
+            item_validator = get_typehint_validator(args[0])
+            return SetValidator(item_validator)
         if (origin is dict or origin is Dict) and len(args) == 2:
             return MapValidator(
                 key=get_typehint_validator(args[0]), value=get_typehint_validator(args[1])

@@ -12,6 +12,7 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     PredicateErrs,
+    SetErrs,
     TypeErr,
     VariantErrs,
 )
@@ -123,6 +124,9 @@ def serializable_validation_err(invalid: Invalid) -> Serializable:
             }
             errs_dict[str(key)] = kv_dict
         return errs_dict
+    elif isinstance(err, SetErrs):
+        return {"member_errors": [serializable_validation_err(x) for x in err.item_errs]}
+
     elif isinstance(err, DictErr):
         return {str(k): serializable_validation_err(v) for k, v in err.keys.items()}
     elif isinstance(err, VariantErrs):

@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Annotated, Any, Dict, Hashable, List, Optional, Union, cast
+from typing import Annotated, Any, Dict, Hashable, List, Optional, Set, Union, cast
 
 from koda import Maybe
 
@@ -57,6 +57,7 @@ from koda_validate.dictionary import (
     is_dict_validator,
 )
 from koda_validate.generic import AlwaysValid
+from koda_validate.set import SetValidator
 from koda_validate.tuple import (
     Tuple2Validator,
     Tuple3Validator,
@@ -542,6 +543,15 @@ def test_get_typehint_validator() -> None:
     ]:
         assert isinstance(bare_list_validator, ListValidator)
         assert isinstance(bare_list_validator.item_validator, AlwaysValid)
+
+    for bare_set_validator in [
+        get_typehint_validator(set),
+        get_typehint_validator(Set),
+        get_typehint_validator(set[Any]),
+        get_typehint_validator(Set[Any]),
+    ]:
+        assert isinstance(bare_set_validator, SetValidator)
+        assert isinstance(bare_set_validator.item_validator, AlwaysValid)
 
     for bare_dict_validator in [
         get_typehint_validator(dict),

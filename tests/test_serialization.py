@@ -16,6 +16,7 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     PredicateErrs,
+    SetErrs,
     TypeErr,
     VariantErrs,
 )
@@ -34,6 +35,7 @@ from koda_validate.generic import (
 )
 from koda_validate.integer import IntValidator
 from koda_validate.serialization import pred_to_err_message, serializable_validation_err
+from koda_validate.set import SetValidator
 from koda_validate.string import (
     EmailPredicate,
     MaxLength,
@@ -164,6 +166,19 @@ def test_variants() -> None:
             ),
         )
     ) == {"variants": [["expected str"], [pred_to_err_message(Min(5))]]}
+
+
+def test_set_errs_message() -> None:
+    str_v = StringValidator()
+    bad_type_err = Invalid(str_v, TypeErr(str))
+    assert serializable_validation_err(
+        Invalid(SetValidator(str_v), SetErrs([bad_type_err, bad_type_err]))
+    ) == {
+        "member_errors": [
+            serializable_validation_err(bad_type_err),
+            serializable_validation_err(bad_type_err),
+        ]
+    }
 
 
 def test_pred_to_err_message() -> None:
