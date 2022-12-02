@@ -1,14 +1,10 @@
-from typing import Any, Final, Optional
+from typing import Any, Optional
 
 from koda._generics import A
 
-from koda_validate import Valid
 from koda_validate._internal import _ExactTypeValidator
 from koda_validate.base import ValidationResult, Validator
 from koda_validate.union import UnionValidatorAny
-
-OK_NONE: Final[Valid[None]] = Valid(None)
-OK_NONE_OPTIONAL: Final[Valid[Optional[Any]]] = Valid(None)
 
 
 class NoneValidator(_ExactTypeValidator[None]):
