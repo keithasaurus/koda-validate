@@ -73,7 +73,7 @@ def validate_dict_to_tuple(
     unknown_keys_err: Tuple[Literal[False], Invalid],
     data: Any,
 ) -> ResultTuple[Dict[Any, Any]]:
-    if not isinstance(data, dict):
+    if not type(data) is dict:
         return False, Invalid(source_validator, TypeErr(dict))
 
     if preprocessors:
@@ -124,7 +124,7 @@ async def validate_dict_to_tuple_async(
     unknown_keys_err: Tuple[Literal[False], Invalid],
     data: Any,
 ) -> ResultTuple[Dict[Any, Any]]:
-    if not isinstance(data, dict):
+    if not type(data) is dict:
         return False, Invalid(source_validator, TypeErr(dict))
 
     if preprocessors:

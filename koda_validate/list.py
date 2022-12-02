@@ -41,7 +41,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
-        if isinstance(val, list):
+        if type(val) is list:
             if self.preprocessors:
                 for processor in self.preprocessors:
                     val = processor(val)
@@ -78,7 +78,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
             return False, Invalid(self, TypeErr(list))
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[List[A]]:
-        if isinstance(val, list):
+        if type(val) is list:
             if self.preprocessors:
                 for processor in self.preprocessors:
                     val = processor(val)
