@@ -94,6 +94,11 @@ class IterableErr:
 
 
 @dataclass
+class SetErrs:
+    item_errs: List["Invalid"]
+
+
+@dataclass
 class VariantErrs:
     """
     none of these validators was satisfied by a given value
@@ -144,8 +149,8 @@ class Invalid:
 
 ValidationResult = Union[Valid[A], Invalid]
 
-
 ErrType = Union[
+    BasicErr,
     CoercionErr,
     DictErr,
     ExtraKeysErr,
@@ -153,7 +158,7 @@ ErrType = Union[
     MapErr,
     MissingKeyErr,
     PredicateErrs,
-    BasicErr,
+    SetErrs,
     TypeErr,
     VariantErrs,
 ]

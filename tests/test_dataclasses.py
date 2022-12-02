@@ -346,3 +346,14 @@ def test_can_handle_default_arguments() -> None:
     assert validator(Bad("hmm")) == Invalid(
         validator, CoercionErr({dict, PersonSimple}, PersonSimple)
     )
+
+
+def test_can_handle_basic_str_types() -> None:
+    @dataclass
+    class Bad:
+        name: "str"
+
+    validator = DataclassValidator(PersonSimple)
+    assert validator(Bad("hmm")) == Invalid(
+        validator, CoercionErr({dict, PersonSimple}, PersonSimple)
+    )

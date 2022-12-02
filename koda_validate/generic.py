@@ -164,36 +164,36 @@ class AlwaysValid(_ToTupleValidator[A]):
 
 
 always_valid: _ToTupleValidator[Any] = AlwaysValid()
-ListOrTupleAny = TypeVar("ListOrTupleAny", List[Any], Tuple[Any, ...])
+ListOrTupleOrSetAny = TypeVar("ListOrTupleOrSetAny", List[Any], Tuple[Any, ...], Set[Any])
 
 
 @dataclass
-class MinItems(Predicate[ListOrTupleAny]):
+class MinItems(Predicate[ListOrTupleOrSetAny]):
     length: int
 
-    def __call__(self, val: ListOrTupleAny) -> bool:
+    def __call__(self, val: ListOrTupleOrSetAny) -> bool:
         return len(val) >= self.length
 
 
 @dataclass
-class MaxItems(Predicate[ListOrTupleAny]):
+class MaxItems(Predicate[ListOrTupleOrSetAny]):
     length: int
 
-    def __call__(self, val: ListOrTupleAny) -> bool:
+    def __call__(self, val: ListOrTupleOrSetAny) -> bool:
         return len(val) <= self.length
 
 
 @dataclass
-class ExactItemCount(Predicate[ListOrTupleAny]):
+class ExactItemCount(Predicate[ListOrTupleOrSetAny]):
     length: int
 
-    def __call__(self, val: ListOrTupleAny) -> bool:
+    def __call__(self, val: ListOrTupleOrSetAny) -> bool:
         return len(val) == self.length
 
 
 @dataclass
-class UniqueItems(Predicate[ListOrTupleAny]):
-    def __call__(self, val: ListOrTupleAny) -> bool:
+class UniqueItems(Predicate[ListOrTupleOrSetAny]):
+    def __call__(self, val: ListOrTupleOrSetAny) -> bool:
         hashable_items: Set[Tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables
         unhashable_items: List[Tuple[Type[Any], Any]] = []
