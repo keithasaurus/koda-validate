@@ -8,8 +8,8 @@ from koda_validate._internal import (
     _ToTupleValidator,
 )
 from koda_validate.base import (
+    IndexErrs,
     Invalid,
-    IterableErr,
     Predicate,
     PredicateAsync,
     PredicateErrs,
@@ -71,7 +71,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, Invalid(self, IterableErr(index_errs))
+                return False, Invalid(self, IndexErrs(index_errs))
             else:
                 return True, return_list
         else:
@@ -121,7 +121,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, Invalid(self, IterableErr(index_errs))
+                return False, Invalid(self, IndexErrs(index_errs))
             else:
                 return True, return_list
         else:

@@ -28,9 +28,9 @@ from koda_validate import (
 from koda_validate._generics import A
 from koda_validate.base import (
     BasicErr,
-    DictErr,
     ErrType,
     ExtraKeysErr,
+    KeyErrs,
     KeyValErrs,
     MapErr,
     MissingKeyErr,
@@ -237,11 +237,11 @@ def test_record_1() -> None:
     assert validator("not a dict") == Invalid(validator, TypeErr(dict))
 
     assert validator({}) == Invalid(
-        validator, DictErr({"name": Invalid(validator, MissingKeyErr())})
+        validator, KeyErrs({"name": Invalid(validator, MissingKeyErr())})
     )
 
     assert validator({"name": 5}) == Invalid(
-        validator, DictErr(keys={"name": Invalid(s_v, TypeErr(str))})
+        validator, KeyErrs(keys={"name": Invalid(s_v, TypeErr(str))})
     )
 
     assert validator({"name": "bob", "age": 50}) == Invalid(
@@ -268,12 +268,12 @@ def test_record_2() -> None:
     assert validator("not a dict") == Invalid(validator, TypeErr(dict))
 
     assert validator({}) == Invalid(
-        validator, DictErr({"name": Invalid(validator, MissingKeyErr())})
+        validator, KeyErrs({"name": Invalid(validator, MissingKeyErr())})
     )
 
     assert validator({"name": 5, "age": "50"}) == Invalid(
         validator,
-        DictErr(
+        KeyErrs(
             {
                 "name": Invalid(s_v, TypeErr(str)),
                 "age": Invalid(i_v, TypeErr(int)),
@@ -887,7 +887,7 @@ def test_dict_validator_any_key_missing() -> None:
 
     assert validator({"first_name": 5}) == Invalid(
         validator,
-        DictErr(
+        KeyErrs(
             {
                 "last_name": Invalid(validator, MissingKeyErr()),
                 "first_name": Invalid(s_v_1, TypeErr(str)),
@@ -936,7 +936,7 @@ async def test_validate_dictionary_any_async() -> None:
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
         validator,
-        DictErr(
+        KeyErrs(
             {
                 "last_name": Invalid(validator, missing_key_err),
                 "first_name": Invalid(s_v, TypeErr(str)),
@@ -1001,7 +1001,7 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
         validator,
-        DictErr(
+        KeyErrs(
             {
                 "last_name": Invalid(validator, missing_key_err),
                 "first_name": Invalid(s_v, TypeErr(str)),
@@ -1154,7 +1154,7 @@ async def test_validate_dictionary_async() -> None:
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
         validator,
-        DictErr(
+        KeyErrs(
             {
                 "last_name": Invalid(validator, missing_key_err),
                 "first_name": Invalid(s_v, TypeErr(str)),

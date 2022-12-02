@@ -39,8 +39,8 @@ from koda_validate import (
 )
 from koda_validate.base import (
     BasicErr,
-    DictErr,
     ErrType,
+    KeyErrs,
     KeyValErrs,
     MapErr,
     MissingKeyErr,
@@ -414,7 +414,7 @@ def test_complex_union_dataclass() -> None:
     validators_schema_key_a = cast(UnionValidatorAny, example_validator.schema["a"])
     assert example_validator({"a": False}) == Invalid(
         example_validator,
-        DictErr(
+        KeyErrs(
             {
                 "a": Invalid(
                     example_validator.schema["a"],
@@ -481,7 +481,7 @@ def test_nested_dataclass() -> None:
                 "something": {},
             },
         }
-    ) == Invalid(b_validator, DictErr({"name": Invalid(b_validator, MissingKeyErr())}))
+    ) == Invalid(b_validator, KeyErrs({"name": Invalid(b_validator, MissingKeyErr())}))
 
     assert b_validator(
         {
@@ -496,11 +496,11 @@ def test_nested_dataclass() -> None:
         }
     ) == Invalid(
         b_validator,
-        DictErr(
+        KeyErrs(
             {
                 "a": Invalid(
                     b_validator.schema["a"],
-                    DictErr(
+                    KeyErrs(
                         {
                             "something": Invalid(
                                 b_validator.schema["a"].schema["something"],  # type: ignore  # noqa: E501

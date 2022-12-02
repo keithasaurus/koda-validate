@@ -3,10 +3,10 @@ from typing import Any, Dict, List, Tuple, Union
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
-    DictErr,
     ExtraKeysErr,
+    IndexErrs,
     Invalid,
-    IterableErr,
+    KeyErrs,
     MapErr,
     MissingKeyErr,
     Predicate,
@@ -110,7 +110,7 @@ def serializable_validation_err(invalid: Invalid) -> Serializable:
         return [f"expected {err.expected_type.__name__}"]
     elif isinstance(err, PredicateErrs):
         return [pred_to_err_message(p) for p in err.predicates]
-    elif isinstance(err, IterableErr):
+    elif isinstance(err, IndexErrs):
         return [[i, serializable_validation_err(err)] for i, err in err.indexes.items()]
     elif isinstance(err, MissingKeyErr):
         return ["key missing"]
@@ -127,7 +127,7 @@ def serializable_validation_err(invalid: Invalid) -> Serializable:
     elif isinstance(err, SetErrs):
         return {"member_errors": [serializable_validation_err(x) for x in err.item_errs]}
 
-    elif isinstance(err, DictErr):
+    elif isinstance(err, KeyErrs):
         return {str(k): serializable_validation_err(v) for k, v in err.keys.items()}
     elif isinstance(err, VariantErrs):
         return {"variants": [serializable_validation_err(x) for x in err.variants]}

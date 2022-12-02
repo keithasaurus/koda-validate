@@ -18,7 +18,7 @@ from koda import nothing
 from koda_validate import Invalid, Valid
 from koda_validate._generics import A, InputT, SuccessT
 from koda_validate.base import (
-    DictErr,
+    KeyErrs,
     Predicate,
     PredicateAsync,
     PredicateErrs,
@@ -111,7 +111,7 @@ def validate_dict_to_tuple(
                 success_dict[key_] = new_val
 
     if errs:
-        return False, Invalid(source_validator, DictErr(errs))
+        return False, Invalid(source_validator, KeyErrs(errs))
     else:
         return True, success_dict
 
@@ -162,7 +162,7 @@ async def validate_dict_to_tuple_async(
                 success_dict[key_] = new_val
 
     if errs:
-        return False, Invalid(source_validator, DictErr(errs))
+        return False, Invalid(source_validator, KeyErrs(errs))
     else:
         return True, success_dict
 

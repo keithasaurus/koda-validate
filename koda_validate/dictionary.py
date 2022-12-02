@@ -44,9 +44,9 @@ from koda_validate._internal import (
     validate_dict_to_tuple_async,
 )
 from koda_validate.base import (
-    DictErr,
     ErrType,
     ExtraKeysErr,
+    KeyErrs,
     KeyValErrs,
     MapErr,
     MissingKeyErr,
@@ -885,7 +885,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                     args.append(new_val)
 
         if errs:
-            return False, Invalid(self, DictErr(errs))
+            return False, Invalid(self, KeyErrs(errs))
         else:
             # we know this should be ret
             obj = self.into(*args)
@@ -937,7 +937,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                     args.append(new_val)
 
         if errs:
-            return False, Invalid(self, DictErr(errs))
+            return False, Invalid(self, KeyErrs(errs))
         else:
             obj = self.into(*args)
             if self.validate_object is not None:

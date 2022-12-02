@@ -9,8 +9,8 @@ from koda_validate import AlwaysValid, Invalid, MaxLength, StringValidator, Vali
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
-    DictErr,
     ErrType,
+    KeyErrs,
     PredicateErrs,
     TypeErr,
 )
@@ -104,7 +104,7 @@ def test_explicit_overrides_work() -> None:
     v1 = DataclassValidator(A, overrides={"first_name": StringValidator(MaxLength(3))})
     assert v1(test_dict) == Invalid(
         v1,
-        DictErr(
+        KeyErrs(
             {
                 "first_name": Invalid(
                     v1.schema["first_name"], PredicateErrs([MaxLength(3)])
@@ -129,7 +129,7 @@ async def test_explicit_overrides_work_async() -> None:
     v1 = DataclassValidator(A, overrides={"first_name": StringValidator(MaxLength(3))})
     assert await v1.validate_async(test_dict) == Invalid(
         v1,
-        DictErr(
+        KeyErrs(
             {
                 "first_name": Invalid(
                     v1.schema["first_name"], PredicateErrs([MaxLength(3)])
@@ -212,7 +212,7 @@ def test_validates_proper_string_type() -> None:
     # not type-safe, but still validate
     assert dc_validator(Example(5)) == Invalid(  # type: ignore
         dc_validator,
-        DictErr(
+        KeyErrs(
             {"name": Invalid(dc_validator.schema["name"], TypeErr(str))},
         ),
     )
@@ -229,7 +229,7 @@ def test_validates_proper_int_type() -> None:
     # not type-safe, but still validate
     assert dc_validator(Example("bad")) == Invalid(  # type: ignore
         dc_validator,
-        DictErr(
+        KeyErrs(
             {"name": Invalid(dc_validator.schema["name"], TypeErr(int))},
         ),
     )
@@ -245,7 +245,7 @@ def test_validates_proper_float_type() -> None:
     assert dc_validator(Example(5.0)) == Valid(Example(5.0))
     assert dc_validator(Example(5)) == Invalid(
         dc_validator,
-        DictErr(
+        KeyErrs(
             {"name": Invalid(dc_validator.schema["name"], TypeErr(float))},
         ),
     )
@@ -262,7 +262,7 @@ def test_validates_proper_bool_type() -> None:
     # not type-safe, but still validate
     assert dc_validator(Example(1)) == Invalid(  # type: ignore
         dc_validator,
-        DictErr(
+        KeyErrs(
             {"name": Invalid(dc_validator.schema["name"], TypeErr(bool))},
         ),
     )
@@ -280,7 +280,7 @@ def test_validates_proper_decimal_type() -> None:
     # not type-safe, but still validate
     assert dc_validator(Example(5.6)) == Invalid(  # type: ignore
         dc_validator,
-        DictErr(
+        KeyErrs(
             {
                 "name": Invalid(
                     dc_validator.schema["name"],
@@ -310,7 +310,7 @@ def test_validates_proper_uuid_type() -> None:
 
     assert dc_validator(Example(123)) == Invalid(  # type: ignore
         dc_validator,
-        DictErr(
+        KeyErrs(
             {
                 "name": Invalid(
                     dc_validator.schema["name"], CoercionErr({str, UUID}, UUID)

@@ -56,7 +56,7 @@ class ExtraKeysErr:
 
 
 @dataclass
-class DictErr:
+class KeyErrs:
     """
     validation failures for key/value pairs on a record-like
     dictionary
@@ -85,7 +85,7 @@ class MapErr:
 
 
 @dataclass
-class IterableErr:
+class IndexErrs:
     """
     dictionary of validation errors by index
     """
@@ -152,9 +152,9 @@ ValidationResult = Union[Valid[A], Invalid]
 ErrType = Union[
     BasicErr,
     CoercionErr,
-    DictErr,
+    KeyErrs,
     ExtraKeysErr,
-    IterableErr,
+    IndexErrs,
     MapErr,
     MissingKeyErr,
     PredicateErrs,

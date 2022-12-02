@@ -21,7 +21,7 @@ from koda_validate.base import (
     BasicErr,
     CoercionErr,
     ErrType,
-    IterableErr,
+    IndexErrs,
     PredicateAsync,
     PredicateErrs,
     Processor,
@@ -47,7 +47,7 @@ def test_tuple2() -> None:
     t_validator = Tuple2Validator(s_v, basic_n_v)
     assert t_validator([1, "a"]) == Invalid(
         t_validator,
-        IterableErr(
+        IndexErrs(
             {
                 0: Invalid(s_v, TypeErr(str)),
                 1: Invalid(basic_n_v, TypeErr(type(None))),
@@ -98,7 +98,7 @@ async def test_tuple2_async() -> None:
     t_validator = Tuple2Validator(s_v, basic_n_v)
     assert await t_validator.validate_async([1, "a"]) == Invalid(
         t_validator,
-        IterableErr(
+        IndexErrs(
             {
                 0: Invalid(s_v, TypeErr(str)),
                 1: Invalid(basic_n_v, TypeErr(type(None))),
@@ -144,7 +144,7 @@ def test_tuple3() -> None:
 
     assert validator([1, "a", 7.42]) == Invalid(
         validator,
-        IterableErr(
+        IndexErrs(
             {
                 0: Invalid(s_v, TypeErr(str)),
                 1: Invalid(i_v, TypeErr(int)),
@@ -196,7 +196,7 @@ async def test_tuple3_async() -> None:
 
     assert await validator.validate_async([1, "a", 7.42]) == Invalid(
         validator,
-        IterableErr(
+        IndexErrs(
             {
                 0: Invalid(str_v, TypeErr(str)),
                 1: Invalid(int_v, TypeErr(int)),
@@ -235,7 +235,7 @@ def test_tuple_homogenous_validator() -> None:
 
     assert tuple_v((5.5, "something else")) == Invalid(
         tuple_v,
-        IterableErr(
+        IndexErrs(
             {1: Invalid(f_v, TypeErr(float))},
         ),
     )
@@ -262,7 +262,7 @@ def test_tuple_homogenous_validator() -> None:
     assert n_v((None, None)) == Valid((None, None))
 
     assert n_v((None, 1)) == Invalid(
-        n_v, IterableErr({1: Invalid(n_v.item_validator, TypeErr(type(None)))})
+        n_v, IndexErrs({1: Invalid(n_v.item_validator, TypeErr(type(None)))})
     )
 
 
@@ -276,7 +276,7 @@ async def test_tuple_homogenous_async() -> None:
 
     assert await validator.validate_async((5.5, "something else")) == Invalid(
         validator,
-        IterableErr(
+        IndexErrs(
             {1: Invalid(float_validator, TypeErr(float))},
         ),
     )
@@ -297,7 +297,7 @@ async def test_tuple_homogenous_async() -> None:
     assert await n_v.validate_async((None, None)) == Valid((None, None))
 
     assert await n_v.validate_async((None, 1)) == Invalid(
-        n_v, IterableErr({1: Invalid(n_v.item_validator, TypeErr(type(None)))})
+        n_v, IndexErrs({1: Invalid(n_v.item_validator, TypeErr(type(None)))})
     )
 
 

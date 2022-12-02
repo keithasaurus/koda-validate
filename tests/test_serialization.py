@@ -6,10 +6,10 @@ from koda_validate import ListValidator
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
-    DictErr,
     ExtraKeysErr,
+    IndexErrs,
     Invalid,
-    IterableErr,
+    KeyErrs,
     KeyValErrs,
     MapErr,
     MissingKeyErr,
@@ -77,11 +77,11 @@ def test_coercion_err_uses_message() -> None:
 
 def test_iterable_errs() -> None:
     l_v = ListValidator(StringValidator())
-    assert serializable_validation_err(Invalid(l_v, IterableErr({}))) == []
+    assert serializable_validation_err(Invalid(l_v, IndexErrs({}))) == []
     assert serializable_validation_err(
         Invalid(
             l_v,
-            IterableErr(
+            IndexErrs(
                 {
                     0: Invalid(StringValidator(), TypeErr(str)),
                     5: Invalid(
@@ -101,7 +101,7 @@ def test_invalid_dict() -> None:
     assert serializable_validation_err(
         Invalid(
             DictValidatorAny({}),
-            DictErr(
+            KeyErrs(
                 {
                     5: Invalid(FloatValidator(), TypeErr(float)),
                     "ok": Invalid(DictValidatorAny({}), MissingKeyErr()),

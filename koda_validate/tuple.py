@@ -16,8 +16,8 @@ from koda_validate._internal import (
 from koda_validate.base import (
     CoercionErr,
     ErrType,
+    IndexErrs,
     Invalid,
-    IterableErr,
     Predicate,
     PredicateAsync,
     PredicateErrs,
@@ -57,7 +57,7 @@ class TupleNValidatorAny(_ToTupleValidator[Tuple[Any, ...]]):
                     else:
                         errs[i] = result
             if errs:
-                return False, Invalid(self, IterableErr(errs))
+                return False, Invalid(self, IndexErrs(errs))
             else:
                 return True, tuple(vals)
 
@@ -87,7 +87,7 @@ class TupleNValidatorAny(_ToTupleValidator[Tuple[Any, ...]]):
                     else:
                         errs[i] = result
             if errs:
-                return False, Invalid(self, IterableErr(errs))
+                return False, Invalid(self, IndexErrs(errs))
             else:
                 return True, tuple(vals)
 
@@ -263,7 +263,7 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
                     return_list.append(item_result)
 
             if index_errors:
-                return False, Invalid(self, IterableErr(index_errors))
+                return False, Invalid(self, IndexErrs(index_errors))
             else:
                 return True, tuple(return_list)
         else:
@@ -311,7 +311,7 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
                     return_list.append(item_result)
 
             if index_errors:
-                return False, Invalid(self, IterableErr(index_errors))
+                return False, Invalid(self, IndexErrs(index_errors))
             else:
                 return True, tuple(return_list)
         else:

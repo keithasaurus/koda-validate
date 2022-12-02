@@ -13,7 +13,7 @@ from koda_validate import (
     StringValidator,
     Valid,
 )
-from koda_validate.base import IterableErr, PredicateErrs, TypeErr
+from koda_validate.base import IndexErrs, PredicateErrs, TypeErr
 from koda_validate.float import FloatValidator
 from koda_validate.generic import MaxItems, Min, MinItems
 from koda_validate.list import ListValidator
@@ -26,7 +26,7 @@ def test_list_validator() -> None:
 
     assert l_f_v([5.5, "something else"]) == Invalid(
         l_f_v,
-        IterableErr(
+        IndexErrs(
             {1: Invalid(l_f_v.item_validator, TypeErr(float))},
         ),
     )
@@ -53,7 +53,7 @@ def test_list_validator() -> None:
     assert n_v([None, None]) == Valid([None, None])
 
     assert n_v([None, 1]) == Invalid(
-        n_v, IterableErr({1: Invalid(n_v.item_validator, TypeErr(type(None)))})
+        n_v, IndexErrs({1: Invalid(n_v.item_validator, TypeErr(type(None)))})
     )
 
 
@@ -64,7 +64,7 @@ async def test_list_async() -> None:
 
     assert await l_f_v.validate_async([5.5, "something else"]) == Invalid(
         l_f_v,
-        IterableErr(
+        IndexErrs(
             {1: Invalid(l_f_v.item_validator, TypeErr(float))},
         ),
     )
@@ -87,7 +87,7 @@ async def test_list_async() -> None:
     assert await n_v.validate_async([None, None]) == Valid([None, None])
 
     assert await n_v.validate_async([None, 1]) == Invalid(
-        n_v, IterableErr({1: Invalid(n_v.item_validator, TypeErr(type(None)))})
+        n_v, IndexErrs({1: Invalid(n_v.item_validator, TypeErr(type(None)))})
     )
 
 
