@@ -335,3 +335,14 @@ def test_get_typehint_validator_bare_tuple() -> None:
     for t_validator in [get_typehint_validator(tuple), get_typehint_validator(Tuple)]:
         assert isinstance(t_validator, TupleHomogenousValidator)
         assert isinstance(t_validator.item_validator, AlwaysValid)
+
+
+def test_can_handle_default_arguments() -> None:
+    @dataclass
+    class Bad:
+        name: str = "ok"
+
+    validator = DataclassValidator(PersonSimple)
+    assert validator(Bad("hmm")) == Invalid(
+        validator, CoercionErr({dict, PersonSimple}, PersonSimple)
+    )
