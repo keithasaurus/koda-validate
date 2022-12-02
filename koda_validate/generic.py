@@ -153,7 +153,7 @@ class EqualsValidator(Validator[ExactMatchT]):
             return Invalid(self, TypeErr(match_type))
 
 
-class AlwaysValid(_ToTupleValidator[A]):
+class AlwaysValid(_ToTupleValidator[Any]):
     __match_args__ = ()
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[A]:
@@ -163,7 +163,7 @@ class AlwaysValid(_ToTupleValidator[A]):
         return True, val
 
 
-always_valid: _ToTupleValidator[Any] = AlwaysValid()
+always_valid = AlwaysValid()
 ListOrTupleOrSetAny = TypeVar("ListOrTupleOrSetAny", List[Any], Tuple[Any, ...], Set[Any])
 
 
