@@ -40,6 +40,7 @@ from uuid import UUID
 from koda_validate import (
     BoolValidator,
     DecimalValidator,
+    EqualsValidator,
     FloatValidator,
     IntValidator,
     ListValidator,
@@ -111,6 +112,8 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
                 return TupleNValidatorAny(*[get_typehint_validator(a) for a in args])
         if sys.version_info >= (3, 9) and origin is Annotated:
             return get_typehint_validator(args[0])
+        if origin is typing.Literal:
+            return UnionValidatorAny(*[EqualsValidator(a) for a in args])
 
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
 
