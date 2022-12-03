@@ -6,7 +6,9 @@ from koda_validate.none import none_validator
 
 
 def test_none() -> None:
-    assert none_validator("a string") == Invalid(none_validator, "a string", TypeErr(type(None)))
+    assert none_validator("a string") == Invalid(
+        none_validator, "a string", TypeErr(type(None))
+    )
 
     assert none_validator(None) == Valid(None)
 

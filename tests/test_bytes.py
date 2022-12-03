@@ -15,4 +15,6 @@ def test_bytes() -> None:
 async def test_bytes_async() -> None:
     b_v = BytesValidator()
     assert await b_v.validate_async(b"okokok") == Valid(b"okokok")
-    assert await b_v.validate_async("wrong type!") == Invalid(b_v, "wrong type!", TypeErr(bytes))
+    assert await b_v.validate_async("wrong type!") == Invalid(
+        b_v, "wrong type!", TypeErr(bytes)
+    )

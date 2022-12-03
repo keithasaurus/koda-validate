@@ -259,7 +259,6 @@ def test_tuple_homogenous_validator() -> None:
         preprocessors=[RemoveLast()],
     )
     assert t_p_p_validator((10.1, 7.7, 2.2, 5, 0.0)) == Invalid(
-
         t_p_p_validator, (10.1, 7.7, 2.2, 5), PredicateErrs([MaxItems(3)])
     )
 
@@ -268,8 +267,9 @@ def test_tuple_homogenous_validator() -> None:
     assert n_v((None, None)) == Valid((None, None))
 
     assert n_v((None, 1)) == Invalid(
-        n_v, (None, 1),
-        IndexErrs({1: Invalid(n_v.item_validator, 1, TypeErr(type(None)))})
+        n_v,
+        (None, 1),
+        IndexErrs({1: Invalid(n_v.item_validator, 1, TypeErr(type(None)))}),
     )
 
 
@@ -305,8 +305,9 @@ async def test_tuple_homogenous_async() -> None:
     assert await n_v.validate_async((None, None)) == Valid((None, None))
 
     assert await n_v.validate_async((None, 1)) == Invalid(
-        n_v, (None, 1),
-        IndexErrs({1: Invalid(n_v.item_validator, 1, TypeErr(type(None)))})
+        n_v,
+        (None, 1),
+        IndexErrs({1: Invalid(n_v.item_validator, 1, TypeErr(type(None)))}),
     )
 
 

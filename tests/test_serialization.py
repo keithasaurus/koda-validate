@@ -117,9 +117,9 @@ def test_invalid_dict() -> None:
 
 
 def test_invalid_custom() -> None:
-    assert serializable_validation_err(Invalid(StringValidator(), "123", BasicErr("abc"))) == [
-        "abc"
-    ]
+    assert serializable_validation_err(
+        Invalid(StringValidator(), "123", BasicErr("abc"))
+    ) == ["abc"]
 
 
 def test_extra_keys() -> None:
@@ -138,13 +138,13 @@ def test_map_err() -> None:
     result = serializable_validation_err(
         Invalid(
             MapValidator(key=i_v, value=StringValidator()),
-            {5: "neat",
-             6: 4,
-             "7": 4},
+            {5: "neat", 6: 4, "7": 4},
             MapErr(
                 {
                     5: KeyValErrs(key=Invalid(i_v, 5, PredicateErrs([Min(6)])), val=None),
-                    6: KeyValErrs(key=None, val=Invalid(StringValidator(), 4, TypeErr(str))),
+                    6: KeyValErrs(
+                        key=None, val=Invalid(StringValidator(), 4, TypeErr(str))
+                    ),
                     "7": KeyValErrs(
                         key=Invalid(IntValidator(), "7", TypeErr(int)),
                         val=Invalid(StringValidator(), 4, TypeErr(str)),
@@ -182,9 +182,7 @@ def test_set_errs_message() -> None:
     bad_type_err = Invalid(str_v, 1, TypeErr(str))
     bad_type_err_1 = Invalid(str_v, 2, TypeErr(str))
     assert serializable_validation_err(
-        Invalid(SetValidator(str_v), {1, 2}, SetErrs([
-            bad_type_err,
-            bad_type_err_1]))
+        Invalid(SetValidator(str_v), {1, 2}, SetErrs([bad_type_err, bad_type_err_1]))
     ) == {
         "member_errors": [
             serializable_validation_err(bad_type_err),

@@ -86,7 +86,7 @@ class SetValidator(_ToTupleValidator[Set[A]]):
                         predicate_errors.append(pred_async)
 
             if predicate_errors:
-                return False, Invalid(self,val, PredicateErrs(predicate_errors))
+                return False, Invalid(self, val, PredicateErrs(predicate_errors))
 
             return_set: Set[A] = set()
             item_errs: List[Invalid] = []
@@ -115,4 +115,3 @@ class SetValidator(_ToTupleValidator[Set[A]]):
                 return True, return_set
         else:
             return False, Invalid(self, val, TypeErr(set))
-

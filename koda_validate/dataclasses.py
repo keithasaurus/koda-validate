@@ -195,7 +195,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         else:
             return False, Invalid(
                 self,
-                data,
+                val,
                 CoercionErr(
                     {dict, self.data_cls},
                     self.data_cls,

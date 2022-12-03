@@ -39,7 +39,9 @@ def test_string_validator() -> None:
     assert StringValidator()("abc") == Valid("abc")
 
     s_min_3_v = StringValidator(MaxLength(3))
-    assert s_min_3_v("something") == Invalid(s_min_3_v, "something", PredicateErrs([MaxLength(3)]))
+    assert s_min_3_v("something") == Invalid(
+        s_min_3_v, "something", PredicateErrs([MaxLength(3)])
+    )
 
     min_len_3_not_blank_validator = StringValidator(MinLength(3), NotBlank())
 

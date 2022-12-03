@@ -34,4 +34,3 @@ class DatetimeValidator(_CoercingValidator[datetime]):
                 return True, datetime.fromisoformat(val)
             except (ValueError, TypeError):
                 return False, Invalid(self, val, CoercionErr({str, datetime}, datetime))
-

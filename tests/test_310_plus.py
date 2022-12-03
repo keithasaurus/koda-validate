@@ -414,21 +414,30 @@ def test_complex_union_dataclass() -> None:
     validators_schema_key_a = cast(UnionValidatorAny, example_validator.schema["a"])
     assert example_validator({"a": False}) == Invalid(
         example_validator,
+        {"a": False},
         KeyErrs(
             {
                 "a": Invalid(
                     example_validator.schema["a"],
+                    False,
                     VariantErrs(
                         [
-                            Invalid(validators_schema_key_a.validators[0], TypeErr(str)),
+                            Invalid(
+                                validators_schema_key_a.validators[0], False, TypeErr(str)
+                            ),
                             Invalid(
                                 validators_schema_key_a.validators[1],
+                                False,
                                 TypeErr(type(None)),
                             ),
                             Invalid(
-                                validators_schema_key_a.validators[2], TypeErr(float)
+                                validators_schema_key_a.validators[2],
+                                False,
+                                TypeErr(float),
                             ),
-                            Invalid(validators_schema_key_a.validators[3], TypeErr(int)),
+                            Invalid(
+                                validators_schema_key_a.validators[3], False, TypeErr(int)
+                            ),
                         ],
                     ),
                 )
@@ -481,7 +490,35 @@ def test_nested_dataclass() -> None:
                 "something": {},
             },
         }
-    ) == Invalid(b_validator, KeyErrs({"name": Invalid(b_validator, MissingKeyErr())}))
+    ) == Invalid(
+        b_validator,
+        {
+            "rating": 5.5,
+            "a": {
+                "name": "keith",
+                "awake": False,
+                "lottery_numbers": [1, 2, 3],
+                "something": {},
+            },
+        },
+        KeyErrs(
+            {
+                "name": Invalid(
+                    b_validator,
+                    {
+                        "rating": 5.5,
+                        "a": {
+                            "name": "keith",
+                            "awake": False,
+                            "lottery_numbers": [1, 2, 3],
+                            "something": {},
+                        },
+                    },
+                    MissingKeyErr(),
+                )
+            }
+        ),
+    )
 
     assert b_validator(
         {
@@ -496,19 +533,37 @@ def test_nested_dataclass() -> None:
         }
     ) == Invalid(
         b_validator,
+        {
+            "name": "whatever",
+            "rating": 5.5,
+            "a": {
+                "name": "keith",
+                "awake": False,
+                "lottery_numbers": [1, 2, 3],
+                "something": {5: 5},
+            },
+        },
         KeyErrs(
             {
                 "a": Invalid(
                     b_validator.schema["a"],
+                    {
+                        "name": "keith",
+                        "awake": False,
+                        "lottery_numbers": [1, 2, 3],
+                        "something": {5: 5},
+                    },
                     KeyErrs(
                         {
                             "something": Invalid(
                                 b_validator.schema["a"].schema["something"],  # type: ignore  # noqa: E501
+                                {5: 5},
                                 MapErr(
                                     {
                                         5: KeyValErrs(
                                             key=Invalid(
                                                 b_validator.schema["a"].schema["something"].key_validator,  # type: ignore  # noqa: E501
+                                                5,
                                                 TypeErr(
                                                     str,
                                                 ),
