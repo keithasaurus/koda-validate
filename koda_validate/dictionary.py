@@ -139,7 +139,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
                         predicate_errors.append(pred_async)
 
             if predicate_errors:
-                return Invalid(self, PredicateErrs(predicate_errors))
+                return Invalid(self, val, PredicateErrs(predicate_errors))
 
             return_dict: Dict[T1, T2] = {}
             errors: Dict[Any, KeyValErrs] = {}
@@ -157,11 +157,11 @@ class MapValidator(Validator[Dict[T1, T2]]):
                     )
 
             if errors:
-                return Invalid(self, MapErr(errors))
+                return Invalid(self, val, MapErr(errors))
             else:
                 return Valid(return_dict)
         else:
-            return Invalid(self, TypeErr(dict))
+            return Invalid(self, val, TypeErr(dict))
 
     def __call__(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
         if self.predicates_async:
@@ -186,7 +186,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
                         predicate_errors.append(predicate)
 
             if predicate_errors:
-                return Invalid(self, PredicateErrs(predicate_errors))
+                return Invalid(self, val, PredicateErrs(predicate_errors))
 
             return_dict: Dict[T1, T2] = {}
             errors: Dict[Any, KeyValErrs] = {}
@@ -203,11 +203,11 @@ class MapValidator(Validator[Dict[T1, T2]]):
                     )
 
             if errors:
-                return Invalid(self, MapErr(errors))
+                return Invalid(self, val, MapErr(errors))
             else:
                 return Valid(return_dict)
         else:
-            return Invalid(self, TypeErr(dict))
+            return Invalid(self, val, TypeErr(dict))
 
 
 class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
@@ -215,7 +215,7 @@ class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
         if isinstance(val, dict):
             return True, val
         else:
-            return False, Invalid(self, TypeErr(dict))
+            return False, Invalid(self, val, TypeErr(dict))
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Dict[Any, Any]]:
         return self.validate_to_tuple(val)
@@ -898,7 +898,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
 
     async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Ret]:
         if not isinstance(data, dict):
-            return False, Invalid(self, TypeErr(dict))
+            return False, Invalid(self, data, TypeErr(dict))
 
         if self.preprocessors:
             for preproc in self.preprocessors:
@@ -907,7 +907,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
             if key_ not in self._key_set:
-                return self._unknown_keys_err
+                return False, Invalid(self, data, self._unknown_keys_err)
 
         args: List[Any] = []
         errs: Dict[Any, Invalid] = {}
@@ -916,7 +916,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 val = data[key_]
             except KeyError:
                 if key_required:
-                    errs[key_] = Invalid(self, MissingKeyErr())
+                    errs[key_] = Invalid(self, data, MissingKeyErr())
                 else:
                     args.append(nothing)
             else:
@@ -935,7 +935,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                     args.append(new_val)
 
         if errs:
-            return False, Invalid(self, KeyErrs(errs))
+            return False, Invalid(self, data, KeyErrs(errs))
         else:
             obj = self.into(*args)
             if self.validate_object is not None:
@@ -943,13 +943,13 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 if result is None:
                     return True, obj
                 else:
-                    return False, Invalid(self, result)
+                    return False, Invalid(self, obj, result)
             elif self.validate_object_async is not None:
                 result = await self.validate_object_async(obj)
                 if result is None:
                     return True, obj
                 else:
-                    return False, Invalid(self, result)
+                    return False, Invalid(self, obj, result)
             else:
                 return True, obj
 
@@ -1034,7 +1034,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                 if result is None:
                     return True, result_tup[1]
                 else:
-                    return False, Invalid(self, result_tup[1])
+                    return False, Invalid(self, result_tup[1], result)
             else:
                 return True, result_tup[1]
 
@@ -1055,7 +1055,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                 if result is None:
                     return True, result_tup[1]
                 else:
-                    return False, Invalid(self, result)
+                    return False, Invalid(self, result_tup[1], result)
             elif self.validate_object_async is not None:
                 result = await self.validate_object_async((obj := result_tup[1]))
                 if result is None:

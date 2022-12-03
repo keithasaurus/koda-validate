@@ -22,7 +22,7 @@ class Flip(Processor[bool]):
 
 def test_boolean() -> None:
     b_v = BoolValidator()
-    assert b_v("a string") == Invalid(b_v, TypeErr(bool))
+    assert b_v("a string") == Invalid(b_v, "a string", TypeErr(bool))
 
     assert b_v(True) == Valid(True)
 
@@ -34,10 +34,10 @@ def test_boolean() -> None:
             return val is True
 
     assert (true_bool := BoolValidator(RequireTrue()))(False) == Invalid(
-        true_bool, PredicateErrs([RequireTrue()])
+        true_bool, False, PredicateErrs([RequireTrue()])
     )
 
-    assert b_v(1) == Invalid(b_v, TypeErr(bool))
+    assert b_v(1) == Invalid(b_v, 1, TypeErr(bool))
 
     @dataclass
     class IsTrue(Predicate[bool]):

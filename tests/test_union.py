@@ -18,22 +18,24 @@ def test_union_validator_any() -> None:
     assert str_int_float_validator(5.5) == Valid(5.5)
     assert str_int_float_validator(None) == Invalid(
         str_int_float_validator,
+        None,
         VariantErrs(
             [
-                Invalid(s_v, TypeErr(str)),
-                Invalid(i_v, TypeErr(int)),
-                Invalid(f_v, TypeErr(float)),
+                Invalid(s_v, None, TypeErr(str)),
+                Invalid(i_v, None, TypeErr(int)),
+                Invalid(f_v, None, TypeErr(float)),
             ],
         ),
     )
 
     assert str_int_float_validator(False) == Invalid(
         str_int_float_validator,
+        False,
         VariantErrs(
             [
-                Invalid(s_v, TypeErr(str)),
-                Invalid(i_v, TypeErr(int)),
-                Invalid(f_v, TypeErr(float)),
+                Invalid(s_v, False, TypeErr(str)),
+                Invalid(i_v, False, TypeErr(int)),
+                Invalid(f_v, False, TypeErr(float)),
             ],
         ),
     )
@@ -49,7 +51,7 @@ async def test_union_validator_any_async() -> None:
             if val is None:
                 return Valid(None)
             else:
-                return Invalid(self, TypeErr(type(None)))
+                return Invalid(self, val, TypeErr(type(None)))
 
     s_v = StringValidator()
     i_v = IntValidator()
@@ -63,24 +65,26 @@ async def test_union_validator_any_async() -> None:
     result = await str_int_float_validator.validate_async([])
     assert result == Invalid(
         str_int_float_validator,
+        [],
         VariantErrs(
             [
-                Invalid(s_v, TypeErr(str)),
-                Invalid(i_v, TypeErr(int)),
-                Invalid(f_v, TypeErr(float)),
-                Invalid(n_v, TypeErr(type(None))),
+                Invalid(s_v, [], TypeErr(str)),
+                Invalid(i_v, [], TypeErr(int)),
+                Invalid(f_v, [], TypeErr(float)),
+                Invalid(n_v, [], TypeErr(type(None))),
             ]
         ),
     )
 
     assert await str_int_float_validator.validate_async(False) == Invalid(
         str_int_float_validator,
+        False,
         VariantErrs(
             [
-                Invalid(s_v, TypeErr(str)),
-                Invalid(i_v, TypeErr(int)),
-                Invalid(f_v, TypeErr(float)),
-                Invalid(n_v, TypeErr(type(None))),
+                Invalid(s_v, False, TypeErr(str)),
+                Invalid(i_v, False, TypeErr(int)),
+                Invalid(f_v, False, TypeErr(float)),
+                Invalid(n_v, False, TypeErr(type(None))),
             ],
         ),
     )

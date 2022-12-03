@@ -34,7 +34,7 @@ class UnionValidatorAny(_ToTupleValidator[Any]):
                     return True, result.val
                 else:
                     errs.append(result)
-        return False, Invalid(self, VariantErrs(errs))
+        return False, Invalid(self, val, VariantErrs(errs))
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Any]:
         errs = []
@@ -51,4 +51,4 @@ class UnionValidatorAny(_ToTupleValidator[Any]):
                     return True, result.val
                 else:
                     errs.append(result)
-        return False, Invalid(self, VariantErrs(errs))
+        return False, Invalid(self, val, VariantErrs(errs))

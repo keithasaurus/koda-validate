@@ -34,21 +34,21 @@ def test_lower_case() -> None:
 
 def test_string_validator() -> None:
     s_v = StringValidator()
-    assert s_v(False) == Invalid(s_v, TypeErr(str))
+    assert s_v(False) == Invalid(s_v, False, TypeErr(str))
 
     assert StringValidator()("abc") == Valid("abc")
 
     s_min_3_v = StringValidator(MaxLength(3))
-    assert s_min_3_v("something") == Invalid(s_min_3_v, PredicateErrs([MaxLength(3)]))
+    assert s_min_3_v("something") == Invalid(s_min_3_v, "something", PredicateErrs([MaxLength(3)]))
 
     min_len_3_not_blank_validator = StringValidator(MinLength(3), NotBlank())
 
     assert min_len_3_not_blank_validator("") == Invalid(
-        min_len_3_not_blank_validator, PredicateErrs([MinLength(3), not_blank])
+        min_len_3_not_blank_validator, "", PredicateErrs([MinLength(3), not_blank])
     )
 
     assert min_len_3_not_blank_validator("   ") == Invalid(
-        min_len_3_not_blank_validator, PredicateErrs([not_blank])
+        min_len_3_not_blank_validator, "   ", PredicateErrs([not_blank])
     )
 
     assert min_len_3_not_blank_validator("something") == Valid("something")
@@ -110,9 +110,9 @@ async def test_validate_fake_db_async() -> None:
     validator = StringValidator(predicates_async=[CheckUsername()])
     result = await validator.validate_async("bad username")
     assert hit == ["ok"]
-    assert result == Invalid(validator, PredicateErrs([CheckUsername()]))
+    assert result == Invalid(validator, "bad username", PredicateErrs([CheckUsername()]))
     s_v = StringValidator()
-    assert await s_v.validate_async(5) == Invalid(s_v, TypeErr(str))
+    assert await s_v.validate_async(5) == Invalid(s_v, 5, TypeErr(str))
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:

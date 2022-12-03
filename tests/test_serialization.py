@@ -133,13 +133,16 @@ def test_map_err() -> None:
     result = serializable_validation_err(
         Invalid(
             MapValidator(key=i_v, value=StringValidator()),
+            {5: "neat",
+             6: 4,
+             "7": 4},
             MapErr(
                 {
-                    5: KeyValErrs(key=Invalid(i_v, PredicateErrs([Min(6)])), val=None),
-                    6: KeyValErrs(key=None, val=Invalid(StringValidator(), TypeErr(str))),
+                    5: KeyValErrs(key=Invalid(i_v, 5, PredicateErrs([Min(6)])), val=None),
+                    6: KeyValErrs(key=None, val=Invalid(StringValidator(), 4, TypeErr(str))),
                     "7": KeyValErrs(
-                        key=Invalid(IntValidator(), TypeErr(int)),
-                        val=Invalid(StringValidator(), TypeErr(str)),
+                        key=Invalid(IntValidator(), "7", TypeErr(int)),
+                        val=Invalid(StringValidator(), 4, TypeErr(str)),
                     ),
                 },
             ),
@@ -158,10 +161,11 @@ def test_variants() -> None:
     assert serializable_validation_err(
         Invalid(
             UnionValidatorAny(StringValidator(), i_v),
+            5,
             VariantErrs(
                 [
-                    Invalid(StringValidator(), TypeErr(str)),
-                    Invalid(i_v, PredicateErrs([Min(5)])),
+                    Invalid(StringValidator(), 5, TypeErr(str)),
+                    Invalid(i_v, 5, PredicateErrs([Min(5)])),
                 ],
             ),
         )
@@ -170,13 +174,16 @@ def test_variants() -> None:
 
 def test_set_errs_message() -> None:
     str_v = StringValidator()
-    bad_type_err = Invalid(str_v, TypeErr(str))
+    bad_type_err = Invalid(str_v, 1, TypeErr(str))
+    bad_type_err_1 = Invalid(str_v, 2, TypeErr(str))
     assert serializable_validation_err(
-        Invalid(SetValidator(str_v), SetErrs([bad_type_err, bad_type_err]))
+        Invalid(SetValidator(str_v), {1, 2}, SetErrs([
+            bad_type_err,
+            bad_type_err_1]))
     ) == {
         "member_errors": [
             serializable_validation_err(bad_type_err),
-            serializable_validation_err(bad_type_err),
+            serializable_validation_err(bad_type_err_1),
         ]
     }
 

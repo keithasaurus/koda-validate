@@ -16,7 +16,7 @@ from typing import (
 from koda import nothing
 
 from koda_validate import Invalid, Valid
-from koda_validate._generics import A, InputT, SuccessT
+from koda_validate._generics import A, SuccessT
 from koda_validate.base import (
     KeyErrs,
     Predicate,
@@ -57,7 +57,7 @@ class _ToTupleValidator(Validator[SuccessT]):
         else:
             return result[1]
 
-    def __call__(self, val: InputT) -> ValidationResult[SuccessT]:
+    def __call__(self, val: Any) -> ValidationResult[SuccessT]:
         result = self.validate_to_tuple(val)
         if result[0]:
             return Valid(result[1])
@@ -291,10 +291,10 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-    def coerce_to_type(self, val: InputT) -> ResultTuple[SuccessT]:
+    def coerce_to_type(self, val: Any) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
-    def validate_to_tuple(self, val: InputT) -> ResultTuple[SuccessT]:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -310,14 +310,14 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
                     pred for pred in self.predicates if not pred(val_or_type_err)
                 ]
                 if errors:
-                    return False, Invalid(self, PredicateErrs(errors))
+                    return False, Invalid(self, val, PredicateErrs(errors))
                 else:
                     return True, val_or_type_err
             else:
                 return True, val_or_type_err
         return False, result[1]
 
-    async def validate_to_tuple_async(self, val: InputT) -> ResultTuple[SuccessT]:
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[SuccessT]:
         result = self.coerce_to_type(val)
         if result[0]:
             val_or_type_err = result[1]
@@ -338,7 +338,7 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
                     ]
                 )
             if errors:
-                return False, Invalid(self, PredicateErrs(errors))
+                return False, Invalid(self, val, PredicateErrs(errors))
             else:
                 return True, val_or_type_err
         return False, result[1]

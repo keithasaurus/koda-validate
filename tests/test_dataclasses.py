@@ -378,8 +378,9 @@ def test_get_type_hint_for_literal() -> None:
     assert abc_validator("abc") == Valid("abc")
     assert abc_validator("a") == Invalid(
         abc_validator,
+        "a",
         VariantErrs(
-            [Invalid(abc_validator.validators[0], PredicateErrs([EqualTo("abc")]))]
+            [Invalid(abc_validator.validators[0], "a", PredicateErrs([EqualTo("abc")]))]
         ),
     )
 
@@ -398,11 +399,11 @@ def test_get_type_hint_for_literal() -> None:
         int_str_bool_validator,
         VariantErrs(
             [
-                Invalid(int_str_bool_validator.validators[0], TypeErr(int)),
+                Invalid(int_str_bool_validator.validators[0], "a", TypeErr(int)),
                 Invalid(
-                    int_str_bool_validator.validators[1], PredicateErrs([EqualTo("abc")])
+                    int_str_bool_validator.validators[1], "a", PredicateErrs([EqualTo("abc")])
                 ),
-                Invalid(int_str_bool_validator.validators[2], TypeErr(bool)),
+                Invalid(int_str_bool_validator.validators[2], "a", TypeErr(bool)),
             ]
         ),
     )

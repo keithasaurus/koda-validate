@@ -183,7 +183,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 if result is None:
                     return True, obj
                 else:
-                    return False, Invalid(self, result)
+                    return False, Invalid(self, obj, result)
             else:
                 return True, obj
 
@@ -195,6 +195,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         else:
             return False, Invalid(
                 self,
+                data,
                 CoercionErr(
                     {dict, self.data_cls},
                     self.data_cls,
@@ -214,6 +215,6 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 if result is None:
                     return True, obj
                 else:
-                    return False, Invalid(self, result)
+                    return False, Invalid(self, obj, result)
             else:
                 return True, obj

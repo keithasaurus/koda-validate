@@ -25,7 +25,7 @@ class OneOf2(Validator[Either[A, B]]):
             if (v2_result := await self.variant_2.validate_async(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                return Invalid(self, VariantErrs([v1_result, v2_result]))
+                return Invalid(self, val, VariantErrs([v1_result, v2_result]))
 
     def __call__(self, val: Any) -> ValidationResult[Either[A, B]]:
         if (v1_result := self.variant_1(val)).is_valid:
@@ -34,7 +34,7 @@ class OneOf2(Validator[Either[A, B]]):
             if (v2_result := self.variant_2(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                return Invalid(self, VariantErrs([v1_result, v2_result]))
+                return Invalid(self, val, VariantErrs([v1_result, v2_result]))
 
 
 class OneOf3(Validator[Either3[A, B, C]]):
@@ -62,6 +62,7 @@ class OneOf3(Validator[Either3[A, B, C]]):
                 else:
                     return Invalid(
                         self,
+                        val,
                         VariantErrs(
                             [
                                 v1_result,
@@ -83,6 +84,7 @@ class OneOf3(Validator[Either3[A, B, C]]):
                 else:
                     return Invalid(
                         self,
+                        val,
                         VariantErrs(
                             [
                                 v1_result,

@@ -12,7 +12,7 @@ from koda_validate.base import CoercionErr
 def test_date_validator() -> None:
     d_v = DateValidator()
     assert d_v("2021-03-21") == Valid(date(2021, 3, 21))
-    assert d_v("2021-3-21") == Invalid(d_v, CoercionErr({str, date}, date))
+    assert d_v("2021-3-21") == Invalid(d_v, "2021-3-21", CoercionErr({str, date}, date))
 
     assert d_v(date(2022, 10, 1)) == Valid(date(2022, 10, 1))
 
@@ -23,6 +23,7 @@ async def test_date_validator_async() -> None:
     assert await d_v.validate_async("2021-03-21") == Valid(date(2021, 3, 21))
     assert await d_v.validate_async("2021-3-21") == Invalid(
         d_v,
+        "2021-3-21",
         CoercionErr(
             {str, date},
             date,
@@ -32,7 +33,7 @@ async def test_date_validator_async() -> None:
 
 def test_datetime_validator() -> None:
     dt_v = DatetimeValidator()
-    assert dt_v("") == Invalid(dt_v, CoercionErr({str, datetime}, datetime))
+    assert dt_v("") == Invalid(dt_v, "", CoercionErr({str, datetime}, datetime))
     assert dt_v("2011-11-04") == Valid(datetime(2011, 11, 4, 0, 0))
     assert dt_v("2011-11-04T00:05:23") == Valid(datetime(2011, 11, 4, 0, 5, 23))
 
@@ -44,7 +45,7 @@ def test_datetime_validator() -> None:
 async def test_datetime_validator_async() -> None:
     dt_v = DatetimeValidator()
     assert await dt_v.validate_async("") == Invalid(
-        dt_v, CoercionErr({str, datetime}, datetime)
+        dt_v, "", CoercionErr({str, datetime}, datetime)
     )
     assert await dt_v.validate_async("2011-11-04") == Valid(datetime(2011, 11, 4, 0, 0))
     assert await dt_v.validate_async("2011-11-04T00:05:23") == Valid(
