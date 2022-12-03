@@ -397,6 +397,7 @@ def test_get_type_hint_for_literal() -> None:
 
     assert int_str_bool_validator("a") == Invalid(
         int_str_bool_validator,
+        "a",
         VariantErrs(
             [
                 Invalid(int_str_bool_validator.validators[0], "a", TypeErr(int)),
