@@ -56,7 +56,7 @@ _JONES_ERROR_MSG = BasicErr("can't have last_name of jones and eye color of brow
 
 def test_is_dict() -> None:
     assert is_dict_validator({}) == Valid({})
-    assert is_dict_validator(None) == Invalid(is_dict_validator, TypeErr(dict))
+    assert is_dict_validator(None) == Invalid(is_dict_validator, None, TypeErr(dict))
     assert is_dict_validator({"a": 1, "b": 2, 5: "whatever"}) == Valid(
         {"a": 1, "b": 2, 5: "whatever"}
     )
@@ -66,7 +66,7 @@ def test_is_dict() -> None:
 async def test_is_dict_async() -> None:
     assert await is_dict_validator.validate_async({}) == Valid({})
     assert await is_dict_validator.validate_async(None) == Invalid(
-        is_dict_validator, TypeErr(dict)
+        is_dict_validator, None, TypeErr(dict)
     )
     assert await is_dict_validator.validate_async(
         {"a": 1, "b": 2, 5: "whatever"}
@@ -77,11 +77,11 @@ def test_map_validator() -> None:
     s_v = StringValidator()
     m_v_s_f = MapValidator(key=s_v, value=FloatValidator())
 
-    assert m_v_s_f(None) == Invalid(m_v_s_f, TypeErr(dict))
+    assert m_v_s_f(None) == Invalid(m_v_s_f, None, TypeErr(dict))
 
     m_v_s_s = MapValidator(key=s_v, value=s_v)
 
-    assert m_v_s_s(5) == Invalid(m_v_s_s, TypeErr(dict))
+    assert m_v_s_s(5) == Invalid(m_v_s_s, 5, TypeErr(dict))
 
     assert MapValidator(key=s_v, value=s_v)({}) == Valid({})
 
@@ -91,11 +91,12 @@ def test_map_validator() -> None:
     m_s_i_v = MapValidator(key=s_v, value=i_v)
     assert m_s_i_v({5: None}) == Invalid(
         m_s_i_v,
+        {5: None},
         MapErr(
             {
                 5: KeyValErrs(
-                    key=Invalid(s_v, TypeErr(str)),
-                    val=Invalid(i_v, TypeErr(int)),
+                    key=Invalid(s_v, 5, TypeErr(str)),
+                    val=Invalid(i_v, None, TypeErr(int)),
                 )
             },
         ),
@@ -115,7 +116,7 @@ def test_map_validator() -> None:
     )
     assert complex_validator(
         {"key1": 10, "key1a": 2},
-    ) == Invalid(complex_validator, PredicateErrs([MaxKeys(1)]))
+    ) == Invalid(complex_validator, {"key1": 10, "key1a": 2}, PredicateErrs([MaxKeys(1)]))
 
     assert complex_validator({"a": 100}) == Valid({"a": 100})
 
@@ -136,11 +137,11 @@ async def test_map_validator_async() -> None:
     s_v = StringValidator()
     m_v_s_f = MapValidator(key=s_v, value=FloatValidator())
 
-    assert await m_v_s_f.validate_async(None) == Invalid(m_v_s_f, TypeErr(dict))
+    assert await m_v_s_f.validate_async(None) == Invalid(m_v_s_f, None, TypeErr(dict))
 
     m_v_s_s = MapValidator(key=s_v, value=s_v)
 
-    assert await m_v_s_s.validate_async(5) == Invalid(m_v_s_s, TypeErr(dict))
+    assert await m_v_s_s.validate_async(5) == Invalid(m_v_s_s, 5, TypeErr(dict))
 
     assert await MapValidator(
         key=StringValidator(), value=StringValidator()
@@ -155,11 +156,12 @@ async def test_map_validator_async() -> None:
 
     assert await m_s_i_v.validate_async({5: None}) == Invalid(
         m_s_i_v,
+        {5: None},
         MapErr(
             {
                 5: KeyValErrs(
-                    key=Invalid(s_v, TypeErr(str)),
-                    val=Invalid(i_v, TypeErr(int)),
+                    key=Invalid(s_v, 5, TypeErr(str)),
+                    val=Invalid(i_v, None, TypeErr(int)),
                 )
             },
         ),
@@ -178,7 +180,7 @@ async def test_map_validator_async() -> None:
         predicates=[MaxKeys(1)],
     )
     assert await complex_validator.validate_async({"key1": 10, "key1a": 2}) == Invalid(
-        complex_validator, PredicateErrs([MaxKeys(1)])
+        complex_validator, {"key1": 10, "key1a": 2}, PredicateErrs([MaxKeys(1)])
     )
 
     assert await complex_validator.validate_async({"a": 100}) == Valid({"a": 100})
@@ -234,18 +236,18 @@ def test_record_1() -> None:
 
     validator = RecordValidator(into=Person, keys=(("name", s_v),))
 
-    assert validator("not a dict") == Invalid(validator, TypeErr(dict))
+    assert validator("not a dict") == Invalid(validator, "not a dict", TypeErr(dict))
 
     assert validator({}) == Invalid(
-        validator, KeyErrs({"name": Invalid(validator, MissingKeyErr())})
+        validator, {}, KeyErrs({"name": Invalid(validator, {}, MissingKeyErr())})
     )
 
     assert validator({"name": 5}) == Invalid(
-        validator, KeyErrs(keys={"name": Invalid(s_v, TypeErr(str))})
+        validator, {"name": 5}, KeyErrs(keys={"name": Invalid(s_v, 5, TypeErr(str))})
     )
 
     assert validator({"name": "bob", "age": 50}) == Invalid(
-        validator, ExtraKeysErr({"name"})
+        validator, {"name": "bob", "age": 50}, ExtraKeysErr({"name"})
     )
 
     assert validator({"name": "bob"}) == Valid(Person("bob"))
@@ -265,24 +267,26 @@ def test_record_2() -> None:
         keys=(("name", s_v), ("age", KeyNotRequired(i_v))),
     )
 
-    assert validator("not a dict") == Invalid(validator, TypeErr(dict))
+    assert validator("not a dict") == Invalid(validator, "not a dict", TypeErr(dict))
 
     assert validator({}) == Invalid(
-        validator, KeyErrs({"name": Invalid(validator, MissingKeyErr())})
+        validator, {}, KeyErrs({"name": Invalid(validator, {}, MissingKeyErr())})
     )
 
     assert validator({"name": 5, "age": "50"}) == Invalid(
         validator,
+        {"name": 5, "age": "50"},
         KeyErrs(
             {
-                "name": Invalid(s_v, TypeErr(str)),
-                "age": Invalid(i_v, TypeErr(int)),
+                "name": Invalid(s_v, 5, TypeErr(str)),
+                "age": Invalid(i_v, "50", TypeErr(int)),
             },
         ),
     )
 
     assert validator({"name": "bob", "age": 50, "eye_color": "brown"}) == Invalid(
         validator,
+        {"name": "bob", "age": 50, "eye_color": "brown"},
         ExtraKeysErr({"name", "age"}),
     )
 
@@ -314,7 +318,7 @@ def test_record_3() -> None:
         Person("bob", "smith", 50)
     )
 
-    assert validator("") == Invalid(validator, TypeErr(dict))
+    assert validator("") == Invalid(validator, "", TypeErr(dict))
 
 
 def _nobody_named_jones_has_brown_eyes(
@@ -350,9 +354,9 @@ def test_record_4() -> None:
 
     assert validator(
         {"first_name": "bob", "last_name": "Jones", "age": 50, "eye color": "brown"}
-    ) == Invalid(validator, _JONES_ERROR_MSG)
+    ) == Invalid(validator, Person("bob", "Jones", 50, "brown"), _JONES_ERROR_MSG)
 
-    assert validator("") == Invalid(validator, TypeErr(dict))
+    assert validator("") == Invalid(validator, "", TypeErr(dict))
 
 
 def test_record_4_mix_and_match_key_types() -> None:
@@ -380,10 +384,11 @@ def test_record_4_mix_and_match_key_types() -> None:
 
     assert validator(
         {"first_name": "bob", 5: "Jones", ("age", "field"): 50, Decimal(6): "brown"}
-    ) == Invalid(validator, _JONES_ERROR_MSG)
+    ) == Invalid(validator, Person("bob", "Jones", 50, "brown"), _JONES_ERROR_MSG)
 
     assert validator({"bad field": 1}) == Invalid(
         validator,
+        {"bad field": 1},
         ExtraKeysErr(
             {
                 "first_name",
@@ -394,7 +399,7 @@ def test_record_4_mix_and_match_key_types() -> None:
         ),
     )
 
-    assert validator("") == Invalid(validator, TypeErr(dict))
+    assert validator("") == Invalid(validator, "", TypeErr(dict))
 
 
 def test_record_5() -> None:
@@ -436,9 +441,19 @@ def test_record_5() -> None:
             "eye color": "brown",
             "can-fly": True,
         }
-    ) == Invalid(validator, _JONES_ERROR_MSG)
+    ) == Invalid(
+        validator,
+        Person(
+            "bob",
+            "Jones",
+            50,
+            "brown",
+            True,
+        ),
+        _JONES_ERROR_MSG,
+    )
 
-    assert validator("") == Invalid(validator, TypeErr(dict))
+    assert validator("") == Invalid(validator, "", TypeErr(dict))
 
 
 def test_record_6() -> None:
@@ -474,7 +489,7 @@ def test_record_6() -> None:
         }
     ) == Valid(Person("bob", "smith", 50, "brown", True, 6.5))
 
-    assert validator("") == Invalid(validator, TypeErr(dict))
+    assert validator("") == Invalid(validator, "", TypeErr(dict))
 
 
 def test_record_7() -> None:
@@ -513,7 +528,7 @@ def test_record_7() -> None:
         }
     ) == Valid(Person("bob", "smith", 50, "brown", True, 6.5, 9.8))
 
-    assert validator("") == Invalid(validator, TypeErr(dict))
+    assert validator("") == Invalid(validator, "", TypeErr(dict))
 
 
 def test_record_8() -> None:
@@ -579,9 +594,13 @@ def test_record_8() -> None:
             "number of toes": 9.8,
             "favorite_color": "blue",
         }
-    ) == Invalid(validator, _JONES_ERROR_MSG)
+    ) == Invalid(
+        validator,
+        Person("bob", "jones", 50, "brown", True, 6.5, 9.8, Just("blue")),
+        _JONES_ERROR_MSG,
+    )
 
-    assert validator("") == Invalid(validator, TypeErr(dict))
+    assert validator("") == Invalid(validator, "", TypeErr(dict))
 
 
 def test_record_9() -> None:
@@ -627,7 +646,7 @@ def test_record_9() -> None:
         }
     ) == Valid(Person("bob", "smith", 50, "brown", True, 6.5, 9.8, Just("blue"), None))
 
-    assert validator("") == Invalid(validator, TypeErr(dict))
+    assert validator("") == Invalid(validator, "", TypeErr(dict))
 
 
 def test_record_10() -> None:
@@ -689,7 +708,7 @@ def test_record_10() -> None:
         )
     )
 
-    assert validator("") == Invalid(validator, TypeErr(dict))
+    assert validator("") == Invalid(validator, "", TypeErr(dict))
 
 
 def test_record_int_keys() -> None:
@@ -791,7 +810,7 @@ def test_dict_validator_any_empty() -> None:
     assert empty_result.val == {}
 
     assert empty_dict_validator({"oops": 5}) == Invalid(
-        empty_dict_validator, ExtraKeysErr(set())
+        empty_dict_validator, {"oops": 5}, ExtraKeysErr(set())
     )
 
 
@@ -863,7 +882,7 @@ def test_dict_validator_any() -> None:
         }
     )
 
-    assert validator("") == Invalid(validator, TypeErr(dict))
+    assert validator("") == Invalid(validator, "", TypeErr(dict))
 
 
 def test_dict_validator_any_key_missing() -> None:
@@ -887,10 +906,11 @@ def test_dict_validator_any_key_missing() -> None:
 
     assert validator({"first_name": 5}) == Invalid(
         validator,
+        {"first_name": 5},
         KeyErrs(
             {
-                "last_name": Invalid(validator, MissingKeyErr()),
-                "first_name": Invalid(s_v_1, TypeErr(str)),
+                "last_name": Invalid(validator, {"first_name": 5}, MissingKeyErr()),
+                "first_name": Invalid(s_v_1, 5, TypeErr(str)),
             },
         ),
     )

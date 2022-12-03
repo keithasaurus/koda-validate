@@ -894,7 +894,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 if result is None:
                     return True, obj
                 else:
-                    return False, Invalid(self, data, result)
+                    return False, Invalid(self, obj, result)
 
     async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Ret]:
         if not isinstance(data, dict):

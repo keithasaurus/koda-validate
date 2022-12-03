@@ -18,6 +18,7 @@ from koda import nothing
 from koda_validate import Invalid, Valid
 from koda_validate._generics import A, SuccessT
 from koda_validate.base import (
+    ExtraKeysErr,
     KeyErrs,
     Predicate,
     PredicateAsync,
@@ -26,7 +27,7 @@ from koda_validate.base import (
     TypeErr,
     ValidationResult,
     Validator,
-    missing_key_err, ExtraKeysErr,
+    missing_key_err,
 )
 
 ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], Invalid]]
@@ -92,7 +93,7 @@ def validate_dict_to_tuple(
             val = data[key_]
         except KeyError:
             if key_required:
-                errs[key_] = Invalid(source_validator,data, missing_key_err)
+                errs[key_] = Invalid(source_validator, data, missing_key_err)
             elif not errs:
                 success_dict[key_] = nothing
         else:
@@ -310,7 +311,7 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
                     pred for pred in self.predicates if not pred(val_or_type_err)
                 ]
                 if errors:
-                    return False, Invalid(self, val, PredicateErrs(errors))
+                    return False, Invalid(self, val_or_type_err, PredicateErrs(errors))
                 else:
                     return True, val_or_type_err
             else:
@@ -338,7 +339,7 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
                     ]
                 )
             if errors:
-                return False, Invalid(self, val, PredicateErrs(errors))
+                return False, Invalid(self, val_or_type_err, PredicateErrs(errors))
             else:
                 return True, val_or_type_err
         return False, result[1]
