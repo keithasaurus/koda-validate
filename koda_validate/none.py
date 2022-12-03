@@ -2,13 +2,20 @@ from typing import Any, Optional
 
 from koda._generics import A
 
-from koda_validate._internal import _ExactTypeValidator
-from koda_validate.base import ValidationResult, Validator
+from koda_validate._internal import _ExactTypeValidator, _ToTupleValidator, ResultTuple
+from koda_validate.base import ValidationResult, Validator, Invalid, TypeErr
 from koda_validate.union import UnionValidatorAny
 
 
-class NoneValidator(_ExactTypeValidator[None]):
-    _TYPE = type(None)
+class NoneValidator(_ToTupleValidator[None]):
+    def validate_to_tuple(self, val: Any) -> ResultTuple[None]:
+        if val is None:
+            return True, None
+        else:
+            return False, Invalid(self, TypeErr(type(None)))
+
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[None]:
+        return self.validate_to_tuple(val)
 
 
 none_validator = NoneValidator()
