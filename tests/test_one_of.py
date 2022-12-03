@@ -21,10 +21,11 @@ def test_one_of2() -> None:
     assert str_or_int_validator(5) == Valid(Second(5))
     assert str_or_int_validator(5.5) == Invalid(
         str_or_int_validator,
+        5.5,
         VariantErrs(
             [
-                Invalid(s_v, TypeErr(str)),
-                Invalid(i_v, TypeErr(int)),
+                Invalid(s_v, 5.5, TypeErr(str)),
+                Invalid(i_v, 5.5, TypeErr(int)),
             ],
         ),
     )
@@ -39,10 +40,11 @@ async def test_one_of2_async() -> None:
     assert await str_or_int_validator.validate_async(5) == Valid(Second(5))
     assert await str_or_int_validator.validate_async(5.5) == Invalid(
         str_or_int_validator,
+        5.5,
         VariantErrs(
             [
-                Invalid(s_v, TypeErr(str)),
-                Invalid(i_v, TypeErr(int)),
+                Invalid(s_v, 5.5, TypeErr(str)),
+                Invalid(i_v, 5.5, TypeErr(int)),
             ],
         ),
     )
@@ -58,11 +60,12 @@ def test_one_of3() -> None:
     assert str_or_int_or_float_validator(5.5) == Valid(Third(5.5))
     assert str_or_int_or_float_validator(True) == Invalid(
         str_or_int_or_float_validator,
+        True,
         VariantErrs(
             [
-                Invalid(str_v, TypeErr(str)),
-                Invalid(int_v, TypeErr(int)),
-                Invalid(fl_v, TypeErr(float)),
+                Invalid(str_v, True, TypeErr(str)),
+                Invalid(int_v, True, TypeErr(int)),
+                Invalid(fl_v, True, TypeErr(float)),
             ],
         ),
     )
@@ -79,11 +82,12 @@ async def test_one_of3_async() -> None:
     assert await str_or_int_or_float_validator.validate_async(5.5) == Valid(Third(5.5))
     assert await str_or_int_or_float_validator.validate_async(True) == Invalid(
         str_or_int_or_float_validator,
+        True,
         VariantErrs(
             [
-                Invalid(str_v, TypeErr(str)),
-                Invalid(int_v, TypeErr(int)),
-                Invalid(fl_v, TypeErr(float)),
+                Invalid(str_v, True, TypeErr(str)),
+                Invalid(int_v, True, TypeErr(int)),
+                Invalid(fl_v, True, TypeErr(float)),
             ],
         ),
     )

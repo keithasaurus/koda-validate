@@ -22,12 +22,13 @@ from tests.utils import BasicNoneValidator
 
 def test_list_validator() -> None:
     l_f_v = ListValidator(FloatValidator())
-    assert l_f_v("a string") == Invalid(l_f_v, TypeErr(list))
+    assert l_f_v("a string") == Invalid(l_f_v, "a string", TypeErr(list))
 
     assert l_f_v([5.5, "something else"]) == Invalid(
         l_f_v,
+        [5.5, "something else"],
         IndexErrs(
-            {1: Invalid(l_f_v.item_validator, TypeErr(float))},
+            {1: Invalid(l_f_v.item_validator, "something else", TypeErr(float))},
         ),
     )
 
@@ -45,7 +46,7 @@ def test_list_validator() -> None:
         preprocessors=[RemoveLast()],
     )
     assert l_validator([10.1, 7.7, 2.2, 5, 0.0]) == Invalid(
-        l_validator, PredicateErrs([MaxItems(3)])
+        l_validator, [10.1, 7.7, 2.2, 5], PredicateErrs([MaxItems(3)])
     )
 
     n_v = ListValidator(BasicNoneValidator())
@@ -53,19 +54,20 @@ def test_list_validator() -> None:
     assert n_v([None, None]) == Valid([None, None])
 
     assert n_v([None, 1]) == Invalid(
-        n_v, IndexErrs({1: Invalid(n_v.item_validator, TypeErr(type(None)))})
+        n_v, [None, 1], IndexErrs({1: Invalid(n_v.item_validator,1, TypeErr(type(None)))})
     )
 
 
 @pytest.mark.asyncio
 async def test_list_async() -> None:
     l_f_v = ListValidator(FloatValidator())
-    assert await l_f_v.validate_async("a string") == Invalid(l_f_v, TypeErr(list))
+    assert await l_f_v.validate_async("a string") == Invalid(l_f_v, "a string", TypeErr(list))
 
     assert await l_f_v.validate_async([5.5, "something else"]) == Invalid(
         l_f_v,
+        [5.5, "something else"],
         IndexErrs(
-            {1: Invalid(l_f_v.item_validator, TypeErr(float))},
+            {1: Invalid(l_f_v.item_validator, "something else", TypeErr(float))},
         ),
     )
 
@@ -79,7 +81,7 @@ async def test_list_async() -> None:
         FloatValidator(Min(5.5)), predicates=[MinItems(1), MaxItems(3)]
     )
     assert await l_validator.validate_async([10.1, 7.7, 2.2, 5]) == Invalid(
-        l_validator, PredicateErrs([MaxItems(3)])
+        l_validator, [10.1, 7.7, 2.2, 5], PredicateErrs([MaxItems(3)])
     )
 
     n_v = ListValidator(BasicNoneValidator())
@@ -87,7 +89,7 @@ async def test_list_async() -> None:
     assert await n_v.validate_async([None, None]) == Valid([None, None])
 
     assert await n_v.validate_async([None, 1]) == Invalid(
-        n_v, IndexErrs({1: Invalid(n_v.item_validator, TypeErr(type(None)))})
+        n_v,[None, 1], IndexErrs({1: Invalid(n_v.item_validator, 1, TypeErr(type(None)))})
     )
 
 
@@ -103,7 +105,7 @@ async def test_list_validator_with_async_predicate_validator() -> None:
         StringValidator(), predicates_async=[SomeAsyncListCheck()]
     )
     assert await l_validator.validate_async([]) == Invalid(
-        l_validator, PredicateErrs([SomeAsyncListCheck()])
+        l_validator, [], PredicateErrs([SomeAsyncListCheck()])
     )
 
     assert await ListValidator(
@@ -132,7 +134,7 @@ async def test_child_validator_async_is_used() -> None:
     assert await l_validator.validate_async([1, 3]) == Valid([3])
 
     assert await l_validator.validate_async([1, 1, 1]) == Invalid(
-        l_validator, PredicateErrs([MaxItems(1)])
+        l_validator, [1,1], PredicateErrs([MaxItems(1)])
     )
 
 

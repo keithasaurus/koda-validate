@@ -48,7 +48,7 @@ from koda_validate.union import UnionValidatorAny
 
 
 def test_type_err_users_message_in_list() -> None:
-    assert serializable_validation_err(Invalid(StringValidator(), TypeErr(str))) == [
+    assert serializable_validation_err(Invalid(StringValidator(), 5, TypeErr(str))) == [
         "expected str"
     ]
 
@@ -56,7 +56,7 @@ def test_type_err_users_message_in_list() -> None:
 def test_predicate_returns_err_in_list() -> None:
     i_v = IntValidator(Min(15), Max(10))
     assert serializable_validation_err(
-        Invalid(i_v, PredicateErrs([Min(15), Max(10)]))
+        Invalid(i_v, 12, PredicateErrs([Min(15), Max(10)]))
     ) == [
         pred_to_err_message(Min(15)),
         pred_to_err_message(Max(10)),
@@ -65,27 +65,31 @@ def test_predicate_returns_err_in_list() -> None:
 
 def test_key_missing_returns_list_str() -> None:
     assert serializable_validation_err(
-        Invalid(DictValidatorAny({}), MissingKeyErr())
+        Invalid(DictValidatorAny({}), {}, MissingKeyErr())
     ) == ["key missing"]
 
 
 def test_coercion_err_uses_message() -> None:
     assert serializable_validation_err(
-        Invalid(DecimalValidator(), CoercionErr({str, int, Decimal}, Decimal))
+        Invalid(DecimalValidator(), "abc", CoercionErr({str, int, Decimal}, Decimal))
     ) == ["could not coerce to Decimal (compatible with Decimal, int, str)"]
 
 
 def test_iterable_errs() -> None:
     l_v = ListValidator(StringValidator())
-    assert serializable_validation_err(Invalid(l_v, IndexErrs({}))) == []
+    # shouldn't really happen, but cover it anyway...
+    assert serializable_validation_err(Invalid(l_v, [], IndexErrs({}))) == []
+
     assert serializable_validation_err(
         Invalid(
             l_v,
+            [1, "", "", "", "", ""],
             IndexErrs(
                 {
-                    0: Invalid(StringValidator(), TypeErr(str)),
+                    0: Invalid(l_v.item_validator, 1, TypeErr(str)),
                     5: Invalid(
                         l_v.item_validator,
+                        "",
                         PredicateErrs([MaxLength(10), MinLength(2)]),
                     ),
                 },
@@ -101,10 +105,11 @@ def test_invalid_dict() -> None:
     assert serializable_validation_err(
         Invalid(
             DictValidatorAny({}),
+            {5: "ok"},
             KeyErrs(
                 {
-                    5: Invalid(FloatValidator(), TypeErr(float)),
-                    "ok": Invalid(DictValidatorAny({}), MissingKeyErr()),
+                    5: Invalid(FloatValidator(), "ok", TypeErr(float)),
+                    "ok": Invalid(DictValidatorAny({}), {5: "ok"}, MissingKeyErr()),
                 },
             ),
         )
@@ -112,13 +117,13 @@ def test_invalid_dict() -> None:
 
 
 def test_invalid_custom() -> None:
-    assert serializable_validation_err(Invalid(StringValidator(), BasicErr("abc"))) == [
+    assert serializable_validation_err(Invalid(StringValidator(), "123", BasicErr("abc"))) == [
         "abc"
     ]
 
 
 def test_extra_keys() -> None:
-    invalid_keys = Invalid(DictValidatorAny({}), ExtraKeysErr({"a", "b", "cde"}))
+    invalid_keys = Invalid(DictValidatorAny({}), {}, ExtraKeysErr({"a", "b", "cde"}))
     error_detail = invalid_keys.err_type
     assert isinstance(error_detail, ExtraKeysErr)
     assert serializable_validation_err(invalid_keys) == [
