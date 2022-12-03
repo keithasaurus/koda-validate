@@ -13,8 +13,6 @@ from typing import (
     Union,
 )
 
-from koda import nothing
-
 from koda_validate import Invalid, Valid
 from koda_validate._generics import A, SuccessT
 from koda_validate.base import (
@@ -94,8 +92,6 @@ def validate_dict_to_tuple(
         except KeyError:
             if key_required:
                 errs[key_] = Invalid(source_validator, data, missing_key_err)
-            elif not errs:
-                success_dict[key_] = nothing
         else:
             if is_tuple_validator:
                 success, new_val = validator.validate_to_tuple(val)  # type: ignore
@@ -145,8 +141,6 @@ async def validate_dict_to_tuple_async(
         except KeyError:
             if key_required:
                 errs[key_] = Invalid(source_validator, data, missing_key_err)
-            elif not errs:
-                success_dict[key_] = nothing
         else:
             if is_tuple_validator:
                 success, new_val = await validator.validate_to_tuple_async(val)  # type: ignore  # noqa: E501

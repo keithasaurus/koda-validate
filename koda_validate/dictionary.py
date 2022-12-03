@@ -6,7 +6,6 @@ from typing import (
     Dict,
     Hashable,
     List,
-    Literal,
     Optional,
     Tuple,
     Union,
@@ -1008,7 +1007,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         self._fast_keys = [
             (
                 key,
-                val,
+                val.validator if isinstance(val, KeyNotRequired) else val,
                 not isinstance(val, KeyNotRequired),
                 isinstance(val, _ToTupleValidator),
             )

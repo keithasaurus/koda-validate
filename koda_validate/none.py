@@ -2,8 +2,8 @@ from typing import Any, Optional
 
 from koda._generics import A
 
-from koda_validate._internal import _ExactTypeValidator, _ToTupleValidator, ResultTuple
-from koda_validate.base import ValidationResult, Validator, Invalid, TypeErr
+from koda_validate._internal import ResultTuple, _ToTupleValidator
+from koda_validate.base import Invalid, TypeErr, ValidationResult, Validator
 from koda_validate.union import UnionValidatorAny
 
 

@@ -817,7 +817,7 @@ def test_dict_validator_any_empty() -> None:
 def _nobody_named_jones_has_first_name_alice_dict(
     person: Dict[Hashable, Any],
 ) -> Optional[ErrType]:
-    if person["last_name"].lower() == "jones" and person["first_name"] == Just("alice"):
+    if person["last_name"].lower() == "jones" and person.get("first_name") == "alice":
         return _JONES_ERROR_MSG
     else:
         return None
@@ -872,7 +872,7 @@ def test_dict_validator_any() -> None:
             "can-fly": True,
             "number_of_fingers": 6.5,
             "number of toes": 9.8,
-            "favorite_color": Just("blue"),
+            "favorite_color": "blue",
             "requires_none": None,
             "favorite_books": ["war and peace", "pale fire"],
             "aaa": "bla",
@@ -895,14 +895,12 @@ def test_dict_validator_any_key_missing() -> None:
 
     assert validator({"first_name": " bob ", "last_name": "smith"}) == Valid(
         {
-            "first_name": Just("bob"),
+            "first_name": "bob",
             "last_name": "smith",
         }
     )
 
-    assert validator({"last_name": "smith"}) == Valid(
-        {"first_name": nothing, "last_name": "smith"}
-    )
+    assert validator({"last_name": "smith"}) == Valid({"last_name": "smith"})
 
     assert validator({"first_name": 5}) == Invalid(
         validator,
@@ -945,13 +943,13 @@ async def test_validate_dictionary_any_async() -> None:
         {"first_name": " bob ", "last_name": "smith"}
     ) == Valid(
         {
-            "first_name": Just("bob"),
+            "first_name": "bob",
             "last_name": "smith",
         }
     )
 
     assert await validator.validate_async({"last_name": "smith"}) == Valid(
-        {"first_name": nothing, "last_name": "smith"}
+        {"last_name": "smith"}
     )
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
@@ -989,7 +987,7 @@ async def test_dict_validator_any_async_processor() -> None:
     )
 
     assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Valid(
-        {"first_name": nothing, "last_name": "smith"}
+        {"last_name": "smith"}
     )
 
 
@@ -1013,13 +1011,13 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
         {"first_name": " bob ", "last_name": "smith"}
     ) == Valid(
         {
-            "first_name": Just("bob"),
+            "first_name": "bob",
             "last_name": "smith",
         }
     )
 
     assert await validator.validate_async({"last_name": "smith"}) == Valid(
-        {"first_name": nothing, "last_name": "smith"}
+        {"last_name": "smith"}
     )
 
     assert await validator.validate_async({"first_name": 5}) == Invalid(
@@ -1036,7 +1034,7 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
     assert await validator.validate_async(
         {"last_name": "jones", "first_name": "alice"}
     ) == Invalid(
-        validator, {"last_name": "jones", "first_name": Just("alice")}, _JONES_ERROR_MSG
+        validator, {"last_name": "jones", "first_name": "alice"}, _JONES_ERROR_MSG
     )
 
 
@@ -1050,7 +1048,7 @@ async def test_dict_validator_any_no_validate_object() -> None:
     )
     assert await validator.validate_async(
         {"last_name": "jones", "first_name": "alice"}
-    ) == Valid({"last_name": "jones", "first_name": Just("alice")})
+    ) == Valid({"last_name": "jones", "first_name": "alice"})
 
 
 def test_dict_validator_any_cannot_have_validate_object_and_validate_object_async() -> None:  # noqa:m E501
