@@ -334,7 +334,7 @@ def test_validates_proper_uuid_type() -> None:
 
     assert dc_validator(Example(123)) == Invalid(  # type: ignore
         dc_validator,
-        Example(123).__dict__,
+        Example(123).__dict__,  # type: ignore
         KeyErrs(
             {
                 "name": Invalid(

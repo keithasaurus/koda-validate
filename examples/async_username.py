@@ -7,8 +7,6 @@ from koda_validate.base import PredicateErrs
 
 @dataclass
 class IsActiveUsername(PredicateAsync[str]):
-    err_message = "invalid_username"
-
     async def validate_async(self, val: str) -> bool:
         # add some latency to pretend we're calling the db
         await asyncio.sleep(0.01)
@@ -20,7 +18,7 @@ username_validator = StringValidator(MinLength(1), predicates_async=[IsActiveUse
 
 assert asyncio.run(username_validator.validate_async("michael")) == Valid("michael")
 assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(
-    username_validator, PredicateErrs([IsActiveUsername()])
+    username_validator, "tobias", PredicateErrs([IsActiveUsername()])
 )
 
 # calling in sync mode raises an AssertionError!
