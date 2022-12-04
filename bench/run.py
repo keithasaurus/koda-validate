@@ -4,6 +4,7 @@ from time import perf_counter
 from typing import Callable, Dict, Generic, List
 
 from bench import (
+    list_none,
     min_max,
     nested_object_list,
     one_key_invalid_types,
@@ -54,6 +55,9 @@ benches = {
     "string_valid": BenchCompare(
         string_valid.get_str,
         {KODA_VALIDATE: string_valid.run_kv, PYDANTIC: string_valid.run_pyd},
+    ),
+    "list_none": BenchCompare(
+        list_none.get_obj, {KODA_VALIDATE: list_none.run_kv, PYDANTIC: list_none.run_pyd}
     ),
     "min_max_all_valid": BenchCompare(
         min_max.gen_valid,
