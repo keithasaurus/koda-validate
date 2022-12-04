@@ -85,7 +85,7 @@ def validate_dict_to_tuple(
             return False, Invalid(source_validator, data, unknown_keys_err)
 
     success_dict: Dict[Any, Any] = {}
-    errs: Optional[Dict[Any, Invalid]] = {}
+    errs: Dict[Any, Invalid] = {}
     for key_, validator, key_required, is_tuple_validator in fast_keys:
         try:
             val = data[key_]
@@ -135,7 +135,7 @@ async def validate_dict_to_tuple_async(
             return False, Invalid(source_validator, data, unknown_keys_err)
 
     success_dict: Dict[Any, Any] = {}
-    errs: Optional[Dict[Any, Invalid]] = {}
+    errs: Dict[Any, Invalid] = {}
     for key_, validator, key_required, is_tuple_validator in fast_keys:
         try:
             val = data[key_]
