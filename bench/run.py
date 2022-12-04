@@ -21,6 +21,9 @@ class BenchCompare(Generic[A]):
 
 
 KODA_VALIDATE = "KODA VALIDATE"
+KV_RECORD_VALIDATOR = f"{KODA_VALIDATE} - RecordValidator"
+KV_DATACLASS_VALIDATOR = f"{KODA_VALIDATE} - DataclassValidator"
+KV_DICT_VALIDATOR_ANY = f"{KODA_VALIDATE} - DictValidatorAny"
 PYDANTIC = "PYDANTIC"
 VOLUPTUOUS = "VOLUPTUOUS"
 
@@ -55,7 +58,8 @@ benches = {
     "min_max_all_valid": BenchCompare(
         min_max.gen_valid,
         {
-            KODA_VALIDATE: min_max.run_kv,
+            KV_RECORD_VALIDATOR: min_max.run_kv,
+            KV_DICT_VALIDATOR_ANY: min_max.run_kv_dict_any,
             PYDANTIC: min_max.run_pyd,
             VOLUPTUOUS: min_max.run_v,
         },
@@ -63,7 +67,8 @@ benches = {
     "min_max_all_invalid": BenchCompare(
         min_max.gen_invalid,
         {
-            KODA_VALIDATE: min_max.run_kv,
+            KV_RECORD_VALIDATOR: min_max.run_kv,
+            KV_DICT_VALIDATOR_ANY: min_max.run_kv_dict_any,
             PYDANTIC: min_max.run_pyd,
             VOLUPTUOUS: min_max.run_v,
         },
@@ -71,9 +76,9 @@ benches = {
     "nested_object_list": BenchCompare(
         nested_object_list.get_valid_data,
         {
-            f"{KODA_VALIDATE} - RecordValidator": nested_object_list.run_kv,
-            f"{KODA_VALIDATE} - DataclassValidator": nested_object_list.run_kv_dc,
-            f"{KODA_VALIDATE} - DictValidatorAny": nested_object_list.run_kv_dict_any,
+            KV_RECORD_VALIDATOR: nested_object_list.run_kv,
+            KV_DATACLASS_VALIDATOR: nested_object_list.run_kv_dc,
+            KV_DICT_VALIDATOR_ANY: nested_object_list.run_kv_dict_any,
             PYDANTIC: nested_object_list.run_pyd,
         },
     ),
