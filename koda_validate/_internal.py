@@ -107,7 +107,7 @@ def validate_dict_to_tuple(
             try:
                 errs[key_] = new_val  # type: ignore
             except TypeError:
-                errs = {key_: new_val}  # type: ignore
+                errs = {key_: new_val}
         elif not errs:
             success_dict[key_] = new_val
 
