@@ -1,5 +1,5 @@
+import inspect
 import sys
-import typing
 from dataclasses import is_dataclass
 from decimal import Decimal
 
@@ -16,11 +16,14 @@ if sys.version_info >= (3, 10):
 
 from typing import (
     Any,
+    Callable,
     ClassVar,
     Dict,
     List,
+    Literal,
     Optional,
     Protocol,
+    Set,
     Tuple,
     Type,
     TypeVar,
@@ -43,6 +46,7 @@ from koda_validate import (
     EqualsValidator,
     FloatValidator,
     IntValidator,
+    KeyNotRequired,
     ListValidator,
     MapValidator,
     NoneValidator,
@@ -83,7 +87,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         return always_valid
     elif annotations is List or annotations is list:
         return ListValidator(always_valid)
-    elif annotations is typing.Set or annotations is set:
+    elif annotations is Set or annotations is set:
         return SetValidator(always_valid)
     elif annotations is Tuple or annotations is tuple:
         return TupleHomogenousValidator(always_valid)
@@ -96,7 +100,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         if (origin is list or origin is List) and len(args) == 1:
             item_validator = get_typehint_validator(args[0])
             return ListValidator(item_validator)
-        if (origin is set or origin is typing.Set) and len(args) == 1:
+        if (origin is set or origin is Set) and len(args) == 1:
             item_validator = get_typehint_validator(args[0])
             return SetValidator(item_validator)
         if (origin is dict or origin is Dict) and len(args) == 2:
@@ -112,7 +116,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
                 return TupleNValidatorAny(*[get_typehint_validator(a) for a in args])
         if sys.version_info >= (3, 9) and origin is Annotated:
             return get_typehint_validator(args[0])
-        if origin is typing.Literal:
+        if origin is Literal:
             return UnionValidatorAny(*[EqualsValidator(a) for a in args])
 
         raise TypeError(f"got unhandled annotation: {type(annotations)}")
@@ -124,7 +128,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         data_cls: Type[_DCT],
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
-        validate_object: Optional[typing.Callable[[_DCT], Optional[ErrType]]] = None,
+        validate_object: Optional[Callable[[_DCT], Optional[ErrType]]] = None,
     ) -> None:
         self.data_cls = data_cls
         overrides = overrides or {}
@@ -132,6 +136,12 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             type_hints = get_type_hints(self.data_cls, include_extras=True)
         else:
             type_hints = get_type_hints(self.data_cls)
+
+        keys_with_defaults: Set[str] = {
+            k
+            for k, v in inspect.signature(self.data_cls).parameters.items()
+            if v.default != inspect.Parameter.empty
+        }
 
         self.schema = {
             field: (
@@ -144,11 +154,11 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         self.validate_object = validate_object
 
-        self._fast_keys: List[Tuple[typing.Hashable, Validator[Any], bool, bool]] = [
+        self._fast_keys: List[Tuple[Any, Validator[Any], bool, bool]] = [
             (
                 key,
                 val,
-                True,
+                key not in keys_with_defaults,
                 isinstance(val, _ToTupleValidator),
             )
             for key, val in self.schema.items()

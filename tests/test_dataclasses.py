@@ -364,13 +364,13 @@ def test_get_typehint_validator_bare_tuple() -> None:
 
 def test_can_handle_default_arguments() -> None:
     @dataclass
-    class Bad:
+    class NameCls:
         name: str = "ok"
 
-    validator = DataclassValidator(PersonSimple)
-    assert validator(Bad("hmm")) == Invalid(
-        validator, Bad("hmm"), CoercionErr({dict, PersonSimple}, PersonSimple)
-    )
+    validator = DataclassValidator(NameCls)
+    assert validator(NameCls("hmm")) == Valid(NameCls("hmm"))
+    assert validator({}) == Valid(NameCls("ok"))
+    assert validator({"name": "set value"}) == Valid(NameCls("set value"))
 
 
 def test_can_handle_basic_str_types() -> None:
