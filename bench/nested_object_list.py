@@ -143,7 +143,7 @@ def run_pyd(objs: List[Any]) -> None:
     for obj in objs:
         try:
             _ = PydPerson(**obj)
-        except:
+        except:  # type: ignore
             pass
 
 
