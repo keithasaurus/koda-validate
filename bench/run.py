@@ -78,7 +78,7 @@ benches = {
         },
     ),
     "nested_object_list": BenchCompare(
-        nested_object_list.get_valid_data,
+        nested_object_list.get_data,
         {
             KV_RECORD_VALIDATOR: nested_object_list.run_kv,
             KV_DATACLASS_VALIDATOR: nested_object_list.run_kv_dc,
