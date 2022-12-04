@@ -90,9 +90,8 @@ def validate_dict_to_tuple(
         try:
             val = data[key_]
         except KeyError:
-            if not key_required:
-                continue
-            success, new_val = False, Invalid(source_validator, data, missing_key_err)
+            if key_required:
+                errs[key_] = Invalid(source_validator, data, missing_key_err)
         else:
             if is_tuple_validator:
                 success, new_val = validator.validate_to_tuple(val)  # type: ignore
@@ -103,10 +102,10 @@ def validate_dict_to_tuple(
                     else (False, result_)
                 )
 
-        if not success:
-            errs[key_] = new_val
-        elif not errs:
-            success_dict[key_] = new_val
+            if not success:
+                errs[key_] = new_val
+            elif not errs:
+                success_dict[key_] = new_val
 
     if errs:
         return False, Invalid(source_validator, data, KeyErrs(errs))
@@ -140,9 +139,8 @@ async def validate_dict_to_tuple_async(
         try:
             val = data[key_]
         except KeyError:
-            if not key_required:
-                continue
-            success, new_val = False, Invalid(source_validator, data, missing_key_err)
+            if key_required:
+                errs[key_] = Invalid(source_validator, data, missing_key_err)
         else:
             if is_tuple_validator:
                 success, new_val = await validator.validate_to_tuple_async(val)  # type: ignore  # noqa: E501
@@ -153,10 +151,10 @@ async def validate_dict_to_tuple_async(
                     else (False, result_)
                 )
 
-        if not success:
-            errs[key_] = new_val
-        elif not errs:
-            success_dict[key_] = new_val
+            if not success:
+                errs[key_] = new_val
+            elif not errs:
+                success_dict[key_] = new_val
 
     if errs:
         return False, Invalid(source_validator, data, KeyErrs(errs))
