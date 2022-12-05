@@ -169,26 +169,26 @@ ListOrTupleOrSetAny = TypeVar("ListOrTupleOrSetAny", List[Any], Tuple[Any, ...],
 
 @dataclass
 class MinItems(Predicate[ListOrTupleOrSetAny]):
-    length: int
+    item_count: int
 
     def __call__(self, val: ListOrTupleOrSetAny) -> bool:
-        return len(val) >= self.length
+        return len(val) >= self.item_count
 
 
 @dataclass
 class MaxItems(Predicate[ListOrTupleOrSetAny]):
-    length: int
+    item_count: int
 
     def __call__(self, val: ListOrTupleOrSetAny) -> bool:
-        return len(val) <= self.length
+        return len(val) <= self.item_count
 
 
 @dataclass
 class ExactItemCount(Predicate[ListOrTupleOrSetAny]):
-    length: int
+    item_count: int
 
     def __call__(self, val: ListOrTupleOrSetAny) -> bool:
-        return len(val) == self.length
+        return len(val) == self.item_count
 
 
 @dataclass

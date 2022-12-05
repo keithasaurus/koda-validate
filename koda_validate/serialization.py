@@ -66,11 +66,11 @@ def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str
     elif isinstance(pred, EqualTo):
         return f"must equal {repr(pred.match)}"
     elif isinstance(pred, MinItems):
-        return f"minimum allowed length is {pred.length}"
+        return f"minimum allowed length is {pred.item_count}"
     elif isinstance(pred, MaxItems):
-        return f"maximum allowed length is {pred.length}"
+        return f"maximum allowed length is {pred.item_count}"
     elif isinstance(pred, ExactItemCount):
-        return f"length must be {pred.length}"
+        return f"length must be {pred.item_count}"
     elif isinstance(pred, UniqueItems):
         return "all items must be unique"
     elif isinstance(pred, RegexPredicate):

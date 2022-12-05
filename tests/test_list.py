@@ -8,6 +8,8 @@ from koda._generics import A
 from koda_validate import (
     IntValidator,
     Invalid,
+    MaxLength,
+    MinLength,
     PredicateAsync,
     Processor,
     StringValidator,
@@ -18,6 +20,12 @@ from koda_validate.float import FloatValidator
 from koda_validate.generic import MaxItems, Min, MinItems
 from koda_validate.list import ListValidator
 from tests.utils import BasicNoneValidator
+
+
+@dataclass
+class RemoveLast(Processor[List[Any]]):
+    def __call__(self, val: List[Any]) -> List[Any]:
+        return val[:-1]
 
 
 def test_list_validator() -> None:
@@ -35,10 +43,6 @@ def test_list_validator() -> None:
     assert ListValidator(FloatValidator())([5.5, 10.1]) == Valid([5.5, 10.1])
 
     assert ListValidator(FloatValidator())([]) == Valid([])
-
-    class RemoveLast(Processor[List[Any]]):
-        def __call__(self, val: List[Any]) -> List[Any]:
-            return val[:-1]
 
     l_validator = ListValidator(
         FloatValidator(Min(5.5)),
@@ -99,14 +103,15 @@ async def test_list_async() -> None:
     )
 
 
+@dataclass
+class SomeAsyncListCheck(PredicateAsync[List[Any]]):
+    async def validate_async(self, val: List[Any]) -> bool:
+        await asyncio.sleep(0.001)
+        return len(val) == 1
+
+
 @pytest.mark.asyncio
 async def test_list_validator_with_async_predicate_validator() -> None:
-    @dataclass
-    class SomeAsyncListCheck(PredicateAsync[List[Any]]):
-        async def validate_async(self, val: List[Any]) -> bool:
-            await asyncio.sleep(0.001)
-            return len(val) == 1
-
     l_validator = ListValidator(
         StringValidator(), predicates_async=[SomeAsyncListCheck()]
     )
@@ -154,3 +159,27 @@ def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     list_validator = ListValidator(StringValidator(), predicates_async=[AsyncWait()])
     with pytest.raises(AssertionError):
         list_validator([])
+
+
+def test_list_repr() -> None:
+    s = ListValidator(StringValidator())
+    assert repr(s) == "ListValidator(StringValidator())"
+
+    s_len = ListValidator(StringValidator(MinLength(1), MaxLength(5)))
+    assert (
+        repr(s_len)
+        == "ListValidator(StringValidator(MinLength(length=1), MaxLength(length=5)))"
+    )
+
+    s_all = ListValidator(
+        IntValidator(),
+        predicates=[MinItems(5)],
+        predicates_async=[SomeAsyncListCheck()],
+        preprocessors=[RemoveLast()],
+    )
+
+    assert (
+        repr(s_all)
+        == "ListValidator(IntValidator(), predicates=[MinItems(item_count=5)], "
+        "predicates_async=[SomeAsyncListCheck()], preprocessors=[RemoveLast()])"
+    )

@@ -126,3 +126,19 @@ class ListValidator(_ToTupleValidator[List[A]]):
                 return True, return_list
         else:
             return False, Invalid(self, val, TypeErr(list))
+
+    def __repr__(self) -> str:
+        attrs_str = ", ".join(
+            [
+                f"{k}={repr(v)}"
+                for k, v in [
+                    ("predicates", self.predicates),
+                    ("predicates_async", self.predicates_async),
+                    ("preprocessors", self.preprocessors),
+                ]
+                if v
+            ]
+        )
+        if attrs_str:
+            attrs_str = ", " + attrs_str
+        return f"ListValidator({repr(self.item_validator)}{attrs_str})"
