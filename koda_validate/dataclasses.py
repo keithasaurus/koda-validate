@@ -55,7 +55,7 @@ from koda_validate import (
     always_valid,
 )
 from koda_validate.base import CoercionErr, ErrType, ExtraKeysErr, Invalid
-from koda_validate.tuple import TupleHomogenousValidator, TupleNValidatorAny
+from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
 from koda_validate.union import UnionValidatorAny
 
 
@@ -112,13 +112,19 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
             if len(args) == 2 and args[1] is Ellipsis:
                 return TupleHomogenousValidator(get_typehint_validator(args[0]))
             else:
-                return TupleNValidatorAny(*[get_typehint_validator(a) for a in args])
+                return NTupleValidator.untyped(
+                    fields=tuple(get_typehint_validator(a) for a in args)
+                )
         if sys.version_info >= (3, 9) and origin is Annotated:
             return get_typehint_validator(args[0])
         if origin is Literal:
             return UnionValidatorAny(*[EqualsValidator(a) for a in args])
 
-        raise TypeError(f"got unhandled annotation: {type(annotations)}")
+        raise TypeError(
+            f"There was an error handling annotation of type {type(annotations)}. "
+            f"This can possibly be resolved by using the `overrides` parameter "
+            f"to explicitly define a `Validator` for the related key."
+        )
 
 
 class DataclassValidator(_ToTupleValidator[_DCT]):

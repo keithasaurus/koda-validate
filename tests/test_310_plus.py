@@ -58,12 +58,7 @@ from koda_validate.dictionary import (
 )
 from koda_validate.generic import AlwaysValid
 from koda_validate.set import SetValidator
-from koda_validate.tuple import (
-    Tuple2Validator,
-    Tuple3Validator,
-    TupleHomogenousValidator,
-    TupleNValidatorAny,
-)
+from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
 from koda_validate.union import UnionValidatorAny
 
 
@@ -350,25 +345,34 @@ def test_datetime_string_validator() -> None:
             assert False
 
 
-def test_tuple_match() -> None:
-    match Tuple2Validator(
-        s_8 := StringValidator(),
-        i_8 := IntValidator(),
+def test_ntuple_match_typed() -> None:
+    match NTupleValidator.typed(
+        fields=(
+            s_v := StringValidator(),
+            i_v := IntValidator(),
+        )
     ):
-        case Tuple2Validator(vldtr_8, vldtr_9):
-            assert vldtr_8 is s_8
-            assert vldtr_9 is i_8
+        case NTupleValidator(fields):
+            assert len(fields) == 2
+            assert fields[0] is s_v
+            assert fields[1] is i_v
 
         case _:
             assert False
 
-    match Tuple3Validator(
-        s_9 := StringValidator(), i_9 := IntValidator(), f_9 := FloatValidator()
+
+def test_ntuple_match_untyped() -> None:
+    match NTupleValidator.untyped(
+        fields=(
+            s_v := StringValidator(),
+            i_v := IntValidator(),
+        )
     ):
-        case Tuple3Validator(vldtr_1, vldtr_2, vldtr_3):
-            assert vldtr_1 is s_9
-            assert vldtr_2 is i_9
-            assert vldtr_3 is f_9
+        case NTupleValidator(fields):
+            assert len(fields) == 2
+            assert fields[0] is s_v
+            assert fields[1] is i_v
+
         case _:
             assert False
 
@@ -645,10 +649,10 @@ def test_get_typehint_validator() -> None:
 
 def test_get_typehint_validator_tuple_n_any() -> None:
     t_n_any_validator = get_typehint_validator(tuple[str, int])  # type: ignore
-    assert isinstance(t_n_any_validator, TupleNValidatorAny)
-    assert len(t_n_any_validator.validators) == 2
-    assert isinstance(t_n_any_validator.validators[0], StringValidator)
-    assert isinstance(t_n_any_validator.validators[1], IntValidator)
+    assert isinstance(t_n_any_validator, NTupleValidator)
+    assert len(t_n_any_validator.fields) == 2
+    assert isinstance(t_n_any_validator.fields[0], StringValidator)
+    assert isinstance(t_n_any_validator.fields[1], IntValidator)
 
 
 def test_get_typehint_validator_tuple_homogenous() -> None:
