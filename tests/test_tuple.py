@@ -10,6 +10,7 @@ from koda_validate import (
     FloatValidator,
     IntValidator,
     Invalid,
+    Max,
     MaxItems,
     Min,
     MinItems,
@@ -263,3 +264,50 @@ def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     )
     with pytest.raises(AssertionError):
         list_validator(())
+
+
+def test_repr_n_tuple() -> None:
+    v = NTupleValidator.typed(fields=(StringValidator(), IntValidator(Max(5))))
+    assert repr(v) == (
+        "NTupleValidator(fields=(StringValidator(), IntValidator(Max(maximum=5, "
+        "exclusive_maximum=False))))"
+    )
+
+    def validate_function():
+        return None
+
+    v_2 = NTupleValidator.typed(
+        fields=(StringValidator(), IntValidator(Max(5))),
+        validate_object=validate_function,
+    )
+    assert repr(v_2) == (
+        "NTupleValidator(fields=(StringValidator(), IntValidator(Max(maximum=5, "
+        f"exclusive_maximum=False))), validate_object={repr(validate_function)})"
+    )
+
+
+def test_eq() -> None:
+    v_0 = NTupleValidator.typed(fields=(StringValidator(), IntValidator()))
+    v_1 = NTupleValidator.typed(fields=(StringValidator(), IntValidator(Max(5))))
+    assert v_0 != v_1
+    v_2 = NTupleValidator.typed(fields=(StringValidator(), IntValidator(Max(5))))
+    assert v_1 == v_2
+
+    def fn1():
+        return None
+
+    def fn2():
+        return None
+
+    v_3 = NTupleValidator.typed(
+        fields=(StringValidator(), IntValidator(Max(5))), validate_object=fn1
+    )
+    assert v_2 != v_3
+    v_4 = NTupleValidator.typed(
+        fields=(StringValidator(), IntValidator(Max(5))), validate_object=fn2
+    )
+    assert v_3 != v_4
+    v_5 = NTupleValidator.typed(
+        fields=(StringValidator(), IntValidator(Max(5))), validate_object=fn2
+    )
+    assert v_4 == v_5

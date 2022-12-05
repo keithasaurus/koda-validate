@@ -306,6 +306,20 @@ class NTupleValidator(_ToTupleValidator[A]):
         else:
             return False, Invalid(self, val, CoercionErr({list, tuple}, tuple))
 
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and self.fields == other.fields
+            and self.validate_object == other.validate_object
+        )
+
+    def __repr__(self) -> str:
+        fields_str = "(" + ", ".join([repr(f) for f in self.fields]) + ")"
+        if self.validate_object is not None:
+            fields_str += f", validate_object={repr(self.validate_object)}"
+
+        return f"NTupleValidator(fields={fields_str})"
+
 
 class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
