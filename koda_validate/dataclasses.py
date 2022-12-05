@@ -137,10 +137,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
     ) -> None:
         self.data_cls = data_cls
         overrides = overrides or {}
-        if sys.version_info >= (3, 9):
-            type_hints = get_type_hints(self.data_cls, include_extras=True)
-        else:
-            type_hints = get_type_hints(self.data_cls)
+        type_hints = get_type_hints(self.data_cls)
 
         keys_with_defaults: Set[str] = {
             k
