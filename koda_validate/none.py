@@ -56,5 +56,11 @@ class OptionalValidator(_ToTupleValidator[Optional[A]]):
     def validate_to_tuple(self, val: Any) -> ResultTuple[Optional[A]]:
         return _union_validator(self, self.validators, val)
 
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and other.non_none_validator == self.non_none_validator
+        )
+
     def __repr__(self) -> str:
         return f"OptionalValidator({repr(self.non_none_validator)})"

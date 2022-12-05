@@ -1,6 +1,6 @@
 import pytest
 
-from koda_validate import Invalid, OptionalValidator, StringValidator, Valid
+from koda_validate import IntValidator, Invalid, OptionalValidator, StringValidator, Valid
 from koda_validate.base import TypeErr, VariantErrs
 from koda_validate.none import NoneValidator, none_validator
 
@@ -68,3 +68,17 @@ async def test_optional_validator_async() -> None:
         ),
     )
     assert await o_v.validate_async("okok") == Valid("okok")
+
+
+def test_optional_repr() -> None:
+    assert (
+        repr(OptionalValidator(StringValidator()))
+        == "OptionalValidator(StringValidator())"
+    )
+    assert repr(OptionalValidator(IntValidator())) == "OptionalValidator(IntValidator())"
+
+
+def test_optional_eq() -> None:
+    assert OptionalValidator(StringValidator()) == OptionalValidator(StringValidator())
+
+    assert OptionalValidator(IntValidator()) != OptionalValidator(StringValidator())
