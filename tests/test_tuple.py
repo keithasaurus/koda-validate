@@ -273,7 +273,7 @@ def test_repr_n_tuple() -> None:
         "exclusive_maximum=False))))"
     )
 
-    def validate_function():
+    def validate_function(t: Tuple[str, int]) -> Optional[ErrType]:
         return None
 
     v_2 = NTupleValidator.typed(
@@ -293,10 +293,10 @@ def test_eq() -> None:
     v_2 = NTupleValidator.typed(fields=(StringValidator(), IntValidator(Max(5))))
     assert v_1 == v_2
 
-    def fn1():
+    def fn1(t: Tuple[str, int]) -> Optional[ErrType]:
         return None
 
-    def fn2():
+    def fn2(t: Tuple[str, int]) -> Optional[ErrType]:
         return None
 
     v_3 = NTupleValidator.typed(
