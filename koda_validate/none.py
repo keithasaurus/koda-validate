@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
 from koda._generics import A
 
@@ -8,6 +8,16 @@ from koda_validate.union import UnionValidatorAny
 
 
 class NoneValidator(_ToTupleValidator[None]):
+    _instance: ClassVar[Optional["NoneValidator"]] = None
+
+    def __new__(cls) -> "NoneValidator":
+        """
+        Make a singleton
+        """
+        if cls._instance is None:
+            cls._instance = super(NoneValidator, cls).__new__(cls)
+        return cls._instance
+
     def validate_to_tuple(self, val: Any) -> ResultTuple[None]:
         if val is None:
             return True, None
@@ -16,6 +26,9 @@ class NoneValidator(_ToTupleValidator[None]):
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[None]:
         return self.validate_to_tuple(val)
+
+    def __repr__(self) -> str:
+        return "NoneValidator()"
 
 
 none_validator = NoneValidator()

@@ -2,7 +2,7 @@ import pytest
 
 from koda_validate import Invalid, OptionalValidator, StringValidator, Valid
 from koda_validate.base import TypeErr, VariantErrs
-from koda_validate.none import none_validator
+from koda_validate.none import NoneValidator, none_validator
 
 
 def test_none() -> None:
@@ -13,6 +13,15 @@ def test_none() -> None:
     assert none_validator(None) == Valid(None)
 
     assert none_validator(False) == Invalid(none_validator, False, TypeErr(type(None)))
+
+
+def test_none_repr() -> None:
+    assert repr(NoneValidator()) == repr(none_validator) == "NoneValidator()"
+
+
+def test_none_eq() -> None:
+    assert NoneValidator() == NoneValidator() == none_validator
+    assert NoneValidator() is NoneValidator() is none_validator
 
 
 @pytest.mark.asyncio
