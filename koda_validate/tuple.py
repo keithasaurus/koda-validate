@@ -1,9 +1,3 @@
-"""
-We should replace Tuple2Validator and Tuple3Validator
-with a generic TupleValidator... (2 and 3 can still use the new one
-under the hood, if needed)
-"""
-
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
 from koda_validate import ExactItemCount
@@ -36,6 +30,11 @@ class NTupleValidator(_ToTupleValidator[A]):
         fields: Tuple[Validator[Any], ...],
         validate_object: Optional[Callable[[A], Optional[ErrType]]] = None,
     ) -> None:
+        """
+        You probably don't want to be using __init__ directly. For type-hinting reasons,
+        it's recommended to use either `.typed(...)` or `.untyped(...)`
+        """
+
         self.fields = fields
         self.validate_object = validate_object
         self._len_predicate = ExactItemCount(len(fields))
