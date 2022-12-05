@@ -183,3 +183,45 @@ def test_list_repr() -> None:
         == "ListValidator(IntValidator(), predicates=[MinItems(item_count=5)], "
         "predicates_async=[SomeAsyncListCheck()], preprocessors=[RemoveLast()])"
     )
+
+
+def test_list_validator_equivalence() -> None:
+    l_1 = ListValidator(StringValidator())
+    l_2 = ListValidator(StringValidator())
+    assert l_1 == l_2
+    l_3 = ListValidator(IntValidator())
+    assert l_2 != l_3
+
+    l_pred_1 = ListValidator(StringValidator(), predicates=[MaxItems(1)])
+    assert l_pred_1 != l_1
+    l_pred_2 = ListValidator(StringValidator(), predicates=[MaxItems(1)])
+    assert l_pred_2 == l_pred_1
+
+    l_pred_async_1 = ListValidator(
+        StringValidator(),
+        predicates=[MaxItems(1)],
+        predicates_async=[SomeAsyncListCheck()],
+    )
+    assert l_pred_async_1 != l_pred_1
+    l_pred_async_2 = ListValidator(
+        StringValidator(),
+        predicates=[MaxItems(1)],
+        predicates_async=[SomeAsyncListCheck()],
+    )
+    assert l_pred_async_1 == l_pred_async_2
+
+    l_preproc_1 = ListValidator(
+        StringValidator(),
+        predicates=[MaxItems(1)],
+        predicates_async=[SomeAsyncListCheck()],
+        preprocessors=[RemoveLast()],
+    )
+    assert l_preproc_1 != l_pred_async_1
+
+    l_preproc_2 = ListValidator(
+        StringValidator(),
+        predicates=[MaxItems(1)],
+        predicates_async=[SomeAsyncListCheck()],
+        preprocessors=[RemoveLast()],
+    )
+    assert l_preproc_1 == l_preproc_2

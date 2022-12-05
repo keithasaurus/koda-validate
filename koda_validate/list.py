@@ -127,6 +127,15 @@ class ListValidator(_ToTupleValidator[List[A]]):
         else:
             return False, Invalid(self, val, TypeErr(list))
 
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(other) is type(self)
+            and self.item_validator == other.item_validator
+            and self.predicates == other.predicates
+            and self.predicates_async == other.predicates_async
+            and self.preprocessors == other.preprocessors
+        )
+
     def __repr__(self) -> str:
         attrs_str = ", ".join(
             [
