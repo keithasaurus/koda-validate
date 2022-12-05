@@ -51,6 +51,7 @@ class MinLength(Predicate[str]):
         return len(val) >= self.length
 
 
+@dataclass
 class Strip(Processor[str]):
     def __call__(self, val: str) -> str:
         return val.strip()
@@ -59,6 +60,7 @@ class Strip(Processor[str]):
 strip = Strip()
 
 
+@dataclass
 class UpperCase(Processor[str]):
     def __call__(self, val: str) -> str:
         return val.upper()
@@ -67,6 +69,7 @@ class UpperCase(Processor[str]):
 upper_case = UpperCase()
 
 
+@dataclass
 class LowerCase(Processor[str]):
     def __call__(self, val: str) -> str:
         return val.lower()

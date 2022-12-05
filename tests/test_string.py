@@ -126,3 +126,52 @@ def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     str_validator = StringValidator(predicates_async=[AsyncWait()])
     with pytest.raises(AssertionError):
         str_validator(5)
+
+
+@dataclass
+class StrAsyncPred(PredicateAsync[str]):
+    async def validate_async(self, val: str) -> bool:
+        return True
+
+
+def test_repr() -> None:
+    s = StringValidator()
+    assert repr(s) == "StringValidator()"
+
+    s_len = StringValidator(MinLength(1), MaxLength(5))
+    assert repr(s_len) == "StringValidator(MinLength(length=1), MaxLength(length=5))"
+
+    s_all = StringValidator(
+        MinLength(1), predicates_async=[StrAsyncPred()], preprocessors=[strip]
+    )
+
+    assert (
+        repr(s_all) == "StringValidator(MinLength(length=1), "
+        "predicates_async=[StrAsyncPred()], preprocessors=[Strip()])"
+    )
+
+
+def test_equivalence() -> None:
+    s_1 = StringValidator()
+    s_2 = StringValidator()
+    assert s_1 == s_2
+
+    s_pred_1 = StringValidator(MaxLength(1))
+    assert s_pred_1 != s_1
+    s_pred_2 = StringValidator(MaxLength(1))
+    assert s_pred_2 == s_pred_1
+
+    s_pred_async_1 = StringValidator(MaxLength(1), predicates_async=[StrAsyncPred()])
+    assert s_pred_async_1 != s_pred_1
+    s_pred_async_2 = StringValidator(MaxLength(1), predicates_async=[StrAsyncPred()])
+    assert s_pred_async_1 == s_pred_async_2
+
+    s_preproc_1 = StringValidator(
+        MaxLength(1), predicates_async=[StrAsyncPred()], preprocessors=[strip]
+    )
+    assert s_preproc_1 != s_pred_async_1
+
+    s_preproc_2 = StringValidator(
+        MaxLength(1), predicates_async=[StrAsyncPred()], preprocessors=[strip]
+    )
+    assert s_preproc_1 == s_preproc_2

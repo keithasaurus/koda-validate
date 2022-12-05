@@ -17,6 +17,7 @@ from koda_validate._generics import A
 from koda_validate.base import CoercionErr, PredicateErrs
 
 
+@dataclass
 class Add1Decimal(Processor[Decimal]):
     def __call__(self, val: Decimal) -> Decimal:
         return val + 1
@@ -111,3 +112,57 @@ def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
     dec_validator = DecimalValidator(predicates_async=[AsyncWait()])
     with pytest.raises(AssertionError):
         dec_validator("whatever")
+
+
+@dataclass
+class DecAsyncPred(PredicateAsync[Decimal]):
+    async def validate_async(self, val: Decimal) -> bool:
+        return True
+
+
+def test_repr() -> None:
+    s = DecimalValidator()
+    assert repr(s) == "DecimalValidator()"
+
+    s_len = DecimalValidator(Min(Decimal(1)), Max(Decimal(5)))
+    assert (
+        repr(s_len)
+        == "DecimalValidator(Min(minimum=Decimal('1'), exclusive_minimum=False), "
+        "Max(maximum=Decimal('5'), exclusive_maximum=False))"
+    )
+
+    s_all = DecimalValidator(
+        Min(Decimal(1)), predicates_async=[DecAsyncPred()], preprocessors=[Add1Decimal()]
+    )
+
+    assert (
+        repr(s_all)
+        == "DecimalValidator(Min(minimum=Decimal('1'), exclusive_minimum=False), "
+        "predicates_async=[DecAsyncPred()], preprocessors=[Add1Decimal()])"
+    )
+
+
+def test_equivalence() -> None:
+    d_1 = DecimalValidator()
+    d_2 = DecimalValidator()
+    assert d_1 == d_2
+
+    d_pred_1 = DecimalValidator(Max(Decimal(1)))
+    assert d_pred_1 != d_1
+    d_pred_2 = DecimalValidator(Max(Decimal(1)))
+    assert d_pred_2 == d_pred_1
+
+    d_pred_async_1 = DecimalValidator(Max(Decimal(1)), predicates_async=[DecAsyncPred()])
+    assert d_pred_async_1 != d_pred_1
+    d_pred_async_2 = DecimalValidator(Max(Decimal(1)), predicates_async=[DecAsyncPred()])
+    assert d_pred_async_1 == d_pred_async_2
+
+    d_preproc_1 = DecimalValidator(
+        Max(Decimal(1)), predicates_async=[DecAsyncPred()], preprocessors=[Add1Decimal()]
+    )
+    assert d_preproc_1 != d_pred_async_1
+
+    d_preproc_2 = DecimalValidator(
+        Max(Decimal(1)), predicates_async=[DecAsyncPred()], preprocessors=[Add1Decimal()]
+    )
+    assert d_preproc_1 == d_preproc_2

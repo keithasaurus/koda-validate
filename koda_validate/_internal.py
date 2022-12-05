@@ -261,6 +261,31 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
                 return True, val
         return False, Invalid(self, val, self._type_err)
 
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(other) is type(self)
+            and self.predicates == other.predicates
+            and self.predicates_async == other.predicates_async
+            and self.preprocessors == other.preprocessors
+        )
+
+    def __repr__(self) -> str:
+        attrs_str = (
+            "" if not self.predicates else ", ".join([repr(p) for p in self.predicates])
+        )
+        attrs_str = ", ".join(
+            [attrs_str]
+            + [
+                f"{k}={repr(v)}"
+                for k, v in [
+                    ("predicates_async", self.predicates_async),
+                    ("preprocessors", self.preprocessors),
+                ]
+                if v
+            ]
+        )
+        return f"{self.__class__.__name__}({attrs_str})"
+
 
 class _CoercingValidator(_ToTupleValidator[SuccessT]):
     """
@@ -337,3 +362,28 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
             else:
                 return True, val_or_type_err
         return False, result[1]
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(other) is type(self)
+            and self.predicates == other.predicates
+            and self.predicates_async == other.predicates_async
+            and self.preprocessors == other.preprocessors
+        )
+
+    def __repr__(self) -> str:
+        attrs_str = (
+            "" if not self.predicates else ", ".join([repr(p) for p in self.predicates])
+        )
+        attrs_str = ", ".join(
+            [attrs_str]
+            + [
+                f"{k}={repr(v)}"
+                for k, v in [
+                    ("predicates_async", self.predicates_async),
+                    ("preprocessors", self.preprocessors),
+                ]
+                if v
+            ]
+        )
+        return f"{self.__class__.__name__}({attrs_str})"
