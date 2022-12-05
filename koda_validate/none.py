@@ -2,7 +2,12 @@ from typing import Any, ClassVar, Optional
 
 from koda._generics import A
 
-from koda_validate._internal import ResultTuple, _ToTupleValidator
+from koda_validate._internal import (
+    ResultTuple,
+    _ToTupleValidator,
+    _union_validator,
+    _union_validator_async,
+)
 from koda_validate.base import Invalid, TypeErr, ValidationResult, Validator
 from koda_validate.union import UnionValidatorAny
 
@@ -34,28 +39,22 @@ class NoneValidator(_ToTupleValidator[None]):
 none_validator = NoneValidator()
 
 
-class OptionalValidator(Validator[Optional[A]]):
+class OptionalValidator(_ToTupleValidator[Optional[A]]):
     """
     We have a value for a key, but it can be null (None)
     """
 
-    __match_args__ = ("validator",)
+    __match_args__ = ("non_none_validator",)
 
     def __init__(self, validator: Validator[A]) -> None:
-        self.validator = UnionValidatorAny(none_validator, validator)
+        self.non_none_validator = validator
+        self.validators = (none_validator, validator)
 
-    async def validate_async(self, val: Any) -> ValidationResult[Optional[A]]:
-        result = await self.validator.validate_async(val)
-        if result.is_valid:
-            return result
-        else:
-            result.validator = self
-            return result
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Optional[A]]:
+        return await _union_validator_async(self, self.validators, val)
 
-    def __call__(self, val: Any) -> ValidationResult[Optional[A]]:
-        result = self.validator(val)
-        if result.is_valid:
-            return result
-        else:
-            result.validator = self
-            return result
+    def validate_to_tuple(self, val: Any) -> ResultTuple[Optional[A]]:
+        return _union_validator(self, self.validators, val)
+
+    def __repr__(self) -> str:
+        return f"OptionalValidator({repr(self.non_none_validator)})"

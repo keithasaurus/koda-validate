@@ -25,6 +25,7 @@ from koda_validate.base import (
     TypeErr,
     ValidationResult,
     Validator,
+    VariantErrs,
     missing_key_err,
 )
 
@@ -143,7 +144,9 @@ async def validate_dict_to_tuple_async(
                 errs[key_] = Invalid(source_validator, data, missing_key_err)
         else:
             if is_tuple_validator:
-                success, new_val = await validator.validate_to_tuple_async(val)  # type: ignore  # noqa: E501
+                success, new_val = await validator.validate_to_tuple_async(  # type: ignore  # noqa: E501
+                    val
+                )
             else:
                 success, new_val = (
                     (True, result_.val)
@@ -387,3 +390,43 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
             ]
         )
         return f"{self.__class__.__name__}({attrs_str})"
+
+
+def _union_validator(
+    source_validator: Validator[A], validators: Tuple[Validator[Any], ...], val: Any
+) -> ResultTuple[A]:
+    errs = []
+    for validator in validators:
+        if isinstance(validator, _ToTupleValidator):
+            result_tup = validator.validate_to_tuple(val)
+            if result_tup[0]:
+                return True, result_tup[1]
+            else:
+                errs.append(result_tup[1])
+        else:
+            result = validator(val)
+            if result.is_valid:
+                return True, result.val
+            else:
+                errs.append(result)
+    return False, Invalid(source_validator, val, VariantErrs(errs))
+
+
+async def _union_validator_async(
+    source_validator: Validator[A], validators: Tuple[Validator[Any], ...], val: Any
+) -> ResultTuple[A]:
+    errs = []
+    for validator in validators:
+        if isinstance(validator, _ToTupleValidator):
+            result_tup = await validator.validate_to_tuple_async(val)
+            if result_tup[0]:
+                return True, result_tup[1]
+            else:
+                errs.append(result_tup[1])
+        else:
+            result = await validator.validate_async(val)
+            if result.is_valid:
+                return True, result.val
+            else:
+                errs.append(result)
+    return False, Invalid(source_validator, val, VariantErrs(errs))

@@ -279,9 +279,7 @@ def test_list_validator_match() -> None:
 def test_optional_validator_match() -> None:
     match OptionalValidator(str_3 := StringValidator()):
         case OptionalValidator(opt_validator):
-            assert isinstance(opt_validator, UnionValidatorAny)
-            assert opt_validator.validators[0] is none_validator
-            assert opt_validator.validators[1] is str_3
+            assert opt_validator is str_3
 
         case _:
             assert False

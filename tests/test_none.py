@@ -45,8 +45,8 @@ def test_optional_validator() -> None:
         5,
         VariantErrs(
             [
-                Invalid(o_v.validator.validators[0], 5, TypeErr(type(None))),
-                Invalid(o_v.validator.validators[1], 5, TypeErr(str)),
+                Invalid(none_validator, 5, TypeErr(type(None))),
+                Invalid(o_v.non_none_validator, 5, TypeErr(str)),
             ],
         ),
     )
@@ -62,8 +62,8 @@ async def test_optional_validator_async() -> None:
         5,
         VariantErrs(
             [
-                Invalid(o_v.validator.validators[0], 5, TypeErr(type(None))),
-                Invalid(o_v.validator.validators[1], 5, TypeErr(str)),
+                Invalid(none_validator, 5, TypeErr(type(None))),
+                Invalid(o_v.non_none_validator, 5, TypeErr(str)),
             ],
         ),
     )

@@ -1,6 +1,11 @@
 from typing import Any, Tuple
 
-from koda_validate._internal import ResultTuple, _ToTupleValidator
+from koda_validate._internal import (
+    ResultTuple,
+    _ToTupleValidator,
+    _union_validator,
+    _union_validator_async,
+)
 from koda_validate.base import Invalid, Validator, VariantErrs
 
 
@@ -20,35 +25,7 @@ class UnionValidatorAny(_ToTupleValidator[Any]):
         self.validators: Tuple[Validator[Any], ...] = (validator_1,) + validators
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[Any]:
-        errs = []
-        for validator in self.validators:
-            if isinstance(validator, _ToTupleValidator):
-                success, new_val = validator.validate_to_tuple(val)
-                if success:
-                    return True, new_val
-                else:
-                    errs.append(new_val)
-            else:
-                result = validator(val)
-                if result.is_valid:
-                    return True, result.val
-                else:
-                    errs.append(result)
-        return False, Invalid(self, val, VariantErrs(errs))
+        return _union_validator(self, self.validators, val)
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Any]:
-        errs = []
-        for validator in self.validators:
-            if isinstance(validator, _ToTupleValidator):
-                success, new_val = await validator.validate_to_tuple_async(val)
-                if success:
-                    return True, new_val
-                else:
-                    errs.append(new_val)
-            else:
-                result = await validator.validate_async(val)
-                if result.is_valid:
-                    return True, result.val
-                else:
-                    errs.append(result)
-        return False, Invalid(self, val, VariantErrs(errs))
+        return await _union_validator_async(self, self.validators, val)
