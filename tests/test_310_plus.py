@@ -34,7 +34,6 @@ from koda_validate import (
     StringValidator,
     Valid,
     Validator,
-    none_validator,
     strip,
 )
 from koda_validate.base import (

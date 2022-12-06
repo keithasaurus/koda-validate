@@ -8,8 +8,7 @@ from koda_validate._internal import (
     _union_validator,
     _union_validator_async,
 )
-from koda_validate.base import Invalid, TypeErr, ValidationResult, Validator
-from koda_validate.union import UnionValidatorAny
+from koda_validate.base import Invalid, TypeErr, Validator
 
 
 class NoneValidator(_ToTupleValidator[None]):
