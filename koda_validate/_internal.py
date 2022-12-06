@@ -88,18 +88,16 @@ def validate_dict_to_tuple(
     success_dict: Dict[Any, Any] = {}
     errs: Dict[Any, Invalid] = {}
     for key_, validator, key_required, is_tuple_validator in fast_keys:
-        try:
-            val = data[key_]
-        except KeyError:
+        if key_ not in data:
             if key_required:
                 errs[key_] = Invalid(source_validator, data, missing_key_err)
         else:
             if is_tuple_validator:
-                success, new_val = validator.validate_to_tuple(val)  # type: ignore
+                success, new_val = validator.validate_to_tuple(data[key_])  # type: ignore
             else:
                 success, new_val = (
                     (True, result_.val)
-                    if (result_ := validator(val)).is_valid
+                    if (result_ := validator(data[key_])).is_valid
                     else (False, result_)
                 )
 
@@ -137,20 +135,18 @@ async def validate_dict_to_tuple_async(
     success_dict: Dict[Any, Any] = {}
     errs: Dict[Any, Invalid] = {}
     for key_, validator, key_required, is_tuple_validator in fast_keys:
-        try:
-            val = data[key_]
-        except KeyError:
+        if key_ not in data:
             if key_required:
                 errs[key_] = Invalid(source_validator, data, missing_key_err)
         else:
             if is_tuple_validator:
                 success, new_val = await validator.validate_to_tuple_async(  # type: ignore  # noqa: E501
-                    val
+                    data[key_]
                 )
             else:
                 success, new_val = (
                     (True, result_.val)
-                    if (result_ := await validator.validate_async(val)).is_valid
+                    if (result_ := await validator.validate_async(data[key_])).is_valid
                     else (False, result_)
                 )
 
