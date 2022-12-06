@@ -866,7 +866,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                     args.append(nothing)
             else:
                 if is_tuple_validator:
-                    success, new_val = validator.validate_to_tuple(data[key_])  # type: ignore
+                    success, new_val = validator.validate_to_tuple(data[key_])  # type: ignore  # noqa: E501
                 else:
                     success, new_val = (
                         (True, result_.val)

@@ -2,8 +2,6 @@ import re
 from decimal import Decimal
 from typing import Any, List, Tuple, Union
 
-import pytest
-
 from koda_validate import ListValidator
 from koda_validate.base import (
     BasicErr,
@@ -203,7 +201,7 @@ def test_pred_to_err_message() -> None:
         (MaxKeys(1), "maximum allowed properties is 1"),
         (MinKeys(3), "minimum allowed properties is 3"),
         (Choices({"a", "bc", "def"}), "expected one of ['a', 'bc', 'def']"),
-        (EqualTo(5), f"must equal 5"),
+        (EqualTo(5), "must equal 5"),
         (Min(5), "minimum allowed value is 5"),
         (Min(5, exclusive_minimum=True), "minimum allowed value (exclusive) is 5"),
         (Max(5), "maximum allowed value is 5"),
@@ -231,8 +229,8 @@ def test_raises_err_for_unknown_pred() -> None:
     except TypeError as e:
         assert (
             str(e)
-            == f"Unhandled predicate type: {repr(type(np))}. You may want to write a wrapper "
-            f"function which handles that type."
+            == f"Unhandled predicate type: {repr(type(np))}. You may want to write a "
+            "wrapper function which handles that type."
         )
     else:
         assert False
