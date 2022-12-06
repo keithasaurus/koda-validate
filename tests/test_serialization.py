@@ -223,12 +223,16 @@ def test_pred_to_err_message() -> None:
 def test_raises_err_for_unknown_pred() -> None:
     class NewPred(Predicate[str]):
         def __call__(self, val: str) -> bool:
-            return str == "some str"
+            return val == "some str"
 
     np = NewPred()
     try:
         pred_to_err_message(np)
     except TypeError as e:
-        assert str(e) == f"unhandled predicate type: {repr(type(np))}"
+        assert (
+            str(e)
+            == f"Unhandled predicate type: {repr(type(np))}. You may want to write a wrapper "
+            f"function which handles that type."
+        )
     else:
         assert False

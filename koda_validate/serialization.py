@@ -84,7 +84,10 @@ def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str
     elif isinstance(pred, MaxLength):
         return f"maximum allowed length is {pred.length}"
     else:
-        raise TypeError(f"unhandled predicate type: {type(pred)}")
+        raise TypeError(
+            f"Unhandled predicate type: {type(pred)}. You may want to write a wrapper "
+            f"function which handles that type."
+        )
 
 
 def serializable_validation_err(invalid: Invalid) -> Serializable:
