@@ -1219,3 +1219,12 @@ async def test_dict_validator_async_processor() -> None:
     assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Valid(
         Person(nothing, "smith")
     )
+
+
+def test_key_not_required_repr() -> None:
+    assert repr(KeyNotRequired(none_validator)) == "KeyNotRequired(NoneValidator())"
+
+
+def test_key_not_required_eq() -> None:
+    assert KeyNotRequired(StringValidator()) == KeyNotRequired(StringValidator())
+    assert KeyNotRequired(StringValidator()) != KeyNotRequired(IntValidator())
