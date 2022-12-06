@@ -37,23 +37,25 @@ def test_tuple3() -> None:
     s_v = StringValidator()
     i_v = IntValidator()
     b_v = BoolValidator()
-    validator = NTupleValidator.typed(fields=(s_v, i_v, b_v))
+    n_v = BasicNoneValidator()
+    validator = NTupleValidator.typed(fields=(s_v, i_v, b_v, n_v))
     assert validator({}) == Invalid(validator, {}, CoercionErr({list, tuple}, tuple))
 
-    assert validator([]) == Invalid(validator, [], PredicateErrs([ExactItemCount(3)]))
+    assert validator([]) == Invalid(validator, [], PredicateErrs([ExactItemCount(4)]))
 
-    assert validator(["a", 1, False]) == Valid(("a", 1, False))
+    assert validator(["a", 1, False, None]) == Valid(("a", 1, False, None))
 
-    assert validator(("a", 1, False)) == Valid(("a", 1, False))
+    assert validator(("a", 1, False, None)) == Valid(("a", 1, False, None))
 
-    assert validator([1, "a", 7.42]) == Invalid(
+    assert validator([1, "a", 7.42, 1]) == Invalid(
         validator,
-        [1, "a", 7.42],
+        [1, "a", 7.42, 1],
         IndexErrs(
             {
                 0: Invalid(s_v, 1, TypeErr(str)),
                 1: Invalid(i_v, "a", TypeErr(int)),
                 2: Invalid(b_v, 7.42, TypeErr(bool)),
+                3: Invalid(n_v, 1, TypeErr(type(None))),
             },
         ),
     )
@@ -84,27 +86,33 @@ async def test_tuple3_async() -> None:
     str_v = StringValidator()
     int_v = IntValidator()
     bool_v = BoolValidator()
-    validator = NTupleValidator.typed(fields=(str_v, int_v, bool_v))
+    none_v = BasicNoneValidator()
+    validator = NTupleValidator.typed(fields=(str_v, int_v, bool_v, none_v))
     assert await validator.validate_async({}) == Invalid(
         validator, {}, CoercionErr({list, tuple}, tuple)
     )
 
     assert await validator.validate_async([]) == Invalid(
-        validator, [], PredicateErrs([ExactItemCount(3)])
+        validator, [], PredicateErrs([ExactItemCount(4)])
     )
 
-    assert await validator.validate_async(["a", 1, False]) == Valid(("a", 1, False))
+    assert await validator.validate_async(["a", 1, False, None]) == Valid(
+        ("a", 1, False, None)
+    )
 
-    assert await validator.validate_async(("a", 1, False)) == Valid(("a", 1, False))
+    assert await validator.validate_async(("a", 1, False, None)) == Valid(
+        ("a", 1, False, None)
+    )
 
-    assert await validator.validate_async([1, "a", 7.42]) == Invalid(
+    assert await validator.validate_async([1, "a", 7.42, 1]) == Invalid(
         validator,
-        [1, "a", 7.42],
+        [1, "a", 7.42, 1],
         IndexErrs(
             {
                 0: Invalid(str_v, 1, TypeErr(str)),
                 1: Invalid(int_v, "a", TypeErr(int)),
                 2: Invalid(bool_v, 7.42, TypeErr(bool)),
+                3: Invalid(none_v, 1, TypeErr(type(None))),
             },
         ),
     )

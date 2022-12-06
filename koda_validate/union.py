@@ -28,21 +28,21 @@ class UnionValidator(_ToTupleValidator[A]):
     @overload
     @staticmethod
     def typed(validator_1: Validator[T1]) -> "UnionValidator[T1]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
     def typed(
         validator_1: Validator[T1], validator_2: Validator[T2]
     ) -> "UnionValidator[Union[T1, T2]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
     def typed(
         validator_1: Validator[T1], validator_2: Validator[T2], validator_3: Validator[T3]
     ) -> "UnionValidator[Union[T1, T2, T3]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -52,7 +52,7 @@ class UnionValidator(_ToTupleValidator[A]):
         validator_3: Validator[T3],
         validator_4: Validator[T4],
     ) -> "UnionValidator[Union[T1, T2, T3, T4]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -63,7 +63,7 @@ class UnionValidator(_ToTupleValidator[A]):
         validator_4: Validator[T4],
         validator_5: Validator[T5],
     ) -> "UnionValidator[Union[T1, T2, T3, T4, T5]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -75,7 +75,7 @@ class UnionValidator(_ToTupleValidator[A]):
         validator_5: Validator[T5],
         validator_6: Validator[T6],
     ) -> "UnionValidator[Union[T1, T2, T3, T4, T5, T6]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -88,7 +88,7 @@ class UnionValidator(_ToTupleValidator[A]):
         validator_6: Validator[T6],
         validator_7: Validator[T7],
     ) -> "UnionValidator[Union[T1, T2, T3, T4, T5, T6, T7]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod

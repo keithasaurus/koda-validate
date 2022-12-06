@@ -46,7 +46,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         fields: Tuple[Validator[T1]],
         validate_object: Optional[Callable[[Tuple[T1]], Optional[ErrType]]] = None,
     ) -> "NTupleValidator[Tuple[T1]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -55,7 +55,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         fields: Tuple[Validator[T1], Validator[T2]],
         validate_object: Optional[Callable[[Tuple[T1, T2]], Optional[ErrType]]] = None,
     ) -> "NTupleValidator[Tuple[T1, T2]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -66,7 +66,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             Callable[[Tuple[T1, T2, T3]], Optional[ErrType]]
         ] = None,
     ) -> "NTupleValidator[Tuple[T1, T2, T3]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -77,7 +77,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             Callable[[Tuple[T1, T2, T3, T4]], Optional[ErrType]]
         ] = None,
     ) -> "NTupleValidator[Tuple[T1, T2, T3, T4]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -94,7 +94,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             Callable[[Tuple[T1, T2, T3, T4, T5]], Optional[ErrType]]
         ] = None,
     ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -112,7 +112,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             Callable[[Tuple[T1, T2, T3, T4, T5, T6]], Optional[ErrType]]
         ] = None,
     ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -131,7 +131,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7]], Optional[ErrType]]
         ] = None,
     ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6, T7]]":
-        ...
+        ...  # pragma: no cover
 
     @overload
     @staticmethod
@@ -151,7 +151,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]], Optional[ErrType]]
         ] = None,
     ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]]":
-        ...
+        ...  # pragma: no cover
 
     @staticmethod
     def typed(
