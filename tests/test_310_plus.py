@@ -58,7 +58,7 @@ from koda_validate.dictionary import (
 from koda_validate.generic import AlwaysValid
 from koda_validate.set import SetValidator
 from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
-from koda_validate.union import UnionValidatorAny
+from koda_validate.union import UnionValidator
 
 
 @dataclass
@@ -394,7 +394,7 @@ def test_get_typehint_validator_list_union() -> None:
         get_typehint_validator(list[Union[str, int]]),
     ]:
         assert isinstance(validator, ListValidator)
-        assert isinstance(validator.item_validator, UnionValidatorAny)
+        assert isinstance(validator.item_validator, UnionValidator)
         assert len(validator.item_validator.validators) == 2
         assert isinstance(validator.item_validator.validators[0], StringValidator)
         assert isinstance(validator.item_validator.validators[1], IntValidator)
@@ -412,7 +412,7 @@ def test_complex_union_dataclass() -> None:
     assert example_validator({"a": 1.1}) == Valid(Example(1.1))
     assert example_validator({"a": 5}) == Valid(Example(5))
 
-    validators_schema_key_a = cast(UnionValidatorAny, example_validator.schema["a"])
+    validators_schema_key_a = cast(UnionValidator[Any], example_validator.schema["a"])
     assert example_validator({"a": False}) == Invalid(
         example_validator,
         {"a": False},
@@ -624,19 +624,19 @@ def test_get_typehint_validator() -> None:
     assert dataclass_validator.data_cls is PersonSimple
 
     optional_str_validator = get_typehint_validator(Optional[str])
-    assert isinstance(optional_str_validator, UnionValidatorAny)
+    assert isinstance(optional_str_validator, UnionValidator)
     assert isinstance(optional_str_validator.validators[0], StringValidator)
     assert isinstance(optional_str_validator.validators[1], NoneValidator)
 
     union_str_int_validator = get_typehint_validator(Union[str, int, bool])
-    assert isinstance(union_str_int_validator, UnionValidatorAny)
+    assert isinstance(union_str_int_validator, UnionValidator)
     assert len(union_str_int_validator.validators) == 3
     assert isinstance(union_str_int_validator.validators[0], StringValidator)
     assert isinstance(union_str_int_validator.validators[1], IntValidator)
     assert isinstance(union_str_int_validator.validators[2], BoolValidator)
 
     union_opt_str_int_validator = get_typehint_validator(Union[Optional[str], int, bool])
-    assert isinstance(union_opt_str_int_validator, UnionValidatorAny)
+    assert isinstance(union_opt_str_int_validator, UnionValidator)
     assert len(union_opt_str_int_validator.validators) == 4
     assert isinstance(union_opt_str_int_validator.validators[0], StringValidator)
     assert isinstance(union_opt_str_int_validator.validators[1], NoneValidator)

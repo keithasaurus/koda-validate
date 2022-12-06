@@ -25,7 +25,7 @@ from koda_validate.base import (
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
 from koda_validate.generic import EqualTo
 from koda_validate.tuple import TupleHomogenousValidator
-from koda_validate.union import UnionValidatorAny
+from koda_validate.union import UnionValidator
 
 
 @dataclass
@@ -386,7 +386,7 @@ def test_can_handle_basic_str_types() -> None:
 
 def test_get_type_hint_for_literal() -> None:
     abc_validator = get_typehint_validator(Literal["abc"])
-    assert isinstance(abc_validator, UnionValidatorAny)
+    assert isinstance(abc_validator, UnionValidator)
 
     assert len(abc_validator.validators) == 1
     assert isinstance(abc_validator.validators[0], EqualsValidator)
@@ -400,7 +400,7 @@ def test_get_type_hint_for_literal() -> None:
     )
 
     int_str_bool_validator = get_typehint_validator(Literal[123, "abc", False])
-    assert isinstance(int_str_bool_validator, UnionValidatorAny)
+    assert isinstance(int_str_bool_validator, UnionValidator)
 
     assert len(int_str_bool_validator.validators) == 3
     for v in int_str_bool_validator.validators:

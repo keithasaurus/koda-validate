@@ -56,7 +56,7 @@ from koda_validate import (
 )
 from koda_validate.base import CoercionErr, ErrType, ExtraKeysErr, Invalid
 from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
-from koda_validate.union import UnionValidatorAny
+from koda_validate.union import UnionValidator
 
 
 class DataclassLike(Protocol):
@@ -107,7 +107,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
                 key=get_typehint_validator(args[0]), value=get_typehint_validator(args[1])
             )
         if origin is Union or (sys.version_info >= (3, 10) and origin is UnionType):
-            return UnionValidatorAny(*[get_typehint_validator(arg) for arg in args])
+            return UnionValidator(*[get_typehint_validator(arg) for arg in args])
         if origin is tuple or origin is Tuple:
             if len(args) == 2 and args[1] is Ellipsis:
                 return TupleHomogenousValidator(get_typehint_validator(args[0]))
@@ -118,7 +118,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         if sys.version_info >= (3, 9) and origin is Annotated:
             return get_typehint_validator(args[0])
         if origin is Literal:
-            return UnionValidatorAny(*[EqualsValidator(a) for a in args])
+            return UnionValidator(*[EqualsValidator(a) for a in args])
 
         raise TypeError(
             f"There was an error handling annotation of type {type(annotations)}. "

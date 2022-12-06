@@ -44,7 +44,7 @@ from koda_validate.string import (
     StringValidator,
     not_blank,
 )
-from koda_validate.union import UnionValidatorAny
+from koda_validate.union import UnionValidator
 
 
 def test_type_err_users_message_in_list() -> None:
@@ -165,7 +165,7 @@ def test_variants() -> None:
     i_v = IntValidator(Min(5))
     assert serializable_validation_err(
         Invalid(
-            UnionValidatorAny(StringValidator(), i_v),
+            UnionValidator(StringValidator(), i_v),
             5,
             VariantErrs(
                 [
