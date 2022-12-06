@@ -14,6 +14,7 @@ from koda_validate import (
 )
 from koda_validate.base import PredicateErrs, TypeErr
 from koda_validate.generic import (
+    AlwaysValid,
     EqualTo,
     ExactItemCount,
     MaxItems,
@@ -154,3 +155,12 @@ def test_min_items() -> None:
 
     assert MinItems(3)([1, 2, 3]) is True
     assert MinItems(3)([1, 2]) is False
+
+
+def test_always_valid_repr() -> None:
+    assert repr(always_valid) == "AlwaysValid()"
+
+
+def test_always_valid_eq() -> None:
+    assert always_valid == AlwaysValid()
+    assert always_valid is AlwaysValid()

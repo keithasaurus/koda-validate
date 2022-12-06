@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, List, Optional, Set, Tuple, Type, TypeVar
+from typing import Any, ClassVar, List, Optional, Set, Tuple, Type, TypeVar
 from uuid import UUID
 
 from koda import Thunk
@@ -166,11 +166,24 @@ class EqualsValidator(Validator[ExactMatchT]):
 class AlwaysValid(_ToTupleValidator[Any]):
     __match_args__ = ()
 
+    _instance: ClassVar[Optional["AlwaysValid"]] = None
+
+    def __new__(cls) -> "AlwaysValid":
+        """
+        Make a singleton
+        """
+        if cls._instance is None:
+            cls._instance = super(AlwaysValid, cls).__new__(cls)
+        return cls._instance
+
     def validate_to_tuple(self, val: Any) -> ResultTuple[A]:
         return True, val
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[A]:
         return True, val
+
+    def __repr__(self) -> str:
+        return "AlwaysValid()"
 
 
 always_valid = AlwaysValid()
