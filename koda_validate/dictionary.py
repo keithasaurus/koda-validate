@@ -83,6 +83,12 @@ class KeyNotRequired(Validator[Maybe[A]]):
         else:
             return result
 
+    def __eq__(self, other: Any) -> bool:
+        return type(self) == type(other) and self.validator == other.validator
+
+    def __repr__(self) -> str:
+        return f"KeyNotRequired({repr(self.validator)})"
+
 
 KeyValidator = Tuple[
     Hashable,
