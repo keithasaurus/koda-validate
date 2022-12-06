@@ -449,3 +449,47 @@ def test_repr() -> None:
     ) == (
         f"DataclassValidator({repr(A)}, {overrides_str}, validate_object={repr(obj_fn)})"
     )
+
+
+def test_eq() -> None:
+    @dataclass
+    class A:
+        name: str
+
+    @dataclass
+    class B:
+        name: str
+        age: int
+
+    assert DataclassValidator(A) == DataclassValidator(A)
+    assert DataclassValidator(A) != DataclassValidator(B)
+    assert DataclassValidator(A) != DataclassValidator(A, overrides={})
+    assert DataclassValidator(A, overrides={}) == DataclassValidator(A, overrides={})
+    assert DataclassValidator(
+        A, overrides={"name": StringValidator()}
+    ) != DataclassValidator(A, overrides={})
+    assert DataclassValidator(
+        A, overrides={"name": StringValidator()}
+    ) == DataclassValidator(A, overrides={"name": StringValidator()})
+
+    def obj_fn(obj: A) -> Optional[ErrType]:
+        return None
+
+    assert DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object=obj_fn
+    ) != DataclassValidator(A, overrides={"name": StringValidator()})
+
+    assert DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object=obj_fn
+    ) == DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object=obj_fn
+    )
+
+    def obj_fn_2(obj: A) -> Optional[ErrType]:
+        return None
+
+    assert DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object=obj_fn
+    ) != DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object=obj_fn_2
+    )
