@@ -49,6 +49,16 @@ class Lazy(Validator[Ret]):
     def __call__(self, data: Any) -> ValidationResult[Ret]:
         return self.validator()(data)
 
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and self.validator == other.validator
+            and self.recurrent == other.recurrent
+        )
+
+    def __repr__(self) -> str:
+        return f"Lazy({repr(self.validator)}, recurrent={repr(self.recurrent)})"
+
 
 @dataclass
 class Choices(Predicate[EnumT]):

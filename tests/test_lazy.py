@@ -16,14 +16,18 @@ def test_lazy() -> None:
     def recur_tnel() -> RecordValidator[TestNonEmptyList]:
         return nel_validator
 
+    lazy_v = Lazy(recur_tnel)
+
     nel_validator: RecordValidator[TestNonEmptyList] = RecordValidator(
         into=TestNonEmptyList,
-        keys=(("val", IntValidator()), ("next", KeyNotRequired(Lazy(recur_tnel)))),
+        keys=(("val", IntValidator()), ("next", KeyNotRequired(lazy_v))),
     )
 
     assert nel_validator({"val": 5, "next": {"val": 6, "next": {"val": 7}}}) == Valid(
         TestNonEmptyList(5, Just(TestNonEmptyList(6, Just(TestNonEmptyList(7, nothing)))))
     )
+    assert repr(lazy_v) == f"Lazy({repr(recur_tnel)}, recurrent=True)"
+    assert lazy_v == Lazy(recur_tnel)
 
 
 @pytest.mark.asyncio
