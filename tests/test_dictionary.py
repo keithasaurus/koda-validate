@@ -1248,7 +1248,9 @@ def test_map_validator_repr() -> None:
                 preprocessors=[(add_val := AddVal())],
             )
         )
-        == f"MapValidator(key=StringValidator(), value=IntValidator(), predicates=[MaxKeys(size=1)], predicates_async=[AsyncWait()], preprocessors=[{repr(add_val)}])"
+        == f"MapValidator(key=StringValidator(), value=IntValidator(), "
+        f"predicates=[MaxKeys(size=1)], predicates_async=[AsyncWait()], "
+        f"preprocessors=[{repr(add_val)}])"
     )
 
 
