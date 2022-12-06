@@ -216,6 +216,16 @@ class MapValidator(Validator[Dict[T1, T2]]):
         else:
             return Invalid(self, val, TypeErr(dict))
 
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and self.key_validator == other.key_validator
+            and self.value_validator == other.value_validator
+            and self.predicates == other.predicates
+            and self.predicates_async == other.predicates_async
+            and self.preprocessors == other.preprocessors
+        )
+
     def __repr__(self) -> str:
         args_strs = [
             f"key={repr(self.key_validator)}",

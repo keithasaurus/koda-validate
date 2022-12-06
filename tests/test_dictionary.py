@@ -1252,6 +1252,38 @@ def test_map_validator_repr() -> None:
     )
 
 
+def test_map_validator_eq() -> None:
+    assert MapValidator(key=StringValidator(), value=IntValidator()) == MapValidator(
+        key=StringValidator(), value=IntValidator()
+    )
+    assert MapValidator(key=IntValidator(), value=IntValidator()) != MapValidator(
+        key=StringValidator(), value=IntValidator()
+    )
+
+    assert MapValidator(
+        key=StringValidator(),
+        value=IntValidator(),
+        predicates=[MaxKeys(1)],
+        predicates_async=[AsyncWait()],
+        preprocessors=[AddVal()],
+    ) != MapValidator(key=StringValidator(), value=IntValidator())
+
+    add_val = AddVal()
+    assert MapValidator(
+        key=StringValidator(),
+        value=IntValidator(),
+        predicates=[MaxKeys(1)],
+        predicates_async=[AsyncWait()],
+        preprocessors=[add_val],
+    ) == MapValidator(
+        key=StringValidator(),
+        value=IntValidator(),
+        predicates=[MaxKeys(1)],
+        predicates_async=[AsyncWait()],
+        preprocessors=[add_val],
+    )
+
+
 def test_is_dict_repr() -> None:
     assert repr(is_dict_validator) == "IsDictValidator()"
 
