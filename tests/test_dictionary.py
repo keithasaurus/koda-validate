@@ -40,6 +40,7 @@ from koda_validate.base import (
 )
 from koda_validate.dictionary import (
     DictValidatorAny,
+    IsDictValidator,
     KeyNotRequired,
     RecordValidator,
     is_dict_validator,
@@ -1249,3 +1250,11 @@ def test_map_validator_repr() -> None:
         )
         == f"MapValidator(key=StringValidator(), value=IntValidator(), predicates=[MaxKeys(size=1)], predicates_async=[AsyncWait()], preprocessors=[{repr(add_val)}])"
     )
+
+
+def test_is_dict_repr() -> None:
+    assert repr(is_dict_validator) == "IsDictValidator()"
+
+
+def test_is_dict_eq() -> None:
+    assert is_dict_validator == IsDictValidator()

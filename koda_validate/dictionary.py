@@ -4,6 +4,7 @@ from typing import (
     Any,
     Awaitable,
     Callable,
+    ClassVar,
     Dict,
     Hashable,
     List,
@@ -233,6 +234,16 @@ class MapValidator(Validator[Dict[T1, T2]]):
 
 
 class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
+    _instance: ClassVar[Optional["IsDictValidator"]] = None
+
+    def __new__(cls) -> "IsDictValidator":
+        """
+        Make a singleton
+        """
+        if cls._instance is None:
+            cls._instance = super(IsDictValidator, cls).__new__(cls)
+        return cls._instance
+
     def validate_to_tuple(self, val: Any) -> ResultTuple[Dict[Any, Any]]:
         if isinstance(val, dict):
             return True, val
@@ -241,6 +252,9 @@ class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Dict[Any, Any]]:
         return self.validate_to_tuple(val)
+
+    def __repr__(self) -> str:
+        return "IsDictValidator()"
 
 
 is_dict_validator = IsDictValidator()
