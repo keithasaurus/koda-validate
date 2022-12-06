@@ -425,3 +425,27 @@ def test_get_type_hint_for_literal() -> None:
             ]
         ),
     )
+
+
+def test_repr() -> None:
+    @dataclass
+    class A:
+        name: str
+
+    assert repr(DataclassValidator(A)) == f"DataclassValidator({repr(A)})"
+
+    def obj_fn(obj: A) -> Optional[ErrType]:
+        return None
+
+    assert repr(DataclassValidator(A, validate_object=obj_fn)) == (
+        f"DataclassValidator({repr(A)}, validate_object={repr(obj_fn)})"
+    )
+
+    overrides_str = "overrides={'name': StringValidator()}"
+    assert repr(
+        DataclassValidator(
+            A, overrides={"name": StringValidator()}, validate_object=obj_fn
+        )
+    ) == (
+        f"DataclassValidator({repr(A)}, {overrides_str}, validate_object={repr(obj_fn)})"
+    )
