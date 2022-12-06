@@ -2,6 +2,8 @@ import re
 from decimal import Decimal
 from typing import Any, List, Tuple, Union
 
+import pytest
+
 from koda_validate import ListValidator
 from koda_validate.base import (
     BasicErr,
@@ -25,6 +27,7 @@ from koda_validate.dictionary import DictValidatorAny, MapValidator, MaxKeys, Mi
 from koda_validate.float import FloatValidator
 from koda_validate.generic import (
     Choices,
+    EqualTo,
     ExactItemCount,
     Max,
     MaxItems,
@@ -200,6 +203,7 @@ def test_pred_to_err_message() -> None:
         (MaxKeys(1), "maximum allowed properties is 1"),
         (MinKeys(3), "minimum allowed properties is 3"),
         (Choices({"a", "bc", "def"}), "expected one of ['a', 'bc', 'def']"),
+        (EqualTo(5), f"must equal 5"),
         (Min(5), "minimum allowed value is 5"),
         (Min(5, exclusive_minimum=True), "minimum allowed value (exclusive) is 5"),
         (Max(5), "maximum allowed value is 5"),
@@ -214,3 +218,17 @@ def test_pred_to_err_message() -> None:
     ]
     for pred, expected_str in pred_list:
         assert pred_to_err_message(pred) == expected_str
+
+
+def test_raises_err_for_unknown_pred() -> None:
+    class NewPred(Predicate[str]):
+        def __call__(self, val: str) -> bool:
+            return str == "some str"
+
+    np = NewPred()
+    try:
+        pred_to_err_message(np)
+    except TypeError as e:
+        assert str(e) == f"unhandled predicate type: {repr(type(np))}"
+    else:
+        assert False
