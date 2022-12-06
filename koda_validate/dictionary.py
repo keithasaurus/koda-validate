@@ -1,4 +1,5 @@
 import dataclasses
+from functools import partial
 from typing import (
     Any,
     Awaitable,
@@ -1000,7 +1001,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         self.preprocessors = preprocessors
 
         # so we don't need to calculate each time we validate
-        self._fast_keys = [
+        _fast_keys = [
             (
                 key,
                 val.validator if isinstance(val, KeyNotRequired) else val,
@@ -1010,17 +1011,26 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             for key, val in schema.items()
         ]
 
-        self._unknown_keys_err = ExtraKeysErr(set(schema.keys()))
-
-    def validate_to_tuple(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
-        result_tup = validate_dict_to_tuple(
+        _unknown_keys_err = ExtraKeysErr(set(schema.keys()))
+        self._validate_keys_partial = partial(
+            validate_dict_to_tuple,
             self,
             self.preprocessors,
-            self._fast_keys,
-            self.schema,
-            self._unknown_keys_err,
-            data,
+            _fast_keys,
+            schema,
+            _unknown_keys_err,
         )
+        self._validate_keys_partial_async = partial(
+            validate_dict_to_tuple_async,
+            self,
+            self.preprocessors,
+            _fast_keys,
+            schema,
+            _unknown_keys_err,
+        )
+
+    def validate_to_tuple(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
+        result_tup = self._validate_keys_partial(data)
         if not result_tup[0]:
             return False, result_tup[1]
         else:
@@ -1034,14 +1044,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                 return True, result_tup[1]
 
     async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
-        result_tup = await validate_dict_to_tuple_async(
-            self,
-            self.preprocessors,
-            self._fast_keys,
-            self.schema,
-            self._unknown_keys_err,
-            data,
-        )
+        result_tup = await self._validate_keys_partial_async(data)
         if not result_tup[0]:
             return False, result_tup[1]
         else:
