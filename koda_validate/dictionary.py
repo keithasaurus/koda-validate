@@ -215,6 +215,22 @@ class MapValidator(Validator[Dict[T1, T2]]):
         else:
             return Invalid(self, val, TypeErr(dict))
 
+    def __repr__(self) -> str:
+        args_strs = [
+            f"key={repr(self.key_validator)}",
+            f"value={repr(self.value_validator)}",
+        ] + [
+            f"{k}={repr(v)}"
+            for k, v in [
+                ("predicates", self.predicates),
+                ("predicates_async", self.predicates_async),
+                ("preprocessors", self.preprocessors),
+            ]
+            if v
+        ]
+
+        return f"MapValidator({', '.join(args_strs)})"
+
 
 class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
     def validate_to_tuple(self, val: Any) -> ResultTuple[Dict[Any, Any]]:
