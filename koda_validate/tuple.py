@@ -427,3 +427,28 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
                 return True, tuple(return_list)
         else:
             return False, Invalid(self, val, TypeErr(tuple))
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(other) is type(self)
+            and self.item_validator == other.item_validator
+            and self.predicates == other.predicates
+            and self.predicates_async == other.predicates_async
+            and self.preprocessors == other.preprocessors
+        )
+
+    def __repr__(self) -> str:
+        attrs_str = ", ".join(
+            [
+                f"{k}={repr(v)}"
+                for k, v in [
+                    ("predicates", self.predicates),
+                    ("predicates_async", self.predicates_async),
+                    ("preprocessors", self.preprocessors),
+                ]
+                if v
+            ]
+        )
+        if attrs_str:
+            attrs_str = ", " + attrs_str
+        return f"{self.__class__.__name__}({repr(self.item_validator)}{attrs_str})"
