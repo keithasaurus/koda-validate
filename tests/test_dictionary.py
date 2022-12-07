@@ -40,6 +40,7 @@ from koda_validate.base import (
 )
 from koda_validate.dictionary import (
     DictValidatorAny,
+    IsDictValidator,
     KeyNotRequired,
     RecordValidator,
     is_dict_validator,
@@ -71,6 +72,12 @@ async def test_is_dict_async() -> None:
     assert await is_dict_validator.validate_async(
         {"a": 1, "b": 2, 5: "whatever"}
     ) == Valid({"a": 1, "b": 2, 5: "whatever"})
+
+
+class AddVal(Processor[Dict[Any, Any]]):
+    def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
+        val["newkey"] = 123
+        return val
 
 
 def test_map_validator() -> None:
@@ -119,11 +126,6 @@ def test_map_validator() -> None:
     ) == Invalid(complex_validator, {"key1": 10, "key1a": 2}, PredicateErrs([MaxKeys(1)]))
 
     assert complex_validator({"a": 100}) == Valid({"a": 100})
-
-    class AddVal(Processor[Dict[Any, Any]]):
-        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
-            val["newkey"] = 123
-            return val
 
     map_validator_preprocessor = MapValidator(
         key=s_v, value=i_v, preprocessors=[AddVal()]
@@ -197,13 +199,14 @@ async def test_map_validator_async() -> None:
     assert map_validator_preprocessor({}) == Valid({"newkey": 123})
 
 
-def test_map_validator_sync_call_with_async_predicates_raises_assertion_error() -> None:
-    @dataclass
-    class AsyncWait(PredicateAsync[A]):
-        async def validate_async(self, val: A) -> bool:
-            await asyncio.sleep(0.001)
-            return True
+@dataclass
+class AsyncWait(PredicateAsync[A]):
+    async def validate_async(self, val: A) -> bool:
+        await asyncio.sleep(0.001)
+        return True
 
+
+def test_map_validator_sync_call_with_async_predicates_raises_assertion_error() -> None:
     map_validator = MapValidator(
         key=StringValidator(), value=StringValidator(), predicates_async=[AsyncWait()]
     )
@@ -1228,3 +1231,64 @@ def test_key_not_required_repr() -> None:
 def test_key_not_required_eq() -> None:
     assert KeyNotRequired(StringValidator()) == KeyNotRequired(StringValidator())
     assert KeyNotRequired(StringValidator()) != KeyNotRequired(IntValidator())
+
+
+def test_map_validator_repr() -> None:
+    assert repr(MapValidator(key=StringValidator(), value=IntValidator())) == (
+        "MapValidator(key=StringValidator(), value=IntValidator())"
+    )
+
+    assert (
+        repr(
+            MapValidator(
+                key=StringValidator(),
+                value=IntValidator(),
+                predicates=[MaxKeys(1)],
+                predicates_async=[AsyncWait()],
+                preprocessors=[(add_val := AddVal())],
+            )
+        )
+        == f"MapValidator(key=StringValidator(), value=IntValidator(), "
+        f"predicates=[MaxKeys(size=1)], predicates_async=[AsyncWait()], "
+        f"preprocessors=[{repr(add_val)}])"
+    )
+
+
+def test_map_validator_eq() -> None:
+    assert MapValidator(key=StringValidator(), value=IntValidator()) == MapValidator(
+        key=StringValidator(), value=IntValidator()
+    )
+    assert MapValidator(key=IntValidator(), value=IntValidator()) != MapValidator(
+        key=StringValidator(), value=IntValidator()
+    )
+
+    assert MapValidator(
+        key=StringValidator(),
+        value=IntValidator(),
+        predicates=[MaxKeys(1)],
+        predicates_async=[AsyncWait()],
+        preprocessors=[AddVal()],
+    ) != MapValidator(key=StringValidator(), value=IntValidator())
+
+    add_val = AddVal()
+    assert MapValidator(
+        key=StringValidator(),
+        value=IntValidator(),
+        predicates=[MaxKeys(1)],
+        predicates_async=[AsyncWait()],
+        preprocessors=[add_val],
+    ) == MapValidator(
+        key=StringValidator(),
+        value=IntValidator(),
+        predicates=[MaxKeys(1)],
+        predicates_async=[AsyncWait()],
+        preprocessors=[add_val],
+    )
+
+
+def test_is_dict_repr() -> None:
+    assert repr(is_dict_validator) == "IsDictValidator()"
+
+
+def test_is_dict_eq() -> None:
+    assert is_dict_validator == IsDictValidator()

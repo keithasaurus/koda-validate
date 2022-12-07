@@ -136,6 +136,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         validate_object: Optional[Callable[[_DCT], Optional[ErrType]]] = None,
     ) -> None:
         self.data_cls = data_cls
+        self._input_overrides = overrides  # for repr
         overrides = overrides or {}
         type_hints = get_type_hints(self.data_cls)
 
@@ -230,3 +231,19 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                     return False, Invalid(self, obj, result)
             else:
                 return True, obj
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and self.data_cls is other.data_cls
+            and other.validate_object is self.validate_object
+            and other._input_overrides == self._input_overrides
+        )
+
+    def __repr__(self) -> str:
+        args_strs = [repr(self.data_cls)]
+        if self._input_overrides:
+            args_strs.append(f"overrides={repr(self._input_overrides)}")
+        if self.validate_object:
+            args_strs.append(f"validate_object={repr(self.validate_object)}")
+        return f"DataclassValidator({', '.join(args_strs)})"
