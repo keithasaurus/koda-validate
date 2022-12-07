@@ -228,20 +228,22 @@ class MapValidator(Validator[Dict[T1, T2]]):
         )
 
     def __repr__(self) -> str:
-        args_strs = [
-            f"key={repr(self.key_validator)}",
-            f"value={repr(self.value_validator)}",
-        ] + [
-            f"{k}={repr(v)}"
-            for k, v in [
-                ("predicates", self.predicates),
-                ("predicates_async", self.predicates_async),
-                ("preprocessors", self.preprocessors),
+        return _repr_helper(
+            self.__class__,
+            [
+                f"key={repr(self.key_validator)}",
+                f"value={repr(self.value_validator)}",
             ]
-            if v
-        ]
-
-        return f"MapValidator({', '.join(args_strs)})"
+            + [
+                f"{k}={repr(v)}"
+                for k, v in [
+                    ("predicates", self.predicates),
+                    ("predicates_async", self.predicates_async),
+                    ("preprocessors", self.preprocessors),
+                ]
+                if v
+            ],
+        )
 
 
 class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
@@ -1007,17 +1009,19 @@ class RecordValidator(_ToTupleValidator[Ret]):
         )
 
     def __repr__(self) -> str:
-        args_strs = [f"keys={repr(self.keys)}", f"into={repr(self.into)}"] + [
-            f"{k}={repr(v)}"
-            for k, v in [
-                ("preprocessors", self.preprocessors),
-                ("validate_object", self.validate_object),
-                ("validate_object_async", self.validate_object_async),
-            ]
-            if v
-        ]
-
-        return f"RecordValidator({', '.join(args_strs)})"
+        return _repr_helper(
+            self.__class__,
+            [f"keys={repr(self.keys)}", f"into={repr(self.into)}"]
+            + [
+                f"{k}={repr(v)}"
+                for k, v in [
+                    ("preprocessors", self.preprocessors),
+                    ("validate_object", self.validate_object),
+                    ("validate_object_async", self.validate_object_async),
+                ]
+                if v
+            ],
+        )
 
 
 class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):

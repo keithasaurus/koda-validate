@@ -5,6 +5,7 @@ from koda_validate._generics import T1, T2, T3, T4, T5, T6, T7, T8, A
 from koda_validate._internal import (
     ResultTuple,
     _async_predicates_warning,
+    _repr_helper,
     _ToTupleValidator,
 )
 from koda_validate.base import (
@@ -318,7 +319,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         if self.validate_object is not None:
             fields_str += f", validate_object={repr(self.validate_object)}"
 
-        return f"NTupleValidator(fields={fields_str})"
+        return f"{self.__class__.__name__}(fields={fields_str})"
 
 
 class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
@@ -438,8 +439,10 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
         )
 
     def __repr__(self) -> str:
-        attrs_str = ", ".join(
-            [
+        return _repr_helper(
+            self.__class__,
+            [repr(self.item_validator)]
+            + [
                 f"{k}={repr(v)}"
                 for k, v in [
                     ("predicates", self.predicates),
@@ -447,8 +450,5 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
                     ("preprocessors", self.preprocessors),
                 ]
                 if v
-            ]
+            ],
         )
-        if attrs_str:
-            attrs_str = ", " + attrs_str
-        return f"{self.__class__.__name__}({repr(self.item_validator)}{attrs_str})"
