@@ -1292,3 +1292,56 @@ def test_is_dict_repr() -> None:
 
 def test_is_dict_eq() -> None:
     assert is_dict_validator == IsDictValidator()
+
+
+def test_record_validator_eq() -> None:
+    class Abc:
+        name: str
+
+    rv = RecordValidator(keys=(("name", StringValidator()),), into=Abc)
+    assert rv == RecordValidator(keys=(("name", StringValidator()),), into=Abc)
+
+    def fn_1(data: Abc) -> Optional[ErrType]:
+        return None
+
+    rvov = RecordValidator(
+        keys=(("name", StringValidator()),), into=Abc, validate_object=fn_1
+    )
+    assert rvov != rv
+
+    assert rvov == RecordValidator(
+        keys=(("name", StringValidator()),), into=Abc, validate_object=fn_1
+    )
+
+
+def test_record_validator_repr() -> None:
+    class Abc:
+        name: str
+
+    # rvov = RecordValidator(
+    #     keys=(
+    #         ("name", StringValidator()),
+    #     ),
+    #     into=Abc,
+    #     validate_object=fn_1
+    # )
+
+    keys = (("name", StringValidator()),)
+    assert (
+        repr(
+            RecordValidator(
+                keys=keys,
+                into=Abc,
+            )
+        )
+        == f"RecordValidator(keys=(('name', StringValidator()),), into={repr(Abc)})"
+    )
+
+    def fn_1(data: Abc) -> Optional[ErrType]:
+        return None
+
+    assert (
+        repr(RecordValidator(keys=keys, into=Abc, validate_object=fn_1))
+        == f"RecordValidator(keys=(('name', StringValidator()),), "
+        f"into={repr(Abc)}, validate_object={repr(fn_1)})"
+    )

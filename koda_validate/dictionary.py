@@ -995,6 +995,29 @@ class RecordValidator(_ToTupleValidator[Ret]):
             else:
                 return True, obj
 
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and self.preprocessors == other.preprocessors
+            and self.into == other.into
+            and self.keys == other.keys
+            and self.validate_object == other.validate_object
+            and self.validate_object_async == other.validate_object_async
+        )
+
+    def __repr__(self) -> str:
+        args_strs = [f"keys={repr(self.keys)}", f"into={repr(self.into)}"] + [
+            f"{k}={repr(v)}"
+            for k, v in [
+                ("preprocessors", self.preprocessors),
+                ("validate_object", self.validate_object),
+                ("validate_object_async", self.validate_object_async),
+            ]
+            if v
+        ]
+
+        return f"RecordValidator({', '.join(args_strs)})"
+
 
 class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
     """
