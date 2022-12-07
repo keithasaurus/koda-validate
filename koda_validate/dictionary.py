@@ -904,7 +904,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 return False, Invalid(self, data, self._unknown_keys_err)
 
         args: List[Any] = []
-        errs: Dict[Hashable, Invalid] = {}
+        errs: Dict[Any, Invalid] = {}
         for key_, validator, key_required, is_tuple_validator in self._fast_keys:
             if key_ not in data:
                 if key_required:
