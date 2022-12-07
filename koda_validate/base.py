@@ -125,6 +125,14 @@ class BasicErr:
     err_message: str
 
 
+class ValidationErrBase:
+    """
+    This class exists only to provide a class to subclass if desired
+    """
+
+    pass
+
+
 @dataclass
 class TypeErr:
     """
@@ -163,6 +171,7 @@ ErrType = Union[
     SetErrs,
     TypeErr,
     VariantErrs,
+    ValidationErrBase,
 ]
 
 

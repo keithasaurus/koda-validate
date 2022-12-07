@@ -10,7 +10,18 @@ from koda_validate._internal import (
     validate_dict_to_tuple,
     validate_dict_to_tuple_async,
 )
+from koda_validate.boolean import BoolValidator
+from koda_validate.bytes import BytesValidator
+from koda_validate.decimal import DecimalValidator
+from koda_validate.dictionary import MapValidator
+from koda_validate.float import FloatValidator
+from koda_validate.generic import EqualsValidator, always_valid
+from koda_validate.integer import IntValidator
+from koda_validate.list import ListValidator
+from koda_validate.none import NoneValidator
 from koda_validate.set import SetValidator
+from koda_validate.string import StringValidator
+from koda_validate.uuid import UUIDValidator
 
 if sys.version_info >= (3, 10):
     from types import UnionType
@@ -41,21 +52,7 @@ else:
 
 from uuid import UUID
 
-from koda_validate import (
-    BoolValidator,
-    DecimalValidator,
-    EqualsValidator,
-    FloatValidator,
-    IntValidator,
-    ListValidator,
-    MapValidator,
-    NoneValidator,
-    StringValidator,
-    UUIDValidator,
-    Validator,
-    always_valid,
-)
-from koda_validate.base import CoercionErr, ErrType, ExtraKeysErr, Invalid
+from koda_validate.base import CoercionErr, ErrType, ExtraKeysErr, Invalid, Validator
 from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
 from koda_validate.union import UnionValidator
 
@@ -83,6 +80,8 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         return BoolValidator()
     elif annotations is Decimal:
         return DecimalValidator()
+    elif annotations is bytes:
+        return BytesValidator()
     elif annotations is Any:
         return always_valid
     elif annotations is List or annotations is list:

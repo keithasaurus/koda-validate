@@ -1,5 +1,17 @@
 __all__ = (
     # base.py
+    "BasicErr",
+    "CoercionErr",
+    "KeyErrs",
+    "ExtraKeysErr",
+    "IndexErrs",
+    "MapErr",
+    "MissingKeyErr",
+    "PredicateErrs",
+    "SetErrs",
+    "TypeErr",
+    "VariantErrs",
+    "ValidationErrBase",
     "Valid",
     "Invalid",
     "ValidationResult",
@@ -9,6 +21,10 @@ __all__ = (
     "Processor",
     # boolean.py
     "BoolValidator",
+    # bytes.py
+    "BytesValidator",
+    # dataclasses.py
+    "DataclassValidator",
     # decimal.py
     "DecimalValidator",
     # dictionary.py
@@ -34,6 +50,7 @@ __all__ = (
     "UniqueItems",
     "MultipleOf",
     "EqualsValidator",
+    "EqualTo",
     "always_valid",
     "AlwaysValid",
     # integer.py
@@ -74,15 +91,29 @@ __all__ = (
 )
 
 from koda_validate.base import (
+    BasicErr,
+    CoercionErr,
+    ExtraKeysErr,
+    IndexErrs,
     Invalid,
+    KeyErrs,
+    MapErr,
+    MissingKeyErr,
     Predicate,
     PredicateAsync,
+    PredicateErrs,
     Processor,
+    SetErrs,
+    TypeErr,
     Valid,
+    ValidationErrBase,
     ValidationResult,
     Validator,
+    VariantErrs,
 )
 from koda_validate.boolean import BoolValidator
+from koda_validate.bytes import BytesValidator
+from koda_validate.dataclasses import DataclassValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
     DictValidatorAny,
@@ -99,6 +130,7 @@ from koda_validate.generic import (
     AlwaysValid,
     Choices,
     EqualsValidator,
+    EqualTo,
     ExactItemCount,
     Lazy,
     Max,

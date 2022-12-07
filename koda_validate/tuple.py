@@ -1,6 +1,5 @@
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
-from koda_validate import ExactItemCount
 from koda_validate._generics import T1, T2, T3, T4, T5, T6, T7, T8, A
 from koda_validate._internal import (
     ResultTuple,
@@ -20,6 +19,7 @@ from koda_validate.base import (
     TypeErr,
     Validator,
 )
+from koda_validate.generic import ExactItemCount
 
 
 class NTupleValidator(_ToTupleValidator[A]):
