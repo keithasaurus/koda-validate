@@ -181,6 +181,10 @@ def _async_predicates_warning(cls: Type[Any]) -> NoReturn:
     )
 
 
+def _repr_helper(cls: Type[Any], arg_strs: List[str]) -> str:
+    return f"{cls.__name__}({', '.join(arg_strs)})"
+
+
 class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
     """
     This `Validator` subclass exists primarily for code cleanliness and standardization.
@@ -269,11 +273,9 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
         )
 
     def __repr__(self) -> str:
-        attrs_str = (
-            "" if not self.predicates else ", ".join([repr(p) for p in self.predicates])
-        )
-        attrs_str = ", ".join(
-            [attrs_str]
+        return _repr_helper(
+            self.__class__,
+            ([] if not self.predicates else [repr(p) for p in self.predicates])
             + [
                 f"{k}={repr(v)}"
                 for k, v in [
@@ -281,9 +283,8 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
                     ("preprocessors", self.preprocessors),
                 ]
                 if v
-            ]
+            ],
         )
-        return f"{self.__class__.__name__}({attrs_str})"
 
 
 class _CoercingValidator(_ToTupleValidator[SuccessT]):
@@ -371,11 +372,9 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
         )
 
     def __repr__(self) -> str:
-        attrs_str = (
-            "" if not self.predicates else ", ".join([repr(p) for p in self.predicates])
-        )
-        attrs_str = ", ".join(
-            [attrs_str]
+        return _repr_helper(
+            self.__class__,
+            ([] if not self.predicates else [repr(p) for p in self.predicates])
             + [
                 f"{k}={repr(v)}"
                 for k, v in [
@@ -383,9 +382,8 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
                     ("preprocessors", self.preprocessors),
                 ]
                 if v
-            ]
+            ],
         )
-        return f"{self.__class__.__name__}({attrs_str})"
 
 
 def _union_validator(

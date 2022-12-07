@@ -40,6 +40,7 @@ from koda_validate._generics import (
 from koda_validate._internal import (
     ResultTuple,
     _async_predicates_warning,
+    _repr_helper,
     _ToTupleValidator,
     validate_dict_to_tuple,
     validate_dict_to_tuple_async,
@@ -1142,14 +1143,16 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         )
 
     def __repr__(self) -> str:
-        args_strs = [f"{repr(self.schema)}",] + [
-            f"{k}={repr(v)}"
-            for k, v in [
-                ("preprocessors", self.preprocessors),
-                ("validate_object", self.validate_object),
-                ("validate_object_async", self.validate_object_async),
-            ]
-            if v
-        ]
-
-        return f"DictValidatorAny({', '.join(args_strs)})"
+        return _repr_helper(
+            self.__class__,
+            [repr(self.schema)]
+            + [
+                f"{k}={repr(v)}"
+                for k, v in [
+                    ("preprocessors", self.preprocessors),
+                    ("validate_object", self.validate_object),
+                    ("validate_object_async", self.validate_object_async),
+                ]
+                if v
+            ],
+        )

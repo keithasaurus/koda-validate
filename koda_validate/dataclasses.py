@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from koda_validate._internal import (
     ResultTuple,
+    _repr_helper,
     _ToTupleValidator,
     validate_dict_to_tuple,
     validate_dict_to_tuple_async,
@@ -241,9 +242,15 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         )
 
     def __repr__(self) -> str:
-        args_strs = [repr(self.data_cls)]
-        if self._input_overrides:
-            args_strs.append(f"overrides={repr(self._input_overrides)}")
-        if self.validate_object:
-            args_strs.append(f"validate_object={repr(self.validate_object)}")
-        return f"DataclassValidator({', '.join(args_strs)})"
+        return _repr_helper(
+            self.__class__,
+            [repr(self.data_cls)]
+            + [
+                f"{k}={repr(v)}"
+                for k, v in [
+                    ("overrides", self._input_overrides),
+                    ("validate_object", self.validate_object),
+                ]
+                if v
+            ],
+        )
