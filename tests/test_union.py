@@ -88,3 +88,21 @@ async def test_union_validator_any_async() -> None:
             ],
         ),
     )
+
+
+def test_union_repr() -> None:
+    assert repr(UnionValidator(StringValidator())) == "UnionValidator(StringValidator())"
+    assert (
+        repr(UnionValidator(IntValidator(), StringValidator(), FloatValidator()))
+        == "UnionValidator(IntValidator(), StringValidator(), FloatValidator())"
+    )
+
+
+def test_union_repr() -> None:
+    assert UnionValidator(StringValidator()) == UnionValidator(StringValidator())
+    assert UnionValidator(StringValidator(), IntValidator()) != UnionValidator(
+        StringValidator()
+    )
+    assert UnionValidator(StringValidator(), IntValidator()) == UnionValidator(
+        StringValidator(), IntValidator()
+    )

@@ -3,6 +3,7 @@ from typing import Any, List, Optional, Tuple, Union, overload
 from koda_validate._generics import T1, T2, T3, T4, T5, T6, T7, T8, A
 from koda_validate._internal import (
     ResultTuple,
+    _repr_helper,
     _ToTupleValidator,
     _union_validator,
     _union_validator_async,
@@ -150,3 +151,9 @@ class UnionValidator(_ToTupleValidator[A]):
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[A]:
         return await _union_validator_async(self, self.validators, val)
+
+    def __eq__(self, other: Any) -> bool:
+        return type(self) == type(other) and self.validators == other.validators
+
+    def __repr__(self) -> str:
+        return _repr_helper(self.__class__, [repr(v) for v in self.validators])
