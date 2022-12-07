@@ -334,8 +334,8 @@ def test_tuple_homogenous_repr() -> None:
 
     s_len = TupleHomogenousValidator(StringValidator(MinLength(1), MaxLength(5)))
     assert (
-        repr(s_len)
-        == "TupleHomogenousValidator(StringValidator(MinLength(length=1), MaxLength(length=5)))"
+        repr(s_len) == "TupleHomogenousValidator(StringValidator("
+        "MinLength(length=1), MaxLength(length=5)))"
     )
 
     s_all = TupleHomogenousValidator(
@@ -346,8 +346,8 @@ def test_tuple_homogenous_repr() -> None:
     )
 
     assert (
-        repr(s_all)
-        == "TupleHomogenousValidator(IntValidator(), predicates=[MinItems(item_count=5)], "
+        repr(s_all) == "TupleHomogenousValidator(IntValidator(), "
+        "predicates=[MinItems(item_count=5)], "
         "predicates_async=[SomeAsyncTupleHCheck()], preprocessors=[RemoveLast()])"
     )
 
