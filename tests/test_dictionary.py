@@ -36,6 +36,7 @@ from koda_validate.base import (
     MissingKeyErr,
     PredicateErrs,
     TypeErr,
+    Validator,
     missing_key_err,
 )
 from koda_validate.dictionary import (
@@ -1366,7 +1367,7 @@ def test_dict_validator_any_eq() -> None:
 
 
 def test_dict_validator_any_repr() -> None:
-    schema = {"name": StringValidator()}
+    schema: Dict[Any, Validator[Any]] = {"name": StringValidator()}
     assert repr(DictValidatorAny(schema)) == f"DictValidatorAny({repr(schema)})"
 
     def fn_1(data: Dict[Any, Any]) -> Optional[ErrType]:

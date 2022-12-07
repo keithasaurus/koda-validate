@@ -1,10 +1,18 @@
 import asyncio
 from dataclasses import dataclass
-from typing import Set
+from typing import Any, Set
 
 import pytest
 
-from koda_validate import IntValidator, MaxItems, StringValidator, Valid
+from koda_validate import (
+    IntValidator,
+    MaxItems,
+    MaxLength,
+    MinItems,
+    MinLength,
+    StringValidator,
+    Valid,
+)
 from koda_validate.base import (
     Invalid,
     PredicateAsync,
@@ -17,15 +25,16 @@ from koda_validate.set import SetValidator
 from tests.utils import BasicNoneValidator
 
 
-class Add1ToSet(Processor[Set[int]]):
-    def __call__(self, val: Set[int]) -> Set[int]:
+@dataclass
+class Add1ToSet(Processor[Set[Any]]):
+    def __call__(self, val: Set[Any]) -> Set[Any]:
         val.add(1)
         return val
 
 
 @dataclass
-class AsyncSetPred(PredicateAsync[Set[int]]):
-    async def validate_async(self, val: Set[int]) -> bool:
+class AsyncSetPred(PredicateAsync[Set[Any]]):
+    async def validate_async(self, val: Set[Any]) -> bool:
         await asyncio.sleep(0.001)
         return False
 
@@ -98,3 +107,69 @@ async def test_set_validator_async() -> None:
     assert await set_async_v.validate_async({1, 2, 3}) == Invalid(
         set_async_v, {1, 2, 3}, PredicateErrs([AsyncSetPred()])
     )
+
+
+def test_set_repr() -> None:
+    s = SetValidator(StringValidator())
+    assert repr(s) == "SetValidator(StringValidator())"
+
+    s_len = SetValidator(StringValidator(MinLength(1), MaxLength(5)))
+    assert (
+        repr(s_len)
+        == "SetValidator(StringValidator(MinLength(length=1), MaxLength(length=5)))"
+    )
+
+    s_all = SetValidator(
+        IntValidator(),
+        predicates=[MinItems(5)],
+        predicates_async=[AsyncSetPred()],
+        preprocessors=[Add1ToSet()],
+    )
+
+    assert (
+        repr(s_all)
+        == "SetValidator(IntValidator(), predicates=[MinItems(item_count=5)], "
+        "predicates_async=[AsyncSetPred()], preprocessors=[Add1ToSet()])"
+    )
+
+
+def test_list_validator_equivalence() -> None:
+    s_1 = SetValidator(StringValidator())
+    s_2 = SetValidator(StringValidator())
+    assert s_1 == s_2
+    s_3 = SetValidator(IntValidator())
+    assert s_2 != s_3
+
+    s_pred_1 = SetValidator(StringValidator(), predicates=[MaxItems(1)])
+    assert s_pred_1 != s_1
+    s_pred_2 = SetValidator(StringValidator(), predicates=[MaxItems(1)])
+    assert s_pred_2 == s_pred_1
+
+    s_pred_async_1 = SetValidator(
+        StringValidator(),
+        predicates=[MaxItems(1)],
+        predicates_async=[AsyncSetPred()],
+    )
+    assert s_pred_async_1 != s_pred_1
+    s_pred_async_2 = SetValidator(
+        StringValidator(),
+        predicates=[MaxItems(1)],
+        predicates_async=[AsyncSetPred()],
+    )
+    assert s_pred_async_1 == s_pred_async_2
+
+    s_preproc_1 = SetValidator(
+        StringValidator(),
+        predicates=[MaxItems(1)],
+        predicates_async=[AsyncSetPred()],
+        preprocessors=[Add1ToSet()],
+    )
+    assert s_preproc_1 != s_pred_async_1
+
+    s_preproc_2 = SetValidator(
+        StringValidator(),
+        predicates=[MaxItems(1)],
+        predicates_async=[AsyncSetPred()],
+        preprocessors=[Add1ToSet()],
+    )
+    assert s_preproc_1 == s_preproc_2

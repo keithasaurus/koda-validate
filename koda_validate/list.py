@@ -150,4 +150,4 @@ class ListValidator(_ToTupleValidator[List[A]]):
         )
         if attrs_str:
             attrs_str = ", " + attrs_str
-        return f"ListValidator({repr(self.item_validator)}{attrs_str})"
+        return f"{self.__class__.__name__}({repr(self.item_validator)}{attrs_str})"
