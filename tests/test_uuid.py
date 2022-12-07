@@ -18,11 +18,11 @@ class ReverseUUID(Processor[UUID]):
 def test_UUID() -> None:
     uuid_validator = UUIDValidator()
     assert uuid_validator("a string") == Invalid(
-        uuid_validator, "a string", CoercionErr({str, UUID}, UUID)
+        CoercionErr({str, UUID}, UUID), "a string", uuid_validator
     )
 
     assert uuid_validator(5.5) == Invalid(
-        uuid_validator, 5.5, CoercionErr({str, UUID}, UUID)
+        CoercionErr({str, UUID}, UUID), 5.5, uuid_validator
     )
 
     assert uuid_validator(UUID("e348c1b4-60bd-11ed-a6e9-6ffb14046222")) == Valid(
@@ -44,9 +44,9 @@ def test_UUID() -> None:
 
     validator = UUIDValidator(HexStartsWithD(), preprocessors=[ReverseUUID()])
     assert validator(UUID("8309b7b7-728a-253a-3f54-54f07810bf73")) == Invalid(
-        validator,
-        UUID("37fb0187-0f45-45f3-a352-a8277b7b9038"),
         PredicateErrs([HexStartsWithD()]),
+        UUID("37fb0187-0f45-45f3-a352-a8277b7b9038"),
+        validator,
     )
 
     assert UUIDValidator(HexStartsWithD(), preprocessors=[ReverseUUID()])(
@@ -58,16 +58,16 @@ def test_UUID() -> None:
 async def test_UUID_async() -> None:
     uuid_validator = UUIDValidator()
     assert await uuid_validator.validate_async("abc") == Invalid(
-        uuid_validator,
-        "abc",
         CoercionErr(
             {str, UUID},
             UUID,
         ),
+        "abc",
+        uuid_validator,
     )
 
     assert await uuid_validator.validate_async(5.5) == Invalid(
-        uuid_validator, 5.5, CoercionErr({str, UUID}, UUID)
+        CoercionErr({str, UUID}, UUID), 5.5, uuid_validator
     )
 
     assert await uuid_validator.validate_async(
@@ -83,7 +83,7 @@ async def test_UUID_async() -> None:
     v = UUIDValidator(preprocessors=[ReverseUUID()], predicates_async=[HexStartsWithF()])
     result = await v.validate_async("e348c1b4-60bd-11ed-a6e9-6ffb14046222")
     assert result == Invalid(
-        v, UUID("22264041-bff6-9e6a-de11-db064b1c843e"), PredicateErrs([HexStartsWithF()])
+        PredicateErrs([HexStartsWithF()]), UUID("22264041-bff6-9e6a-de11-db064b1c843e"), v
     )
 
 

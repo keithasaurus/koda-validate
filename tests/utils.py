@@ -17,4 +17,4 @@ class BasicNoneValidator(Validator[None]):
         if val is None:
             return Valid(None)
         else:
-            return Invalid(self, val, TypeErr(type(None)))
+            return Invalid(TypeErr(type(None)), val, self)

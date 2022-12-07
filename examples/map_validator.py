@@ -10,14 +10,22 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
 )
 
 assert str_to_int_validator({3.14: "pi!"}) == Invalid(
-    str_to_int_validator,
-    {3.14: "pi!"},
     MapErr(
         {
             3.14: KeyValErrs(
-                Invalid(str_validator, 3.14, TypeErr(str)),
-                Invalid(int_validator, "pi!", TypeErr(int)),
+                Invalid(
+                    TypeErr(str),
+                    3.14,
+                    str_validator,
+                ),
+                Invalid(
+                    TypeErr(int),
+                    "pi!",
+                    int_validator,
+                ),
             )
         },
     ),
+    {3.14: "pi!"},
+    str_to_int_validator,
 )

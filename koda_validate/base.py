@@ -142,9 +142,10 @@ class Valid(Generic[A]):
 
 @dataclass
 class Invalid:
-    validator: "Validator[Any]"
-    value: Any
     err_type: "ErrType"
+    value: Any
+    validator: "Validator[Any]"
+
     is_valid: ClassVar[Literal[False]] = False
 
 

@@ -22,7 +22,7 @@ class Flip(Processor[bool]):
 
 def test_boolean() -> None:
     b_v = BoolValidator()
-    assert b_v("a string") == Invalid(b_v, "a string", TypeErr(bool))
+    assert b_v("a string") == Invalid(TypeErr(bool), "a string", b_v)
 
     assert b_v(True) == Valid(True)
 
@@ -34,10 +34,10 @@ def test_boolean() -> None:
             return val is True
 
     assert (true_bool := BoolValidator(RequireTrue()))(False) == Invalid(
-        true_bool, False, PredicateErrs([RequireTrue()])
+        PredicateErrs([RequireTrue()]), False, true_bool
     )
 
-    assert b_v(1) == Invalid(b_v, 1, TypeErr(bool))
+    assert b_v(1) == Invalid(TypeErr(bool), 1, b_v)
 
     @dataclass
     class IsTrue(Predicate[bool]):
@@ -47,7 +47,7 @@ def test_boolean() -> None:
     assert BoolValidator(IsTrue(), preprocessors=[Flip()])(False) == Valid(True)
 
     assert (req_true_v := BoolValidator(IsTrue()))(False) == Invalid(
-        req_true_v, False, PredicateErrs([IsTrue()])
+        PredicateErrs([IsTrue()]), False, req_true_v
     )
 
 
@@ -65,14 +65,14 @@ async def test_boolean_validator_async() -> None:
         )
     ).validate_async(True)
 
-    assert result == Invalid(require_true_v, False, PredicateErrs([IsTrue()]))
+    assert result == Invalid(PredicateErrs([IsTrue()]), False, require_true_v)
     assert await BoolValidator(
         preprocessors=[Flip()], predicates_async=[IsTrue()]
     ).validate_async(False) == Valid(True)
 
     b_v = BoolValidator()
 
-    assert await b_v.validate_async("abc") == Invalid(b_v, "abc", TypeErr(bool))
+    assert await b_v.validate_async("abc") == Invalid(TypeErr(bool), "abc", b_v)
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:

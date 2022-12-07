@@ -53,7 +53,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
                 ]
 
                 if list_errors:
-                    return False, Invalid(self, val, PredicateErrs(list_errors))
+                    return False, Invalid(PredicateErrs(list_errors), val, self)
 
             return_list: List[A] = []
             index_errs: Dict[int, Invalid] = {}
@@ -72,11 +72,11 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, Invalid(self, val, IndexErrs(index_errs))
+                return False, Invalid(IndexErrs(index_errs), val, self)
             else:
                 return True, return_list
         else:
-            return False, Invalid(self, val, TypeErr(list))
+            return False, Invalid(TypeErr(list), val, self)
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[List[A]]:
         if type(val) is list:
@@ -98,7 +98,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
                         predicate_errors.append(pred_async)
 
             if predicate_errors:
-                return False, Invalid(self, val, PredicateErrs(predicate_errors))
+                return False, Invalid(PredicateErrs(predicate_errors), val, self)
 
             return_list: List[A] = []
             index_errs = {}
@@ -122,11 +122,11 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     return_list.append(item_result)
 
             if index_errs:
-                return False, Invalid(self, val, IndexErrs(index_errs))
+                return False, Invalid(IndexErrs(index_errs), val, self)
             else:
                 return True, return_list
         else:
-            return False, Invalid(self, val, TypeErr(list))
+            return False, Invalid(TypeErr(list), val, self)
 
     def __eq__(self, other: Any) -> bool:
         return (

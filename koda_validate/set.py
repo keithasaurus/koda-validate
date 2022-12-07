@@ -44,7 +44,7 @@ class SetValidator(_ToTupleValidator[Set[A]]):
                 ]
 
                 if list_errors:
-                    return False, Invalid(self, val, PredicateErrs(list_errors))
+                    return False, Invalid(PredicateErrs(list_errors), val, self)
 
             return_set: Set[A] = set()
             item_errs: List[Invalid] = []
@@ -63,11 +63,11 @@ class SetValidator(_ToTupleValidator[Set[A]]):
                     return_set.add(item_result)
 
             if item_errs:
-                return False, Invalid(self, val, SetErrs(item_errs))
+                return False, Invalid(SetErrs(item_errs), val, self)
             else:
                 return True, return_set
         else:
-            return False, Invalid(self, val, TypeErr(set))
+            return False, Invalid(TypeErr(set), val, self)
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Set[A]]:
         if isinstance(val, set):
@@ -87,7 +87,7 @@ class SetValidator(_ToTupleValidator[Set[A]]):
                         predicate_errors.append(pred_async)
 
             if predicate_errors:
-                return False, Invalid(self, val, PredicateErrs(predicate_errors))
+                return False, Invalid(PredicateErrs(predicate_errors), val, self)
 
             return_set: Set[A] = set()
             item_errs: List[Invalid] = []
@@ -111,11 +111,11 @@ class SetValidator(_ToTupleValidator[Set[A]]):
                     return_set.add(item_result)
 
             if item_errs:
-                return False, Invalid(self, val, SetErrs(item_errs))
+                return False, Invalid(SetErrs(item_errs), val, self)
             else:
                 return True, return_set
         else:
-            return False, Invalid(self, val, TypeErr(set))
+            return False, Invalid(TypeErr(set), val, self)
 
     def __eq__(self, other: Any) -> bool:
         return (

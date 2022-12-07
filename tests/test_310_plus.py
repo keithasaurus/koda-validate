@@ -414,36 +414,36 @@ def test_complex_union_dataclass() -> None:
 
     validators_schema_key_a = cast(UnionValidator[Any], example_validator.schema["a"])
     assert example_validator({"a": False}) == Invalid(
-        example_validator,
-        {"a": False},
         KeyErrs(
             {
                 "a": Invalid(
-                    example_validator.schema["a"],
-                    False,
                     VariantErrs(
                         [
                             Invalid(
-                                validators_schema_key_a.validators[0], False, TypeErr(str)
+                                TypeErr(str), False, validators_schema_key_a.validators[0]
                             ),
                             Invalid(
-                                validators_schema_key_a.validators[1],
-                                False,
                                 TypeErr(type(None)),
-                            ),
-                            Invalid(
-                                validators_schema_key_a.validators[2],
                                 False,
-                                TypeErr(float),
+                                validators_schema_key_a.validators[1],
                             ),
                             Invalid(
-                                validators_schema_key_a.validators[3], False, TypeErr(int)
+                                TypeErr(float),
+                                False,
+                                validators_schema_key_a.validators[2],
+                            ),
+                            Invalid(
+                                TypeErr(int), False, validators_schema_key_a.validators[3]
                             ),
                         ],
                     ),
+                    False,
+                    example_validator.schema["a"],
                 )
             },
         ),
+        {"a": False},
+        example_validator,
     )
 
 
@@ -492,20 +492,10 @@ def test_nested_dataclass() -> None:
             },
         }
     ) == Invalid(
-        b_validator,
-        {
-            "rating": 5.5,
-            "a": {
-                "name": "keith",
-                "awake": False,
-                "lottery_numbers": [1, 2, 3],
-                "something": {},
-            },
-        },
         KeyErrs(
             {
                 "name": Invalid(
-                    b_validator,
+                    MissingKeyErr(),
                     {
                         "rating": 5.5,
                         "a": {
@@ -515,10 +505,20 @@ def test_nested_dataclass() -> None:
                             "something": {},
                         },
                     },
-                    MissingKeyErr(),
+                    b_validator,
                 )
             }
         ),
+        {
+            "rating": 5.5,
+            "a": {
+                "name": "keith",
+                "awake": False,
+                "lottery_numbers": [1, 2, 3],
+                "something": {},
+            },
+        },
+        b_validator,
     )
 
     assert b_validator(
@@ -533,7 +533,45 @@ def test_nested_dataclass() -> None:
             },
         }
     ) == Invalid(
-        b_validator,
+        KeyErrs(
+            {
+                "a": Invalid(
+                    KeyErrs(
+                        {
+                            "something": Invalid(
+                                MapErr(
+                                    {
+                                        5: KeyValErrs(
+                                            key=Invalid(
+                                                TypeErr(
+                                                    str,
+                                                ),
+                                                5,
+                                                b_validator.schema["a"]
+                                                .schema[  # type: ignore  # noqa: E501
+                                                    "something"
+                                                ]
+                                                .key_validator,
+                                            ),
+                                            val=None,
+                                        )
+                                    },
+                                ),
+                                {5: 5},
+                                b_validator.schema["a"].schema["something"],  # type: ignore  # noqa: E501
+                            )
+                        },
+                    ),
+                    {
+                        "name": "keith",
+                        "awake": False,
+                        "lottery_numbers": [1, 2, 3],
+                        "something": {5: 5},
+                    },
+                    b_validator.schema["a"],
+                )
+            },
+        ),
         {
             "name": "whatever",
             "rating": 5.5,
@@ -544,41 +582,7 @@ def test_nested_dataclass() -> None:
                 "something": {5: 5},
             },
         },
-        KeyErrs(
-            {
-                "a": Invalid(
-                    b_validator.schema["a"],
-                    {
-                        "name": "keith",
-                        "awake": False,
-                        "lottery_numbers": [1, 2, 3],
-                        "something": {5: 5},
-                    },
-                    KeyErrs(
-                        {
-                            "something": Invalid(
-                                b_validator.schema["a"].schema["something"],  # type: ignore  # noqa: E501
-                                {5: 5},
-                                MapErr(
-                                    {
-                                        5: KeyValErrs(
-                                            key=Invalid(
-                                                b_validator.schema["a"].schema["something"].key_validator,  # type: ignore  # noqa: E501
-                                                5,
-                                                TypeErr(
-                                                    str,
-                                                ),
-                                            ),
-                                            val=None,
-                                        )
-                                    },
-                                ),
-                            )
-                        },
-                    ),
-                )
-            },
-        ),
+        b_validator,
     )
 
 

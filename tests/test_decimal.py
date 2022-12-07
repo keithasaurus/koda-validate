@@ -26,21 +26,21 @@ class Add1Decimal(Processor[Decimal]):
 def test_decimal() -> None:
     d_v = DecimalValidator()
     assert d_v("a string") == Invalid(
-        d_v,
-        "a string",
         CoercionErr(
             {str, int, Decimal},
             Decimal,
         ),
+        "a string",
+        d_v,
     )
 
     assert d_v(5.5) == Invalid(
-        d_v,
-        5.5,
         CoercionErr(
             {str, int, Decimal},
             Decimal,
         ),
+        5.5,
+        d_v,
     )
 
     assert DecimalValidator()(Decimal("5.5")) == Valid(Decimal("5.5"))
@@ -50,7 +50,7 @@ def test_decimal() -> None:
     assert DecimalValidator(Min(Decimal(4)), Max(Decimal("5.5")))(5) == Valid(Decimal(5))
     dec_min_max_v = DecimalValidator(Min(Decimal(4)), Max(Decimal("5.5")))
     assert dec_min_max_v(Decimal(1)) == Invalid(
-        dec_min_max_v, Decimal(1), PredicateErrs([Min(Decimal(4))])
+        PredicateErrs([Min(Decimal(4))]), Decimal(1), dec_min_max_v
     )
     assert DecimalValidator(preprocessors=[Add1Decimal()])(Decimal("5.0")) == Valid(
         Decimal("6.0")
@@ -61,21 +61,21 @@ def test_decimal() -> None:
 async def test_decimal_async() -> None:
     d_v = DecimalValidator()
     assert await d_v.validate_async("abc") == Invalid(
-        d_v,
-        "abc",
         CoercionErr(
             {str, int, Decimal},
             Decimal,
         ),
+        "abc",
+        d_v,
     )
 
     assert await d_v.validate_async(5.5) == Invalid(
-        d_v,
-        5.5,
         CoercionErr(
             {str, int, Decimal},
             Decimal,
         ),
+        5.5,
+        d_v,
     )
 
     @dataclass
@@ -88,7 +88,7 @@ async def test_decimal_async() -> None:
         preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
     )
     result = await add_1_dec_v.validate_async(3)
-    assert result == Invalid(add_1_dec_v, Decimal(4), PredicateErrs([LessThan4()]))
+    assert result == Invalid(PredicateErrs([LessThan4()]), Decimal(4), add_1_dec_v)
     assert await DecimalValidator(
         preprocessors=[Add1Decimal()], predicates_async=[LessThan4()]
     ).validate_async(2) == Valid(Decimal(3))
@@ -98,7 +98,7 @@ async def test_decimal_async() -> None:
     ).validate_async(Decimal("2.75")) == Valid(Decimal("3.75"))
 
     assert await add_1_dec_v.validate_async(Decimal("3.75")) == Invalid(
-        add_1_dec_v, Decimal("4.75"), PredicateErrs([LessThan4()])
+        PredicateErrs([LessThan4()]), Decimal("4.75"), add_1_dec_v
     )
 
 

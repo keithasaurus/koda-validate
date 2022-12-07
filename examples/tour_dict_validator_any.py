@@ -33,10 +33,10 @@ assert employee_validator(
         "name": "Dwight Schrute",
     }
 ) == Invalid(
-    employee_validator,
+    BasicErr("Assistant TO THE Regional Manager!"),
     {
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     },
-    BasicErr("Assistant TO THE Regional Manager!"),
+    employee_validator,
 )

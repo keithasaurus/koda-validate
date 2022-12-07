@@ -15,7 +15,7 @@ class SimpleFloatValidator(Validator[float]):
         if isinstance(val, float):
             return Valid(val)
         else:
-            return Invalid(self, val, TypeErr(float))
+            return Invalid(TypeErr(float), val, self)
 
 
 float_validator = SimpleFloatValidator()
@@ -25,5 +25,5 @@ test_val = 5.5
 assert asyncio.run(float_validator.validate_async(test_val)) == Valid(test_val)
 
 assert asyncio.run(float_validator.validate_async(5)) == Invalid(
-    float_validator, 5, TypeErr(float)
+    TypeErr(float), 5, float_validator
 )

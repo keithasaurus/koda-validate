@@ -26,7 +26,7 @@ class OneOf2(Validator[Either[A, B]]):
             if (v2_result := await self.variant_2.validate_async(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                return Invalid(self, val, VariantErrs([v1_result, v2_result]))
+                return Invalid(VariantErrs([v1_result, v2_result]), val, self)
 
     def __call__(self, val: Any) -> ValidationResult[Either[A, B]]:
         if (v1_result := self.variant_1(val)).is_valid:
@@ -35,7 +35,7 @@ class OneOf2(Validator[Either[A, B]]):
             if (v2_result := self.variant_2(val)).is_valid:
                 return Valid(Second(v2_result.val))
             else:
-                return Invalid(self, val, VariantErrs([v1_result, v2_result]))
+                return Invalid(VariantErrs([v1_result, v2_result]), val, self)
 
     def __eq__(self, other: Any) -> bool:
         return (
@@ -74,8 +74,6 @@ class OneOf3(Validator[Either3[A, B, C]]):
                     return Valid(Third(v3_result.val))
                 else:
                     return Invalid(
-                        self,
-                        val,
                         VariantErrs(
                             [
                                 v1_result,
@@ -83,6 +81,8 @@ class OneOf3(Validator[Either3[A, B, C]]):
                                 v3_result,
                             ],
                         ),
+                        val,
+                        self,
                     )
 
     def __call__(self, val: Any) -> ValidationResult[Either3[A, B, C]]:
@@ -96,8 +96,6 @@ class OneOf3(Validator[Either3[A, B, C]]):
                     return Valid(Third(v3_result.val))
                 else:
                     return Invalid(
-                        self,
-                        val,
                         VariantErrs(
                             [
                                 v1_result,
@@ -105,6 +103,8 @@ class OneOf3(Validator[Either3[A, B, C]]):
                                 v3_result,
                             ],
                         ),
+                        val,
+                        self,
                     )
 
     def __eq__(self, other: Any) -> bool:

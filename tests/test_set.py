@@ -42,12 +42,12 @@ class AsyncSetPred(PredicateAsync[Set[Any]]):
 def test_set_validator() -> None:
     set_str_v = SetValidator(StringValidator())
     assert set_str_v(set()) == Valid(set())
-    assert set_str_v(None) == Invalid(set_str_v, None, TypeErr(set))
+    assert set_str_v(None) == Invalid(TypeErr(set), None, set_str_v)
     assert set_str_v({"cool", "neat"}) == Valid({"cool", "neat"})
     assert set_str_v({"bad", 1}) == Invalid(
-        set_str_v,
+        SetErrs([Invalid(TypeErr(str), 1, set_str_v.item_validator)]),
         {"bad", 1},
-        SetErrs([Invalid(set_str_v.item_validator, 1, TypeErr(str))]),
+        set_str_v,
     )
 
     set_int_v_2 = SetValidator(
@@ -56,16 +56,16 @@ def test_set_validator() -> None:
 
     assert set_int_v_2({0}) == Valid({0, 1})
     assert set_int_v_2({0, 2}) == Invalid(
-        set_int_v_2, {0, 1, 2}, PredicateErrs([MaxItems(2)])
+        PredicateErrs([MaxItems(2)]), {0, 1, 2}, set_int_v_2
     )
 
     set_none_v = SetValidator(BasicNoneValidator())
 
     assert set_none_v({None}) == Valid({None})
     assert set_none_v({1}) == Invalid(
-        set_none_v,
+        SetErrs([Invalid(TypeErr(type(None)), 1, set_none_v.item_validator)]),
         {1},
-        SetErrs([Invalid(set_none_v.item_validator, 1, TypeErr(type(None)))]),
+        set_none_v,
     )
 
     set_async_v = SetValidator(IntValidator(), predicates_async=[AsyncSetPred()])
@@ -77,12 +77,12 @@ def test_set_validator() -> None:
 async def test_set_validator_async() -> None:
     set_str_v = SetValidator(StringValidator())
     assert await set_str_v.validate_async(set()) == Valid(set())
-    assert await set_str_v.validate_async(None) == Invalid(set_str_v, None, TypeErr(set))
+    assert await set_str_v.validate_async(None) == Invalid(TypeErr(set), None, set_str_v)
     assert await set_str_v.validate_async({"cool", "neat"}) == Valid({"cool", "neat"})
     assert await set_str_v.validate_async({"bad", 1}) == Invalid(
-        set_str_v,
+        SetErrs([Invalid(TypeErr(str), 1, set_str_v.item_validator)]),
         {"bad", 1},
-        SetErrs([Invalid(set_str_v.item_validator, 1, TypeErr(str))]),
+        set_str_v,
     )
 
     set_int_v_2 = SetValidator(
@@ -91,21 +91,21 @@ async def test_set_validator_async() -> None:
 
     assert await set_int_v_2.validate_async({0}) == Valid({0, 1})
     assert await set_int_v_2.validate_async({0, 2}) == Invalid(
-        set_int_v_2, {0, 1, 2}, PredicateErrs([MaxItems(2)])
+        PredicateErrs([MaxItems(2)]), {0, 1, 2}, set_int_v_2
     )
 
     set_none_v = SetValidator(BasicNoneValidator())
 
     assert await set_none_v.validate_async({None}) == Valid({None})
     assert await set_none_v.validate_async({1}) == Invalid(
-        set_none_v,
+        SetErrs([Invalid(TypeErr(type(None)), 1, set_none_v.item_validator)]),
         {1},
-        SetErrs([Invalid(set_none_v.item_validator, 1, TypeErr(type(None)))]),
+        set_none_v,
     )
 
     set_async_v = SetValidator(IntValidator(), predicates_async=[AsyncSetPred()])
     assert await set_async_v.validate_async({1, 2, 3}) == Invalid(
-        set_async_v, {1, 2, 3}, PredicateErrs([AsyncSetPred()])
+        PredicateErrs([AsyncSetPred()]), {1, 2, 3}, set_async_v
     )
 
 

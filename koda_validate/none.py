@@ -26,7 +26,7 @@ class NoneValidator(_ToTupleValidator[None]):
         if val is None:
             return True, None
         else:
-            return False, Invalid(self, val, TypeErr(type(None)))
+            return False, Invalid(TypeErr(type(None)), val, self)
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[None]:
         return self.validate_to_tuple(val)

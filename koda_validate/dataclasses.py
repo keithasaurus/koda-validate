@@ -176,12 +176,12 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             data = val.__dict__
         else:
             return False, Invalid(
-                self,
-                val,
                 CoercionErr(
                     {dict, self.data_cls},
                     self.data_cls,
                 ),
+                val,
+                self,
             )
 
         result_tup = validate_dict_to_tuple(
@@ -197,7 +197,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 if result is None:
                     return True, obj
                 else:
-                    return False, Invalid(self, obj, result)
+                    return False, Invalid(result, obj, self)
             else:
                 return True, obj
 
@@ -208,12 +208,12 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             data = val.__dict__
         else:
             return False, Invalid(
-                self,
-                val,
                 CoercionErr(
                     {dict, self.data_cls},
                     self.data_cls,
                 ),
+                val,
+                self,
             )
 
         result_tup = await validate_dict_to_tuple_async(
@@ -229,7 +229,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 if result is None:
                     return True, obj
                 else:
-                    return False, Invalid(self, obj, result)
+                    return False, Invalid(result, obj, self)
             else:
                 return True, obj
 

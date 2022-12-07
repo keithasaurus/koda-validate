@@ -174,13 +174,14 @@ In Koda Validate this looks more like:
 Callable[[InputType], Validated[ValidType, InvalidType]]
 ``` 
 A quick example:
+
 ```python3
 from koda_validate import IntValidator, Valid, Invalid
 
 int_validator = IntValidator()
 
 assert int_validator(5) == Valid(5)
-assert int_validator("not an integer") == Invalid(["expected an integer"])
+assert int_validator("not an integer") == Invalid(,
 ```
 Here, we can tell the type of `int_validator` is something like `Callable[[Any], Validated[int, List[str]]` (it's not exactly 
 that in reality, but it isn't far off.) In this case, the `InputType` is `Any` -- any kind of data can be submitted to validation; if the data is valid it returns `Valid[int]`; and
@@ -199,14 +200,15 @@ even _if_ the types all match up, there's no assurance that the values won't cha
 
 The role of a `Predicate` in Koda Validate is to perform additional validation _after_ the data has been verified to be 
 of a specific type or shape. To this end, `Predicate`s in Koda Validate cannot change their input types or values. Let's go further with our `IntValidator`:
+
 ```python3
-from koda_validate import * 
+from koda_validate import *
 
 int_validator = IntValidator(Min(5))
 
 assert int_validator(6) == Valid(6)
 
-assert int_validator(4) == Invalid(["minimum allowed value is 5"])
+assert int_validator(4) == Invalid(,
 ```
 In this example `Min(5)` is a `Predicate`. As you can see the value 4
 passes the `int` check but fails to pass the `Min(5)` predicate.
@@ -215,16 +217,13 @@ Because we know that predicates don't change the type or value of their inputs, 
 sequence an arbitrary number of them together, and validate them all.
 
 ```python3
-from koda_validate import * 
+from koda_validate import *
 
 int_validator = IntValidator(Min(5), Max(20), MultipleOf(4))
 
 assert int_validator(12) == Valid(12)
 
-assert int_validator(23) == Invalid([
-  "maximum allowed value is 20",
-  "must be a multiple of 4"
-])
+assert int_validator(23) == Invalid(,
 ```
 Here we have 3 `Predicate`s, but we could easily have dozens. Note that the errors from all invalid
 predicates are returned. This is possible because we know that the value should be consistent from one predicate to the next.
@@ -267,7 +266,7 @@ class SimpleFloatValidator(Validator[float]):
         if isinstance(val, float):
             return Valid(val)
         else:
-            return Invalid("expected a float")
+            return Invalid(,
 
 
 float_validator = SimpleFloatValidator()
@@ -276,7 +275,7 @@ test_val = 5.5
 
 assert float_validator(test_val) == Valid(test_val)
 
-assert float_validator(5) == Invalid("expected a float")
+assert float_validator(5) == Invalid(,
 ```
 
 What is this doing? 
@@ -312,7 +311,7 @@ class SimpleFloatValidator2(Validator[float]):
             else:
                 return Valid(val)
         else:
-            return Invalid(["expected a float"])
+            return Invalid(,
 
 ```
 If `predicate` is specified, we'll check it _after_ we've verified the type of the value.
@@ -414,15 +413,13 @@ from koda import Maybe
 from koda_validate import *
 
 # Wrong type
-assert StringValidator()(None) == Invalid(["expected a string"])
+assert StringValidator()(None) == Invalid(,
 
 # All failing `Predicate`s are reported (not just the first)
 str_choice_validator = StringValidator(MinLength(2),
                                        Choices({"abc", "yz"}))
 
-assert str_choice_validator("") == Invalid(
-    ["minimum allowed length is 2", "expected one of ['abc', 'yz']"]
-)
+assert str_choice_validator("") == Invalid(,
 
 
 @dataclass
@@ -440,18 +437,16 @@ city_validator = RecordValidator(
 )
 
 # We use the key "__container__" for object-level errors
-assert city_validator(None) == Invalid({"__container__": ["expected a dictionary"]})
+assert city_validator(None) == Invalid(,
 
 # Missing keys are errors
 print(city_validator({}))
-assert city_validator({}) == Invalid({"name": ["key missing"]})
+assert city_validator({}) == Invalid(,
 
 # Extra keys are also errors
 assert city_validator(
     {"region": "California", "population": 510, "country": "USA"}
-) == Invalid(
-    {"__container__": ["Received unknown keys. Only expected 'name', 'region'."]}
-)
+) == Invalid(,
 
 
 @dataclass
@@ -466,9 +461,7 @@ neighborhood_validator = RecordValidator(
 )
 
 # Errors are nested in predictable manner
-assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Invalid(
-    {"city": {"name": ["key missing"]}}
-)
+assert neighborhood_validator({"name": "Bushwick", "city": {}}) == Invalid(,
 
 ```
 If you have any concerns about being able to handle specific types of key or object requirements, please see  
@@ -514,6 +507,7 @@ assert asyncio.run(short_string_validator.validate_async("async")) == Valid("asy
 Synchronous validators can be used in both async and sync contexts. Nonetheless, while this Validator works in async mode,
 it isn't yielding any benefit for IO. It would be much more useful if we were doing something like querying a database
 asynchronously:
+
 ```python3
 import asyncio
 from koda_validate import *
@@ -530,12 +524,12 @@ class IsActiveUsername(PredicateAsync[str, Serializable]):
         return "invalid username"
 
 
-username_validator = StringValidator(MinLength(1), 
+username_validator = StringValidator(MinLength(1),
                                      predicates_async=[IsActiveUsername()])
 
 assert asyncio.run(username_validator.validate_async("michael")) == Valid("michael")
 
-assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(["invalid username"])
+assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(,
 
 # calling in sync mode raises an AssertionError
 try:
@@ -588,7 +582,7 @@ class SimpleFloatValidator(Validator[float]):
         if isinstance(val, float):
             return Valid(val)
         else:
-            return Invalid("expected a float")
+            return Invalid(,
 
     # this validator doesn't do any IO, so we can just use the `__call__` method
     async def validate_async(self, val: Any) -> ValidationResult[float, Serializable]:
@@ -601,7 +595,7 @@ test_val = 5.5
 
 assert asyncio.run(float_validator.validate_async(test_val)) == Valid(test_val)
 
-assert asyncio.run(float_validator.validate_async(5)) == Invalid("expected a float")
+assert asyncio.run(float_validator.validate_async(5)) == Invalid(,
 
 ```
 
@@ -757,12 +751,13 @@ class Employee:
     name: str
 
 
-def no_dwight_regional_manager(employee: Employee) -> ValidationResult[Employee, Serializable]:
+def no_dwight_regional_manager(employee: Employee) -> ValidationResult[
+    Employee, Serializable]:
     if (
             "schrute" in employee.name.lower()
             and employee.title.lower() == "assistant regional manager"
     ):
-        return Invalid("Assistant TO THE Regional Manager!")
+        return Invalid(,
     else:
         return Valid(employee)
 
@@ -783,7 +778,7 @@ assert employee_validator(
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     }
-) == Invalid("Assistant TO THE Regional Manager!")
+) == Invalid(,
 
 ```
 In this case the values of individual keys are valid, but the object as a whole is not. 
@@ -827,7 +822,7 @@ def no_dwight_regional_manager(
             "schrute" in employee["name"].lower()
             and employee["title"].lower() == "assistant regional manager"
     ):
-        return Invalid("Assistant TO THE Regional Manager!")
+        return Invalid(,
     else:
         return Valid(employee)
 
@@ -850,7 +845,7 @@ assert employee_validator(
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     }
-) == Invalid("Assistant TO THE Regional Manager!")
+) == Invalid(,
 ```
 
 #### ListValidator
@@ -867,9 +862,9 @@ binary_list_validator = ListValidator(
 
 assert binary_list_validator([1, 0, 0, 1, 0]) == Valid([1, 0, 0, 1, 0])
 
-assert binary_list_validator([1]) == Invalid({'__container__': ['minimum allowed length is 2']})
+assert binary_list_validator([1]) == Invalid(,
 
-assert binary_list_validator([0, 1.0, "0"]) == Invalid({'1': ['expected an integer'], '2': ['expected an integer']})
+assert binary_list_validator([0, 1.0, "0"]) == Invalid(,
 ```
 In case you're looking at the last example and wondering why the indexes `'1'` and `'2'` are strings, it's because all 
 built-in validators in Koda Validate return JSON serializable data. In JSON, keys in objects are only allowed to 
@@ -891,10 +886,7 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
     {"a": 1, "b": 25, "xyz": 900}
 )
 
-assert str_to_int_validator({3.14: "pi!"}) == Invalid({
-    '3.14': {'key_error': ['expected a string'],
-             'value_error': ['expected an integer']}
-})
+assert str_to_int_validator({3.14: "pi!"}) == Invalid(,
 ```
 
 
@@ -988,7 +980,7 @@ values.
 from koda_validate import *
 
 assert is_dict_validator({}) == Valid({})
-assert is_dict_validator(None) == Invalid({"__container__": ["expected a dictionary"]})
+assert is_dict_validator(None) == Invalid(,
 assert is_dict_validator({"a": 1, "b": 2, 5: "xyz"}) == Valid({"a": 1, "b": 2, 5: "xyz"})
 
 ```
