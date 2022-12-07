@@ -1131,3 +1131,25 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                     return False, Invalid(self, obj, result)
             else:
                 return True, result_tup[1]
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and self.schema == other.schema
+            and self.preprocessors == other.preprocessors
+            and self.validate_object == other.validate_object
+            and self.validate_object_async == other.validate_object_async
+        )
+
+    def __repr__(self) -> str:
+        args_strs = [f"{repr(self.schema)}",] + [
+            f"{k}={repr(v)}"
+            for k, v in [
+                ("preprocessors", self.preprocessors),
+                ("validate_object", self.validate_object),
+                ("validate_object_async", self.validate_object_async),
+            ]
+            if v
+        ]
+
+        return f"DictValidatorAny({', '.join(args_strs)})"

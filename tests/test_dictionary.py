@@ -1295,6 +1295,7 @@ def test_is_dict_eq() -> None:
 
 
 def test_record_validator_eq() -> None:
+    @dataclass
     class Abc:
         name: str
 
@@ -1315,16 +1316,9 @@ def test_record_validator_eq() -> None:
 
 
 def test_record_validator_repr() -> None:
+    @dataclass
     class Abc:
         name: str
-
-    # rvov = RecordValidator(
-    #     keys=(
-    #         ("name", StringValidator()),
-    #     ),
-    #     into=Abc,
-    #     validate_object=fn_1
-    # )
 
     keys = (("name", StringValidator()),)
     assert (
@@ -1344,4 +1338,42 @@ def test_record_validator_repr() -> None:
         repr(RecordValidator(keys=keys, into=Abc, validate_object=fn_1))
         == f"RecordValidator(keys=(('name', StringValidator()),), "
         f"into={repr(Abc)}, validate_object={repr(fn_1)})"
+    )
+
+
+def test_dict_validator_any_eq() -> None:
+    dva_1 = DictValidatorAny({"name": StringValidator()})
+    assert dva_1 == DictValidatorAny({"name": StringValidator()})
+    assert dva_1 != DictValidatorAny({})
+
+    def fn_1(data: Dict[Any, Any]) -> Optional[ErrType]:
+        return None
+
+    dva_2 = DictValidatorAny({"name": StringValidator()}, validate_object=fn_1)
+    assert dva_2 != dva_1
+
+    assert dva_2 == DictValidatorAny({"name": StringValidator()}, validate_object=fn_1)
+
+    add_val = AddVal()
+    dva_3 = DictValidatorAny(
+        {"name": StringValidator()}, preprocessors=[add_val], validate_object=fn_1
+    )
+    assert dva_3 != dva_2
+
+    assert dva_3 == DictValidatorAny(
+        {"name": StringValidator()}, preprocessors=[add_val], validate_object=fn_1
+    )
+
+
+def test_dict_validator_any_repr() -> None:
+    schema = {"name": StringValidator()}
+    assert repr(DictValidatorAny(schema)) == f"DictValidatorAny({repr(schema)})"
+
+    def fn_1(data: Dict[Any, Any]) -> Optional[ErrType]:
+        return None
+
+    assert (
+        repr(DictValidatorAny(schema, validate_object=fn_1))
+        == f"DictValidatorAny({repr(schema)}, "
+        f"validate_object={repr(fn_1)})"
     )
