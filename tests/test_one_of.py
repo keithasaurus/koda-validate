@@ -91,3 +91,32 @@ async def test_one_of3_async() -> None:
             ],
         ),
     )
+
+
+def test_one_of_2_repr() -> None:
+    assert (
+        repr(OneOf2(StringValidator(), IntValidator()))
+        == "OneOf2(StringValidator(), IntValidator())"
+    )
+
+
+def test_one_of_3_repr() -> None:
+    assert (
+        repr(OneOf3(StringValidator(), IntValidator(), FloatValidator()))
+        == "OneOf3(StringValidator(), IntValidator(), FloatValidator())"
+    )
+
+
+def test_one_of_2_eq() -> None:
+    str_v = StringValidator()
+    int_v = IntValidator()
+    assert OneOf2(str_v, int_v) == OneOf2(str_v, int_v)
+    assert OneOf2(str_v, str_v) != OneOf2(str_v, int_v)
+
+
+def test_one_of_3_eq() -> None:
+    str_v = StringValidator()
+    int_v = IntValidator()
+    float_v = FloatValidator()
+    assert OneOf3(str_v, int_v, float_v) == OneOf3(str_v, int_v, float_v)
+    assert OneOf3(str_v, str_v, str_v) != OneOf3(str_v, int_v, float_v)

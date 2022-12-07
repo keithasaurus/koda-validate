@@ -4,6 +4,7 @@ from koda import Either, Either3, First, Second, Third
 from koda._generics import A, B, C
 
 from koda_validate import Invalid, Valid
+from koda_validate._internal import _repr_helper
 from koda_validate.base import ValidationResult, Validator, VariantErrs
 
 
@@ -35,6 +36,18 @@ class OneOf2(Validator[Either[A, B]]):
                 return Valid(Second(v2_result.val))
             else:
                 return Invalid(self, val, VariantErrs([v1_result, v2_result]))
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and self.variant_1 == other.variant_1
+            and self.variant_2 == other.variant_2
+        )
+
+    def __repr__(self) -> str:
+        return _repr_helper(
+            self.__class__, [repr(x) for x in [self.variant_1, self.variant_2]]
+        )
 
 
 class OneOf3(Validator[Either3[A, B, C]]):
@@ -93,3 +106,17 @@ class OneOf3(Validator[Either3[A, B, C]]):
                             ],
                         ),
                     )
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and self.variant_1 == other.variant_1
+            and self.variant_2 == other.variant_2
+            and self.variant_3 == other.variant_3
+        )
+
+    def __repr__(self) -> str:
+        return _repr_helper(
+            self.__class__,
+            [repr(x) for x in [self.variant_1, self.variant_2, self.variant_3]],
+        )

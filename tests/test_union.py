@@ -98,7 +98,7 @@ def test_union_repr() -> None:
     )
 
 
-def test_union_repr() -> None:
+def test_union_eq() -> None:
     assert UnionValidator(StringValidator()) == UnionValidator(StringValidator())
     assert UnionValidator(StringValidator(), IntValidator()) != UnionValidator(
         StringValidator()
