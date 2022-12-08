@@ -924,8 +924,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
 
         for key, val in keys:
             is_required = not isinstance(val, KeyNotRequired)
-            self._fast_keys_sync.append((key, _wrap_sync_validator(val), is_required))  # type: ignore
-            self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))  # type: ignore
+            self._fast_keys_sync.append((key, _wrap_sync_validator(val), is_required))  # type: ignore  # noqa: E501
+            self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))  # type: ignore  # noqa: E501
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(_key_set)
 
