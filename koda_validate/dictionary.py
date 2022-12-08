@@ -289,6 +289,38 @@ class MaxKeys(Predicate[Dict[Any, Any]]):
         return len(val) <= self.size
 
 
+def _wrap_sync_validator(obj: Validator[A]) -> Callable[[Any], ResultTuple[A]]:
+    if isinstance(obj, _ToTupleValidator):
+        return obj.validate_to_tuple
+    else:
+
+        def inner(v: Any) -> ResultTuple[A]:
+            result = obj(v)
+            if result.is_valid:
+                return True, result.val
+            else:
+                return False, result
+
+        return inner
+
+
+def _wrap_async_validator(
+    obj: Validator[A],
+) -> Callable[[Any], Awaitable[ResultTuple[A]]]:
+    if isinstance(obj, _ToTupleValidator):
+        return obj.validate_to_tuple_async
+    else:
+
+        async def inner(v: Any) -> ResultTuple[A]:
+            result = await obj.validate_async(v)
+            if result.is_valid:
+                return True, result.val
+            else:
+                return False, result
+
+        return inner
+
+
 class RecordValidator(_ToTupleValidator[Ret]):
     __match_args__ = (
         "keys",
@@ -882,15 +914,19 @@ class RecordValidator(_ToTupleValidator[Ret]):
         # so we don't need to calculate each time we validate
         _key_set = {k for k, _ in keys}
         self._key_set = _key_set
-        self._fast_keys = [
-            (
-                key,
-                val,
-                not isinstance(val, KeyNotRequired),
-                isinstance(val, _ToTupleValidator),
-            )
-            for key, val in keys
-        ]
+        self._fast_keys_sync: List[
+            Tuple[Hashable, Callable[[Any], ResultTuple[Any]], bool]
+        ] = []
+
+        self._fast_keys_async: List[
+            Tuple[Hashable, Callable[[Any], Awaitable[ResultTuple[Any]]], bool]
+        ] = []
+
+        for key, val in keys:
+            is_required = not isinstance(val, KeyNotRequired)
+            self._fast_keys_sync.append((key, _wrap_sync_validator(val), is_required))  # type: ignore
+            self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))  # type: ignore
+
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(_key_set)
 
     def validate_to_tuple(self, data: Any) -> ResultTuple[Ret]:
@@ -908,21 +944,14 @@ class RecordValidator(_ToTupleValidator[Ret]):
 
         args: List[Any] = []
         errs: Dict[Any, Invalid] = {}
-        for key_, validator, key_required, is_tuple_validator in self._fast_keys:
+        for key_, validator, key_required in self._fast_keys_sync:
             if key_ not in data:
                 if key_required:
                     errs[key_] = Invalid(MissingKeyErr(), data, self)
-                else:
+                elif not errs:
                     args.append(nothing)
             else:
-                if is_tuple_validator:
-                    success, new_val = validator.validate_to_tuple(data[key_])  # type: ignore  # noqa: E501
-                else:
-                    success, new_val = (
-                        (True, result_.val)
-                        if (result_ := validator(data[key_])).is_valid  # type: ignore
-                        else (False, result_)
-                    )
+                success, new_val = validator(data[key_])
 
                 if not success:
                     errs[key_] = new_val
@@ -958,21 +987,14 @@ class RecordValidator(_ToTupleValidator[Ret]):
 
         args: List[Any] = []
         errs: Dict[Any, Invalid] = {}
-        for key_, validator, key_required, is_tuple_validator in self._fast_keys:
+        for key_, async_validator, key_required in self._fast_keys_async:
             if key_ not in data:
                 if key_required:
                     errs[key_] = Invalid(MissingKeyErr(), data, self)
                 else:
                     args.append(nothing)
             else:
-                if is_tuple_validator:
-                    success, new_val = await validator.validate_to_tuple_async(data[key_])  # type: ignore  # noqa: E501
-                else:
-                    success, new_val = (
-                        (True, result_.val)
-                        if (result_ := await validator.validate_async(data[key_])).is_valid  # type: ignore  # noqa: E501
-                        else (False, result_)
-                    )
+                success, new_val = await async_validator(data[key_])
 
                 if not success:
                     errs[key_] = new_val

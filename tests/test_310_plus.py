@@ -46,6 +46,7 @@ from koda_validate.base import (
     TypeErr,
     VariantErrs,
 )
+from koda_validate.bytes import BytesValidator
 from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
 from koda_validate.dictionary import (
     DictValidatorAny,
@@ -666,3 +667,7 @@ def test_get_typehint_validator_ignores_annotated() -> None:
     assert isinstance(
         get_typehint_validator(Annotated[str, "something"]), StringValidator
     )
+
+
+def test_get_typehint_validator_for_bytes() -> None:
+    assert isinstance(get_typehint_validator(bytes), BytesValidator)
