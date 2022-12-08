@@ -64,9 +64,11 @@ __all__ = (
     # one_of.py
     "OneOf2",
     "OneOf3",
-    # serialization
+    # serialization.py
     "Serializable",
     "serializable_validation_err",
+    # set.py
+    "SetValidator",
     # string.py
     "StringValidator",
     "MinLength",
@@ -147,6 +149,7 @@ from koda_validate.list import ListValidator
 from koda_validate.none import NoneValidator, OptionalValidator, none_validator
 from koda_validate.one_of import OneOf2, OneOf3
 from koda_validate.serialization import Serializable, serializable_validation_err
+from koda_validate.set import SetValidator
 from koda_validate.string import (
     EmailPredicate,
     MaxLength,
