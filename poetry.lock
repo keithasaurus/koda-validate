@@ -295,7 +295,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "pyright"
-version = "1.1.281"
+version = "1.1.283"
 description = "Command line wrapper for pyright"
 category = "dev"
 optional = false
@@ -441,7 +441,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "602d3480261a14f479acfe7a7c3923612b2071f939b5294be0c3ee8d6662eca0"
+content-hash = "4a1e14622c25a9f2f6e18d7cd67547515080f8c60eb39e969bd6438963bad163"
 
 [metadata.files]
 attrs = [
@@ -678,8 +678,8 @@ pyflakes = [
     {file = "pyflakes-2.5.0.tar.gz", hash = "sha256:491feb020dca48ccc562a8c0cbe8df07ee13078df59813b83959cbdada312ea3"},
 ]
 pyright = [
-    {file = "pyright-1.1.281-py3-none-any.whl", hash = "sha256:9e52d460c5201c8870a3aa053289a0595874b739314d67b0fdf531c25f17ca01"},
-    {file = "pyright-1.1.281.tar.gz", hash = "sha256:21be27aa562d3e2f1563515a118dcf9a3fd197747604ed47277d36cfe5376c7a"},
+    {file = "pyright-1.1.283-py3-none-any.whl", hash = "sha256:d5b14bb50ccbfb7769e09a611960665021816ea1b0543e0ffb8c341388c73710"},
+    {file = "pyright-1.1.283.tar.gz", hash = "sha256:57dcc7abf0b764d5f587a80faf20186f5666adffe5f34afa10d471e96bbd9509"},
 ]
 pytest = [
     {file = "pytest-7.2.0-py3-none-any.whl", hash = "sha256:892f933d339f068883b6fd5a459f03d85bfcb355e4981e146d2c7616c21fef71"},
