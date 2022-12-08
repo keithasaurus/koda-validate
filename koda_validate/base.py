@@ -162,16 +162,16 @@ ValidationResult = Union[Valid[A], Invalid]
 ErrType = Union[
     BasicErr,
     CoercionErr,
-    KeyErrs,
     ExtraKeysErr,
     IndexErrs,
+    KeyErrs,
     MapErr,
     MissingKeyErr,
     PredicateErrs,
     SetErrs,
     TypeErr,
-    VariantErrs,
     ValidationErrBase,
+    VariantErrs,
 ]
 
 
