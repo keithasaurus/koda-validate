@@ -8,6 +8,6 @@ def test_invalid_repr() -> None:
         == """Invalid(
     err_type: TypeErr(expected=<class 'str'>),
     value: 10,
-    validator: StringValidator() 
+    validator: StringValidator()
 )"""
     )

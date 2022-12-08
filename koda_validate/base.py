@@ -1,4 +1,3 @@
-import pprint
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import (
@@ -161,7 +160,7 @@ class Invalid:
         return f"""{self.__class__.__name__}(
     err_type: {repr(self.err_type)},
     value: {repr(self.value)},
-    validator: {repr(self.validator)} 
+    validator: {repr(self.validator)}
 )"""
 
 
