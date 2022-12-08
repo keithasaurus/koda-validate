@@ -7,6 +7,8 @@ from koda_validate._internal import (
     _async_predicates_warning,
     _repr_helper,
     _ToTupleValidator,
+    _wrap_async_validator,
+    _wrap_sync_validator,
 )
 from koda_validate.base import (
     IndexErrs,
@@ -36,7 +38,8 @@ class ListValidator(_ToTupleValidator[List[A]]):
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
 
-        self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
+        self._wrapped_item_validator_sync = _wrap_sync_validator(item_validator)
+        self._wrapped_item_validator_async = _wrap_async_validator(item_validator)
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[List[A]]:
         if self.predicates_async:
@@ -58,13 +61,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
             return_list: List[A] = []
             index_errs: Dict[int, Invalid] = {}
             for i, item in enumerate(val):
-                if self._item_validator_is_tuple:
-                    is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501
-                else:
-                    _result = self.item_validator(item)
-                    is_valid, item_result = (
-                        (True, _result.val) if _result.is_valid else (False, _result)
-                    )
+                is_valid, item_result = self._wrapped_item_validator_sync(item)  # type: ignore # noqa: E501
 
                 if not is_valid:
                     index_errs[i] = item_result
@@ -103,18 +100,12 @@ class ListValidator(_ToTupleValidator[List[A]]):
             return_list: List[A] = []
             index_errs = {}
             for i, item in enumerate(val):
-                if self._item_validator_is_tuple:
-                    (
-                        is_valid,
-                        item_result,
-                    ) = await self.item_validator.validate_to_tuple_async(  # type: ignore  # noqa: E501
-                        item
-                    )
-                else:
-                    _result = await self.item_validator.validate_async(item)
-                    is_valid, item_result = (
-                        (True, _result.val) if _result.is_valid else (False, _result)
-                    )
+                (
+                    is_valid,
+                    item_result,
+                ) = await self._wrapped_item_validator_async(  # type: ignore  # noqa: E501
+                    item
+                )
 
                 if not is_valid:
                     index_errs[i] = item_result

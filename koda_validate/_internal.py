@@ -1,5 +1,6 @@
 from typing import (
     Any,
+    Awaitable,
     Callable,
     ClassVar,
     Dict,
@@ -13,16 +14,17 @@ from typing import (
     Union,
 )
 
-from koda_validate import Invalid, Valid
 from koda_validate._generics import A, SuccessT
 from koda_validate.base import (
     ExtraKeysErr,
+    Invalid,
     KeyErrs,
     Predicate,
     PredicateAsync,
     PredicateErrs,
     Processor,
     TypeErr,
+    Valid,
     ValidationResult,
     Validator,
     VariantErrs,
@@ -63,102 +65,6 @@ class _ToTupleValidator(Validator[SuccessT]):
             return Valid(result[1])
         else:
             return result[1]
-
-
-def validate_dict_to_tuple(
-    source_validator: Validator[Any],
-    preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
-    fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
-    schema: Dict[Any, Validator[Any]],
-    unknown_keys_err: ExtraKeysErr,
-    data: Any,
-) -> ResultTuple[Dict[Any, Any]]:
-    if not type(data) is dict:
-        return False, Invalid(TypeErr(dict), data, source_validator)
-
-    if preprocessors:
-        for preproc in preprocessors:
-            data = preproc(data)
-
-    # this seems to be faster than `for key_ in data.keys()`
-    for key_ in data:
-        if key_ not in schema:
-            return False, Invalid(unknown_keys_err, data, source_validator)
-
-    success_dict: Dict[Any, Any] = {}
-    errs: Dict[Any, Invalid] = {}
-    for key_, validator, key_required, is_tuple_validator in fast_keys:
-        if key_ not in data:
-            if key_required:
-                errs[key_] = Invalid(missing_key_err, data, source_validator)
-        else:
-            if is_tuple_validator:
-                success, new_val = validator.validate_to_tuple(data[key_])  # type: ignore
-            else:
-                success, new_val = (
-                    (True, result_.val)
-                    if (result_ := validator(data[key_])).is_valid
-                    else (False, result_)
-                )
-
-            if not success:
-                errs[key_] = new_val
-            elif not errs:
-                success_dict[key_] = new_val
-
-    if errs:
-        return False, Invalid(KeyErrs(errs), data, source_validator)
-    else:
-        return True, success_dict
-
-
-async def validate_dict_to_tuple_async(
-    source_validator: Validator[Any],
-    preprocessors: Optional[List[Processor[Dict[Any, Any]]]],
-    fast_keys: List[Tuple[Hashable, Validator[Any], bool, bool]],
-    schema: Dict[Any, Validator[Any]],
-    unknown_keys_err: ExtraKeysErr,
-    data: Any,
-) -> ResultTuple[Dict[Any, Any]]:
-    if not type(data) is dict:
-        return False, Invalid(TypeErr(dict), data, source_validator)
-
-    if preprocessors:
-        for preproc in preprocessors:
-            data = preproc(data)
-
-    # this seems to be faster than `for key_ in data.keys()`
-    for key_ in data:
-        if key_ not in schema:
-            return False, Invalid(unknown_keys_err, data, source_validator)
-
-    success_dict: Dict[Any, Any] = {}
-    errs: Dict[Any, Invalid] = {}
-    for key_, validator, key_required, is_tuple_validator in fast_keys:
-        if key_ not in data:
-            if key_required:
-                errs[key_] = Invalid(missing_key_err, data, source_validator)
-        else:
-            if is_tuple_validator:
-                success, new_val = await validator.validate_to_tuple_async(  # type: ignore  # noqa: E501
-                    data[key_]
-                )
-            else:
-                success, new_val = (
-                    (True, result_.val)
-                    if (result_ := await validator.validate_async(data[key_])).is_valid
-                    else (False, result_)
-                )
-
-            if not success:
-                errs[key_] = new_val
-            elif not errs:
-                success_dict[key_] = new_val
-
-    if errs:
-        return False, Invalid(KeyErrs(errs), data, source_validator)
-    else:
-        return True, success_dict
 
 
 def _simple_type_validator(
@@ -424,3 +330,35 @@ async def _union_validator_async(
             else:
                 errs.append(result)
     return False, Invalid(VariantErrs(errs), val, source_validator)
+
+
+def _wrap_sync_validator(obj: Validator[A]) -> Callable[[Any], ResultTuple[A]]:
+    if isinstance(obj, _ToTupleValidator):
+        return obj.validate_to_tuple
+    else:
+
+        def inner(v: Any) -> ResultTuple[A]:
+            result = obj(v)
+            if result.is_valid:
+                return True, result.val
+            else:
+                return False, result
+
+        return inner
+
+
+def _wrap_async_validator(
+    obj: Validator[A],
+) -> Callable[[Any], Awaitable[ResultTuple[A]]]:
+    if isinstance(obj, _ToTupleValidator):
+        return obj.validate_to_tuple_async
+    else:
+
+        async def inner(v: Any) -> ResultTuple[A]:
+            result = await obj.validate_async(v)
+            if result.is_valid:
+                return True, result.val
+            else:
+                return False, result
+
+        return inner

@@ -7,8 +7,8 @@ from koda_validate._internal import (
     ResultTuple,
     _repr_helper,
     _ToTupleValidator,
-    validate_dict_to_tuple,
-    validate_dict_to_tuple_async,
+    _wrap_async_validator,
+    _wrap_sync_validator,
 )
 from koda_validate.boolean import BoolValidator
 from koda_validate.bytes import BytesValidator
@@ -52,7 +52,15 @@ else:
 
 from uuid import UUID
 
-from koda_validate.base import CoercionErr, ErrType, ExtraKeysErr, Invalid, Validator
+from koda_validate.base import (
+    CoercionErr,
+    ErrType,
+    ExtraKeysErr,
+    Invalid,
+    KeyErrs,
+    Validator,
+    missing_key_err,
+)
 from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
 from koda_validate.union import UnionValidator
 
@@ -157,15 +165,13 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         self.validate_object = validate_object
 
-        self._fast_keys: List[Tuple[Any, Validator[Any], bool, bool]] = [
-            (
-                key,
-                val,
-                key not in keys_with_defaults,
-                isinstance(val, _ToTupleValidator),
-            )
-            for key, val in self.schema.items()
-        ]
+        self._fast_keys_sync = []
+        self._fast_keys_async = []
+        for key, val in self.schema.items():
+            is_required = key not in keys_with_defaults
+            self._fast_keys_sync.append((key, _wrap_sync_validator(val), is_required))
+            self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))
+
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
@@ -183,14 +189,29 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 self,
             )
 
-        result_tup = validate_dict_to_tuple(
-            self, None, self._fast_keys, self.schema, self._unknown_keys_err, data
-        )
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in self.schema:
+                return False, Invalid(self._unknown_keys_err, data, self)
 
-        if not result_tup[0]:
-            return False, result_tup[1]
+        success_dict: Dict[Any, Any] = {}
+        errs: Dict[Any, Invalid] = {}
+        for key_, validator, key_required in self._fast_keys_sync:
+            if key_ not in data:
+                if key_required:
+                    errs[key_] = Invalid(missing_key_err, data, self)
+            else:
+                success, new_val = validator(data[key_])
+
+                if not success:
+                    errs[key_] = new_val
+                elif not errs:
+                    success_dict[key_] = new_val
+
+        if errs:
+            return False, Invalid(KeyErrs(errs), data, self)
         else:
-            obj = self.data_cls(**result_tup[1])
+            obj = self.data_cls(**success_dict)
             if self.validate_object:
                 result = self.validate_object(obj)
                 if result is None:
@@ -215,14 +236,29 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 self,
             )
 
-        result_tup = await validate_dict_to_tuple_async(
-            self, None, self._fast_keys, self.schema, self._unknown_keys_err, data
-        )
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in self.schema:
+                return False, Invalid(self._unknown_keys_err, data, self)
 
-        if not result_tup[0]:
-            return False, result_tup[1]
+        success_dict: Dict[Any, Any] = {}
+        errs: Dict[Any, Invalid] = {}
+        for key_, validator, key_required in self._fast_keys_async:
+            if key_ not in data:
+                if key_required:
+                    errs[key_] = Invalid(missing_key_err, data, self)
+            else:
+                success, new_val = await validator(data[key_])
+
+                if not success:
+                    errs[key_] = new_val
+                elif not errs:
+                    success_dict[key_] = new_val
+
+        if errs:
+            return False, Invalid(KeyErrs(errs), data, self)
         else:
-            obj = self.data_cls(**result_tup[1])
+            obj = self.data_cls(**success_dict)
             if self.validate_object:
                 result = self.validate_object(obj)
                 if result is None:

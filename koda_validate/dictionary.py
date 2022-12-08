@@ -1,5 +1,4 @@
 import dataclasses
-from functools import partial
 from typing import (
     Any,
     Awaitable,
@@ -42,8 +41,8 @@ from koda_validate._internal import (
     _async_predicates_warning,
     _repr_helper,
     _ToTupleValidator,
-    validate_dict_to_tuple,
-    validate_dict_to_tuple_async,
+    _wrap_async_validator,
+    _wrap_sync_validator,
 )
 from koda_validate.base import (
     ErrType,
@@ -59,6 +58,7 @@ from koda_validate.base import (
     TypeErr,
     ValidationResult,
     Validator,
+    missing_key_err,
 )
 
 
@@ -287,38 +287,6 @@ class MaxKeys(Predicate[Dict[Any, Any]]):
 
     def __call__(self, val: Dict[Any, Any]) -> bool:
         return len(val) <= self.size
-
-
-def _wrap_sync_validator(obj: Validator[A]) -> Callable[[Any], ResultTuple[A]]:
-    if isinstance(obj, _ToTupleValidator):
-        return obj.validate_to_tuple
-    else:
-
-        def inner(v: Any) -> ResultTuple[A]:
-            result = obj(v)
-            if result.is_valid:
-                return True, result.val
-            else:
-                return False, result
-
-        return inner
-
-
-def _wrap_async_validator(
-    obj: Validator[A],
-) -> Callable[[Any], Awaitable[ResultTuple[A]]]:
-    if isinstance(obj, _ToTupleValidator):
-        return obj.validate_to_tuple_async
-    else:
-
-        async def inner(v: Any) -> ResultTuple[A]:
-            result = await obj.validate_async(v)
-            if result.is_valid:
-                return True, result.val
-            else:
-                return False, result
-
-        return inner
 
 
 class RecordValidator(_ToTupleValidator[Ret]):
@@ -1097,67 +1065,106 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         self.preprocessors = preprocessors
 
         # so we don't need to calculate each time we validate
-        _fast_keys = [
-            (
-                key,
-                val.validator if isinstance(val, KeyNotRequired) else val,
-                not isinstance(val, KeyNotRequired),
-                isinstance(val, _ToTupleValidator),
+        self._fast_keys_sync = []
+        self._fast_keys_async = []
+        for key, val in schema.items():
+            vldtr = (
+                val.validator
+                if (is_not_required := isinstance(val, KeyNotRequired))
+                else val
             )
-            for key, val in schema.items()
-        ]
+            self._fast_keys_sync.append(
+                (key, _wrap_sync_validator(vldtr), not is_not_required)
+            )
+            self._fast_keys_async.append(
+                (key, _wrap_async_validator(vldtr), not is_not_required)
+            )
 
-        _unknown_keys_err = ExtraKeysErr(set(schema.keys()))
-        self._validate_keys_partial = partial(
-            validate_dict_to_tuple,
-            self,
-            self.preprocessors,
-            _fast_keys,
-            schema,
-            _unknown_keys_err,
-        )
-        self._validate_keys_partial_async = partial(
-            validate_dict_to_tuple_async,
-            self,
-            self.preprocessors,
-            _fast_keys,
-            schema,
-            _unknown_keys_err,
-        )
+        self._unknown_keys_err = ExtraKeysErr(set(schema.keys()))
 
     def validate_to_tuple(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
-        result_tup = self._validate_keys_partial(data)
-        if not result_tup[0]:
-            return False, result_tup[1]
+        if not type(data) is dict:
+            return False, Invalid(TypeErr(dict), data, self)
+
+        if self.preprocessors:
+            for preproc in self.preprocessors:
+                data = preproc(data)
+
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in self.schema:
+                return False, Invalid(self._unknown_keys_err, data, self)
+
+        success_dict: Dict[Any, Any] = {}
+        errs: Dict[Any, Invalid] = {}
+        for key_, validator, key_required in self._fast_keys_sync:
+            if key_ not in data:
+                if key_required:
+                    errs[key_] = Invalid(missing_key_err, data, self)
+            else:
+                success, new_val = validator(data[key_])
+
+                if not success:
+                    errs[key_] = new_val
+                elif not errs:
+                    success_dict[key_] = new_val
+
+        if errs:
+            return False, Invalid(KeyErrs(errs), data, self)
         else:
             if self.validate_object is not None:
-                result = self.validate_object(result_tup[1])
+                result = self.validate_object(success_dict)
                 if result is None:
-                    return True, result_tup[1]
+                    return True, success_dict
                 else:
-                    return False, Invalid(result, result_tup[1], self)
+                    return False, Invalid(result, success_dict, self)
             else:
-                return True, result_tup[1]
+                return True, success_dict
 
     async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
-        result_tup = await self._validate_keys_partial_async(data)
-        if not result_tup[0]:
-            return False, result_tup[1]
+        if not type(data) is dict:
+            return False, Invalid(TypeErr(dict), data, self)
+
+        if self.preprocessors:
+            for preproc in self.preprocessors:
+                data = preproc(data)
+
+        # this seems to be faster than `for key_ in data.keys()`
+        for key_ in data:
+            if key_ not in self.schema:
+                return False, Invalid(self._unknown_keys_err, data, self)
+
+        success_dict: Dict[Any, Any] = {}
+        errs: Dict[Any, Invalid] = {}
+        for key_, validator, key_required in self._fast_keys_async:
+            if key_ not in data:
+                if key_required:
+                    errs[key_] = Invalid(missing_key_err, data, self)
+            else:
+                success, new_val = await validator(data[key_])
+
+                if not success:
+                    errs[key_] = new_val
+                elif not errs:
+                    success_dict[key_] = new_val
+
+        if errs:
+            return False, Invalid(KeyErrs(errs), data, self)
         else:
             if self.validate_object is not None:
-                result = self.validate_object(result_tup[1])
+                result = self.validate_object(success_dict)
                 if result is None:
-                    return True, result_tup[1]
+                    return True, success_dict
                 else:
-                    return False, Invalid(result, result_tup[1], self)
+                    return False, Invalid(result, success_dict, self)
             elif self.validate_object_async is not None:
-                result = await self.validate_object_async((obj := result_tup[1]))
+                result = await self.validate_object_async((obj := success_dict))
                 if result is None:
                     return True, obj
                 else:
                     return False, Invalid(result, obj, self)
             else:
-                return True, result_tup[1]
+                return True, success_dict
 
     def __eq__(self, other: Any) -> bool:
         return (
