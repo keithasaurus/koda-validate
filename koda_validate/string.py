@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Pattern
+from typing import ClassVar, Optional, Pattern
 
 from koda_validate._internal import _ExactTypeValidator
 from koda_validate.base import Predicate, Processor
@@ -28,6 +28,16 @@ class EmailPredicate(Predicate[str]):
 
 @dataclass
 class NotBlank(Predicate[str]):
+    _instance: ClassVar[Optional["NotBlank"]] = None
+
+    def __new__(cls) -> "NotBlank":
+        """
+        Make a singleton
+        """
+        if cls._instance is None:
+            cls._instance = super(NotBlank, cls).__new__(cls)
+        return cls._instance
+
     def __call__(self, val: str) -> bool:
         return len(val.strip()) != 0
 
