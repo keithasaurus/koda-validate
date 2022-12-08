@@ -110,7 +110,7 @@ def serializable_validation_err(invalid: Invalid) -> Serializable:
         )
         return [err_message]
     elif isinstance(err, TypeErr):
-        return [f"expected {err.expected_type.__name__}"]
+        return [f"expected {err.expected.__name__}"]
     elif isinstance(err, PredicateErrs):
         return [pred_to_err_message(p) for p in err.predicates]
     elif isinstance(err, IndexErrs):
