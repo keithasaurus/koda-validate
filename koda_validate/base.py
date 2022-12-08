@@ -1,4 +1,3 @@
-import pprint
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import (
@@ -140,7 +139,7 @@ class TypeErr:
     A specific type was required but not provided
     """
 
-    expected: Type[Any]
+    expected_type: Type[Any]
 
 
 @dataclass
@@ -156,13 +155,6 @@ class Invalid:
     validator: "Validator[Any]"
 
     is_valid: ClassVar[Literal[False]] = False
-
-    def __repr__(self) -> str:
-        return f"""{self.__class__.__name__}(
-    err_type: {repr(self.err_type)},
-    value: {repr(self.value)},
-    validator: {repr(self.validator)} 
-)"""
 
 
 ValidationResult = Union[Valid[A], Invalid]
