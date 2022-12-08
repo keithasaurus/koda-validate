@@ -3,8 +3,6 @@ from typing import (
     Awaitable,
     Callable,
     ClassVar,
-    Dict,
-    Hashable,
     List,
     Literal,
     NoReturn,
@@ -16,9 +14,7 @@ from typing import (
 
 from koda_validate._generics import A, SuccessT
 from koda_validate.base import (
-    ExtraKeysErr,
     Invalid,
-    KeyErrs,
     Predicate,
     PredicateAsync,
     PredicateErrs,
@@ -28,7 +24,6 @@ from koda_validate.base import (
     ValidationResult,
     Validator,
     VariantErrs,
-    missing_key_err,
 )
 
 ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], Invalid]]

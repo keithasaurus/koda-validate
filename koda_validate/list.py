@@ -61,12 +61,12 @@ class ListValidator(_ToTupleValidator[List[A]]):
             return_list: List[A] = []
             index_errs: Dict[int, Invalid] = {}
             for i, item in enumerate(val):
-                is_valid, item_result = self._wrapped_item_validator_sync(item)  # type: ignore # noqa: E501
+                is_valid, item_result = self._wrapped_item_validator_sync(item)
 
                 if not is_valid:
-                    index_errs[i] = item_result
+                    index_errs[i] = item_result  # type: ignore
                 elif not index_errs:
-                    return_list.append(item_result)
+                    return_list.append(item_result)  # type: ignore
 
             if index_errs:
                 return False, Invalid(IndexErrs(index_errs), val, self)
@@ -103,17 +103,15 @@ class ListValidator(_ToTupleValidator[List[A]]):
                 (
                     is_valid,
                     item_result,
-                ) = await self._wrapped_item_validator_async(  # type: ignore  # noqa: E501
-                    item
-                )
+                ) = await self._wrapped_item_validator_async(item)
 
                 if not is_valid:
                     index_errs[i] = item_result
                 elif not index_errs:
-                    return_list.append(item_result)
+                    return_list.append(item_result)  # type: ignore
 
             if index_errs:
-                return False, Invalid(IndexErrs(index_errs), val, self)
+                return False, Invalid(IndexErrs(index_errs), val, self)  # type: ignore  # noqa: E501
             else:
                 return True, return_list
         else:
