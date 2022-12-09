@@ -2,7 +2,16 @@ import re
 from dataclasses import dataclass
 from typing import List, TypeVar
 
-from koda_validate import Choices, Lazy, ListValidator, MaxItems, unique_items
+from openapi_spec_validator import validate_spec
+
+from koda_validate import (
+    Choices,
+    Lazy,
+    ListValidator,
+    MaxItems,
+    Serializable,
+    unique_items,
+)
 from koda_validate.dictionary import RecordValidator
 from koda_validate.openapi import generate_schema
 from koda_validate.string import (
@@ -16,6 +25,29 @@ from koda_validate.string import (
 
 A = TypeVar("A")
 Ret = TypeVar("Ret")
+
+
+def validate_schema(schema: Serializable) -> None:
+    spec = {
+        "openapi": "3.1.0",
+        "info": {
+            "title": "hmm",
+            "version": "1.1.1",
+        },
+        "paths": {
+            "/board": {
+                "get": {
+                    "responses": {
+                        "200": {
+                            "description": "ok",
+                            "content": {"application/json": {"schema": schema}},
+                        }
+                    }
+                }
+            }
+        },
+    }
+    return validate_spec(spec)  # type: ignore
 
 
 def test_recursive_validator() -> None:
@@ -80,7 +112,7 @@ def test_person() -> None:
         into=Person,
     )
 
-    assert generate_schema("Person", person_validator) == {
+    schema: Serializable = {
         "Person": {
             "type": "object",
             "additionalProperties": False,
@@ -102,6 +134,10 @@ def test_person() -> None:
             },
         }
     }
+
+    assert generate_schema("Person", person_validator) == schema
+    # will throw if bad
+    validate_schema(schema)
 
 
 #
