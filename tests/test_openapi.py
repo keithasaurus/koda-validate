@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import List, Optional, Set, TypeVar
 
+from koda import First, Second, Third
 from openapi_spec_validator import validate_spec
 
 from koda_validate import (
@@ -13,9 +14,13 @@ from koda_validate import (
     IntValidator,
     Lazy,
     ListValidator,
+    Max,
     MaxItems,
     Min,
+    MinItems,
     NTupleValidator,
+    OneOf2,
+    OneOf3,
     OptionalValidator,
     Serializable,
     Valid,
@@ -114,7 +119,7 @@ def test_person() -> None:
                 "honorifics",
                 ListValidator(
                     StringValidator(RegexPredicate(re.compile(r"[A-Z][a-z]+\.]"))),
-                    predicates=[unique_items, MaxItems(3)],
+                    predicates=[unique_items, MinItems(1), MaxItems(3)],
                 ),
             ),
         ),
@@ -137,6 +142,7 @@ def test_person() -> None:
                 "honorifics": {
                     "uniqueItems": True,
                     "type": "array",
+                    "minItems": 1,
                     "maxItems": 3,
                     "items": {"type": "string", "pattern": "[A-Z][a-z]+\\.]"},
                 },
@@ -161,13 +167,35 @@ def test_cities() -> None:
         key=StringValidator(),
         value=RecordValidator(
             keys=(
-                ("population", OptionalValidator(IntValidator(Min(0)))),
+                ("population", OptionalValidator(IntValidator(Min(0), Max(50_000_000)))),
                 ("state", StringValidator(Choices(state_choices))),
             ),
             into=CityInfo,
         ),
         predicates=[MaxKeys(3), MinKeys(2)],
     )
+
+    expected_schema = {
+        "type": "object",
+        "additionalProperties": {
+            "additionalProperties": False,
+            "type": "object",
+            "required": ["population", "state"],
+            "properties": {
+                "population": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 50000000,
+                    "exclusiveMinimum": False,
+                    "exclusiveMaximum": False,
+                    "nullable": True,
+                },
+                "state": {"type": "string", "enum": ["CA", "NY"]},
+            },
+        },
+        "maxProperties": 3,
+        "minProperties": 2,
+    }
 
     # sanity check
     assert validate_cities(
@@ -182,135 +210,123 @@ def test_cities() -> None:
         }
     )
 
-    assert generate_schema(validate_cities) == {
-        "type": "object",
-        "additionalProperties": {
-            "additionalProperties": False,
-            "type": "object",
-            "required": ["population", "state"],
-            "properties": {
-                "population": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "exclusiveMinimum": False,
-                    "nullable": True,
+    validate_schema(expected_schema)  # type: ignore
+    assert generate_schema(validate_cities) == expected_schema
+
+
+def test_auth_creds() -> None:
+    @dataclass
+    class UsernameCreds:
+        username: str
+        password: str
+
+    @dataclass
+    class EmailCreds:
+        email: str
+        password: str
+
+    username_creds_validator = RecordValidator(
+        keys=(
+            ("username", StringValidator(not_blank)),
+            ("password", StringValidator(not_blank)),
+        ),
+        into=UsernameCreds,
+    )
+
+    email_creds_validator = RecordValidator(
+        keys=(
+            ("email", StringValidator(EmailPredicate())),
+            ("password", StringValidator(not_blank)),
+        ),
+        into=EmailCreds,
+    )
+
+    validator_one_of_2 = OneOf2(username_creds_validator, email_creds_validator)
+
+    # sanity check
+    assert validator_one_of_2({"username": "a", "password": "b"}) == Valid(
+        First(UsernameCreds("a", "b"))
+    )
+
+    assert validator_one_of_2({"email": "a@example.com", "password": "b"}) == Valid(
+        Second(EmailCreds("a@example.com", "b"))
+    )
+
+    assert generate_schema(validator_one_of_2) == {
+        "oneOf": [
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["username", "password"],
+                "properties": {
+                    "username": {"type": "string", "pattern": r"^(?!\s*$).+"},
+                    "password": {"type": "string", "pattern": r"^(?!\s*$).+"},
                 },
-                "state": {"type": "string", "enum": ["CA", "NY"]},
             },
-        },
-        "maxProperties": 3,
-        "minProperties": 2,
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["email", "password"],
+                "properties": {
+                    "email": {"type": "string", "format": "email"},
+                    "password": {"type": "string", "pattern": r"^(?!\s*$).+"},
+                },
+            },
+        ]
     }
 
+    @dataclass
+    class Token:
+        token: str
 
-# def test_auth_creds() -> None:
-#     @dataclass
-#     class UsernameCreds:
-#         username: str
-#         password: str
-#
-#     @dataclass
-#     class EmailCreds:
-#         email: str
-#         password: str
-#
-#     username_creds_validator = v.Obj2(
-#         v.prop("username", v.String(v.not_blank)),
-#         v.prop("password", v.String(v.not_blank)),
-#         into=UsernameCreds,
-#     )
-#
-#     email_creds_validator = v.Obj2(
-#         v.prop("email", v.String(v.Email())),
-#         v.prop("password", v.String(v.not_blank)),
-#         into=EmailCreds,
-#     )
-#
-#     validator_one_of_2 = v.OneOf2(username_creds_validator, email_creds_validator)
-#
-#     # sanity check
-#     assert validator_one_of_2({"username": "a", "password": "b"}) == Ok(
-#         First(UsernameCreds("a", "b"))
-#     )
-#
-#     assert validator_one_of_2({"email": "a@example.com", "password": "b"}) == Ok(
-#         Second(EmailCreds("a@example.com", "b"))
-#     )
-#
-#     assert generate_schema("AuthCreds", validator_one_of_2) == {
-#         "AuthCreds": {
-#             "oneOf": [
-#                 {
-#                     "type": "object",
-#                     "additionalProperties": False,
-#                     "required": ["username", "password"],
-#                     "properties": {
-#                         "username": {"type": "string", "pattern": r"^(?!\s*$).+"},
-#                         "password": {"type": "string", "pattern": r"^(?!\s*$).+"},
-#                     },
-#                 },
-#                 {
-#                     "type": "object",
-#                     "additionalProperties": False,
-#                     "required": ["email", "password"],
-#                     "properties": {
-#                         "email": {"type": "string", "format": "email"},
-#                         "password": {"type": "string", "pattern": r"^(?!\s*$).+"},
-#                     },
-#                 },
-#             ]
-#         }
-#     }
-#
-#     @dataclass
-#     class Token:
-#         token: str
-#
-#     validator_one_of_3 = v.OneOf3(
-#         username_creds_validator,
-#         email_creds_validator,
-#         v.Obj1(v.prop("token", v.String(v.MinLength(32), v.MaxLength(32))), into=Token),
-#     )
-#
-#     # sanity
-#     assert validator_one_of_3({"token": "abcdefghijklmnopqrstuvwxyz123456"}) == Ok(
-#         Third(Token("abcdefghijklmnopqrstuvwxyz123456"))
-#     )
-#
-#     assert generate_schema("AuthCreds", validator_one_of_3) == {
-#         "AuthCreds": {
-#             "oneOf": [
-#                 {
-#                     "type": "object",
-#                     "additionalProperties": False,
-#                     "required": ["username", "password"],
-#                     "properties": {
-#                         "username": {"type": "string", "pattern": r"^(?!\s*$).+"},
-#                         "password": {"type": "string", "pattern": r"^(?!\s*$).+"},
-#                     },
-#                 },
-#                 {
-#                     "type": "object",
-#                     "additionalProperties": False,
-#                     "required": ["email", "password"],
-#                     "properties": {
-#                         "email": {"type": "string", "format": "email"},
-#                         "password": {"type": "string", "pattern": r"^(?!\s*$).+"},
-#                     },
-#                 },
-#                 {
-#                     "type": "object",
-#                     "additionalProperties": False,
-#                     "required": ["token"],
-#                     "properties": {
-#                         "token": {"type": "string", "minLength": 32, "maxLength": 32}
-#                     },
-#                 },
-#             ]
-#         }
-#     }
-#
-#
+    validator_one_of_3 = OneOf3(
+        username_creds_validator,
+        email_creds_validator,
+        RecordValidator(
+            keys=(("token", StringValidator(MinLength(32), MaxLength(32))),), into=Token
+        ),
+    )
+
+    # sanity
+    assert validator_one_of_3({"token": "abcdefghijklmnopqrstuvwxyz123456"}) == Valid(
+        Third(Token("abcdefghijklmnopqrstuvwxyz123456"))
+    )
+
+    expected_schema = {
+        "oneOf": [
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["username", "password"],
+                "properties": {
+                    "username": {"type": "string", "pattern": r"^(?!\s*$).+"},
+                    "password": {"type": "string", "pattern": r"^(?!\s*$).+"},
+                },
+            },
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["email", "password"],
+                "properties": {
+                    "email": {"type": "string", "format": "email"},
+                    "password": {"type": "string", "pattern": r"^(?!\s*$).+"},
+                },
+            },
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["token"],
+                "properties": {
+                    "token": {"type": "string", "minLength": 32, "maxLength": 32}
+                },
+            },
+        ]
+    }
+
+    assert generate_schema(validator_one_of_3) == expected_schema
+    validate_schema(expected_schema)  # type: ignore
+
+
 def test_forecast() -> None:
     validator = MapValidator(key=DateValidator(), value=FloatValidator())
 
