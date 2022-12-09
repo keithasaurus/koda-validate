@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass
+from datetime import date
 from typing import List, Optional, Set, TypeVar
 
 from openapi_spec_validator import validate_spec
@@ -7,6 +8,8 @@ from openapi_spec_validator import validate_spec
 from koda_validate import (
     BoolValidator,
     Choices,
+    DateValidator,
+    FloatValidator,
     IntValidator,
     Lazy,
     ListValidator,
@@ -19,7 +22,7 @@ from koda_validate import (
     unique_items,
 )
 from koda_validate.dictionary import MapValidator, MaxKeys, MinKeys, RecordValidator
-from koda_validate.openapi import generate_named_schema, generate_schema
+from koda_validate.openapi import generate_recursive_schema, generate_schema
 from koda_validate.string import (
     EmailPredicate,
     MaxLength,
@@ -73,7 +76,7 @@ def test_recursive_validator() -> None:
         into=Comment,
     )
 
-    assert generate_named_schema("Comment", comment_validator) == {
+    assert generate_recursive_schema("Comment", comment_validator) == {
         "Comment": {
             "additionalProperties": False,
             "properties": {
@@ -141,7 +144,7 @@ def test_person() -> None:
         }
     }
 
-    assert generate_named_schema("Person", person_validator) == schema
+    assert generate_recursive_schema("Person", person_validator) == schema
     # will throw if bad
     validate_schema(schema)
 
@@ -200,8 +203,6 @@ def test_cities() -> None:
     }
 
 
-#
-#
 # def test_auth_creds() -> None:
 #     @dataclass
 #     class UsernameCreds:
@@ -310,19 +311,20 @@ def test_cities() -> None:
 #     }
 #
 #
-# def test_forecast() -> None:
-#     validator = v.MapOf(v.Date(), v.Float())
-#
-#     # sanity
-#     assert validator({"2021-04-06": 55.5, "2021-04-07": 57.9}) == Ok(
-#         {date(2021, 4, 6): 55.5, date(2021, 4, 7): 57.9}
-#     )
-#
-#     assert generate_schema("Forecast", validator) == {
-#         "Forecast": {"type": "object", "additionalProperties": {"type": "number"}}
-#     }
-#
-#
+def test_forecast() -> None:
+    validator = MapValidator(key=DateValidator(), value=FloatValidator())
+
+    # sanity
+    assert validator({"2021-04-06": 55.5, "2021-04-07": 57.9}) == Valid(
+        {date(2021, 4, 6): 55.5, date(2021, 4, 7): 57.9}
+    )
+
+    assert generate_schema(validator) == {
+        "type": "object",
+        "additionalProperties": {"type": "number"},
+    }
+
+
 def test_tuples() -> None:
     validator = NTupleValidator.typed(
         fields=(

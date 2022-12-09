@@ -33,7 +33,9 @@ ValidatorToSchema = Callable[[AnyValidatorOrPredicate], Dict[str, Serializable]]
 
 
 def unhandled_type(obj: Any) -> NoReturn:
-    raise TypeError(f"type {type(obj)} not handled")
+    raise TypeError(
+        f"type {type(obj)} not handled. You may want to write a wrapper function."
+    )
 
 
 def string_schema(
@@ -230,13 +232,13 @@ def generate_schema_base(
 
 
 def generate_named_schema_base(
-    schema_name: str, obj: AnyValidatorOrPredicate
+    ref_location: str, schema_name: str, obj: AnyValidatorOrPredicate
 ) -> Dict[str, Serializable]:
     if isinstance(obj, Validator):
-        to_schema_fn = partial(generate_named_schema_base, schema_name)
+        to_schema_fn = partial(generate_named_schema_base, ref_location, schema_name)
         if isinstance(obj, Lazy):
             if obj.recurrent:
-                return {"$ref": f"#/components/schemas/{schema_name}"}
+                return {"$ref": f"{ref_location}{schema_name}"}
             else:
                 return to_schema_fn(obj.validator)
         else:
@@ -247,13 +249,15 @@ def generate_named_schema_base(
         unhandled_type(obj)
 
 
-def generate_named_schema(
-    schema_name: str, obj: AnyValidatorOrPredicate
+def generate_recursive_schema(
+    schema_name: str,
+    obj: AnyValidatorOrPredicate,
+    ref_location: str = "#/components/schemas/",
 ) -> Dict[str, Serializable]:
     """
     A schema_name is required, mainly so recursive objects can relate to themselves.
     """
-    return {schema_name: generate_named_schema_base(schema_name, obj)}
+    return {schema_name: generate_named_schema_base(ref_location, schema_name, obj)}
 
 
 def generate_schema(obj: AnyValidatorOrPredicate) -> Dict[str, Serializable]:

@@ -73,15 +73,15 @@ class Choices(Predicate[EnumT]):
         return val in self.choices
 
 
-Num = TypeVar("Num", int, float, Decimal)
+MinMaxT = TypeVar("MinMaxT", int, float, Decimal, date, datetime)
 
 
 @dataclass
-class Min(Predicate[Num]):
-    minimum: Num
+class Min(Predicate[MinMaxT]):
+    minimum: MinMaxT
     exclusive_minimum: bool = False
 
-    def __call__(self, val: Num) -> bool:
+    def __call__(self, val: MinMaxT) -> bool:
         if self.exclusive_minimum:
             return val > self.minimum
         else:
@@ -89,15 +89,18 @@ class Min(Predicate[Num]):
 
 
 @dataclass
-class Max(Predicate[Num]):
-    maximum: Num
+class Max(Predicate[MinMaxT]):
+    maximum: MinMaxT
     exclusive_maximum: bool = False
 
-    def __call__(self, val: Num) -> bool:
+    def __call__(self, val: MinMaxT) -> bool:
         if self.exclusive_maximum:
             return val < self.maximum
         else:
             return val <= self.maximum
+
+
+Num = TypeVar("Num", int, float, Decimal)
 
 
 @dataclass
