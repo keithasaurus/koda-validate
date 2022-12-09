@@ -1,19 +1,25 @@
 import re
 from dataclasses import dataclass
-from typing import List, TypeVar
+from typing import List, Optional, Set, TypeVar
 
 from openapi_spec_validator import validate_spec
 
 from koda_validate import (
+    BoolValidator,
     Choices,
+    IntValidator,
     Lazy,
     ListValidator,
     MaxItems,
+    Min,
+    NTupleValidator,
+    OptionalValidator,
     Serializable,
+    Valid,
     unique_items,
 )
-from koda_validate.dictionary import RecordValidator
-from koda_validate.openapi import generate_schema
+from koda_validate.dictionary import MapValidator, MaxKeys, MinKeys, RecordValidator
+from koda_validate.openapi import generate_named_schema, generate_schema
 from koda_validate.string import (
     EmailPredicate,
     MaxLength,
@@ -67,7 +73,7 @@ def test_recursive_validator() -> None:
         into=Comment,
     )
 
-    assert generate_schema("Comment", comment_validator) == {
+    assert generate_named_schema("Comment", comment_validator) == {
         "Comment": {
             "additionalProperties": False,
             "properties": {
@@ -135,65 +141,65 @@ def test_person() -> None:
         }
     }
 
-    assert generate_schema("Person", person_validator) == schema
+    assert generate_named_schema("Person", person_validator) == schema
     # will throw if bad
     validate_schema(schema)
 
 
-#
-# def test_cities() -> None:
-#     @dataclass
-#     class CityInfo:
-#         population: Maybe[int]
-#         state: str
-#
-#     state_choices: Set[str] = {"CA", "NY"}
-#
-#     validate_cities = v.MapOf(
-#         v.String(),
-#         v.Obj2(
-#             v.prop("population", v.Nullable(v.Integer(v.Minimum(0)))),
-#             v.prop("state", v.String(v.Enum(state_choices))),
-#             into=CityInfo,
-#         ),
-#         v.MaxProperties(3),
-#         v.MinProperties(2),
-#     )
-#
-#     # sanity check
-#     assert validate_cities(
-#         {
-#             "Oakland": {"population": 450000, "state": "CA"},
-#             "San Francisco": {"population": None, "state": "CA"},
-#         }
-#     ) == Ok(
-#         {
-#             "Oakland": CityInfo(Just(450000), "CA"),
-#             "San Francisco": CityInfo(Nothing, "CA"),
-#         }
-#     )
-#
-#     assert generate_schema("City", validate_cities) == {
-#         "City": {
-#             "type": "object",
-#             "additionalProperties": {
-#                 "additionalProperties": False,
-#                 "type": "object",
-#                 "required": ["population", "state"],
-#                 "properties": {
-#                     "population": {
-#                         "type": "integer",
-#                         "minimum": 0,
-#                         "exclusiveMinimum": False,
-#                         "nullable": True,
-#                     },
-#                     "state": {"type": "string", "enum": ["CA", "NY"]},
-#                 },
-#             },
-#             "maxProperties": 3,
-#             "minProperties": 2,
-#         }
-#     }
+def test_cities() -> None:
+    @dataclass
+    class CityInfo:
+        population: Optional[int]
+        state: str
+
+    state_choices: Set[str] = {"CA", "NY"}
+
+    validate_cities = MapValidator(
+        key=StringValidator(),
+        value=RecordValidator(
+            keys=(
+                ("population", OptionalValidator(IntValidator(Min(0)))),
+                ("state", StringValidator(Choices(state_choices))),
+            ),
+            into=CityInfo,
+        ),
+        predicates=[MaxKeys(3), MinKeys(2)],
+    )
+
+    # sanity check
+    assert validate_cities(
+        {
+            "Oakland": {"population": 450000, "state": "CA"},
+            "San Francisco": {"population": None, "state": "CA"},
+        }
+    ) == Valid(
+        {
+            "Oakland": CityInfo(450000, "CA"),
+            "San Francisco": CityInfo(None, "CA"),
+        }
+    )
+
+    assert generate_schema(validate_cities) == {
+        "type": "object",
+        "additionalProperties": {
+            "additionalProperties": False,
+            "type": "object",
+            "required": ["population", "state"],
+            "properties": {
+                "population": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": False,
+                    "nullable": True,
+                },
+                "state": {"type": "string", "enum": ["CA", "NY"]},
+            },
+        },
+        "maxProperties": 3,
+        "minProperties": 2,
+    }
+
+
 #
 #
 # def test_auth_creds() -> None:
@@ -317,37 +323,42 @@ def test_person() -> None:
 #     }
 #
 #
-# def test_tuples() -> None:
-#     validator = v.Tuple2(
-#         v.String(v.not_blank), v.Tuple3(v.String(), v.Integer(), v.Boolean())
-#     )
-#
-#     # sanity check
-#     assert validator(["ok", ["", 0, False]]) == Ok(("ok", ("", 0, False)))
-#
-#     assert generate_schema("Tuples", validator) == {
-#         "Tuples": {
-#             "description": "a 2-tuple; schemas for slots are "
-#             'listed in order in "items" > "anyOf"',
-#             "type": "array",
-#             "maxItems": 2,
-#             "items": {
-#                 "anyOf": [
-#                     {"type": "string", "pattern": r"^(?!\s*$).+"},
-#                     {
-#                         "description": "a 3-tuple; schemas for slots are "
-#                         'listed in order in "items" > "anyOf"',
-#                         "type": "array",
-#                         "maxItems": 3,
-#                         "items": {
-#                             "anyOf": [
-#                                 {"type": "string"},
-#                                 {"type": "integer"},
-#                                 {"type": "boolean"},
-#                             ]
-#                         },
-#                     },
-#                 ]
-#             },
-#         }
-#     }
+def test_tuples() -> None:
+    validator = NTupleValidator.typed(
+        fields=(
+            StringValidator(not_blank),
+            NTupleValidator.typed(
+                fields=(StringValidator(), IntValidator(), BoolValidator())
+            ),
+        )
+    )
+
+    # sanity check
+    assert validator(["ok", ["", 0, False]]) == Valid(("ok", ("", 0, False)))
+    schema = generate_schema(validator)
+
+    assert generate_schema(validator) == {
+        "type": "array",
+        "description": 'a 2-tuple of the fields in "prefixItems"',
+        "maxItems": 2,
+        "minItems": 2,
+        "additionalItems": False,
+        "prefixItems": [
+            {"type": "string", "pattern": r"^(?!\s*$).+"},
+            {
+                "type": "array",
+                "description": 'a 3-tuple of the fields in "prefixItems"',
+                "additionalItems": False,
+                "minItems": 3,
+                "maxItems": 3,
+                "prefixItems": [
+                    {"type": "string"},
+                    {"type": "integer"},
+                    {"type": "boolean"},
+                ],
+            },
+        ],
+    }
+
+    # will throw if bad
+    validate_schema(schema)
