@@ -348,9 +348,10 @@ def _wrap_async_validator(
     if isinstance(obj, _ToTupleValidator):
         return obj.validate_to_tuple_async
     else:
+        async_validator = obj.validate_async
 
         async def inner(v: Any) -> ResultTuple[A]:
-            result = await obj.validate_async(v)
+            result = await async_validator(v)
             if result.is_valid:
                 return True, result.val
             else:

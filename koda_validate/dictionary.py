@@ -880,8 +880,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self.preprocessors = preprocessors
 
         # so we don't need to calculate each time we validate
-        _key_set = {k for k, _ in keys}
-        self._key_set = _key_set
+        self._key_set = set()
         self._fast_keys_sync: List[
             Tuple[Hashable, Callable[[Any], ResultTuple[Any]], bool]
         ] = []
@@ -894,8 +893,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             is_required = not isinstance(val, KeyNotRequired)
             self._fast_keys_sync.append((key, _wrap_sync_validator(val), is_required))  # type: ignore  # noqa: E501
             self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))  # type: ignore  # noqa: E501
+            self._key_set.add(key)
 
-        self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(_key_set)
+        self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(self._key_set)
 
     def validate_to_tuple(self, data: Any) -> ResultTuple[Ret]:
         if not isinstance(data, dict):
@@ -1067,7 +1067,9 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         # so we don't need to calculate each time we validate
         self._fast_keys_sync = []
         self._fast_keys_async = []
+        self._keys_set = set()
         for key, val in schema.items():
+            self._keys_set.add(key)
             vldtr = (
                 val.validator
                 if (is_not_required := isinstance(val, KeyNotRequired))
@@ -1092,7 +1094,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
-            if key_ not in self.schema:
+            if key_ not in self._keys_set:
                 return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[Any, Any] = {}
@@ -1131,7 +1133,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
-            if key_ not in self.schema:
+            if key_ not in self._keys_set:
                 return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[Any, Any] = {}

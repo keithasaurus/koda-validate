@@ -165,9 +165,11 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         self.validate_object = validate_object
 
+        self._keys_set = set()
         self._fast_keys_sync = []
         self._fast_keys_async = []
         for key, val in self.schema.items():
+            self._keys_set.add(key)
             is_required = key not in keys_with_defaults
             self._fast_keys_sync.append((key, _wrap_sync_validator(val), is_required))
             self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))
@@ -191,7 +193,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
-            if key_ not in self.schema:
+            if key_ not in self._keys_set:
                 return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[Any, Any] = {}
@@ -238,7 +240,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         # this seems to be faster than `for key_ in data.keys()`
         for key_ in data:
-            if key_ not in self.schema:
+            if key_ not in self._keys_set:
                 return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[Any, Any] = {}
