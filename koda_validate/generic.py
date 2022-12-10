@@ -241,4 +241,6 @@ class UniqueItems(Predicate[ListOrTupleOrSetAny]):
             return True
 
 
+# mypy has a problem with this for Tuple[Any, ...]
+# for some types, you might need to use UniqueItems()
 unique_items = UniqueItems()

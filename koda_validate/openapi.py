@@ -15,6 +15,8 @@ from koda_validate import (
     OneOf3,
     OptionalValidator,
     RecordValidator,
+    TupleHomogenousValidator,
+    UnionValidator,
 )
 from koda_validate.base import Predicate, PredicateAsync, Validator
 from koda_validate.generic import Choices, Lazy, Max, MaxItems, Min, MinItems, UniqueItems
@@ -77,7 +79,8 @@ def boolean_schema(
 
 
 def array_of_schema(
-    to_schema_fn: ValidatorToSchema, validator: ListValidator[Any]
+    to_schema_fn: ValidatorToSchema,
+    validator: Union[ListValidator[Any], TupleHomogenousValidator[Any]],
 ) -> Dict[str, Serializable]:
     ret: Dict[str, Serializable] = {
         "type": "array",
@@ -189,10 +192,10 @@ def generate_schema_validator(
         return map_of_schema(to_schema_fn, obj)
     elif isinstance(obj, RecordValidator):
         return obj_schema(to_schema_fn, obj)
-    # todo: add TupleHomogenousValidator
     elif isinstance(obj, ListValidator):
         return array_of_schema(to_schema_fn, obj)
-    # todo: add UnionValidator
+    elif isinstance(obj, TupleHomogenousValidator):
+        return array_of_schema(to_schema_fn, obj)
     elif isinstance(obj, OneOf2):
         return {"oneOf": [to_schema_fn(s) for s in [obj.variant_1, obj.variant_2]]}
     elif isinstance(obj, OneOf3):
@@ -201,6 +204,8 @@ def generate_schema_validator(
                 to_schema_fn(s) for s in [obj.variant_1, obj.variant_2, obj.variant_3]
             ]
         }
+    elif isinstance(obj, UnionValidator):
+        return {"oneOf": [to_schema_fn(s) for s in obj.validators]}
     elif isinstance(obj, NTupleValidator):
         return {
             "description": f'a {len(obj.fields)}-tuple of the fields in "prefixItems"',

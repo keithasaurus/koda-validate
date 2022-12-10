@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from datetime import date
-from typing import List, Optional, Set, TypeVar
+from typing import List, Optional, Set, Tuple, TypeVar
 
 from koda import First, Second, Third
 from openapi_spec_validator import validate_spec
@@ -23,6 +23,9 @@ from koda_validate import (
     OneOf3,
     OptionalValidator,
     Serializable,
+    TupleHomogenousValidator,
+    UnionValidator,
+    UniqueItems,
     Valid,
     unique_items,
 )
@@ -127,32 +130,59 @@ def test_person() -> None:
     )
 
     schema: Serializable = {
-        "Person": {
-            "type": "object",
-            "additionalProperties": False,
-            "required": ["name", "email", "occupation", "country_code", "honorifics"],
-            "properties": {
-                "name": {"type": "string", "pattern": r"^(?!\s*$).+"},
-                "email": {"type": "string", "format": "email", "maxLength": 50},
-                "occupation": {
-                    "type": "string",
-                    "enum": ["cook", "engineer", "musician", "teacher"],
-                },
-                "country_code": {"type": "string", "minLength": 2, "maxLength": 3},
-                "honorifics": {
-                    "uniqueItems": True,
-                    "type": "array",
-                    "minItems": 1,
-                    "maxItems": 3,
-                    "items": {"type": "string", "pattern": "[A-Z][a-z]+\\.]"},
-                },
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["name", "email", "occupation", "country_code", "honorifics"],
+        "properties": {
+            "name": {"type": "string", "pattern": r"^(?!\s*$).+"},
+            "email": {"type": "string", "format": "email", "maxLength": 50},
+            "occupation": {
+                "type": "string",
+                "enum": ["cook", "engineer", "musician", "teacher"],
             },
-        }
+            "country_code": {"type": "string", "minLength": 2, "maxLength": 3},
+            "honorifics": {
+                "uniqueItems": True,
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 3,
+                "items": {"type": "string", "pattern": "[A-Z][a-z]+\\.]"},
+            },
+        },
     }
-
-    assert generate_recursive_schema("Person", person_validator) == schema
     # will throw if bad
     validate_schema(schema)
+    assert generate_schema(person_validator) == schema
+
+    @dataclass
+    class Person2:
+        name: str
+        email: str
+        occupation: str
+        country_code: str
+        honorifics: Tuple[str, ...]
+
+    person_validator_tuple = RecordValidator(
+        keys=(
+            ("name", StringValidator(not_blank)),
+            ("email", StringValidator(EmailPredicate(), MaxLength(50))),
+            (
+                "occupation",
+                StringValidator(Choices({"teacher", "engineer", "musician", "cook"})),
+            ),
+            ("country_code", StringValidator(MinLength(2), MaxLength(3))),
+            (
+                "honorifics",
+                TupleHomogenousValidator(
+                    StringValidator(RegexPredicate(re.compile(r"[A-Z][a-z]+\.]"))),
+                    predicates=[UniqueItems(), MinItems(1), MaxItems(3)],
+                ),
+            ),
+        ),
+        into=Person2,
+    )
+
+    assert generate_schema(person_validator_tuple) == schema
 
 
 def test_cities() -> None:
@@ -323,8 +353,19 @@ def test_auth_creds() -> None:
         ]
     }
 
-    assert generate_schema(validator_one_of_3) == expected_schema
     validate_schema(expected_schema)  # type: ignore
+
+    assert generate_schema(validator_one_of_3) == expected_schema
+
+    union_validator = UnionValidator.typed(
+        username_creds_validator,
+        email_creds_validator,
+        RecordValidator(
+            keys=(("token", StringValidator(MinLength(32), MaxLength(32))),), into=Token
+        ),
+    )
+
+    assert generate_schema(union_validator) == expected_schema
 
 
 def test_forecast() -> None:
