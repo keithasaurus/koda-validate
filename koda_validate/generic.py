@@ -7,7 +7,7 @@ from uuid import UUID
 from koda import Thunk
 from koda._generics import A
 
-from koda_validate import Invalid, Valid
+from koda_validate import Invalid
 from koda_validate._generics import Ret
 from koda_validate._internal import ResultTuple, _ToTupleValidator
 from koda_validate.base import (
@@ -136,7 +136,7 @@ class EqualTo(Predicate[ExactMatchT]):
 
 
 @dataclass(init=False)
-class EqualsValidator(Validator[ExactMatchT]):
+class EqualsValidator(_ToTupleValidator[ExactMatchT]):
     match: ExactMatchT
     preprocessors: Optional[List[Processor[ExactMatchT]]] = None
 
@@ -149,21 +149,21 @@ class EqualsValidator(Validator[ExactMatchT]):
         self.preprocessors = preprocessors
         self.predicate: EqualTo[ExactMatchT] = EqualTo(match)
 
-    async def validate_async(self, val: Any) -> ValidationResult[ExactMatchT]:
-        return self(val)
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[ExactMatchT]:
+        return self.validate_to_tuple(val)
 
-    def __call__(self, val: Any) -> ValidationResult[ExactMatchT]:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[ExactMatchT]:
         if (match_type := type(self.match)) == type(val):
             if self.preprocessors:
                 for preprocess in self.preprocessors:
                     val = preprocess(val)
 
             if self.predicate(val):
-                return Valid(val)
+                return True, val
             else:
-                return Invalid(PredicateErrs([self.predicate]), val, self)
+                return False, Invalid(PredicateErrs([self.predicate]), val, self)
         else:
-            return Invalid(TypeErr(match_type), val, self)
+            return False, Invalid(TypeErr(match_type), val, self)
 
 
 class AlwaysValid(_ToTupleValidator[Any]):
