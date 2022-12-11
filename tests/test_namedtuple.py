@@ -383,11 +383,11 @@ def test_eq() -> None:
 
     assert NamedTupleValidator(A) == NamedTupleValidator(A)
     assert NamedTupleValidator(A) != NamedTupleValidator(B)
-    assert NamedTupleValidator(A) != NamedTupleValidator(A, overrides={})
+    assert NamedTupleValidator(A) == NamedTupleValidator(A, overrides={})
     assert NamedTupleValidator(A, overrides={}) == NamedTupleValidator(A, overrides={})
     assert NamedTupleValidator(
         A, overrides={"name": StringValidator()}
-    ) != NamedTupleValidator(A, overrides={})
+    ) == NamedTupleValidator(A, overrides={})
     assert NamedTupleValidator(
         A, overrides={"name": StringValidator()}
     ) == NamedTupleValidator(A, overrides={"name": StringValidator()})

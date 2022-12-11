@@ -177,7 +177,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             type(self) == type(other)
             and self.named_tuple_cls is other.named_tuple_cls
             and other.validate_object is self.validate_object
-            and other._input_overrides == self._input_overrides
+            and other.schema == self.schema
         )
 
     def __repr__(self) -> str:

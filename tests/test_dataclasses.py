@@ -403,11 +403,11 @@ def test_eq() -> None:
 
     assert DataclassValidator(A) == DataclassValidator(A)
     assert DataclassValidator(A) != DataclassValidator(B)
-    assert DataclassValidator(A) != DataclassValidator(A, overrides={})
+    assert DataclassValidator(A) == DataclassValidator(A, overrides={})
     assert DataclassValidator(A, overrides={}) == DataclassValidator(A, overrides={})
     assert DataclassValidator(
         A, overrides={"name": StringValidator()}
-    ) != DataclassValidator(A, overrides={})
+    ) == DataclassValidator(A, overrides={})
     assert DataclassValidator(
         A, overrides={"name": StringValidator()}
     ) == DataclassValidator(A, overrides={"name": StringValidator()})

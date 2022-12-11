@@ -56,17 +56,13 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         if sys.version_info >= (3, 9):
             # Required/NotRequired keys are always present in
-            # __required_keys__, __optional_keys__, respectively
             self.required_keys = td_cls.__required_keys__
-            # self.optional_keys = td_cls.__optional_keys__
         else:
             # not going to try to handle superclasses
             if td_cls.__total__:
                 self.required_keys = frozenset([k for k in td_cls.__annotations__])
-                # self.optional_keys = frozenset()
             else:
                 self.required_keys = frozenset()
-                # self.optional_keys = frozenset([k for k in td_cls.__annotations__])
 
         self.schema = {
             field: (

@@ -183,7 +183,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             type(self) == type(other)
             and self.data_cls is other.data_cls
             and other.validate_object is self.validate_object
-            and other._input_overrides == self._input_overrides
+            and other.schema == self.schema
         )
 
     def __repr__(self) -> str:

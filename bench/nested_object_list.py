@@ -30,7 +30,7 @@ class Person:
     hobbies: List[Hobby]
 
 
-class HobbyNT:
+class HobbyNT(NamedTuple):
     name: str
     reason: str
     category: str
