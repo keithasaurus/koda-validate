@@ -9,6 +9,7 @@ from openapi_spec_validator import validate_spec
 from koda_validate import (
     BoolValidator,
     Choices,
+    DataclassValidator,
     DateValidator,
     FloatValidator,
     IntValidator,
@@ -445,5 +446,27 @@ def test_dict_validator_any() -> None:
         },
     }
 
-    validate_schema(expected_schema)
+    validate_schema(expected_schema)  # type: ignore
+    assert generate_schema(x) == expected_schema
+
+
+def test_dataclass_validator() -> None:
+    @dataclass
+    class Example:
+        age: int
+        name: str = "John Doe"
+
+    x = DataclassValidator(Example)
+
+    expected_schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["age"],
+        "properties": {
+            "name": {"type": "string"},
+            "age": {"type": "integer"},
+        },
+    }
+
+    validate_schema(expected_schema)  # type: ignore
     assert generate_schema(x) == expected_schema

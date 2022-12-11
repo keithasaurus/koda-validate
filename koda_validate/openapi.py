@@ -137,7 +137,7 @@ def dict_validator_schema(
 
 def dataclass_validator_schema(
     to_schema_fn: ValidatorToSchema,
-    obj: DataclassValidator,
+    obj: DataclassValidator[Any],
 ) -> Dict[str, Serializable]:
     properties: Dict[str, Serializable] = {}
     for label, field in obj.schema.items():
