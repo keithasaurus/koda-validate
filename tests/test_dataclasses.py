@@ -22,9 +22,10 @@ from koda_validate.base import (
     TypeErr,
     VariantErrs,
 )
-from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
+from koda_validate.dataclasses import DataclassValidator
 from koda_validate.generic import EqualTo
 from koda_validate.tuple import TupleHomogenousValidator
+from koda_validate.typehints import get_typehint_validator
 from koda_validate.union import UnionValidator
 
 

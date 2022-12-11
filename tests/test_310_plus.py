@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Annotated, Any, Dict, Hashable, List, Optional, Set, Union, cast
+from typing import Any, Dict, Hashable, List, Optional, Set, Union, cast
 
 from koda import Maybe
 
@@ -27,8 +27,6 @@ from koda_validate import (
     MinLength,
     MultipleOf,
     NoneValidator,
-    OneOf2,
-    OneOf3,
     OptionalValidator,
     RegexPredicate,
     StringValidator,
@@ -47,7 +45,7 @@ from koda_validate.base import (
     VariantErrs,
 )
 from koda_validate.bytes import BytesValidator
-from koda_validate.dataclasses import DataclassValidator, get_typehint_validator
+from koda_validate.dataclasses import DataclassValidator
 from koda_validate.dictionary import (
     DictValidatorAny,
     KeyNotRequired,
@@ -59,6 +57,7 @@ from koda_validate.dictionary import (
 from koda_validate.generic import AlwaysValid
 from koda_validate.set import SetValidator
 from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
+from koda_validate.typehints import get_typehint_validator
 from koda_validate.union import UnionValidator
 
 
@@ -281,30 +280,6 @@ def test_optional_validator_match() -> None:
         case OptionalValidator(opt_validator):
             assert opt_validator is str_3
 
-        case _:
-            assert False
-
-
-def test_one_of_two_match() -> None:
-    match OneOf2(
-        s_3 := StringValidator(),
-        i_3 := IntValidator(),
-    ):
-        case OneOf2(var_1, var_2):
-            assert var_1 is s_3
-            assert var_2 is i_3
-        case _:
-            assert False
-
-
-def test_one_of_3_match() -> None:
-    match OneOf3(
-        s_4 := StringValidator(), i_4 := IntValidator(), f_4 := FloatValidator()
-    ):
-        case OneOf3(var_1, var_2, var_3):
-            assert var_1 is s_4
-            assert var_2 is i_4
-            assert var_3 is f_4
         case _:
             assert False
 
@@ -661,12 +636,6 @@ def test_get_typehint_validator_tuple_homogenous() -> None:
     tuple_homogeneous_validator_1 = get_typehint_validator(tuple[str, ...])
     assert isinstance(tuple_homogeneous_validator_1, TupleHomogenousValidator)
     assert isinstance(tuple_homogeneous_validator_1.item_validator, StringValidator)
-
-
-def test_get_typehint_validator_ignores_annotated() -> None:
-    assert isinstance(
-        get_typehint_validator(Annotated[str, "something"]), StringValidator
-    )
 
 
 def test_get_typehint_validator_for_bytes() -> None:

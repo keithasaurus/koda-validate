@@ -1,27 +1,26 @@
 from functools import partial
 from typing import Any, Callable, Dict, List, NoReturn, Union
 
-from koda_validate import (
-    BoolValidator,
-    DataclassValidator,
+from koda_validate.base import Predicate, PredicateAsync, Validator
+from koda_validate.boolean import BoolValidator
+from koda_validate.bytes import BytesValidator
+from koda_validate.dataclasses import DataclassValidator
+from koda_validate.decimal import DecimalValidator
+from koda_validate.dictionary import (
     DictValidatorAny,
-    FloatValidator,
-    IntValidator,
+    IsDictValidator,
     KeyNotRequired,
-    ListValidator,
     MapValidator,
     MaxKeys,
     MinKeys,
-    NTupleValidator,
-    OneOf2,
-    OneOf3,
-    OptionalValidator,
     RecordValidator,
-    TupleHomogenousValidator,
-    UnionValidator,
+    is_dict_validator,
 )
-from koda_validate.base import Predicate, PredicateAsync, Validator
+from koda_validate.float import FloatValidator
 from koda_validate.generic import Choices, Lazy, Max, MaxItems, Min, MinItems, UniqueItems
+from koda_validate.integer import IntValidator
+from koda_validate.list import ListValidator
+from koda_validate.none import NoneValidator, OptionalValidator
 from koda_validate.serialization import Serializable
 from koda_validate.string import (
     EmailPredicate,
@@ -31,6 +30,9 @@ from koda_validate.string import (
     RegexPredicate,
     StringValidator,
 )
+from koda_validate.time import DatetimeValidator, DateValidator
+from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
+from koda_validate.union import UnionValidator, UnionValidatorIndexed
 
 AnyValidatorOrPredicate = Union[Validator[Any], Predicate[Any], PredicateAsync[Any]]
 ValidatorToSchema = Callable[[AnyValidatorOrPredicate], Dict[str, Serializable]]
@@ -240,14 +242,12 @@ def generate_schema_validator(
         return array_of_schema(to_schema_fn, obj)
     elif isinstance(obj, TupleHomogenousValidator):
         return array_of_schema(to_schema_fn, obj)
-    elif isinstance(obj, OneOf2):
-        return {"oneOf": [to_schema_fn(s) for s in [obj.variant_1, obj.variant_2]]}
-    elif isinstance(obj, OneOf3):
+    elif isinstance(obj, IsDictValidator):
         return {
-            "oneOf": [
-                to_schema_fn(s) for s in [obj.variant_1, obj.variant_2, obj.variant_3]
-            ]
+            "type": "object",
         }
+    elif isinstance(obj, UnionValidatorIndexed):
+        return {"oneOf": [to_schema_fn(s) for s in obj.validators]}
     elif isinstance(obj, UnionValidator):
         return {"oneOf": [to_schema_fn(s) for s in obj.validators]}
     elif isinstance(obj, NTupleValidator):
@@ -259,6 +259,23 @@ def generate_schema_validator(
             "minItems": len(obj.fields),
             "prefixItems": [to_schema_fn(s) for s in obj.fields],
         }
+    # todo allow for predicates, etc
+    elif isinstance(obj, DateValidator):
+        return {"type": "string", "format": "date"}
+    # todo allow for predicates, etc
+    elif isinstance(obj, DatetimeValidator):
+        return {"type": "string", "format": "date-time"}
+    # todo allow for predicates, etc
+    elif isinstance(obj, DecimalValidator):
+        return {
+            "type": "string",
+            "format": "number",
+            # based on BigDecimal (Java) but without exponent support. At least one
+            # digit required, before or after comma
+            # valid values:  "100.234567", "010", "-.05", "+1", "10", "100."
+            "pattern": r"^(\-|\+)?((\d+(\.\d*)?)|(\.\d+))$",
+        }
+    # todo add bytes
     else:
         if isinstance(obj, Lazy):
             raise TypeError(

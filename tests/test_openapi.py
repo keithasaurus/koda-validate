@@ -20,8 +20,6 @@ from koda_validate import (
     Min,
     MinItems,
     NTupleValidator,
-    OneOf2,
-    OneOf3,
     OptionalValidator,
     Serializable,
     TupleHomogenousValidator,
@@ -37,6 +35,7 @@ from koda_validate.dictionary import (
     MaxKeys,
     MinKeys,
     RecordValidator,
+    is_dict_validator,
 )
 from koda_validate.openapi import generate_named_schema, generate_schema
 from koda_validate.string import (
@@ -47,6 +46,7 @@ from koda_validate.string import (
     StringValidator,
     not_blank,
 )
+from koda_validate.union import UnionValidatorIndexed
 
 A = TypeVar("A")
 Ret = TypeVar("Ret")
@@ -279,15 +279,17 @@ def test_auth_creds() -> None:
         into=EmailCreds,
     )
 
-    validator_one_of_2 = OneOf2(username_creds_validator, email_creds_validator)
+    validator_one_of_2 = UnionValidatorIndexed(
+        username_creds_validator, email_creds_validator
+    )
 
     # sanity check
     assert validator_one_of_2({"username": "a", "password": "b"}) == Valid(
-        First(UsernameCreds("a", "b"))
+        (0, UsernameCreds("a", "b"))
     )
 
     assert validator_one_of_2({"email": "a@example.com", "password": "b"}) == Valid(
-        Second(EmailCreds("a@example.com", "b"))
+        (1, EmailCreds("a@example.com", "b"))
     )
 
     assert generate_schema(validator_one_of_2) == {
@@ -317,7 +319,7 @@ def test_auth_creds() -> None:
     class Token:
         token: str
 
-    validator_one_of_3 = OneOf3(
+    validator_one_of_3 = UnionValidatorIndexed(
         username_creds_validator,
         email_creds_validator,
         RecordValidator(
@@ -327,7 +329,7 @@ def test_auth_creds() -> None:
 
     # sanity
     assert validator_one_of_3({"token": "abcdefghijklmnopqrstuvwxyz123456"}) == Valid(
-        Third(Token("abcdefghijklmnopqrstuvwxyz123456"))
+        (2, Token("abcdefghijklmnopqrstuvwxyz123456"))
     )
 
     expected_schema = {
@@ -470,3 +472,10 @@ def test_dataclass_validator() -> None:
 
     validate_schema(expected_schema)  # type: ignore
     assert generate_schema(x) == expected_schema
+
+
+def test_isdict_validator() -> None:
+    expected_schema = {"type": "object"}
+
+    validate_schema(expected_schema)  # type: ignore
+    assert generate_schema(is_dict_validator) == expected_schema
