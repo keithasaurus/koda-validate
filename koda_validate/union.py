@@ -147,10 +147,19 @@ class UnionValidator(_ToTupleValidator[A]):
         return UnionValidator(validator_1, *validators)
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[A]:
-        return _union_validator(self, self.validators, val)
+        result = _union_validator(self, self.validators, val)
+        if result[0]:
+            return True, result[1][1]
+        else:
+            return False, result[1]
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[A]:
-        return await _union_validator_async(self, self.validators, val)
+        result = await _union_validator_async(self, self.validators, val)
+
+        if result[0]:
+            return True, result[1][1]
+        else:
+            return False, result[1]
 
     def __eq__(self, other: Any) -> bool:
         return type(self) == type(other) and self.validators == other.validators

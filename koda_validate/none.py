@@ -50,10 +50,19 @@ class OptionalValidator(_ToTupleValidator[Optional[A]]):
         self.validators = (none_validator, validator)
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Optional[A]]:
-        return await _union_validator_async(self, self.validators, val)
+        result = await _union_validator_async(self, self.validators, val)
+
+        if result[0]:
+            return True, result[1][1]
+        else:
+            return False, result[1]
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[Optional[A]]:
-        return _union_validator(self, self.validators, val)
+        result = _union_validator(self, self.validators, val)
+        if result[0]:
+            return True, result[1][1]
+        else:
+            return False, result[1]
 
     def __eq__(self, other: Any) -> bool:
         return (

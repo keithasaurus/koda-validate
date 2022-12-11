@@ -3,6 +3,8 @@ from typing import Any, Callable, Dict, List, NoReturn, Union
 
 from koda_validate import (
     BoolValidator,
+    DataclassValidator,
+    DictValidatorAny,
     FloatValidator,
     IntValidator,
     KeyNotRequired,
@@ -113,6 +115,42 @@ def obj_schema(
     }
 
 
+def dict_validator_schema(
+    to_schema_fn: ValidatorToSchema,
+    obj: DictValidatorAny,
+) -> Dict[str, Serializable]:
+    required: List[str] = []
+    properties: Dict[str, Serializable] = {}
+    for label, field in obj.schema.items():
+        str_label = str(label)
+        if not isinstance(field, KeyNotRequired):
+            required.append(str_label)
+
+        properties[str_label] = to_schema_fn(field)
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": required,  # type: ignore
+        "properties": properties,
+    }
+
+
+def dataclass_validator_schema(
+    to_schema_fn: ValidatorToSchema,
+    obj: DataclassValidator,
+) -> Dict[str, Serializable]:
+    properties: Dict[str, Serializable] = {}
+    for label, field in obj.schema.items():
+        str_label = str(label)
+        properties[str_label] = to_schema_fn(field)
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": obj.required_fields,  # type: ignore
+        "properties": properties,
+    }
+
+
 def map_of_schema(
     to_schema_fn: ValidatorToSchema, validator: MapValidator[Any, Any]
 ) -> Dict[str, Serializable]:
@@ -192,6 +230,12 @@ def generate_schema_validator(
         return map_of_schema(to_schema_fn, obj)
     elif isinstance(obj, RecordValidator):
         return obj_schema(to_schema_fn, obj)
+    elif isinstance(obj, DataclassValidator):
+        return dataclass_validator_schema(to_schema_fn, obj)
+    elif isinstance(obj, KeyNotRequired):
+        return to_schema_fn(obj.validator)
+    elif isinstance(obj, DictValidatorAny):
+        return dict_validator_schema(to_schema_fn, obj)
     elif isinstance(obj, ListValidator):
         return array_of_schema(to_schema_fn, obj)
     elif isinstance(obj, TupleHomogenousValidator):
@@ -254,7 +298,7 @@ def generate_named_schema_base(
         unhandled_type(obj)
 
 
-def generate_recursive_schema(
+def generate_named_schema(
     schema_name: str,
     obj: AnyValidatorOrPredicate,
     ref_location: str = "#/components/schemas/",

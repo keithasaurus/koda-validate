@@ -29,8 +29,15 @@ from koda_validate import (
     Valid,
     unique_items,
 )
-from koda_validate.dictionary import MapValidator, MaxKeys, MinKeys, RecordValidator
-from koda_validate.openapi import generate_recursive_schema, generate_schema
+from koda_validate.dictionary import (
+    DictValidatorAny,
+    KeyNotRequired,
+    MapValidator,
+    MaxKeys,
+    MinKeys,
+    RecordValidator,
+)
+from koda_validate.openapi import generate_named_schema, generate_schema
 from koda_validate.string import (
     EmailPredicate,
     MaxLength,
@@ -84,7 +91,7 @@ def test_recursive_validator() -> None:
         into=Comment,
     )
 
-    assert generate_recursive_schema("Comment", comment_validator) == {
+    assert generate_named_schema("Comment", comment_validator) == {
         "Comment": {
             "additionalProperties": False,
             "properties": {
@@ -421,3 +428,22 @@ def test_tuples() -> None:
 
     # will throw if bad
     validate_schema(schema)
+
+
+def test_dict_validator_any() -> None:
+    x = DictValidatorAny(
+        {"name": StringValidator(), "age": KeyNotRequired(IntValidator())}
+    )
+
+    expected_schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["name"],
+        "properties": {
+            "name": {"type": "string"},
+            "age": {"type": "integer"},
+        },
+    }
+
+    validate_schema(expected_schema)
+    assert generate_schema(x) == expected_schema

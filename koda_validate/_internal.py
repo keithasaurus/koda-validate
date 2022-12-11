@@ -289,19 +289,19 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
 
 def _union_validator(
     source_validator: Validator[A], validators: Tuple[Validator[Any], ...], val: Any
-) -> ResultTuple[A]:
+) -> ResultTuple[Tuple[int, A]]:
     errs = []
-    for validator in validators:
+    for i, validator in enumerate(validators):
         if isinstance(validator, _ToTupleValidator):
             result_tup = validator.validate_to_tuple(val)
             if result_tup[0]:
-                return True, result_tup[1]
+                return True, (i, result_tup[1])
             else:
                 errs.append(result_tup[1])
         else:
             result = validator(val)
             if result.is_valid:
-                return True, result.val
+                return True, (i, result.val)
             else:
                 errs.append(result)
     return False, Invalid(VariantErrs(errs), val, source_validator)
@@ -309,19 +309,19 @@ def _union_validator(
 
 async def _union_validator_async(
     source_validator: Validator[A], validators: Tuple[Validator[Any], ...], val: Any
-) -> ResultTuple[A]:
+) -> ResultTuple[Tuple[int, A]]:
     errs = []
-    for validator in validators:
+    for i, validator in enumerate(validators):
         if isinstance(validator, _ToTupleValidator):
             result_tup = await validator.validate_to_tuple_async(val)
             if result_tup[0]:
-                return True, result_tup[1]
+                return True, (i, result_tup[1])
             else:
                 errs.append(result_tup[1])
         else:
             result = await validator.validate_async(val)
             if result.is_valid:
-                return True, result.val
+                return True, (i, result.val)
             else:
                 errs.append(result)
     return False, Invalid(VariantErrs(errs), val, source_validator)
