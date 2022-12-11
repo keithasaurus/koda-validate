@@ -279,7 +279,7 @@ def test_auth_creds() -> None:
         into=EmailCreds,
     )
 
-    validator_one_of_2 = UnionValidatorIndexed(
+    validator_one_of_2 = UnionValidatorIndexed.typed(
         username_creds_validator, email_creds_validator
     )
 
@@ -319,7 +319,7 @@ def test_auth_creds() -> None:
     class Token:
         token: str
 
-    validator_one_of_3 = UnionValidatorIndexed(
+    validator_one_of_3 = UnionValidatorIndexed.typed(
         username_creds_validator,
         email_creds_validator,
         RecordValidator(

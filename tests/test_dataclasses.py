@@ -1,18 +1,11 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Literal, Optional, Tuple
+from typing import Optional
 from uuid import UUID, uuid4
 
 import pytest
 
-from koda_validate import (
-    AlwaysValid,
-    EqualsValidator,
-    Invalid,
-    MaxLength,
-    StringValidator,
-    Valid,
-)
+from koda_validate import Invalid, MaxLength, StringValidator, Valid
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
@@ -20,13 +13,8 @@ from koda_validate.base import (
     KeyErrs,
     PredicateErrs,
     TypeErr,
-    VariantErrs,
 )
 from koda_validate.dataclasses import DataclassValidator
-from koda_validate.generic import EqualTo
-from koda_validate.tuple import TupleHomogenousValidator
-from koda_validate.typehints import get_typehint_validator
-from koda_validate.union import UnionValidator
 
 
 @dataclass
@@ -357,12 +345,6 @@ def test_will_fail_if_not_exact_dataclass() -> None:
     )
 
 
-def test_get_typehint_validator_bare_tuple() -> None:
-    for t_validator in [get_typehint_validator(tuple), get_typehint_validator(Tuple)]:
-        assert isinstance(t_validator, TupleHomogenousValidator)
-        assert isinstance(t_validator.item_validator, AlwaysValid)
-
-
 def test_can_handle_default_arguments() -> None:
     @dataclass
     class NameCls:
@@ -382,49 +364,6 @@ def test_can_handle_basic_str_types() -> None:
     validator = DataclassValidator(PersonSimple)
     assert validator(Bad("hmm")) == Invalid(
         CoercionErr({dict, PersonSimple}, PersonSimple), Bad("hmm"), validator
-    )
-
-
-def test_get_type_hint_for_literal() -> None:
-    abc_validator = get_typehint_validator(Literal["abc"])
-    assert isinstance(abc_validator, UnionValidator)
-
-    assert len(abc_validator.validators) == 1
-    assert isinstance(abc_validator.validators[0], EqualsValidator)
-    assert abc_validator("abc") == Valid("abc")
-    assert abc_validator("a") == Invalid(
-        VariantErrs(
-            [Invalid(PredicateErrs([EqualTo("abc")]), "a", abc_validator.validators[0])]
-        ),
-        "a",
-        abc_validator,
-    )
-
-    int_str_bool_validator = get_typehint_validator(Literal[123, "abc", False])
-    assert isinstance(int_str_bool_validator, UnionValidator)
-
-    assert len(int_str_bool_validator.validators) == 3
-    for v in int_str_bool_validator.validators:
-        assert isinstance(v, EqualsValidator)
-
-    assert int_str_bool_validator(123) == Valid(123)
-    assert int_str_bool_validator("abc") == Valid("abc")
-    assert int_str_bool_validator(False) == Valid(False)
-
-    assert int_str_bool_validator("a") == Invalid(
-        VariantErrs(
-            [
-                Invalid(TypeErr(int), "a", int_str_bool_validator.validators[0]),
-                Invalid(
-                    PredicateErrs([EqualTo("abc")]),
-                    "a",
-                    int_str_bool_validator.validators[1],
-                ),
-                Invalid(TypeErr(bool), "a", int_str_bool_validator.validators[2]),
-            ]
-        ),
-        "a",
-        int_str_bool_validator,
     )
 
 
