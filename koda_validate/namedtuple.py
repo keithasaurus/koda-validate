@@ -2,10 +2,9 @@ import inspect
 from typing import (
     Any,
     Callable,
-    ClassVar,
     Dict,
+    NamedTuple,
     Optional,
-    Protocol,
     Set,
     Type,
     TypeVar,
@@ -29,32 +28,27 @@ from koda_validate.base import (
     missing_key_err,
 )
 
-
-class DataclassLike(Protocol):
-    __dataclass_fields__: ClassVar[Dict[str, Any]]
+_NTT = TypeVar("_NTT", bound=NamedTuple)
 
 
-_DCT = TypeVar("_DCT", bound=DataclassLike)
-
-
-class DataclassValidator(_ToTupleValidator[_DCT]):
+class NamedTupleValidator(_ToTupleValidator[_NTT]):
     def __init__(
         self,
-        data_cls: Type[_DCT],
+        named_tuple_cls: Type[_NTT],
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
-        validate_object: Optional[Callable[[_DCT], Optional[ErrType]]] = None,
+        validate_object: Optional[Callable[[_NTT], Optional[ErrType]]] = None,
     ) -> None:
         from koda_validate.typehints import get_typehint_validator
 
-        self.data_cls = data_cls
+        self.named_tuple_cls = named_tuple_cls
         self._input_overrides = overrides  # for repr
         overrides = overrides or {}
-        type_hints = get_type_hints(self.data_cls)
+        type_hints = get_type_hints(self.named_tuple_cls)
 
         keys_with_defaults: Set[str] = {
             k
-            for k, v in inspect.signature(self.data_cls).parameters.items()
+            for k, v in inspect.signature(self.named_tuple_cls).parameters.items()
             if v.default != inspect.Parameter.empty
         }
 
@@ -84,16 +78,16 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
+    def validate_to_tuple(self, val: Any) -> ResultTuple[_NTT]:
         if isinstance(val, dict):
             data = val
-        elif isinstance(val, self.data_cls):
-            data = val.__dict__
+        elif isinstance(val, self.named_tuple_cls):
+            data = val._asdict()
         else:
             return False, Invalid(
                 CoercionErr(
-                    {dict, self.data_cls},
-                    self.data_cls,
+                    {dict, self.named_tuple_cls},
+                    self.named_tuple_cls,
                 ),
                 val,
                 self,
@@ -121,7 +115,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         if errs:
             return False, Invalid(KeyErrs(errs), data, self)
         else:
-            obj = self.data_cls(**success_dict)
+            obj = self.named_tuple_cls(**success_dict)
             if self.validate_object:
                 result = self.validate_object(obj)
                 if result is None:
@@ -131,16 +125,16 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             else:
                 return True, obj
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[_DCT]:
+    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[_NTT]:
         if isinstance(val, dict):
             data = val
-        elif isinstance(val, self.data_cls):
-            data = val.__dict__
+        elif isinstance(val, self.named_tuple_cls):
+            data = val._asdict()
         else:
             return False, Invalid(
                 CoercionErr(
-                    {dict, self.data_cls},
-                    self.data_cls,
+                    {dict, self.named_tuple_cls},
+                    self.named_tuple_cls,
                 ),
                 val,
                 self,
@@ -168,7 +162,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         if errs:
             return False, Invalid(KeyErrs(errs), data, self)
         else:
-            obj = self.data_cls(**success_dict)
+            obj = self.named_tuple_cls(**success_dict)
             if self.validate_object:
                 result = self.validate_object(obj)
                 if result is None:
@@ -181,7 +175,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
     def __eq__(self, other: Any) -> bool:
         return (
             type(self) == type(other)
-            and self.data_cls is other.data_cls
+            and self.named_tuple_cls is other.named_tuple_cls
             and other.validate_object is self.validate_object
             and other._input_overrides == self._input_overrides
         )
@@ -189,7 +183,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
     def __repr__(self) -> str:
         return _repr_helper(
             self.__class__,
-            [repr(self.data_cls)]
+            [repr(self.named_tuple_cls)]
             + [
                 f"{k}={repr(v)}"
                 for k, v in [

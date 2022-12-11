@@ -1,4 +1,4 @@
-from typing import Literal, Tuple
+from typing import Literal, NamedTuple, Tuple
 
 from koda_validate import (
     AlwaysValid,
@@ -12,6 +12,7 @@ from koda_validate import (
     Valid,
     VariantErrs,
 )
+from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.typehints import get_typehint_validator
 
 
@@ -62,3 +63,13 @@ def test_get_type_hint_for_literal() -> None:
         "a",
         int_str_bool_validator,
     )
+
+
+def test_get_typehint_validator_named_tuple() -> None:
+    class X(NamedTuple):
+        x: str
+
+    v = get_typehint_validator(X)
+
+    assert isinstance(v, NamedTupleValidator)
+    assert v == NamedTupleValidator(X)

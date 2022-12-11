@@ -42,6 +42,9 @@ class MissingKeyErr:
             cls._instance = super(MissingKeyErr, cls).__new__(cls)
         return cls._instance
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
 
 missing_key_err = MissingKeyErr()
 

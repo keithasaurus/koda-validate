@@ -3,7 +3,18 @@ from dataclasses import is_dataclass
 from datetime import date, datetime
 from decimal import Decimal
 from types import UnionType
-from typing import Any, Dict, List, Literal, Set, Tuple, Union, get_args, get_origin
+from typing import (
+    Any,
+    Dict,
+    List,
+    Literal,
+    Set,
+    Tuple,
+    Union,
+    _TypedDictMeta,
+    get_args,
+    get_origin,
+)
 from uuid import UUID
 
 from .base import Validator
@@ -16,11 +27,13 @@ from .float import FloatValidator
 from .generic import EqualsValidator, always_valid
 from .integer import IntValidator
 from .list import ListValidator
+from .namedtuple import NamedTupleValidator
 from .none import NoneValidator
 from .set import SetValidator
 from .string import StringValidator
 from .time import DatetimeValidator, DateValidator
 from .tuple import NTupleValidator, TupleHomogenousValidator
+from .typeddict import TypedDictValidator
 from .union import UnionValidator
 from .uuid import UUIDValidator
 
@@ -59,6 +72,18 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         return MapValidator(key=always_valid, value=always_valid)
     elif is_dataclass(annotations):
         return DataclassValidator(annotations)
+    elif (
+        (bases := getattr(annotations, "__bases__", None))
+        and bases == (tuple,)
+        and hasattr(annotations, "_fields")
+    ):
+        return NamedTupleValidator(annotations)
+    elif (
+        hasattr(annotations, "__annotations__")
+        and hasattr(annotations, "__total__")
+        and hasattr(annotations, "keys")
+    ):
+        return TypedDictValidator(annotations)
     else:
         origin, args = get_origin(annotations), get_args(annotations)
         if (origin is list or origin is List) and len(args) == 1:
@@ -86,6 +111,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         if origin is Literal:
             return UnionValidator(*[EqualsValidator(a) for a in args])
 
+        # todo: change message (allow as parameter?)
         raise TypeError(
             f"There was an error handling annotation of type {type(annotations)}. "
             f"This can possibly be resolved by using the `overrides` parameter "

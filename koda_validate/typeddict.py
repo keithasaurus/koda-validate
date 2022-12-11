@@ -1,4 +1,3 @@
-import inspect
 import sys
 from typing import (
     Any,
@@ -8,7 +7,6 @@ from typing import (
     List,
     Mapping,
     Optional,
-    Set,
     TypeVar,
     get_type_hints,
 )
@@ -47,22 +45,11 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_TDT], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[
-                [_TDT],
-                Awaitable[Optional[ErrType]],
-            ]
-        ] = None,
-        preprocessors: Optional[List[Processor[Mapping[str, object]]]] = None,
     ) -> None:
         from koda_validate.typehints import get_typehint_validator
 
         self.td_cls = td_cls
         self._input_overrides = overrides  # for repr
-        if validate_object is not None and validate_object_async is not None:
-            raise AssertionError(
-                "validate_object and validate_object_async cannot both be defined"
-            )
         overrides = overrides or {}
 
         type_hints = get_type_hints(self.td_cls)
@@ -183,10 +170,11 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
     def __repr__(self) -> str:
         return _repr_helper(
             self.__class__,
-            [repr(self.schema)]
+            [repr(self.td_cls)]
             + [
                 f"{k}={repr(v)}"
                 for k, v in [
+                    ("overrides", self._input_overrides),
                     ("validate_object", self.validate_object),
                 ]
                 if v
