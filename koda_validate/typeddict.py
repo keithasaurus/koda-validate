@@ -1,18 +1,19 @@
 import sys
 from typing import (
     Any,
-    Awaitable,
     Callable,
     Dict,
-    List,
     Mapping,
     Optional,
+    Type,
     TypeVar,
+    cast,
     get_type_hints,
 )
 
 from koda_validate._internal import (
     ResultTuple,
+    _is_typed_dict_cls,
     _repr_helper,
     _ToTupleValidator,
     _wrap_async_validator,
@@ -23,7 +24,6 @@ from koda_validate.base import (
     ExtraKeysErr,
     Invalid,
     KeyErrs,
-    Processor,
     TypeErr,
     Validator,
     missing_key_err,
@@ -41,11 +41,14 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
     def __init__(
         self,
-        td_cls: _TDT,
+        td_cls: Type[_TDT],
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_TDT], Optional[ErrType]]] = None,
     ) -> None:
+
+        if not _is_typed_dict_cls(td_cls):
+            raise TypeError("must be a TypedDict subclass")
         from koda_validate.typehints import get_typehint_validator
 
         self.td_cls = td_cls
@@ -56,7 +59,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         if sys.version_info >= (3, 9):
             # Required/NotRequired keys are always present in
-            self.required_keys = td_cls.__required_keys__
+            self.required_keys = td_cls.__required_keys__  # type: ignore
         else:
             # not going to try to handle superclasses
             if td_cls.__total__:
@@ -86,7 +89,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
 
-    def validate_to_tuple(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
+    def validate_to_tuple(self, data: Any) -> ResultTuple[_TDT]:
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 
@@ -95,7 +98,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             if key_ not in self._keys_set:
                 return False, Invalid(self._unknown_keys_err, data, self)
 
-        success_dict: Dict[Any, Any] = {}
+        success_dict: Dict[str, object] = {}
         errs: Dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
             if key_ not in data:
@@ -113,15 +116,15 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             return False, Invalid(KeyErrs(errs), data, self)
         else:
             if self.validate_object is not None:
-                result = self.validate_object(success_dict)
+                result = self.validate_object(cast(_TDT, success_dict))
                 if result is None:
-                    return True, success_dict
+                    return True, cast(_TDT, success_dict)
                 else:
                     return False, Invalid(result, success_dict, self)
             else:
-                return True, success_dict
+                return True, cast(_TDT, success_dict)
 
-    async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
+    async def validate_to_tuple_async(self, data: Any) -> ResultTuple[_TDT]:
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 
@@ -130,7 +133,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             if key_ not in self._keys_set:
                 return False, Invalid(self._unknown_keys_err, data, self)
 
-        success_dict: Dict[Any, Any] = {}
+        success_dict: Dict[str, object] = {}
         errs: Dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_async:
             if key_ not in data:
@@ -148,13 +151,13 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             return False, Invalid(KeyErrs(errs), data, self)
         else:
             if self.validate_object is not None:
-                result = self.validate_object(success_dict)
+                result = self.validate_object(cast(_TDT, success_dict))
                 if result is None:
-                    return True, success_dict
+                    return True, cast(_TDT, success_dict)
                 else:
                     return False, Invalid(result, success_dict, self)
             else:
-                return True, success_dict
+                return True, cast(_TDT, success_dict)
 
     def __eq__(self, other: Any) -> bool:
         return (

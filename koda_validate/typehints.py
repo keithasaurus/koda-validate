@@ -3,20 +3,10 @@ from dataclasses import is_dataclass
 from datetime import date, datetime
 from decimal import Decimal
 from types import UnionType
-from typing import (
-    Any,
-    Dict,
-    List,
-    Literal,
-    Set,
-    Tuple,
-    Union,
-    _TypedDictMeta,
-    get_args,
-    get_origin,
-)
+from typing import Any, Dict, List, Literal, Set, Tuple, Union, get_args, get_origin
 from uuid import UUID
 
+from ._internal import _is_typed_dict_cls
 from .base import Validator
 from .boolean import BoolValidator
 from .bytes import BytesValidator
@@ -78,11 +68,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         and hasattr(annotations, "_fields")
     ):
         return NamedTupleValidator(annotations)
-    elif (
-        hasattr(annotations, "__annotations__")
-        and hasattr(annotations, "__total__")
-        and hasattr(annotations, "keys")
-    ):
+    elif _is_typed_dict_cls(annotations):
         return TypedDictValidator(annotations)
     else:
         origin, args = get_origin(annotations), get_args(annotations)

@@ -1,7 +1,7 @@
 from koda_validate import *
 from koda_validate.union import UnionValidatorIndexed
 
-string_or_list_string_validator = UnionValidatorIndexed(
+string_or_list_string_validator = UnionValidatorIndexed.typed(
     StringValidator(), ListValidator(StringValidator())
 )
 

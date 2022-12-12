@@ -358,3 +358,9 @@ def _wrap_async_validator(
                 return False, result
 
         return inner
+
+
+def _is_typed_dict_cls(t: Type[Any]) -> bool:
+    return (
+        hasattr(t, "__annotations__") and hasattr(t, "__total__") and hasattr(t, "keys")
+    )

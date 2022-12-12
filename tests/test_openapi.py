@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from datetime import date
 from typing import List, Optional, Set, Tuple, TypeVar
 
-from koda import First, Second, Third
 from openapi_spec_validator import validate_spec
 
 from koda_validate import (

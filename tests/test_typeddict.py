@@ -201,7 +201,7 @@ def test_validate_object_works() -> None:
 
     test_dict_different = {"first_name": "different", "last_name": "names"}
 
-    assert v1(test_dict_different) == Valid(A(**test_dict_different))
+    assert v1(test_dict_different) == Valid(test_dict_different)
 
     # should also work with typeddictes
     test_dc_same = A(first_name="same", last_name="same")
@@ -235,7 +235,7 @@ async def test_validate_object_works_async() -> None:
 
     test_dict_different = {"first_name": "different", "last_name": "names"}
 
-    assert await v1.validate_async(test_dict_different) == Valid(A(**test_dict_different))
+    assert await v1.validate_async(test_dict_different) == Valid(test_dict_different)
 
     # should also work with typeddictes
     test_dc_same = A(first_name="same", last_name="same")
@@ -325,7 +325,7 @@ def test_validates_proper_decimal_type() -> None:
     assert nt_validator(Example(name=Decimal(4))) == Valid(Example(name=Decimal(4)))
 
     # not type-safe, but still validate
-    assert nt_validator({"name": 5.6}) == Invalid(  # type: ignore
+    assert nt_validator({"name": 5.6}) == Invalid(
         KeyErrs(
             {
                 "name": Invalid(
