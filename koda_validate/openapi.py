@@ -304,25 +304,55 @@ def generate_schema_predicate(
     elif isinstance(validator, MinLength):
         return {"minLength": validator.length}
     elif isinstance(validator, Choices):
-        return {"enum": list(sorted(validator.choices))}
+        return {"enum": (list(sorted(validator.choices)))}
     elif isinstance(validator, NotBlank):
         return {"pattern": r"^(?!\s*$).+"}
     elif isinstance(validator, RegexPredicate):
         return {"pattern": validator.pattern.pattern}
     # numbers
     elif isinstance(validator, Min):
+        if type(validator.minimum) is Decimal:
+            min_ = str(validator.minimum)
+        else:
+            min_ = validator.minimum
         return {
-            "minimum": validator.minimum,
+            "minimum": min_,
             "exclusiveMinimum": validator.exclusive_minimum,
         }
     elif isinstance(validator, Max):
+        if type(validator.maximum) is Decimal:
+            max_ = str(validator.maximum)
+        else:
+            max_ = validator.maximum
         return {
-            "maximum": validator.maximum,
+            "maximum": max_,
             "exclusiveMaximum": validator.exclusive_maximum,
         }
     elif isinstance(validator, EqualTo):
-        # todo: is there a better way to do this?
-        return {"enum": [validator.match]}
+        # todo: is there a better way to do this than using enum?
+        match_t = type(validator.match)
+        if (
+            match_t is str
+            or match_t is int
+            or match_t is None
+            or match_t is float
+            or match_t is bool
+        ):
+            choice = validator.match
+        elif match_t is date:
+            choice = validator.match.isoformat()
+        elif match_t is datetime:
+            choice = validator.match.isoformat()
+        elif match_t is Decimal:
+            choice = str(validator.match)
+        elif match_t is UUID:
+            choice = str(validator.match)
+        elif match_t is bytes:
+            choice = validator.match.decode("utf-8")
+        else:
+            raise TypeError(f"got unexpected type: {type(validator.match)}")
+
+        return {"enum": [choice]}
     # objects
     elif isinstance(validator, MinKeys):
         return {"minProperties": validator.size}

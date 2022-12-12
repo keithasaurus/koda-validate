@@ -1,15 +1,20 @@
 import re
+import uuid
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
+from decimal import Decimal
 from typing import List, NamedTuple, Optional, Set, Tuple, TypedDict, TypeVar
 
 from openapi_spec_validator import validate_spec
 
 from koda_validate import (
     BoolValidator,
+    BytesValidator,
     Choices,
     DataclassValidator,
     DateValidator,
+    DecimalValidator,
+    EqualsValidator,
     FloatValidator,
     IntValidator,
     Lazy,
@@ -522,3 +527,98 @@ def test_isdict_validator() -> None:
 
     validate_schema(expected_schema)  # type: ignore
     assert generate_schema(is_dict_validator) == expected_schema
+
+
+def test_equals_validator() -> None:
+    expected_schema_int = {"type": "integer", "enum": [5]}
+
+    validate_schema(expected_schema_int)  # type: ignore
+    assert generate_schema(EqualsValidator(5))
+
+    expected_schema_str = {"type": "string", "enum": ["hooray"]}
+
+    validate_schema(expected_schema_str)  # type: ignore
+
+    assert generate_schema(EqualsValidator("hooray")) == expected_schema_str
+
+    expected_schema_str = {"type": "string", "format": "date", "enum": ["2022-12-12"]}
+
+    validate_schema(expected_schema_str)  # type: ignore
+
+    assert generate_schema(EqualsValidator(date(2022, 12, 12))) == expected_schema_str
+
+    uu = uuid.uuid4()
+    expected_schema_uuid = {"type": "string", "format": "uuid", "enum": [str(uu)]}
+
+    validate_schema(expected_schema_uuid)  # type: ignore
+
+    assert generate_schema(EqualsValidator(uu)) == expected_schema_uuid
+
+    now_ = datetime.now()
+    expected_schema_datetime = {
+        "type": "string",
+        "format": "date-time",
+        "enum": [now_.isoformat()],
+    }
+
+    validate_schema(expected_schema_datetime)  # type: ignore
+
+    assert generate_schema(EqualsValidator(now_)) == expected_schema_datetime
+
+    dec = Decimal("3.14")
+    expected_schema_dec = {
+        "type": "string",
+        "format": "number",
+        "pattern": r"^(\-|\+)?((\d+(\.\d*)?)|(\.\d+))$",
+        "enum": ["3.14"],
+    }
+
+    validate_schema(expected_schema_dec)  # type: ignore
+
+    assert generate_schema(EqualsValidator(dec)) == expected_schema_dec
+
+    bytes_ = b"abc123def456"
+    expected_schema_bytes = {
+        "type": "string",
+        "format": "byte",
+        "enum": [bytes_.decode("utf-8")],
+    }
+
+    validate_schema(expected_schema_bytes)  # type: ignore
+
+    assert generate_schema(EqualsValidator(bytes_)) == expected_schema_bytes
+
+
+def test_bytes_validator() -> None:
+    expected_schema_bytes = {"type": "string", "format": "byte", "maxLength": 12}
+
+    validate_schema(expected_schema_bytes)  # type: ignore
+
+    assert generate_schema(BytesValidator(MaxLength(12))) == expected_schema_bytes
+
+
+def test_decimal_validator() -> None:
+    expected_schema_dec = {
+        "type": "string",
+        "format": "number",
+        "pattern": r"^(\-|\+)?((\d+(\.\d*)?)|(\.\d+))$",
+        "maximum": "345.678",
+        "exclusiveMaximum": False,
+    }
+
+    validate_schema(expected_schema_dec)  # type: ignore
+
+    assert (
+        generate_schema(DecimalValidator(Max(Decimal("345.678")))) == expected_schema_dec
+    )
+
+
+def test_date_validator() -> None:
+    expected_schema_date = {
+        "type": "string",
+        "format": "date",
+    }
+
+    validate_schema(expected_schema_date)  # type: ignore
+
+    assert generate_schema(DateValidator()) == expected_schema_date
