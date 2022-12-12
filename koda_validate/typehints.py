@@ -2,7 +2,9 @@ import sys
 from dataclasses import is_dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from types import UnionType
+
+if sys.version_info >= (3, 10):
+    from types import UnionType
 from typing import Any, Dict, List, Literal, Set, Tuple, Union, get_args, get_origin
 from uuid import UUID
 
