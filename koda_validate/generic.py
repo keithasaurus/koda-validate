@@ -117,6 +117,7 @@ class MultipleOf(Predicate[Num]):
 ExactMatchT = TypeVar(
     "ExactMatchT",
     bool,
+    bytes,
     int,
     Decimal,
     str,

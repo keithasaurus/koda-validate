@@ -1,9 +1,13 @@
+from datetime import date, datetime
+from decimal import Decimal
 from functools import partial
-from typing import Any, Callable, Dict, List, NoReturn, Union
+from typing import Any, Callable, Dict, List, NoReturn, Type, Union
+from uuid import UUID
 
-from koda_validate import MaxLength, MinLength
+from koda_validate import UUIDValidator
 from koda_validate.base import Predicate, PredicateAsync, Validator
 from koda_validate.boolean import BoolValidator
+from koda_validate.bytes import BytesValidator
 from koda_validate.dataclasses import DataclassValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (
@@ -16,7 +20,19 @@ from koda_validate.dictionary import (
     RecordValidator,
 )
 from koda_validate.float import FloatValidator
-from koda_validate.generic import Choices, Lazy, Max, MaxItems, Min, MinItems, UniqueItems
+from koda_validate.generic import (
+    Choices,
+    EqualsValidator,
+    EqualTo,
+    Lazy,
+    Max,
+    MaxItems,
+    MaxLength,
+    Min,
+    MinItems,
+    MinLength,
+    UniqueItems,
+)
 from koda_validate.integer import IntValidator
 from koda_validate.list import ListValidator
 from koda_validate.namedtuple import NamedTupleValidator
@@ -38,10 +54,50 @@ def unhandled_type(obj: Any) -> NoReturn:
     )
 
 
+def get_base(t: Type[Any]) -> Dict[str, Any]:
+    if t is str:
+        return {"type": "string"}
+    elif t is bytes:
+        return {"type": "string", "format": "byte"}
+    elif t is int:
+        return {"type": "integer"}
+    elif t is Decimal:
+        return {
+            "type": "string",
+            "format": "number",
+            # based on BigDecimal (Java) but without exponent support. At least one
+            # digit required, before or after comma
+            # valid values:  "100.234567", "010", "-.05", "+1", "10", "100."
+            "pattern": r"^(\-|\+)?((\d+(\.\d*)?)|(\.\d+))$",
+        }
+    elif t is float:
+        return {"type": "number"}
+    elif t is date:
+        return {"type": "string", "format": "date"}
+    elif t is datetime:
+        return {"type": "string", "format": "date-time"}
+    elif t is bool:
+        return {"type": "boolean"}
+    elif t is UUID:
+        return {"type": "string", "format": "uuid"}
+    raise TypeError(f"Got unexpected type: {t}")
+
+
 def string_schema(
     to_schema_fn: ValidatorToSchema, validator: StringValidator
 ) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = {"type": "string"}
+    ret: Dict[str, Serializable] = get_base(str)
+
+    for pred in list(validator.predicates) + (validator.predicates_async or []):
+        ret.update(to_schema_fn(pred))
+
+    return ret
+
+
+def bytes_schema(
+    to_schema_fn: ValidatorToSchema, validator: BytesValidator
+) -> Dict[str, Serializable]:
+    ret: Dict[str, Serializable] = get_base(bytes)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
 
@@ -51,26 +107,70 @@ def string_schema(
 def integer_schema(
     to_schema_fn: ValidatorToSchema, validator: IntValidator
 ) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = {"type": "integer"}
+    ret: Dict[str, Serializable] = get_base(int)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
 
+    return ret
+
+
+def decimal_schema(
+    to_schema_fn: ValidatorToSchema, validator: DecimalValidator
+) -> Dict[str, Serializable]:
+    ret: Dict[str, Serializable] = get_base(Decimal)
+    for pred in list(validator.predicates) + (validator.predicates_async or []):
+        ret.update(to_schema_fn(pred))
     return ret
 
 
 def float_schema(
     to_schema_fn: ValidatorToSchema, validator: FloatValidator
 ) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = {"type": "number"}
+    ret: Dict[str, Serializable] = get_base(float)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
+    return ret
+
+
+def date_schema(
+    to_schema_fn: ValidatorToSchema, validator: DateValidator
+) -> Dict[str, Serializable]:
+    ret: Dict[str, Serializable] = get_base(date)
+    for pred in list(validator.predicates) + (validator.predicates_async or []):
+        ret.update(to_schema_fn(pred))
+    return ret
+
+
+def datetime_schema(
+    to_schema_fn: ValidatorToSchema, validator: DatetimeValidator
+) -> Dict[str, Serializable]:
+    ret: Dict[str, Serializable] = get_base(datetime)
+    for pred in list(validator.predicates) + (validator.predicates_async or []):
+        ret.update(to_schema_fn(pred))
+    return ret
+
+
+def equals_schema(
+    to_schema_fn: ValidatorToSchema, validator: EqualsValidator[Any]
+) -> Dict[str, Serializable]:
+    ret: Dict[str, Serializable] = get_base(type(validator.match))
+    ret.update(to_schema_fn(validator.predicate))
     return ret
 
 
 def boolean_schema(
     to_schema_fn: ValidatorToSchema, validator: BoolValidator
 ) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = {"type": "boolean"}
+    ret: Dict[str, Serializable] = get_base(bool)
+    for pred in list(validator.predicates) + (validator.predicates_async or []):
+        ret.update(to_schema_fn(pred))
+    return ret
+
+
+def uuid_schema(
+    to_schema_fn: ValidatorToSchema, validator: UUIDValidator
+) -> Dict[str, Serializable]:
+    ret: Dict[str, Serializable] = get_base(UUID)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
     return ret
@@ -220,6 +320,9 @@ def generate_schema_predicate(
             "maximum": validator.maximum,
             "exclusiveMaximum": validator.exclusive_maximum,
         }
+    elif isinstance(validator, EqualTo):
+        # todo: is there a better way to do this?
+        return {"enum": [validator.match]}
     # objects
     elif isinstance(validator, MinKeys):
         return {"minProperties": validator.size}
@@ -239,7 +342,6 @@ def generate_schema_predicate(
 def generate_schema_validator(
     to_schema_fn: ValidatorToSchema, obj: Validator[Any]
 ) -> Dict[str, Serializable]:
-    # todo: EqualsValidator
     # caution, mutation below!
     if isinstance(obj, BoolValidator):
         return boolean_schema(to_schema_fn, obj)
@@ -255,6 +357,8 @@ def generate_schema_validator(
             raise AssertionError("must be a dict")
         maybe_val_ret["nullable"] = True
         return maybe_val_ret
+    elif isinstance(obj, UUIDValidator):
+        return uuid_schema(to_schema_fn, obj)
     elif isinstance(obj, MapValidator):
         return map_of_schema(to_schema_fn, obj)
     elif isinstance(obj, RecordValidator):
@@ -265,6 +369,8 @@ def generate_schema_validator(
         return typeddict_validator_schema(to_schema_fn, obj)
     elif isinstance(obj, NamedTupleValidator):
         return namedtuple_validator_schema(to_schema_fn, obj)
+    elif isinstance(obj, EqualsValidator):
+        return equals_schema(to_schema_fn, obj)
     elif isinstance(obj, KeyNotRequired):
         return to_schema_fn(obj.validator)
     elif isinstance(obj, DictValidatorAny):
@@ -288,23 +394,14 @@ def generate_schema_validator(
             "minItems": len(obj.fields),
             "prefixItems": [to_schema_fn(s) for s in obj.fields],
         }
-    # todo allow for predicates, etc
     elif isinstance(obj, DateValidator):
-        return {"type": "string", "format": "date"}
-    # todo allow for predicates, etc
+        return date_schema(to_schema_fn, obj)
     elif isinstance(obj, DatetimeValidator):
-        return {"type": "string", "format": "date-time"}
-    # todo allow for predicates, etc
+        return datetime_schema(to_schema_fn, obj)
     elif isinstance(obj, DecimalValidator):
-        return {
-            "type": "string",
-            "format": "number",
-            # based on BigDecimal (Java) but without exponent support. At least one
-            # digit required, before or after comma
-            # valid values:  "100.234567", "010", "-.05", "+1", "10", "100."
-            "pattern": r"^(\-|\+)?((\d+(\.\d*)?)|(\.\d+))$",
-        }
-    # todo add bytes
+        return decimal_schema(to_schema_fn, obj)
+    elif isinstance(obj, BytesValidator):
+        return bytes_schema(to_schema_fn, obj)
     else:
         if isinstance(obj, Lazy):
             raise TypeError(
