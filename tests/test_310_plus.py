@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Hashable, List, Optional, Set, Union, cast
+from typing import Any, Dict, Hashable, List, Optional, Set, TypedDict, Union, cast
 
 from koda import Maybe
 
@@ -43,6 +43,7 @@ from koda_validate.base import (
     MissingKeyErr,
     TypeErr,
     VariantErrs,
+    missing_key_err,
 )
 from koda_validate.bytes import BytesValidator
 from koda_validate.dataclasses import DataclassValidator
@@ -57,6 +58,7 @@ from koda_validate.dictionary import (
 from koda_validate.generic import AlwaysValid
 from koda_validate.set import SetValidator
 from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
+from koda_validate.typeddict import TypedDictValidator
 from koda_validate.typehints import get_typehint_validator
 from koda_validate.union import UnionValidator
 
@@ -640,3 +642,21 @@ def test_get_typehint_validator_tuple_homogenous() -> None:
 
 def test_get_typehint_validator_for_bytes() -> None:
     assert isinstance(get_typehint_validator(bytes), BytesValidator)
+
+
+def test_typeddict_respects_required_and_optional() -> None:
+    class TD0(TypedDict, total=False):
+        a: str
+        b: int
+
+    class TD1(TD0, total=True):
+        c: float
+
+    v = TypedDictValidator(TD1)
+
+    assert v({}) == Invalid(KeyErrs({"c": Invalid(missing_key_err, {}, v)}), {}, v)
+    assert v(TD1(c=3.14)) == Valid({"c": 3.14})
+
+    assert v({"b": 5, "c": 2.2}) == Valid({"b": 5, "c": 2.2})
+
+    assert v({"a": "ok", "b": 1, "c": 4.4}) == Valid({"a": "ok", "b": 1, "c": 4.4})

@@ -432,3 +432,18 @@ def test_eq() -> None:
     ) != TypedDictValidator(
         A, overrides={"name": StringValidator()}, validate_object=obj_fn_2
     )
+
+
+def test_total_is_respected() -> None:
+    class TD1(TypedDict, total=False):
+        a: str
+        b: int
+        c: float
+
+    v = TypedDictValidator(TD1)
+
+    assert v({}) == Valid({})
+
+    assert v({"b": 5}) == Valid({"b": 5})
+
+    assert v({"a": "ok", "b": 1, "c": 4.4}) == Valid({"a": "ok", "b": 1, "c": 4.4})
