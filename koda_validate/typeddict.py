@@ -1,9 +1,9 @@
 import sys
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
+    FrozenSet,
     Mapping,
     Optional,
     Type,
@@ -50,8 +50,6 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         if not _is_typed_dict_cls(td_cls):
             raise TypeError("must be a TypedDict subclass")
-        elif TYPE_CHECKING:
-            assert hasattr(td_cls, "__total__")
         from koda_validate.typehints import get_typehint_validator
 
         self.td_cls = td_cls
@@ -62,13 +60,16 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         if sys.version_info >= (3, 9):
             # Required/NotRequired keys are always present in
-            self.required_keys = td_cls.__required_keys__  # type: ignore
+            self.required_keys: FrozenSet[str] = getattr(
+                td_cls, "__required_keys__", frozenset()
+            )
         else:
             # not going to try to handle superclasses
-            if td_cls.__total__:
-                self.required_keys = frozenset([k for k in td_cls.__annotations__])
-            else:
-                self.required_keys = frozenset()
+            self.required_keys = (
+                frozenset([k for k in td_cls.__annotations__])
+                if getattr(td_cls, "__total__", True)
+                else frozenset()
+            )
 
         self.schema = {
             field: (
