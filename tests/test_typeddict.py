@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import List, Optional, TypedDict
 from uuid import UUID, uuid4
@@ -9,6 +10,7 @@ from koda_validate.base import (
     BasicErr,
     CoercionErr,
     ErrType,
+    ExtraKeysErr,
     IndexErrs,
     Invalid,
     KeyErrs,
@@ -128,6 +130,47 @@ async def test_valid_typeddict_returns_typeddict_result_async() -> None:
     )
 
     assert result == Valid(PersonSimpleTD(name="alice", age=99))
+
+
+def test_extra_keys_invalid() -> None:
+    v = TypedDictValidator(PersonSimpleTD)
+
+    test_d = {"name": "ok", "d": "whatever"}
+    assert v(test_d) == Invalid(ExtraKeysErr({"age", "name"}), test_d, v)
+
+
+@pytest.mark.asyncio
+async def test_extra_keys_invalid_async() -> None:
+    v = TypedDictValidator(PersonSimpleTD)
+
+    test_d = {"name": "ok", "d": "whatever"}
+    assert await v.validate_async(test_d) == Invalid(
+        ExtraKeysErr({"age", "name"}), test_d, v
+    )
+
+
+@pytest.mark.asyncio
+async def test_missing_key_async() -> None:
+    v = TypedDictValidator(PersonSimpleTD)
+
+    test_d = {"name": "ok"}
+    assert await v.validate_async(test_d) == Invalid(
+        KeyErrs({"age": Invalid(missing_key_err, test_d, v)}), test_d, v
+    )
+
+
+def test_invalid_class_raises_error() -> None:
+    @dataclass
+    class DC:
+        a: str
+
+    for t in [DC, dict, set, list, tuple]:
+        try:
+            TypedDictValidator(t)
+        except TypeError as e:
+            assert str(e) == "must be a TypedDict subclass"
+        else:
+            raise AssertionError("init shouldn't succeed!")
 
 
 def test_explicit_overrides_work() -> None:
