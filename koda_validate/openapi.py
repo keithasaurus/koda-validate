@@ -311,8 +311,11 @@ def generate_schema_predicate(
         return {"pattern": validator.pattern.pattern}
     # numbers
     elif isinstance(validator, Min):
-        if type(validator.minimum) is Decimal:
+        min_t = type(validator.minimum)
+        if min_t is Decimal:
             min_ = str(validator.minimum)
+        elif min_t is date or min_t is datetime:
+            min_ = validator.minimum.isoformat()
         else:
             min_ = validator.minimum
         return {
@@ -320,8 +323,11 @@ def generate_schema_predicate(
             "exclusiveMinimum": validator.exclusive_minimum,
         }
     elif isinstance(validator, Max):
-        if type(validator.maximum) is Decimal:
+        max_t = type(validator.maximum)
+        if max_t is Decimal:
             max_ = str(validator.maximum)
+        elif max_t is date or max_t is datetime:
+            max_ = validator.maximum.isoformat()
         else:
             max_ = validator.maximum
         return {

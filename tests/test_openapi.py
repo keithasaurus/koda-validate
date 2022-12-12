@@ -12,6 +12,7 @@ from koda_validate import (
     BytesValidator,
     Choices,
     DataclassValidator,
+    DatetimeValidator,
     DateValidator,
     DecimalValidator,
     EqualsValidator,
@@ -31,6 +32,7 @@ from koda_validate import (
     TupleHomogenousValidator,
     UnionValidator,
     UniqueItems,
+    UUIDValidator,
     Valid,
     unique_items,
 )
@@ -613,12 +615,55 @@ def test_decimal_validator() -> None:
     )
 
 
+def test_float_validator() -> None:
+    expected_schema_float = {
+        "type": "number",
+        "maximum": 345.678,
+        "exclusiveMaximum": True,
+    }
+
+    validate_schema(expected_schema_float)  # type: ignore
+
+    assert generate_schema(FloatValidator(Max(345.678, True))) == expected_schema_float
+
+
 def test_date_validator() -> None:
+    min_date = date(2022, 12, 11)
     expected_schema_date = {
         "type": "string",
         "format": "date",
+        "minimum": "2022-12-11",
+        "exclusiveMinimum": True,
     }
 
     validate_schema(expected_schema_date)  # type: ignore
 
-    assert generate_schema(DateValidator()) == expected_schema_date
+    assert (
+        generate_schema(DateValidator(Min(min_date, exclusive_minimum=True)))
+        == expected_schema_date
+    )
+
+
+def test_datetime_validator() -> None:
+    max_dt = datetime.now()
+    expected_schema_datetime = {
+        "type": "string",
+        "format": "date-time",
+        "maximum": max_dt.isoformat(),
+        "exclusiveMaximum": False,
+    }
+
+    validate_schema(expected_schema_datetime)  # type: ignore
+
+    assert generate_schema(DatetimeValidator(Max(max_dt))) == expected_schema_datetime
+
+
+def test_uuid_validator() -> None:
+    expected_schema_datetime = {
+        "type": "string",
+        "format": "uuid",
+    }
+
+    validate_schema(expected_schema_datetime)  # type: ignore
+
+    assert generate_schema(UUIDValidator()) == expected_schema_datetime
