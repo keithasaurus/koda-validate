@@ -16,8 +16,10 @@ from koda_validate import (
     ListValidator,
     Max,
     MaxItems,
+    MaxLength,
     Min,
     MinItems,
+    MinLength,
     NTupleValidator,
     OptionalValidator,
     Serializable,
@@ -40,8 +42,6 @@ from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.openapi import generate_named_schema, generate_schema
 from koda_validate.string import (
     EmailPredicate,
-    MaxLength,
-    MinLength,
     RegexPredicate,
     StringValidator,
     not_blank,

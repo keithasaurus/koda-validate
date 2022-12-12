@@ -53,6 +53,8 @@ __all__ = (
     "EqualTo",
     "always_valid",
     "AlwaysValid",
+    "MinLength",
+    "MaxLength",
     # integer.py
     "IntValidator",
     # list.py
@@ -68,8 +70,6 @@ __all__ = (
     "SetValidator",
     # string.py
     "StringValidator",
-    "MinLength",
-    "MaxLength",
     "RegexPredicate",
     "EmailPredicate",
     "NotBlank",
@@ -134,8 +134,10 @@ from koda_validate.generic import (
     Lazy,
     Max,
     MaxItems,
+    MaxLength,
     Min,
     MinItems,
+    MinLength,
     MultipleOf,
     UniqueItems,
     always_valid,
@@ -148,8 +150,6 @@ from koda_validate.serialization import Serializable, serializable_validation_er
 from koda_validate.set import SetValidator
 from koda_validate.string import (
     EmailPredicate,
-    MaxLength,
-    MinLength,
     NotBlank,
     RegexPredicate,
     StringValidator,

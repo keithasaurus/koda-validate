@@ -46,22 +46,6 @@ not_blank = NotBlank()
 
 
 @dataclass
-class MaxLength(Predicate[str]):
-    length: int
-
-    def __call__(self, val: str) -> bool:
-        return len(val) <= self.length
-
-
-@dataclass
-class MinLength(Predicate[str]):
-    length: int
-
-    def __call__(self, val: str) -> bool:
-        return len(val) >= self.length
-
-
-@dataclass
 class Strip(Processor[str]):
     def __call__(self, val: str) -> str:
         return val.strip()

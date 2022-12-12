@@ -4,12 +4,18 @@ from dataclasses import dataclass
 
 import pytest
 
-from koda_validate import EmailPredicate, Invalid, PredicateAsync, RegexPredicate, Valid
+from koda_validate import (
+    EmailPredicate,
+    Invalid,
+    MaxLength,
+    MinLength,
+    PredicateAsync,
+    RegexPredicate,
+    Valid,
+)
 from koda_validate._generics import A
 from koda_validate.base import PredicateErrs, TypeErr
 from koda_validate.string import (
-    MaxLength,
-    MinLength,
     NotBlank,
     StringValidator,
     lower_case,

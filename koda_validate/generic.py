@@ -7,10 +7,10 @@ from uuid import UUID
 from koda import Thunk
 from koda._generics import A
 
-from koda_validate import Invalid
 from koda_validate._generics import Ret
 from koda_validate._internal import ResultTuple, _ToTupleValidator
 from koda_validate.base import (
+    Invalid,
     Predicate,
     PredicateErrs,
     Processor,
@@ -244,3 +244,21 @@ class UniqueItems(Predicate[ListOrTupleOrSetAny]):
 # mypy has a problem with this for Tuple[Any, ...]
 # for some types, you might need to use UniqueItems()
 unique_items = UniqueItems()
+
+StrOrBytes = TypeVar("StrOrBytes", str, bytes)
+
+
+@dataclass
+class MaxLength(Predicate[StrOrBytes]):
+    length: int
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return len(val) <= self.length
+
+
+@dataclass
+class MinLength(Predicate[StrOrBytes]):
+    length: int
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return len(val) >= self.length

@@ -2,7 +2,7 @@ import re
 from decimal import Decimal
 from typing import Any, List, Tuple, Union
 
-from koda_validate import ListValidator
+from koda_validate import ListValidator, MaxLength, MinLength
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
@@ -39,8 +39,6 @@ from koda_validate.serialization import pred_to_err_message, serializable_valida
 from koda_validate.set import SetValidator
 from koda_validate.string import (
     EmailPredicate,
-    MaxLength,
-    MinLength,
     RegexPredicate,
     StringValidator,
     not_blank,

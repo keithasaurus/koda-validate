@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Tuple, Union
 
+from koda_validate import MaxLength, MinLength
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
@@ -28,13 +29,7 @@ from koda_validate.generic import (
     MultipleOf,
     UniqueItems,
 )
-from koda_validate.string import (
-    EmailPredicate,
-    MaxLength,
-    MinLength,
-    NotBlank,
-    RegexPredicate,
-)
+from koda_validate.string import EmailPredicate, NotBlank, RegexPredicate
 
 Serializable = Union[
     None,
