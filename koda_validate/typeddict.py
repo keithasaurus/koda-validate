@@ -1,5 +1,6 @@
 import sys
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -49,6 +50,8 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         if not _is_typed_dict_cls(td_cls):
             raise TypeError("must be a TypedDict subclass")
+        elif TYPE_CHECKING:
+            assert hasattr(td_cls, "__total__")
         from koda_validate.typehints import get_typehint_validator
 
         self.td_cls = td_cls
