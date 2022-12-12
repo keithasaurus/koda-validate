@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from datetime import date
-from typing import List, Optional, Set, Tuple, TypeVar
+from typing import List, NamedTuple, Optional, Set, Tuple, TypedDict, TypeVar
 
 from openapi_spec_validator import validate_spec
 
@@ -36,6 +36,7 @@ from koda_validate.dictionary import (
     RecordValidator,
     is_dict_validator,
 )
+from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.openapi import generate_named_schema, generate_schema
 from koda_validate.string import (
     EmailPredicate,
@@ -45,6 +46,7 @@ from koda_validate.string import (
     StringValidator,
     not_blank,
 )
+from koda_validate.typeddict import TypedDictValidator
 from koda_validate.union import UnionValidatorIndexed
 
 A = TypeVar("A")
@@ -463,6 +465,48 @@ def test_dataclass_validator() -> None:
         "type": "object",
         "additionalProperties": False,
         "required": ["age"],
+        "properties": {
+            "name": {"type": "string"},
+            "age": {"type": "integer"},
+        },
+    }
+
+    validate_schema(expected_schema)  # type: ignore
+    assert generate_schema(x) == expected_schema
+
+
+def test_namedtuple_validator() -> None:
+    class Example(NamedTuple):
+        age: int
+        name: str = "John Doe"
+
+    x = NamedTupleValidator(Example)
+
+    expected_schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["age"],
+        "properties": {
+            "name": {"type": "string"},
+            "age": {"type": "integer"},
+        },
+    }
+
+    validate_schema(expected_schema)  # type: ignore
+    assert generate_schema(x) == expected_schema
+
+
+def test_typeddict_validator() -> None:
+    class Example(TypedDict):
+        age: int
+        name: str
+
+    x = TypedDictValidator(Example)
+
+    expected_schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["age", "name"],
         "properties": {
             "name": {"type": "string"},
             "age": {"type": "integer"},

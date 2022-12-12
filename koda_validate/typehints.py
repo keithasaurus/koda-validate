@@ -31,6 +31,7 @@ from .uuid import UUIDValidator
 
 
 # todo: evolve into general-purpose type-hint driven validator
+# will probably need significant changes
 def get_typehint_validator(annotations: Any) -> Validator[Any]:
     if annotations is str:
         return StringValidator()

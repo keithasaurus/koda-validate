@@ -18,6 +18,7 @@ from koda_validate.float import FloatValidator
 from koda_validate.generic import Choices, Lazy, Max, MaxItems, Min, MinItems, UniqueItems
 from koda_validate.integer import IntValidator
 from koda_validate.list import ListValidator
+from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.none import OptionalValidator
 from koda_validate.serialization import Serializable
 from koda_validate.string import (
@@ -30,6 +31,7 @@ from koda_validate.string import (
 )
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
+from koda_validate.typeddict import TypedDictValidator
 from koda_validate.union import UnionValidator, UnionValidatorIndexed
 
 AnyValidatorOrPredicate = Union[Validator[Any], Predicate[Any], PredicateAsync[Any]]
@@ -151,6 +153,38 @@ def dataclass_validator_schema(
     }
 
 
+def namedtuple_validator_schema(
+    to_schema_fn: ValidatorToSchema,
+    obj: NamedTupleValidator[Any],
+) -> Dict[str, Serializable]:
+    properties: Dict[str, Serializable] = {}
+    for label, field in obj.schema.items():
+        str_label = str(label)
+        properties[str_label] = to_schema_fn(field)
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": obj.required_fields,  # type: ignore
+        "properties": properties,
+    }
+
+
+def typeddict_validator_schema(
+    to_schema_fn: ValidatorToSchema,
+    obj: TypedDictValidator[Any],
+) -> Dict[str, Serializable]:
+    properties: Dict[str, Serializable] = {}
+    for label, field in obj.schema.items():
+        str_label = str(label)
+        properties[str_label] = to_schema_fn(field)
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": sorted(obj.required_keys),  # type: ignore
+        "properties": properties,
+    }
+
+
 def map_of_schema(
     to_schema_fn: ValidatorToSchema, validator: MapValidator[Any, Any]
 ) -> Dict[str, Serializable]:
@@ -211,6 +245,7 @@ def generate_schema_predicate(
 def generate_schema_validator(
     to_schema_fn: ValidatorToSchema, obj: Validator[Any]
 ) -> Dict[str, Serializable]:
+    # todo: EqualsValidator
     # caution, mutation below!
     if isinstance(obj, BoolValidator):
         return boolean_schema(to_schema_fn, obj)
@@ -232,6 +267,10 @@ def generate_schema_validator(
         return obj_schema(to_schema_fn, obj)
     elif isinstance(obj, DataclassValidator):
         return dataclass_validator_schema(to_schema_fn, obj)
+    elif isinstance(obj, TypedDictValidator):
+        return typeddict_validator_schema(to_schema_fn, obj)
+    elif isinstance(obj, NamedTupleValidator):
+        return namedtuple_validator_schema(to_schema_fn, obj)
     elif isinstance(obj, KeyNotRequired):
         return to_schema_fn(obj.validator)
     elif isinstance(obj, DictValidatorAny):
@@ -241,9 +280,7 @@ def generate_schema_validator(
     elif isinstance(obj, TupleHomogenousValidator):
         return array_of_schema(to_schema_fn, obj)
     elif isinstance(obj, IsDictValidator):
-        return {
-            "type": "object",
-        }
+        return {"type": "object"}
     elif isinstance(obj, UnionValidatorIndexed):
         return {"oneOf": [to_schema_fn(s) for s in obj.validators]}
     elif isinstance(obj, UnionValidator):
