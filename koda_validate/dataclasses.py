@@ -28,6 +28,7 @@ from koda_validate.base import (
     Validator,
     missing_key_err,
 )
+from koda_validate.typehints import get_typehint_validator
 
 
 class DataclassLike(Protocol):
@@ -44,9 +45,8 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_DCT], Optional[ErrType]]] = None,
+        typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
     ) -> None:
-        from koda_validate.typehints import get_typehint_validator
-
         self.data_cls = data_cls
         self._input_overrides = overrides  # for repr
         overrides = overrides or {}
@@ -60,9 +60,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         self.schema = {
             field: (
-                overrides[field]
-                if field in overrides
-                else get_typehint_validator(annotations)
+                overrides[field] if field in overrides else typehint_resolver(annotations)
             )
             for field, annotations in type_hints.items()
         }

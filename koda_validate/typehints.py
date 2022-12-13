@@ -12,20 +12,17 @@ from ._internal import _is_typed_dict_cls
 from .base import Validator
 from .boolean import BoolValidator
 from .bytes import BytesValidator
-from .dataclasses import DataclassValidator
 from .decimal import DecimalValidator
 from .dictionary import MapValidator
 from .float import FloatValidator
 from .generic import EqualsValidator, always_valid
 from .integer import IntValidator
 from .list import ListValidator
-from .namedtuple import NamedTupleValidator
 from .none import NoneValidator
 from .set import SetValidator
 from .string import StringValidator
 from .time import DatetimeValidator, DateValidator
 from .tuple import NTupleValidator, TupleHomogenousValidator
-from .typeddict import TypedDictValidator
 from .union import UnionValidator
 from .uuid import UUIDValidator
 
@@ -64,14 +61,20 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
     elif annotations is Dict or annotations is dict:
         return MapValidator(key=always_valid, value=always_valid)
     elif is_dataclass(annotations):
+        from .dataclasses import DataclassValidator
+
         return DataclassValidator(annotations)
     elif (
         (bases := getattr(annotations, "__bases__", None))
         and bases == (tuple,)
         and hasattr(annotations, "_fields")
     ):
+        from .namedtuple import NamedTupleValidator
+
         return NamedTupleValidator(annotations)
     elif _is_typed_dict_cls(annotations):
+        from .typeddict import TypedDictValidator
+
         return TypedDictValidator(annotations)
     else:
         origin, args = get_origin(annotations), get_args(annotations)

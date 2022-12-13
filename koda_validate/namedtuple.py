@@ -27,6 +27,7 @@ from koda_validate.base import (
     Validator,
     missing_key_err,
 )
+from koda_validate.typehints import get_typehint_validator
 
 _NTT = TypeVar("_NTT", bound=NamedTuple)
 
@@ -38,8 +39,8 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_NTT], Optional[ErrType]]] = None,
+        typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
     ) -> None:
-        from koda_validate.typehints import get_typehint_validator
 
         self.named_tuple_cls = named_tuple_cls
         self._input_overrides = overrides  # for repr
@@ -54,9 +55,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
 
         self.schema = {
             field: (
-                overrides[field]
-                if field in overrides
-                else get_typehint_validator(annotations)
+                overrides[field] if field in overrides else typehint_resolver(annotations)
             )
             for field, annotations in type_hints.items()
         }

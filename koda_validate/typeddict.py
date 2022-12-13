@@ -29,6 +29,7 @@ from koda_validate.base import (
     Validator,
     missing_key_err,
 )
+from koda_validate.typehints import get_typehint_validator
 
 _TDT = TypeVar("_TDT", bound=Mapping[str, object])
 
@@ -46,11 +47,11 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_TDT], Optional[ErrType]]] = None,
+        typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
     ) -> None:
 
         if not _is_typed_dict_cls(td_cls):
             raise TypeError("must be a TypedDict subclass")
-        from koda_validate.typehints import get_typehint_validator
 
         self.td_cls = td_cls
         self._input_overrides = overrides  # for repr
@@ -73,9 +74,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         self.schema = {
             field: (
-                overrides[field]
-                if field in overrides
-                else get_typehint_validator(annotations)
+                overrides[field] if field in overrides else typehint_resolver(annotations)
             )
             for field, annotations in type_hints.items()
         }
