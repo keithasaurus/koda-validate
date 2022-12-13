@@ -103,7 +103,7 @@ class UnionValidator(_ToTupleValidator[A]):
         validator_7: Validator[T7],
         validator_8: Validator[T8],
     ) -> "UnionValidator[Union[T1, T2, T3, T4, T5, T6, T7, T8]]":
-        ...
+        ...  # pragma: no cover
 
     @staticmethod
     def typed(
@@ -261,7 +261,7 @@ class UnionValidatorIndexed(_ToTupleValidator[Tuple[int, A]]):
         validator_7: Validator[T7],
         validator_8: Validator[T8],
     ) -> "UnionValidatorIndexed[Union[T1, T2, T3, T4, T5, T6, T7, T8]]":
-        ...
+        ...  # pragma: no cover
 
     @staticmethod
     def typed(

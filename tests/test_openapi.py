@@ -115,6 +115,16 @@ def test_recursive_validator() -> None:
         }
     }
 
+    try:
+        generate_schema(comment_validator)
+    except TypeError as e:
+        assert (
+            str(e) == "`Lazy` type was not handled -- perhaps "
+            "you need to use `generate_named_schema`?"
+        )
+    else:
+        raise AssertionError("should have raised TypeError")
+
 
 def test_person() -> None:
     @dataclass
@@ -606,12 +616,19 @@ def test_decimal_validator() -> None:
         "pattern": r"^(\-|\+)?((\d+(\.\d*)?)|(\.\d+))$",
         "maximum": "345.678",
         "exclusiveMaximum": False,
+        "minimum": "111.2",
+        "exclusiveMinimum": True,
     }
 
     validate_schema(expected_schema_dec)  # type: ignore
 
     assert (
-        generate_schema(DecimalValidator(Max(Decimal("345.678")))) == expected_schema_dec
+        generate_schema(
+            DecimalValidator(
+                Max(Decimal("345.678")), Min(Decimal("111.2"), exclusive_minimum=True)
+            )
+        )
+        == expected_schema_dec
     )
 
 

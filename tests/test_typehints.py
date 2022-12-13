@@ -1,7 +1,10 @@
+from datetime import date, datetime
 from typing import Literal, NamedTuple, Tuple
 
 from koda_validate import (
     AlwaysValid,
+    DatetimeValidator,
+    DateValidator,
     EqualsValidator,
     EqualTo,
     Invalid,
@@ -73,3 +76,11 @@ def test_get_typehint_validator_named_tuple() -> None:
 
     assert isinstance(v, NamedTupleValidator)
     assert v == NamedTupleValidator(X)
+
+
+def test_datetime_handled_properly() -> None:
+    assert get_typehint_validator(datetime) == DatetimeValidator()
+
+
+def test_date_handled_properly() -> None:
+    assert get_typehint_validator(date) == DateValidator()
