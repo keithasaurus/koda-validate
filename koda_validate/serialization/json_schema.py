@@ -42,7 +42,7 @@ from koda_validate.string import EmailPredicate, NotBlank, RegexPredicate, Strin
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
 from koda_validate.typeddict import TypedDictValidator
-from koda_validate.union import UnionValidator, UnionValidatorIndexed
+from koda_validate.union import UnionValidator
 
 AnyValidatorOrPredicate = Union[Validator[Any], Predicate[Any], PredicateAsync[Any]]
 ValidatorToSchema = Callable[[AnyValidatorOrPredicate], Dict[str, Serializable]]
@@ -436,8 +436,6 @@ def generate_schema_validator(
         return array_of_schema(to_schema_fn, obj)
     elif isinstance(obj, IsDictValidator):
         return {"type": "object"}
-    elif isinstance(obj, UnionValidatorIndexed):
-        return {"oneOf": [to_schema_fn(s) for s in obj.validators]}
     elif isinstance(obj, UnionValidator):
         return {"oneOf": [to_schema_fn(s) for s in obj.validators]}
     elif isinstance(obj, NTupleValidator):

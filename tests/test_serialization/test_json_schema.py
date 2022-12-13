@@ -63,7 +63,6 @@ from koda_validate.string import (
     not_blank,
 )
 from koda_validate.typeddict import TypedDictValidator
-from koda_validate.union import UnionValidatorIndexed
 
 A = TypeVar("A")
 Ret = TypeVar("Ret")
@@ -285,17 +284,17 @@ def test_auth_creds() -> None:
         into=EmailCreds,
     )
 
-    validator_one_of_2 = UnionValidatorIndexed.typed(
+    validator_one_of_2 = UnionValidator.typed(
         username_creds_validator, email_creds_validator
     )
 
     # sanity check
     assert validator_one_of_2({"username": "a", "password": "b"}) == Valid(
-        (0, UsernameCreds("a", "b"))
+        UsernameCreds("a", "b")
     )
 
     assert validator_one_of_2({"email": "a@example.com", "password": "b"}) == Valid(
-        (1, EmailCreds("a@example.com", "b"))
+        EmailCreds("a@example.com", "b")
     )
 
     assert generate_schema(validator_one_of_2) == {
@@ -325,7 +324,7 @@ def test_auth_creds() -> None:
     class Token:
         token: str
 
-    validator_one_of_3 = UnionValidatorIndexed.typed(
+    validator_one_of_3 = UnionValidator.typed(
         username_creds_validator,
         email_creds_validator,
         RecordValidator(
@@ -335,7 +334,7 @@ def test_auth_creds() -> None:
 
     # sanity
     assert validator_one_of_3({"token": "abcdefghijklmnopqrstuvwxyz123456"}) == Valid(
-        (2, Token("abcdefghijklmnopqrstuvwxyz123456"))
+        Token("abcdefghijklmnopqrstuvwxyz123456")
     )
 
     expected_schema = {
