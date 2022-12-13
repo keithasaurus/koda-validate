@@ -5,7 +5,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import List, NamedTuple, Optional, Set, Tuple, TypedDict, TypeVar
 
-from openapi_spec_validator import validate_spec
+from jsonschema.validators import Draft202012Validator
 
 from koda_validate import (
     BoolValidator,
@@ -61,26 +61,7 @@ Ret = TypeVar("Ret")
 
 
 def validate_schema(schema: Serializable) -> None:
-    spec = {
-        "openapi": "3.1.0",
-        "info": {
-            "title": "hmm",
-            "version": "1.1.1",
-        },
-        "paths": {
-            "/board": {
-                "get": {
-                    "responses": {
-                        "200": {
-                            "description": "ok",
-                            "content": {"application/json": {"schema": schema}},
-                        }
-                    }
-                }
-            }
-        },
-    }
-    return validate_spec(spec)  # type: ignore
+    return Draft202012Validator.check_schema(schema)
 
 
 def test_recursive_validator() -> None:
@@ -242,8 +223,6 @@ def test_cities() -> None:
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 50000000,
-                    "exclusiveMinimum": False,
-                    "exclusiveMaximum": False,
                     "nullable": True,
                 },
                 "state": {"type": "string", "enum": ["CA", "NY"]},
@@ -614,10 +593,8 @@ def test_decimal_validator() -> None:
         "type": "string",
         "format": "number",
         "pattern": r"^(\-|\+)?((\d+(\.\d*)?)|(\.\d+))$",
-        "maximum": "345.678",
-        "exclusiveMaximum": False,
-        "minimum": "111.2",
-        "exclusiveMinimum": True,
+        "formatMaximum": "345.678",
+        "formatExclusiveMinimum": "111.2",
     }
 
     validate_schema(expected_schema_dec)  # type: ignore
@@ -635,8 +612,7 @@ def test_decimal_validator() -> None:
 def test_float_validator() -> None:
     expected_schema_float = {
         "type": "number",
-        "maximum": 345.678,
-        "exclusiveMaximum": True,
+        "exclusiveMaximum": 345.678,
     }
 
     validate_schema(expected_schema_float)  # type: ignore
@@ -649,8 +625,7 @@ def test_date_validator() -> None:
     expected_schema_date = {
         "type": "string",
         "format": "date",
-        "minimum": "2022-12-11",
-        "exclusiveMinimum": True,
+        "formatExclusiveMinimum": "2022-12-11",
     }
 
     validate_schema(expected_schema_date)  # type: ignore
@@ -666,8 +641,7 @@ def test_datetime_validator() -> None:
     expected_schema_datetime = {
         "type": "string",
         "format": "date-time",
-        "maximum": max_dt.isoformat(),
-        "exclusiveMaximum": False,
+        "formatMaximum": max_dt.isoformat(),
     }
 
     validate_schema(expected_schema_datetime)  # type: ignore

@@ -318,10 +318,19 @@ def generate_schema_predicate(
             min_ = validator.minimum.isoformat()
         else:
             min_ = validator.minimum
-        return {
-            "minimum": min_,
-            "exclusiveMinimum": validator.exclusive_minimum,
-        }
+        # non-standard format min / max
+        if min_t in {Decimal, date, datetime}:
+            return (
+                {"formatExclusiveMinimum": min_}
+                if validator.exclusive_minimum
+                else {"formatMinimum": min_}
+            )
+        else:
+            return (
+                {"exclusiveMinimum": min_}
+                if validator.exclusive_minimum
+                else {"minimum": min_}
+            )
     elif isinstance(validator, Max):
         max_t = type(validator.maximum)
         if max_t is Decimal:
@@ -330,10 +339,20 @@ def generate_schema_predicate(
             max_ = validator.maximum.isoformat()
         else:
             max_ = validator.maximum
-        return {
-            "maximum": max_,
-            "exclusiveMaximum": validator.exclusive_maximum,
-        }
+
+        # non-standard format min / max
+        if max_t in {Decimal, date, datetime}:
+            return (
+                {"formatExclusiveMaximum": max_}
+                if validator.exclusive_maximum
+                else {"formatMaximum": max_}
+            )
+        else:
+            return (
+                {"exclusiveMaximum": max_}
+                if validator.exclusive_maximum
+                else {"maximum": max_}
+            )
     elif isinstance(validator, EqualTo):
         # todo: is there a better way to do this than using enum?
         match_t = type(validator.match)
