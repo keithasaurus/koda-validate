@@ -1014,6 +1014,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             and self.keys == other.keys
             and self.validate_object == other.validate_object
             and self.validate_object_async == other.validate_object_async
+            and self.fail_on_unknown_keys == other.fail_on_unknown_keys
         )
 
     def __repr__(self) -> str:

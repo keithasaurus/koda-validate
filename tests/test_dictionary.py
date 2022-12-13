@@ -1223,7 +1223,7 @@ async def test_validate_dictionary_async() -> None:
     ) == Invalid(
         ExtraKeysErr({"first_name", "last_name"}),
         {"last_name": "smith", "a": 123.45},
-        validator,
+        validator_no_extra_keys,
     )
 
 
@@ -1359,6 +1359,12 @@ def test_record_validator_repr() -> None:
             )
         )
         == f"RecordValidator(keys=(('name', StringValidator()),), into={repr(Abc)})"
+    )
+
+    assert (
+        repr(RecordValidator(keys=keys, into=Abc, fail_on_unknown_keys=True))
+        == f"RecordValidator(keys=(('name', StringValidator()),), into={repr(Abc)}, "
+        f"fail_on_unknown_keys=True)"
     )
 
     def fn_1(data: Abc) -> Optional[ErrType]:
