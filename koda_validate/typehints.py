@@ -103,9 +103,4 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         if origin is Literal:
             return UnionValidator(*[EqualsValidator(a) for a in args])
 
-        # todo: change message (allow as parameter?)
-        raise TypeError(
-            f"There was an error handling annotation of type {type(annotations)}. "
-            f"This can possibly be resolved by using the `overrides` parameter "
-            f"to explicitly define a `Validator` for the related key."
-        )
+        raise TypeError(f"Got unhandled annotation type: {type(annotations)}.")
