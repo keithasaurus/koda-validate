@@ -418,7 +418,7 @@ def test_eq() -> None:
 
 
 def test_extra_keys_invalid() -> None:
-    v = NamedTupleValidator(PersonSimple)
+    v = NamedTupleValidator(PersonSimple, fail_on_unknown_keys=True)
 
     test_d = {"name": "ok", "d": "whatever"}
     assert v(test_d) == Invalid(ExtraKeysErr({"age", "name"}), test_d, v)
@@ -426,7 +426,7 @@ def test_extra_keys_invalid() -> None:
 
 @pytest.mark.asyncio
 async def test_extra_keys_invalid_async() -> None:
-    v = NamedTupleValidator(PersonSimple)
+    v = NamedTupleValidator(PersonSimple, fail_on_unknown_keys=True)
 
     test_d = {"name": "ok", "d": "whatever"}
     assert await v.validate_async(test_d) == Invalid(

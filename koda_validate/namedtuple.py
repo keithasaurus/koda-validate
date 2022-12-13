@@ -40,10 +40,13 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_NTT], Optional[ErrType]]] = None,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
 
         self.named_tuple_cls = named_tuple_cls
         self._input_overrides = overrides  # for repr
+        self.fail_on_unknown_keys = fail_on_unknown_keys
+
         overrides = overrides or {}
         type_hints = get_type_hints(self.named_tuple_cls)
 
@@ -92,10 +95,10 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
                 self,
             )
 
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in self._keys_set:
-                return False, Invalid(self._unknown_keys_err, data, self)
+        if self.fail_on_unknown_keys:
+            for key_ in data:
+                if key_ not in self._keys_set:
+                    return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[Any, Any] = {}
         errs: Dict[Any, Invalid] = {}
@@ -139,10 +142,10 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
                 self,
             )
 
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in self._keys_set:
-                return False, Invalid(self._unknown_keys_err, data, self)
+        if self.fail_on_unknown_keys:
+            for key_ in data:
+                if key_ not in self._keys_set:
+                    return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[Any, Any] = {}
         errs: Dict[Any, Invalid] = {}

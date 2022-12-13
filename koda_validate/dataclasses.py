@@ -100,7 +100,6 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             )
 
         if self.fail_on_unknown_keys:
-            # this seems to be faster than `for key_ in data.keys()`
             for key_ in data:
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
