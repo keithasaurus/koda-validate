@@ -238,7 +238,9 @@ def test_record_1() -> None:
 
     s_v = StringValidator()
 
-    validator = RecordValidator(into=Person, keys=(("name", s_v),))
+    validator = RecordValidator(
+        into=Person, keys=(("name", s_v),), fail_on_unknown_keys=True
+    )
 
     assert validator("not a dict") == Invalid(TypeErr(dict), "not a dict", validator)
 
@@ -279,6 +281,7 @@ def test_record_2() -> None:
     validator = RecordValidator(
         into=Person,
         keys=(("name", s_v), ("age", KeyNotRequired(i_v))),
+        fail_on_unknown_keys=True,
     )
 
     assert validator("not a dict") == Invalid(TypeErr(dict), "not a dict", validator)
@@ -390,6 +393,7 @@ def test_record_4_mix_and_match_key_types() -> None:
             (Decimal(6), StringValidator()),
         ),
         validate_object=_nobody_named_jones_has_brown_eyes,
+        fail_on_unknown_keys=True,
     )
 
     assert validator(
@@ -1201,7 +1205,22 @@ async def test_validate_dictionary_async() -> None:
         validator,
     )
 
-    assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Invalid(
+    assert await validator.validate_async(
+        {"last_name": "smith", "first_name": "bob", "a": 123.45}
+    ) == Valid(Person(Just("bob"), "smith"))
+
+    validator_no_extra_keys = RecordValidator(
+        into=Person,
+        keys=(
+            ("first_name", KeyNotRequired(s_v)),
+            ("last_name", StringValidator()),
+        ),
+        fail_on_unknown_keys=True,
+    )
+
+    assert await validator_no_extra_keys.validate_async(
+        {"last_name": "smith", "a": 123.45}
+    ) == Invalid(
         ExtraKeysErr({"first_name", "last_name"}),
         {"last_name": "smith", "a": 123.45},
         validator,

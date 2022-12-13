@@ -311,6 +311,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -328,6 +329,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -346,6 +348,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -365,6 +368,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -385,6 +389,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -406,6 +411,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -428,6 +434,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -451,6 +458,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -475,6 +483,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -500,6 +509,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -526,6 +536,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -553,6 +564,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -581,6 +593,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -612,6 +625,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -644,6 +658,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -677,6 +692,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
 
@@ -866,6 +882,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
 
         self.into = into
@@ -878,6 +895,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
         self.preprocessors = preprocessors
+        self.fail_on_unknown_keys = fail_on_unknown_keys
 
         # so we don't need to calculate each time we validate
         self._key_set = set()
@@ -905,10 +923,10 @@ class RecordValidator(_ToTupleValidator[Ret]):
             for preproc in self.preprocessors:
                 data = preproc(data)
 
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in self._key_set:
-                return False, Invalid(self._unknown_keys_err, data, self)
+        if self.fail_on_unknown_keys:
+            for key_ in data:
+                if key_ not in self._key_set:
+                    return False, Invalid(self._unknown_keys_err, data, self)
 
         args: List[Any] = []
         errs: Dict[Any, Invalid] = {}
@@ -948,10 +966,10 @@ class RecordValidator(_ToTupleValidator[Ret]):
             for preproc in self.preprocessors:
                 data = preproc(data)
 
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in self._key_set:
-                return False, Invalid(self._unknown_keys_err, data, self)
+        if self.fail_on_unknown_keys:
+            for key_ in data:
+                if key_ not in self._key_set:
+                    return False, Invalid(self._unknown_keys_err, data, self)
 
         args: List[Any] = []
         errs: Dict[Any, Invalid] = {}
@@ -1008,6 +1026,10 @@ class RecordValidator(_ToTupleValidator[Ret]):
                     ("preprocessors", self.preprocessors),
                     ("validate_object", self.validate_object),
                     ("validate_object_async", self.validate_object_async),
+                    # note that this coincidentally works as we want:
+                    # by default we don't fail on extra keys, so we don't
+                    # show this in the repr if the default is defined
+                    ("fail_on_unknown_keys", self.fail_on_unknown_keys),
                 ]
                 if v
             ],
