@@ -3,7 +3,17 @@ import uuid
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import List, NamedTuple, Optional, Set, Tuple, TypedDict, TypeVar
+from typing import (
+    Any,
+    List,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Set,
+    Tuple,
+    TypedDict,
+    TypeVar,
+)
 
 from jsonschema.validators import Draft202012Validator
 
@@ -28,7 +38,6 @@ from koda_validate import (
     MinLength,
     NTupleValidator,
     OptionalValidator,
-    Serializable,
     TupleHomogenousValidator,
     UnionValidator,
     UniqueItems,
@@ -60,7 +69,7 @@ A = TypeVar("A")
 Ret = TypeVar("Ret")
 
 
-def validate_schema(schema: Serializable) -> None:
+def validate_schema(schema: Mapping[str, Any]) -> None:
     return Draft202012Validator.check_schema(schema)
 
 
@@ -136,7 +145,7 @@ def test_person() -> None:
         into=Person,
     )
 
-    schema: Serializable = {
+    schema = {
         "type": "object",
         "additionalProperties": False,
         "required": ["name", "email", "occupation", "country_code", "honorifics"],
@@ -245,7 +254,7 @@ def test_cities() -> None:
         }
     )
 
-    validate_schema(expected_schema)  # type: ignore
+    validate_schema(expected_schema)
     assert generate_schema(validate_cities) == expected_schema
 
 
@@ -360,7 +369,7 @@ def test_auth_creds() -> None:
         ]
     }
 
-    validate_schema(expected_schema)  # type: ignore
+    validate_schema(expected_schema)
 
     assert generate_schema(validator_one_of_3) == expected_schema
 
@@ -445,7 +454,7 @@ def test_dict_validator_any() -> None:
         },
     }
 
-    validate_schema(expected_schema)  # type: ignore
+    validate_schema(expected_schema)
     assert generate_schema(x) == expected_schema
 
 
@@ -467,7 +476,7 @@ def test_dataclass_validator() -> None:
         },
     }
 
-    validate_schema(expected_schema)  # type: ignore
+    validate_schema(expected_schema)
     assert generate_schema(x) == expected_schema
 
 
@@ -488,7 +497,7 @@ def test_namedtuple_validator() -> None:
         },
     }
 
-    validate_schema(expected_schema)  # type: ignore
+    validate_schema(expected_schema)
     assert generate_schema(x) == expected_schema
 
 
@@ -509,39 +518,39 @@ def test_typeddict_validator() -> None:
         },
     }
 
-    validate_schema(expected_schema)  # type: ignore
+    validate_schema(expected_schema)
     assert generate_schema(x) == expected_schema
 
 
 def test_isdict_validator() -> None:
     expected_schema = {"type": "object"}
 
-    validate_schema(expected_schema)  # type: ignore
+    validate_schema(expected_schema)
     assert generate_schema(is_dict_validator) == expected_schema
 
 
 def test_equals_validator() -> None:
     expected_schema_int = {"type": "integer", "enum": [5]}
 
-    validate_schema(expected_schema_int)  # type: ignore
+    validate_schema(expected_schema_int)
     assert generate_schema(EqualsValidator(5))
 
     expected_schema_str = {"type": "string", "enum": ["hooray"]}
 
-    validate_schema(expected_schema_str)  # type: ignore
+    validate_schema(expected_schema_str)
 
     assert generate_schema(EqualsValidator("hooray")) == expected_schema_str
 
     expected_schema_str = {"type": "string", "format": "date", "enum": ["2022-12-12"]}
 
-    validate_schema(expected_schema_str)  # type: ignore
+    validate_schema(expected_schema_str)
 
     assert generate_schema(EqualsValidator(date(2022, 12, 12))) == expected_schema_str
 
     uu = uuid.uuid4()
     expected_schema_uuid = {"type": "string", "format": "uuid", "enum": [str(uu)]}
 
-    validate_schema(expected_schema_uuid)  # type: ignore
+    validate_schema(expected_schema_uuid)
 
     assert generate_schema(EqualsValidator(uu)) == expected_schema_uuid
 
@@ -552,7 +561,7 @@ def test_equals_validator() -> None:
         "enum": [now_.isoformat()],
     }
 
-    validate_schema(expected_schema_datetime)  # type: ignore
+    validate_schema(expected_schema_datetime)
 
     assert generate_schema(EqualsValidator(now_)) == expected_schema_datetime
 
@@ -564,7 +573,7 @@ def test_equals_validator() -> None:
         "enum": ["3.14"],
     }
 
-    validate_schema(expected_schema_dec)  # type: ignore
+    validate_schema(expected_schema_dec)
 
     assert generate_schema(EqualsValidator(dec)) == expected_schema_dec
 
@@ -575,7 +584,7 @@ def test_equals_validator() -> None:
         "enum": [bytes_.decode("utf-8")],
     }
 
-    validate_schema(expected_schema_bytes)  # type: ignore
+    validate_schema(expected_schema_bytes)
 
     assert generate_schema(EqualsValidator(bytes_)) == expected_schema_bytes
 
@@ -583,7 +592,7 @@ def test_equals_validator() -> None:
 def test_bytes_validator() -> None:
     expected_schema_bytes = {"type": "string", "format": "byte", "maxLength": 12}
 
-    validate_schema(expected_schema_bytes)  # type: ignore
+    validate_schema(expected_schema_bytes)
 
     assert generate_schema(BytesValidator(MaxLength(12))) == expected_schema_bytes
 
@@ -597,7 +606,7 @@ def test_decimal_validator() -> None:
         "formatExclusiveMinimum": "111.2",
     }
 
-    validate_schema(expected_schema_dec)  # type: ignore
+    validate_schema(expected_schema_dec)
 
     assert (
         generate_schema(
@@ -615,7 +624,7 @@ def test_float_validator() -> None:
         "exclusiveMaximum": 345.678,
     }
 
-    validate_schema(expected_schema_float)  # type: ignore
+    validate_schema(expected_schema_float)
 
     assert generate_schema(FloatValidator(Max(345.678, True))) == expected_schema_float
 
@@ -628,7 +637,7 @@ def test_date_validator() -> None:
         "formatExclusiveMinimum": "2022-12-11",
     }
 
-    validate_schema(expected_schema_date)  # type: ignore
+    validate_schema(expected_schema_date)
 
     assert (
         generate_schema(DateValidator(Min(min_date, exclusive_minimum=True)))
@@ -644,7 +653,7 @@ def test_datetime_validator() -> None:
         "formatMaximum": max_dt.isoformat(),
     }
 
-    validate_schema(expected_schema_datetime)  # type: ignore
+    validate_schema(expected_schema_datetime)
 
     assert generate_schema(DatetimeValidator(Max(max_dt))) == expected_schema_datetime
 
@@ -655,6 +664,6 @@ def test_uuid_validator() -> None:
         "format": "uuid",
     }
 
-    validate_schema(expected_schema_datetime)  # type: ignore
+    validate_schema(expected_schema_datetime)
 
     assert generate_schema(UUIDValidator()) == expected_schema_datetime
