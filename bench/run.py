@@ -26,6 +26,8 @@ KV_RECORD_VALIDATOR = f"{KODA_VALIDATE} - RecordValidator"
 KV_DATACLASS_VALIDATOR = f"{KODA_VALIDATE} - DataclassValidator"
 KV_NAMEDTUPLE_VALIDATOR = f"{KODA_VALIDATE} - NamedTupleValidator"
 KV_DICT_VALIDATOR_ANY = f"{KODA_VALIDATE} - DictValidatorAny"
+KV_TYPED_DICT_VALIDATOR = f"{KODA_VALIDATE} - TypedDictValidator"
+
 
 PYDANTIC = "PYDANTIC"
 VOLUPTUOUS = "VOLUPTUOUS"
@@ -86,6 +88,7 @@ benches = {
             KV_DATACLASS_VALIDATOR: nested_object_list.run_kv_dc,
             KV_DICT_VALIDATOR_ANY: nested_object_list.run_kv_dict_any,
             KV_NAMEDTUPLE_VALIDATOR: nested_object_list.run_kv_nt,
+            KV_TYPED_DICT_VALIDATOR: nested_object_list.run_kv_td,
             PYDANTIC: nested_object_list.run_pyd,
         },
     ),

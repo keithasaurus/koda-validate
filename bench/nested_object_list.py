@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List, NamedTuple
+from typing import Any, Dict, List, NamedTuple, TypedDict
 
 from pydantic import BaseModel
 
@@ -13,6 +13,7 @@ from koda_validate import (
 )
 from koda_validate.dataclasses import DataclassValidator
 from koda_validate.namedtuple import NamedTupleValidator
+from koda_validate.typeddict import TypedDictValidator
 
 
 @dataclass
@@ -43,6 +44,19 @@ class PersonNT(NamedTuple):
     hobbies: List[HobbyNT]
 
 
+class HobbyTD(TypedDict):
+    name: str
+    reason: str
+    category: str
+    enjoyment: float
+
+
+class PersonTD(TypedDict):
+    name: str
+    age: int
+    hobbies: List[HobbyTD]
+
+
 k_validator = RecordValidator(
     into=Person,
     keys=(
@@ -67,6 +81,7 @@ k_validator = RecordValidator(
 
 k_dataclass_validator = DataclassValidator(Person)
 k_namedtuple_validator = NamedTupleValidator(PersonNT)
+k_typeddict_validator = TypedDictValidator(PersonTD)
 
 k_dict_any_validator = DictValidatorAny(
     {
@@ -157,6 +172,11 @@ def run_kv_dict_any(objs: List[Any]) -> None:
 def run_kv_nt(objs: List[Any]) -> None:
     for obj in objs:
         _ = k_namedtuple_validator(obj)
+
+
+def run_kv_td(objs: List[Any]) -> None:
+    for obj in objs:
+        _ = k_typeddict_validator(obj)
 
 
 def run_pyd(objs: List[Any]) -> None:
