@@ -48,6 +48,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_TDT], Optional[ErrType]]] = None,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
 
         if not _is_typed_dict_cls(td_cls):
@@ -55,6 +56,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         self.td_cls = td_cls
         self._input_overrides = overrides  # for repr
+        self.fail_on_unknown_keys = fail_on_unknown_keys
         overrides = overrides or {}
 
         type_hints = get_type_hints(self.td_cls)
@@ -96,10 +98,10 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in self._keys_set:
-                return False, Invalid(self._unknown_keys_err, data, self)
+        if self.fail_on_unknown_keys:
+            for key_ in data:
+                if key_ not in self._keys_set:
+                    return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[str, object] = {}
         errs: Dict[Any, Invalid] = {}
@@ -131,10 +133,10 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in self._keys_set:
-                return False, Invalid(self._unknown_keys_err, data, self)
+        if self.fail_on_unknown_keys:
+            for key_ in data:
+                if key_ not in self._keys_set:
+                    return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[str, object] = {}
         errs: Dict[Any, Invalid] = {}
@@ -167,6 +169,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             type(self) == type(other)
             and self.schema == other.schema
             and self.validate_object == other.validate_object
+            and other.fail_on_unknown_keys == self.fail_on_unknown_keys
         )
 
     def __repr__(self) -> str:
@@ -178,6 +181,10 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                 for k, v in [
                     ("overrides", self._input_overrides),
                     ("validate_object", self.validate_object),
+                    # note that this coincidentally works as we want:
+                    # by default we don't fail on extra keys, so we don't
+                    # show this in the repr if the default is defined
+                    ("fail_on_unknown_keys", self.fail_on_unknown_keys),
                 ]
                 if v
             ],

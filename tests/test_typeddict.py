@@ -133,7 +133,7 @@ async def test_valid_typeddict_returns_typeddict_result_async() -> None:
 
 
 def test_extra_keys_invalid() -> None:
-    v = TypedDictValidator(PersonSimpleTD)
+    v = TypedDictValidator(PersonSimpleTD, fail_on_unknown_keys=True)
 
     test_d = {"name": "ok", "d": "whatever"}
     assert v(test_d) == Invalid(ExtraKeysErr({"age", "name"}), test_d, v)
@@ -141,7 +141,7 @@ def test_extra_keys_invalid() -> None:
 
 @pytest.mark.asyncio
 async def test_extra_keys_invalid_async() -> None:
-    v = TypedDictValidator(PersonSimpleTD)
+    v = TypedDictValidator(PersonSimpleTD, fail_on_unknown_keys=True)
 
     test_d = {"name": "ok", "d": "whatever"}
     assert await v.validate_async(test_d) == Invalid(
@@ -417,6 +417,10 @@ def test_repr() -> None:
         name: str
 
     assert repr(TypedDictValidator(A)) == f"TypedDictValidator({repr(A)})"
+    assert (
+        repr(TypedDictValidator(A, fail_on_unknown_keys=True))
+        == f"TypedDictValidator({repr(A)}, fail_on_unknown_keys=True)"
+    )
 
     def obj_fn(obj: A) -> Optional[ErrType]:
         return None
@@ -444,6 +448,7 @@ def test_eq() -> None:
         age: int
 
     assert TypedDictValidator(A) == TypedDictValidator(A)
+    assert TypedDictValidator(A) != TypedDictValidator(A, fail_on_unknown_keys=True)
     assert TypedDictValidator(A) != TypedDictValidator(B)
     assert TypedDictValidator(A) == TypedDictValidator(A, overrides={})
     assert TypedDictValidator(A, overrides={}) == TypedDictValidator(A, overrides={})
