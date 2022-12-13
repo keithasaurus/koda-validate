@@ -9,9 +9,11 @@ from koda_validate.base import (
     BasicErr,
     CoercionErr,
     ErrType,
+    ExtraKeysErr,
     KeyErrs,
     PredicateErrs,
     TypeErr,
+    missing_key_err,
 )
 from koda_validate.namedtuple import NamedTupleValidator
 
@@ -412,4 +414,40 @@ def test_eq() -> None:
         A, overrides={"name": StringValidator()}, validate_object=obj_fn
     ) != NamedTupleValidator(
         A, overrides={"name": StringValidator()}, validate_object=obj_fn_2
+    )
+
+
+def test_extra_keys_invalid() -> None:
+    v = NamedTupleValidator(PersonSimple)
+
+    test_d = {"name": "ok", "d": "whatever"}
+    assert v(test_d) == Invalid(ExtraKeysErr({"age", "name"}), test_d, v)
+
+
+@pytest.mark.asyncio
+async def test_extra_keys_invalid_async() -> None:
+    v = NamedTupleValidator(PersonSimple)
+
+    test_d = {"name": "ok", "d": "whatever"}
+    assert await v.validate_async(test_d) == Invalid(
+        ExtraKeysErr({"age", "name"}), test_d, v
+    )
+
+
+def test_missing_key() -> None:
+    v = NamedTupleValidator(PersonSimple)
+
+    test_d = {"name": "ok"}
+    assert v(test_d) == Invalid(
+        KeyErrs({"age": Invalid(missing_key_err, test_d, v)}), test_d, v
+    )
+
+
+@pytest.mark.asyncio
+async def test_missing_key_async() -> None:
+    v = NamedTupleValidator(PersonSimple)
+
+    test_d = {"name": "ok"}
+    assert await v.validate_async(test_d) == Invalid(
+        KeyErrs({"age": Invalid(missing_key_err, test_d, v)}), test_d, v
     )
