@@ -392,6 +392,18 @@ def test_repr() -> None:
         f"DataclassValidator({repr(A)}, {overrides_str}, validate_object={repr(obj_fn)})"
     )
 
+    assert repr(
+        DataclassValidator(
+            A,
+            overrides={"name": StringValidator()},
+            validate_object=obj_fn,
+            fail_on_unknown_keys=True,
+        )
+    ) == (
+        f"DataclassValidator({repr(A)}, {overrides_str}, "
+        f"validate_object={repr(obj_fn)}, fail_on_unknown_keys=True)"
+    )
+
 
 def test_eq() -> None:
     @dataclass
@@ -404,6 +416,7 @@ def test_eq() -> None:
         age: int
 
     assert DataclassValidator(A) == DataclassValidator(A)
+    assert DataclassValidator(A) != DataclassValidator(A, fail_on_unknown_keys=True)
     assert DataclassValidator(A) != DataclassValidator(B)
     assert DataclassValidator(A) == DataclassValidator(A, overrides={})
     assert DataclassValidator(A, overrides={}) == DataclassValidator(A, overrides={})
@@ -438,7 +451,7 @@ def test_eq() -> None:
 
 
 def test_extra_keys_invalid() -> None:
-    v = DataclassValidator(PersonSimple)
+    v = DataclassValidator(PersonSimple, fail_on_unknown_keys=True)
 
     test_d = {"name": "ok", "d": "whatever"}
     assert v(test_d) == Invalid(ExtraKeysErr({"age", "name"}), test_d, v)
@@ -446,7 +459,7 @@ def test_extra_keys_invalid() -> None:
 
 @pytest.mark.asyncio
 async def test_extra_keys_invalid_async() -> None:
-    v = DataclassValidator(PersonSimple)
+    v = DataclassValidator(PersonSimple, fail_on_unknown_keys=True)
 
     test_d = {"name": "ok", "d": "whatever"}
     assert await v.validate_async(test_d) == Invalid(

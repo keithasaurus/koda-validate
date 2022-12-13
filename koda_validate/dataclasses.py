@@ -46,9 +46,11 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_DCT], Optional[ErrType]]] = None,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         self.data_cls = data_cls
         self._input_overrides = overrides  # for repr
+        self.fail_on_unknown_keys = fail_on_unknown_keys
         overrides = overrides or {}
         type_hints = get_type_hints(self.data_cls)
 
@@ -97,10 +99,11 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 self,
             )
 
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in self._keys_set:
-                return False, Invalid(self._unknown_keys_err, data, self)
+        if self.fail_on_unknown_keys:
+            # this seems to be faster than `for key_ in data.keys()`
+            for key_ in data:
+                if key_ not in self._keys_set:
+                    return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[Any, Any] = {}
         errs: Dict[Any, Invalid] = {}
@@ -144,10 +147,11 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 self,
             )
 
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in self._keys_set:
-                return False, Invalid(self._unknown_keys_err, data, self)
+        if self.fail_on_unknown_keys:
+            # this seems to be faster than `for key_ in data.keys()`
+            for key_ in data:
+                if key_ not in self._keys_set:
+                    return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[Any, Any] = {}
         errs: Dict[Any, Invalid] = {}
@@ -182,6 +186,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             and self.data_cls is other.data_cls
             and other.validate_object is self.validate_object
             and other.schema == self.schema
+            and other.fail_on_unknown_keys == self.fail_on_unknown_keys
         )
 
     def __repr__(self) -> str:
@@ -193,6 +198,10 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 for k, v in [
                     ("overrides", self._input_overrides),
                     ("validate_object", self.validate_object),
+                    # note that this coincidentally works as we want:
+                    # by default we don't fail on extra keys, so we don't
+                    # show this in the repr if the default is defined
+                    ("fail_on_unknown_keys", self.fail_on_unknown_keys),
                 ]
                 if v
             ],
