@@ -1076,6 +1076,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             ]
         ] = None,
         preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
+        fail_on_unknown_keys: bool = False,
     ) -> None:
         self.schema: Dict[Any, Validator[Any]] = schema
         self.validate_object = validate_object
@@ -1086,6 +1087,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                 "validate_object and validate_object_async cannot both be defined"
             )
         self.preprocessors = preprocessors
+        self.fail_on_unknown_keys = fail_on_unknown_keys
 
         # so we don't need to calculate each time we validate
         self._fast_keys_sync = []
@@ -1115,10 +1117,11 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             for preproc in self.preprocessors:
                 data = preproc(data)
 
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in self._keys_set:
-                return False, Invalid(self._unknown_keys_err, data, self)
+        if self.fail_on_unknown_keys:
+            # this seems to be faster than `for key_ in data.keys()`
+            for key_ in data:
+                if key_ not in self._keys_set:
+                    return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[Any, Any] = {}
         errs: Dict[Any, Invalid] = {}
@@ -1154,10 +1157,11 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             for preproc in self.preprocessors:
                 data = preproc(data)
 
-        # this seems to be faster than `for key_ in data.keys()`
-        for key_ in data:
-            if key_ not in self._keys_set:
-                return False, Invalid(self._unknown_keys_err, data, self)
+        if self.fail_on_unknown_keys:
+            # this seems to be faster than `for key_ in data.keys()`
+            for key_ in data:
+                if key_ not in self._keys_set:
+                    return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[Any, Any] = {}
         errs: Dict[Any, Invalid] = {}
@@ -1198,6 +1202,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             and self.preprocessors == other.preprocessors
             and self.validate_object == other.validate_object
             and self.validate_object_async == other.validate_object_async
+            and self.fail_on_unknown_keys == other.fail_on_unknown_keys
         )
 
     def __repr__(self) -> str:
@@ -1210,6 +1215,10 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                     ("preprocessors", self.preprocessors),
                     ("validate_object", self.validate_object),
                     ("validate_object_async", self.validate_object_async),
+                    # note that this coincidentally works as we want:
+                    # by default we don't fail on extra keys, so we don't
+                    # show this in the repr if the default is defined
+                    ("fail_on_unknown_keys", self.fail_on_unknown_keys),
                 ]
                 if v
             ],

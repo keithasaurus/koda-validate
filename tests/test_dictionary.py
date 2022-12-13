@@ -823,12 +823,14 @@ def test_dict_validator_preprocessors() -> None:
 def test_dict_validator_any_empty() -> None:
     empty_dict_validator = DictValidatorAny({})
 
-    empty_result = empty_dict_validator({})
-    assert isinstance(empty_result, Valid)
-    assert empty_result.val == {}
+    assert empty_dict_validator({}) == Valid({})
 
-    assert empty_dict_validator({"oops": 5}) == Invalid(
-        ExtraKeysErr(set()), {"oops": 5}, empty_dict_validator
+    assert empty_dict_validator({"oops": 5}) == Valid({})
+
+    empty_dict_validator_no_extra_keys = DictValidatorAny({}, fail_on_unknown_keys=True)
+
+    assert empty_dict_validator_no_extra_keys({"oops": 5}) == Invalid(
+        ExtraKeysErr(set()), {"oops": 5}, empty_dict_validator_no_extra_keys
     )
 
 
@@ -981,10 +983,25 @@ async def test_validate_dictionary_any_async() -> None:
         validator,
     )
 
-    assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Invalid(
+    assert await validator.validate_async(
+        {"first_name": "bob", "last_name": "smith", "a": 123.45}
+    ) == Valid({"first_name": "bob", "last_name": "smith"})
+
+    validator_fail_extra_keys = DictValidatorAny(
+        {
+            "first_name": KeyNotRequired(s_v),
+            "last_name": StringValidator(),
+        },
+        validate_object=_nobody_named_jones_has_first_name_alice_dict,
+        fail_on_unknown_keys=True,
+    )
+
+    assert await validator_fail_extra_keys.validate_async(
+        {"last_name": "smith", "a": 123.45}
+    ) == Invalid(
         ExtraKeysErr({"first_name", "last_name"}),
         {"last_name": "smith", "a": 123.45},
-        validator,
+        validator_fail_extra_keys,
     )
 
 
@@ -1412,4 +1429,10 @@ def test_dict_validator_any_repr() -> None:
         repr(DictValidatorAny(schema, validate_object=fn_1))
         == f"DictValidatorAny({repr(schema)}, "
         f"validate_object={repr(fn_1)})"
+    )
+
+    assert (
+        repr(DictValidatorAny(schema, validate_object=fn_1, fail_on_unknown_keys=True))
+        == f"DictValidatorAny({repr(schema)}, "
+        f"validate_object={repr(fn_1)}, fail_on_unknown_keys=True)"
     )
