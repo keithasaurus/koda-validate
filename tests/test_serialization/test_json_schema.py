@@ -55,7 +55,7 @@ from koda_validate.dictionary import (
     is_dict_validator,
 )
 from koda_validate.namedtuple import NamedTupleValidator
-from koda_validate.openapi import generate_named_schema, generate_schema
+from koda_validate.serialization.json_schema import generate_named_schema, generate_schema
 from koda_validate.string import (
     EmailPredicate,
     RegexPredicate,

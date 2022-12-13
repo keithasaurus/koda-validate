@@ -35,7 +35,10 @@ from koda_validate.generic import (
     unique_items,
 )
 from koda_validate.integer import IntValidator
-from koda_validate.serialization import pred_to_err_message, serializable_validation_err
+from koda_validate.serialization.errors import (
+    pred_to_err_message,
+    serializable_validation_err,
+)
 from koda_validate.set import SetValidator
 from koda_validate.string import (
     EmailPredicate,

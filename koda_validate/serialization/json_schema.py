@@ -37,7 +37,7 @@ from koda_validate.integer import IntValidator
 from koda_validate.list import ListValidator
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.none import OptionalValidator
-from koda_validate.serialization import Serializable
+from koda_validate.serialization.errors import Serializable
 from koda_validate.string import EmailPredicate, NotBlank, RegexPredicate, StringValidator
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
