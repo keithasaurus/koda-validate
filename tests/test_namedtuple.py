@@ -357,6 +357,10 @@ def test_repr() -> None:
         name: str
 
     assert repr(NamedTupleValidator(A)) == f"NamedTupleValidator({repr(A)})"
+    assert (
+        repr(NamedTupleValidator(A, fail_on_unknown_keys=True))
+        == f"NamedTupleValidator({repr(A)}, fail_on_unknown_keys=True)"
+    )
 
     def obj_fn(obj: A) -> Optional[ErrType]:
         return None
@@ -384,6 +388,7 @@ def test_eq() -> None:
         age: int
 
     assert NamedTupleValidator(A) == NamedTupleValidator(A)
+    assert NamedTupleValidator(A) != NamedTupleValidator(A, fail_on_unknown_keys=True)
     assert NamedTupleValidator(A) != NamedTupleValidator(B)
     assert NamedTupleValidator(A) == NamedTupleValidator(A, overrides={})
     assert NamedTupleValidator(A, overrides={}) == NamedTupleValidator(A, overrides={})
