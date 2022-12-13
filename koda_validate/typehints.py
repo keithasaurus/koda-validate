@@ -103,4 +103,4 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         if origin is Literal:
             return UnionValidator(*[EqualsValidator(a) for a in args])
 
-        raise TypeError(f"Got unhandled annotation type: {type(annotations)}.")
+        raise TypeError(f"Got unhandled annotation: {repr(annotations)}.")

@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from decimal import Decimal
 from typing import Literal, NamedTuple, Tuple
 
 from koda_validate import (
@@ -84,3 +85,13 @@ def test_datetime_handled_properly() -> None:
 
 def test_date_handled_properly() -> None:
     assert get_typehint_validator(date) == DateValidator()
+
+
+def test_unhandled_message() -> None:
+    for obj in ["just a string", 1, Decimal(5)]:
+        try:
+            get_typehint_validator(obj)
+        except TypeError as e:
+            assert str(e) == f"Got unhandled annotation: {repr(obj)}."
+        else:
+            raise AssertionError("should have raised a TypeError")
