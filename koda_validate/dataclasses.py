@@ -39,6 +39,8 @@ _DCT = TypeVar("_DCT", bound=DataclassLike)
 
 
 class DataclassValidator(_ToTupleValidator[_DCT]):
+    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys")
+
     def __init__(
         self,
         data_cls: Type[_DCT],
@@ -49,9 +51,8 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         fail_on_unknown_keys: bool = False,
     ) -> None:
         self.data_cls = data_cls
-        self._input_overrides = overrides  # for repr
         self.fail_on_unknown_keys = fail_on_unknown_keys
-        overrides = overrides or {}
+        self.overrides = overrides or {}
         type_hints = get_type_hints(self.data_cls)
 
         keys_with_defaults: Set[str] = {
@@ -62,7 +63,9 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         self.schema = {
             field: (
-                overrides[field] if field in overrides else typehint_resolver(annotations)
+                overrides[field]
+                if field in self.overrides
+                else typehint_resolver(annotations)
             )
             for field, annotations in type_hints.items()
         }
@@ -195,7 +198,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             + [
                 f"{k}={repr(v)}"
                 for k, v in [
-                    ("overrides", self._input_overrides),
+                    ("overrides", self.overrides),
                     ("validate_object", self.validate_object),
                     # note that this coincidentally works as we want:
                     # by default we don't fail on extra keys, so we don't

@@ -41,6 +41,8 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
     it for non-TypedDict datatypes.
     """
 
+    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys")
+
     def __init__(
         self,
         td_cls: Type[_TDT],
@@ -57,7 +59,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         self.td_cls = td_cls
         self._input_overrides = overrides  # for repr
         self.fail_on_unknown_keys = fail_on_unknown_keys
-        overrides = overrides or {}
+        self.overrides = overrides or {}
 
         type_hints = get_type_hints(self.td_cls)
 
@@ -76,7 +78,9 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         self.schema = {
             field: (
-                overrides[field] if field in overrides else typehint_resolver(annotations)
+                overrides[field]
+                if field in self.overrides
+                else typehint_resolver(annotations)
             )
             for field, annotations in type_hints.items()
         }
@@ -120,12 +124,12 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         if errs:
             return False, Invalid(KeyErrs(errs), data, self)
         else:
-            if self.validate_object is not None:
+            if self.validate_object:
                 result = self.validate_object(cast(_TDT, success_dict))
-                if result is None:
-                    return True, cast(_TDT, success_dict)
-                else:
+                if result:
                     return False, Invalid(result, success_dict, self)
+                else:
+                    return True, cast(_TDT, success_dict)
             else:
                 return True, cast(_TDT, success_dict)
 
@@ -155,12 +159,12 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         if errs:
             return False, Invalid(KeyErrs(errs), data, self)
         else:
-            if self.validate_object is not None:
+            if self.validate_object:
                 result = self.validate_object(cast(_TDT, success_dict))
-                if result is None:
-                    return True, cast(_TDT, success_dict)
-                else:
+                if result:
                     return False, Invalid(result, success_dict, self)
+                else:
+                    return True, cast(_TDT, success_dict)
             else:
                 return True, cast(_TDT, success_dict)
 

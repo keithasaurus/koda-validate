@@ -33,6 +33,8 @@ _NTT = TypeVar("_NTT", bound=NamedTuple)
 
 
 class NamedTupleValidator(_ToTupleValidator[_NTT]):
+    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys")
+
     def __init__(
         self,
         named_tuple_cls: Type[_NTT],

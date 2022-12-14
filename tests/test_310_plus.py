@@ -360,6 +360,20 @@ def test_always_valid_match() -> None:
             assert False
 
 
+# def test_match_dataclass() -> None:
+#     x = DataclassValidator(Person,
+#                            overrides={"name": (s := StringValidator(MaxLength(10)))},
+#                            fail_on_unknown_keys=True)
+#     match x:
+#         case DataclassValidator(cls, overrides, fail_on_unknown_keys):
+#             assert cls is Person
+#             assert overrides == {"name": s}
+#             assert fail_on_unknown_keys is True
+#         case _:
+#             assert False
+#
+
+
 @dataclass
 class PersonSimple:
     name: str

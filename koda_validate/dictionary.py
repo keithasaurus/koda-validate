@@ -1140,12 +1140,12 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         if errs:
             return False, Invalid(KeyErrs(errs), data, self)
         else:
-            if self.validate_object is not None:
+            if self.validate_object:
                 result = self.validate_object(success_dict)
-                if result is None:
-                    return True, success_dict
-                else:
+                if result:
                     return False, Invalid(result, success_dict, self)
+                else:
+                    return True, success_dict
             else:
                 return True, success_dict
 
@@ -1180,18 +1180,19 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         if errs:
             return False, Invalid(KeyErrs(errs), data, self)
         else:
-            if self.validate_object is not None:
+            if self.validate_object:
                 result = self.validate_object(success_dict)
-                if result is None:
-                    return True, success_dict
-                else:
+                if result:
                     return False, Invalid(result, success_dict, self)
+                else:
+                    return True, success_dict
+
             elif self.validate_object_async is not None:
                 result = await self.validate_object_async((obj := success_dict))
-                if result is None:
-                    return True, obj
-                else:
+                if result:
                     return False, Invalid(result, obj, self)
+                else:
+                    return True, obj
             else:
                 return True, success_dict
 
