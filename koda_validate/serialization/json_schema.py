@@ -205,7 +205,7 @@ def obj_schema(
         properties[str_label] = to_schema_fn(field)
     return {
         "type": "object",
-        "additionalProperties": False,
+        "additionalProperties": not obj.fail_on_unknown_keys,
         "required": required,  # type: ignore
         "properties": properties,
     }
@@ -225,7 +225,7 @@ def dict_validator_schema(
         properties[str_label] = to_schema_fn(field)
     return {
         "type": "object",
-        "additionalProperties": False,
+        "additionalProperties": not obj.fail_on_unknown_keys,
         "required": required,  # type: ignore
         "properties": properties,
     }
@@ -241,7 +241,7 @@ def dataclass_validator_schema(
         properties[str_label] = to_schema_fn(field)
     return {
         "type": "object",
-        "additionalProperties": False,
+        "additionalProperties": not obj.fail_on_unknown_keys,
         "required": obj.required_fields,  # type: ignore
         "properties": properties,
     }
@@ -257,7 +257,7 @@ def namedtuple_validator_schema(
         properties[str_label] = to_schema_fn(field)
     return {
         "type": "object",
-        "additionalProperties": False,
+        "additionalProperties": not obj.fail_on_unknown_keys,
         "required": obj.required_fields,  # type: ignore
         "properties": properties,
     }
@@ -273,7 +273,7 @@ def typeddict_validator_schema(
         properties[str_label] = to_schema_fn(field)
     return {
         "type": "object",
-        "additionalProperties": False,
+        "additionalProperties": not obj.fail_on_unknown_keys,
         "required": sorted(obj.required_keys),  # type: ignore
         "properties": properties,
     }

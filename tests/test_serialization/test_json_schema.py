@@ -91,7 +91,7 @@ def test_recursive_validator() -> None:
 
     assert generate_named_schema("Comment", comment_validator) == {
         "Comment": {
-            "additionalProperties": False,
+            "additionalProperties": True,
             "properties": {
                 "name": {"type": "string", "pattern": r"^(?!\s*$).+"},
                 "replies": {
@@ -146,7 +146,7 @@ def test_person() -> None:
 
     schema = {
         "type": "object",
-        "additionalProperties": False,
+        "additionalProperties": True,
         "required": ["name", "email", "occupation", "country_code", "honorifics"],
         "properties": {
             "name": {"type": "string", "pattern": r"^(?!\s*$).+"},
@@ -223,7 +223,7 @@ def test_cities() -> None:
     expected_schema = {
         "type": "object",
         "additionalProperties": {
-            "additionalProperties": False,
+            "additionalProperties": True,
             "type": "object",
             "required": ["population", "state"],
             "properties": {
@@ -282,6 +282,7 @@ def test_auth_creds() -> None:
             ("password", StringValidator(not_blank)),
         ),
         into=EmailCreds,
+        fail_on_unknown_keys=True,
     )
 
     validator_one_of_2 = UnionValidator.typed(
@@ -301,7 +302,7 @@ def test_auth_creds() -> None:
         "oneOf": [
             {
                 "type": "object",
-                "additionalProperties": False,
+                "additionalProperties": True,
                 "required": ["username", "password"],
                 "properties": {
                     "username": {"type": "string", "pattern": r"^(?!\s*$).+"},
@@ -328,7 +329,9 @@ def test_auth_creds() -> None:
         username_creds_validator,
         email_creds_validator,
         RecordValidator(
-            keys=(("token", StringValidator(MinLength(32), MaxLength(32))),), into=Token
+            keys=(("token", StringValidator(MinLength(32), MaxLength(32))),),
+            into=Token,
+            fail_on_unknown_keys=True,
         ),
     )
 
@@ -341,7 +344,7 @@ def test_auth_creds() -> None:
         "oneOf": [
             {
                 "type": "object",
-                "additionalProperties": False,
+                "additionalProperties": True,
                 "required": ["username", "password"],
                 "properties": {
                     "username": {"type": "string", "pattern": r"^(?!\s*$).+"},
@@ -376,7 +379,9 @@ def test_auth_creds() -> None:
         username_creds_validator,
         email_creds_validator,
         RecordValidator(
-            keys=(("token", StringValidator(MinLength(32), MaxLength(32))),), into=Token
+            keys=(("token", StringValidator(MinLength(32), MaxLength(32))),),
+            into=Token,
+            fail_on_unknown_keys=True,
         ),
     )
 
@@ -445,7 +450,7 @@ def test_dict_validator_any() -> None:
 
     expected_schema = {
         "type": "object",
-        "additionalProperties": False,
+        "additionalProperties": True,
         "required": ["name"],
         "properties": {
             "name": {"type": "string"},
@@ -463,7 +468,7 @@ def test_dataclass_validator() -> None:
         age: int
         name: str = "John Doe"
 
-    x = DataclassValidator(Example)
+    x = DataclassValidator(Example, fail_on_unknown_keys=True)
 
     expected_schema = {
         "type": "object",
@@ -488,7 +493,7 @@ def test_namedtuple_validator() -> None:
 
     expected_schema = {
         "type": "object",
-        "additionalProperties": False,
+        "additionalProperties": True,
         "required": ["age"],
         "properties": {
             "name": {"type": "string"},
@@ -505,7 +510,7 @@ def test_typeddict_validator() -> None:
         age: int
         name: str
 
-    x = TypedDictValidator(Example)
+    x = TypedDictValidator(Example, fail_on_unknown_keys=True)
 
     expected_schema = {
         "type": "object",
