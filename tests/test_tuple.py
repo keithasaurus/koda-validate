@@ -29,7 +29,6 @@ from koda_validate.base import (
     IndexErrs,
     PredicateAsync,
     PredicateErrs,
-    Processor,
     TypeErr,
 )
 from tests.utils import BasicNoneValidator
@@ -140,12 +139,6 @@ async def test_tuple3_async() -> None:
     assert await a1_validator.validate_async(["b", 2, False]) == Valid(("b", 2, False))
 
 
-@dataclass
-class RemoveLast(Processor[Tuple[Any, ...]]):
-    def __call__(self, val: Tuple[Any, ...]) -> Tuple[Any, ...]:
-        return val[:-1]
-
-
 def test_tuple_homogenous_validator() -> None:
     f_v = FloatValidator()
     tuple_v = TupleHomogenousValidator(f_v)
@@ -166,10 +159,9 @@ def test_tuple_homogenous_validator() -> None:
     t_p_p_validator = TupleHomogenousValidator(
         FloatValidator(Min(5.5)),
         predicates=[MinItems(1), MaxItems(3)],
-        preprocessors=[RemoveLast()],
     )
     assert t_p_p_validator((10.1, 7.7, 2.2, 5, 0.0)) == Invalid(
-        PredicateErrs([MaxItems(3)]), (10.1, 7.7, 2.2, 5), t_p_p_validator
+        PredicateErrs([MaxItems(3)]), (10.1, 7.7, 2.2, 5, 0.0), t_p_p_validator
     )
 
     n_v = TupleHomogenousValidator(BasicNoneValidator())
@@ -241,11 +233,6 @@ async def test_tuple_h_validator_with_async_predicate_validator() -> None:
     assert await t_validator.validate_async(("hooray",)) == Valid(("hooray",))
 
 
-class PopFrontOffTupleH(Processor[Tuple[Any, ...]]):
-    def __call__(self, val: Tuple[Any, ...]) -> Tuple[Any, ...]:
-        return val[1:]
-
-
 @pytest.mark.asyncio
 async def test_child_validator_async_is_used() -> None:
     @dataclass
@@ -257,13 +244,22 @@ async def test_child_validator_async_is_used() -> None:
     l_validator = TupleHomogenousValidator(
         IntValidator(Min(2), predicates_async=[SomeIntDBCheck()]),
         predicates=[MaxItems(1)],
-        preprocessors=[PopFrontOffTupleH()],
     )
 
-    assert await l_validator.validate_async((1, 3)) == Valid((3,))
+    assert await l_validator.validate_async((3,)) == Valid((3,))
 
-    assert await l_validator.validate_async((1, 1, 1)) == Invalid(
-        PredicateErrs([MaxItems(1)]), (1, 1), l_validator
+    assert await l_validator.validate_async((1,)) == Invalid(
+        IndexErrs(
+            {
+                0: Invalid(
+                    PredicateErrs([Min(2), SomeIntDBCheck()]),
+                    1,
+                    l_validator.item_validator,
+                )
+            }
+        ),
+        (1,),
+        l_validator,
     )
 
 
@@ -342,13 +338,12 @@ def test_tuple_homogenous_repr() -> None:
         IntValidator(),
         predicates=[MinItems(5)],
         predicates_async=[SomeAsyncTupleHCheck()],
-        preprocessors=[RemoveLast()],
     )
 
     assert (
         repr(s_all) == "TupleHomogenousValidator(IntValidator(), "
         "predicates=[MinItems(item_count=5)], "
-        "predicates_async=[SomeAsyncTupleHCheck()], preprocessors=[RemoveLast()])"
+        "predicates_async=[SomeAsyncTupleHCheck()])"
     )
 
 
@@ -376,19 +371,3 @@ def test_tuple_h_tuple_homogenous_equivalence() -> None:
         predicates_async=[SomeAsyncTupleHCheck()],
     )
     assert l_pred_async_1 == l_pred_async_2
-
-    l_preproc_1 = TupleHomogenousValidator(
-        StringValidator(),
-        predicates=[MaxItems(1)],
-        predicates_async=[SomeAsyncTupleHCheck()],
-        preprocessors=[RemoveLast()],
-    )
-    assert l_preproc_1 != l_pred_async_1
-
-    l_preproc_2 = TupleHomogenousValidator(
-        StringValidator(),
-        predicates=[MaxItems(1)],
-        predicates_async=[SomeAsyncTupleHCheck()],
-        preprocessors=[RemoveLast()],
-    )
-    assert l_preproc_1 == l_preproc_2

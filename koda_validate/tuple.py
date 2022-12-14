@@ -15,7 +15,6 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     PredicateErrs,
-    Processor,
     TypeErr,
     Validator,
 )
@@ -323,7 +322,7 @@ class NTupleValidator(_ToTupleValidator[A]):
 
 
 class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
-    __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
+    __match_args__ = ("item_validator", "predicates", "predicates_async")
 
     def __init__(
         self,
@@ -331,12 +330,10 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
         *,
         predicates: Optional[List[Predicate[Tuple[A, ...]]]] = None,
         predicates_async: Optional[List[PredicateAsync[Tuple[A, ...]]]] = None,
-        preprocessors: Optional[List[Processor[Tuple[Any, ...]]]] = None,
     ) -> None:
         self.item_validator = item_validator
         self.predicates = predicates
         self.predicates_async = predicates_async
-        self.preprocessors = preprocessors
 
         self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
 
@@ -345,10 +342,6 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
             _async_predicates_warning(self.__class__)
 
         if isinstance(val, tuple):
-            if self.preprocessors:
-                for processor in self.preprocessors:
-                    val = processor(val)
-
             if self.predicates:
                 tuple_errors: List[
                     Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
@@ -383,10 +376,6 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Tuple[A, ...]]:
         if isinstance(val, tuple):
-            if self.preprocessors:
-                for processor in self.preprocessors:
-                    val = processor(val)
-
             tuple_errors: List[
                 Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
             ] = []
@@ -435,7 +424,6 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
             and self.item_validator == other.item_validator
             and self.predicates == other.predicates
             and self.predicates_async == other.predicates_async
-            and self.preprocessors == other.preprocessors
         )
 
     def __repr__(self) -> str:
@@ -447,7 +435,6 @@ class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
                 for k, v in [
                     ("predicates", self.predicates),
                     ("predicates_async", self.predicates_async),
-                    ("preprocessors", self.preprocessors),
                 ]
                 if v
             ],

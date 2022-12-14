@@ -13,23 +13,9 @@ from koda_validate import (
     StringValidator,
     Valid,
 )
-from koda_validate.base import (
-    Invalid,
-    PredicateAsync,
-    PredicateErrs,
-    Processor,
-    SetErrs,
-    TypeErr,
-)
+from koda_validate.base import Invalid, PredicateAsync, PredicateErrs, SetErrs, TypeErr
 from koda_validate.set import SetValidator
 from tests.utils import BasicNoneValidator
-
-
-@dataclass
-class Add1ToSet(Processor[Set[Any]]):
-    def __call__(self, val: Set[Any]) -> Set[Any]:
-        val.add(1)
-        return val
 
 
 @dataclass
@@ -50,12 +36,10 @@ def test_set_validator() -> None:
         set_str_v,
     )
 
-    set_int_v_2 = SetValidator(
-        IntValidator(), predicates=[MaxItems(2)], preprocessors=[Add1ToSet()]
-    )
+    set_int_v_2 = SetValidator(IntValidator(), predicates=[MaxItems(2)])
 
-    assert set_int_v_2({0}) == Valid({0, 1})
-    assert set_int_v_2({0, 2}) == Invalid(
+    assert set_int_v_2({0}) == Valid({0})
+    assert set_int_v_2({0, 1, 2}) == Invalid(
         PredicateErrs([MaxItems(2)]), {0, 1, 2}, set_int_v_2
     )
 
@@ -85,12 +69,10 @@ async def test_set_validator_async() -> None:
         set_str_v,
     )
 
-    set_int_v_2 = SetValidator(
-        IntValidator(), predicates=[MaxItems(2)], preprocessors=[Add1ToSet()]
-    )
+    set_int_v_2 = SetValidator(IntValidator(), predicates=[MaxItems(2)])
 
-    assert await set_int_v_2.validate_async({0}) == Valid({0, 1})
-    assert await set_int_v_2.validate_async({0, 2}) == Invalid(
+    assert await set_int_v_2.validate_async({0}) == Valid({0})
+    assert await set_int_v_2.validate_async({0, 2, 1}) == Invalid(
         PredicateErrs([MaxItems(2)]), {0, 1, 2}, set_int_v_2
     )
 
@@ -123,13 +105,12 @@ def test_set_repr() -> None:
         IntValidator(),
         predicates=[MinItems(5)],
         predicates_async=[AsyncSetPred()],
-        preprocessors=[Add1ToSet()],
     )
 
     assert (
         repr(s_all)
         == "SetValidator(IntValidator(), predicates=[MinItems(item_count=5)], "
-        "predicates_async=[AsyncSetPred()], preprocessors=[Add1ToSet()])"
+        "predicates_async=[AsyncSetPred()])"
     )
 
 
@@ -157,19 +138,3 @@ def test_list_validator_equivalence() -> None:
         predicates_async=[AsyncSetPred()],
     )
     assert s_pred_async_1 == s_pred_async_2
-
-    s_preproc_1 = SetValidator(
-        StringValidator(),
-        predicates=[MaxItems(1)],
-        predicates_async=[AsyncSetPred()],
-        preprocessors=[Add1ToSet()],
-    )
-    assert s_preproc_1 != s_pred_async_1
-
-    s_preproc_2 = SetValidator(
-        StringValidator(),
-        predicates=[MaxItems(1)],
-        predicates_async=[AsyncSetPred()],
-        preprocessors=[Add1ToSet()],
-    )
-    assert s_preproc_1 == s_preproc_2

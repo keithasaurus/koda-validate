@@ -16,14 +16,13 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     PredicateErrs,
-    Processor,
     TypeErr,
     Validator,
 )
 
 
 class ListValidator(_ToTupleValidator[List[A]]):
-    __match_args__ = ("item_validator", "predicates", "predicates_async", "preprocessors")
+    __match_args__ = ("item_validator", "predicates", "predicates_async")
 
     def __init__(
         self,
@@ -31,12 +30,10 @@ class ListValidator(_ToTupleValidator[List[A]]):
         *,
         predicates: Optional[List[Predicate[List[A]]]] = None,
         predicates_async: Optional[List[PredicateAsync[List[A]]]] = None,
-        preprocessors: Optional[List[Processor[List[A]]]] = None,
     ) -> None:
         self.item_validator = item_validator
         self.predicates = predicates
         self.predicates_async = predicates_async
-        self.preprocessors = preprocessors
 
         self._wrapped_item_validator_sync = _wrap_sync_validator(item_validator)
         self._wrapped_item_validator_async = _wrap_async_validator(item_validator)
@@ -46,10 +43,6 @@ class ListValidator(_ToTupleValidator[List[A]]):
             _async_predicates_warning(self.__class__)
 
         if type(val) is list:
-            if self.preprocessors:
-                for processor in self.preprocessors:
-                    val = processor(val)
-
             if self.predicates:
                 list_errors: List[Union[Predicate[List[A]], PredicateAsync[List[A]]]] = [
                     pred for pred in self.predicates if not pred.__call__(val)
@@ -77,10 +70,6 @@ class ListValidator(_ToTupleValidator[List[A]]):
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[List[A]]:
         if type(val) is list:
-            if self.preprocessors:
-                for processor in self.preprocessors:
-                    val = processor(val)
-
             predicate_errors: List[
                 Union[Predicate[List[Any]], PredicateAsync[List[Any]]]
             ] = []
@@ -123,7 +112,6 @@ class ListValidator(_ToTupleValidator[List[A]]):
             and self.item_validator == other.item_validator
             and self.predicates == other.predicates
             and self.predicates_async == other.predicates_async
-            and self.preprocessors == other.preprocessors
         )
 
     def __repr__(self) -> str:
@@ -135,7 +123,6 @@ class ListValidator(_ToTupleValidator[List[A]]):
                 for k, v in [
                     ("predicates", self.predicates),
                     ("predicates_async", self.predicates_async),
-                    ("preprocessors", self.preprocessors),
                 ]
                 if v
             ],

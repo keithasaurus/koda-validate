@@ -83,14 +83,13 @@ def test_match_args() -> None:
             assert False
 
     match MapValidator(key=(str_ := StringValidator()), value=(int_ := IntValidator())):
-        case MapValidator(
-            string_validator, int_validator, predicates_map, preds_async_2, process_2
-        ):
+        case MapValidator(string_validator, int_validator, predicates_map, preds_async_2):
             assert string_validator == str_
             assert int_validator == int_
             assert predicates_map is None
             assert preds_async_2 is None
-            assert process_2 is None
+        case _:
+            assert False
 
     match is_dict_validator:
         case IsDictValidator():
@@ -127,9 +126,7 @@ def test_record_validator_match_args() -> None:
         validate_object=validate_person,
     )
     match dv_validator:
-        case RecordValidator(
-            fields_dv, into, preprocessors, validate_object, validate_object_async
-        ):
+        case RecordValidator(fields_dv, into, validate_object, validate_object_async):
             assert into == into_
             assert fields_dv[0] == str_1
             assert fields_dv[1][0] == "age"
@@ -141,7 +138,6 @@ def test_record_validator_match_args() -> None:
             assert knr.validator == int_1[1].validator
             assert validate_object == validate_person
             assert validate_object_async is None
-            assert preprocessors is None
 
         case _:
             assert False
@@ -163,12 +159,9 @@ def test_dict_any_match_args() -> None:
         validate_object=validate_person_dict_any,
     )
     match dva_validator:
-        case DictValidatorAny(
-            fields_dva, preprocessors_dva, validate_object_dva, validate_object_async_dva
-        ):
+        case DictValidatorAny(fields_dva, validate_object_dva, validate_object_async_dva):
             assert fields_dva is schema_
             assert validate_object_dva == validate_person_dict_any
-            assert preprocessors_dva is None
             assert validate_object_async_dva is None
 
         case _:
@@ -270,11 +263,12 @@ def test_list_validator_match() -> None:
     match ListValidator(
         (str_vldtr := StringValidator()), predicates=[min_items_ := MinItems(2)]
     ):
-        case ListValidator(item_validator, preds_1, preds_async_1, preprocess_1):
+        case ListValidator(item_validator, preds_1, preds_async_1):
             assert item_validator is str_vldtr
             assert preds_1 == [min_items_]
             assert preds_async_1 is None
-            assert preprocess_1 is None
+        case _:
+            assert False
 
 
 def test_optional_validator_match() -> None:

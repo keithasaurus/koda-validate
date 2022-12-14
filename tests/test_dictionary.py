@@ -128,12 +128,6 @@ def test_map_validator() -> None:
 
     assert complex_validator({"a": 100}) == Valid({"a": 100})
 
-    map_validator_preprocessor = MapValidator(
-        key=s_v, value=i_v, preprocessors=[AddVal()]
-    )
-
-    assert map_validator_preprocessor({}) == Valid({"newkey": 123})
-
 
 @pytest.mark.asyncio
 async def test_map_validator_async() -> None:
@@ -187,17 +181,6 @@ async def test_map_validator_async() -> None:
     )
 
     assert await complex_validator.validate_async({"a": 100}) == Valid({"a": 100})
-
-    class AddVal(Processor[Dict[Any, Any]]):
-        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
-            val["newkey"] = 123
-            return val
-
-    map_validator_preprocessor = MapValidator(
-        key=StringValidator(), value=IntValidator(), preprocessors=[AddVal()]
-    )
-
-    assert map_validator_preprocessor({}) == Valid({"newkey": 123})
 
 
 @dataclass
@@ -802,24 +785,6 @@ def test_record_decimal_keys() -> None:
     )
 
 
-def test_dict_validator_preprocessors() -> None:
-    class RemoveKey(Processor[Dict[Any, Any]]):
-        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
-            if "a" in val:
-                del val["a"]
-            return val
-
-    @dataclass
-    class Person:
-        name: str
-
-    dv = RecordValidator(
-        into=Person, keys=(("name", StringValidator()),), preprocessors=[RemoveKey()]
-    )
-
-    assert dv({"a": 123, "name": "bob"}) == Valid(Person("bob"))
-
-
 def test_dict_validator_any_empty() -> None:
     empty_dict_validator = DictValidatorAny({})
 
@@ -934,18 +899,6 @@ def test_dict_validator_any_key_missing() -> None:
     )
 
 
-def test_dict_validator_any_preprocessors() -> None:
-    class RemoveKey(Processor[Dict[Any, Any]]):
-        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
-            if "a" in val:
-                del val["a"]
-            return val
-
-    dv = DictValidatorAny({"name": StringValidator()}, preprocessors=[RemoveKey()])
-
-    assert dv({"a": 123, "name": "bob"}) == Valid({"name": "bob"})
-
-
 @pytest.mark.asyncio
 async def test_validate_dictionary_any_async() -> None:
     s_v = StringValidator(preprocessors=[strip])
@@ -1002,27 +955,6 @@ async def test_validate_dictionary_any_async() -> None:
         ExtraKeysErr({"first_name", "last_name"}),
         {"last_name": "smith", "a": 123.45},
         validator_fail_extra_keys,
-    )
-
-
-@pytest.mark.asyncio
-async def test_dict_validator_any_async_processor() -> None:
-    class RemoveKey(Processor[Dict[Any, Any]]):
-        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
-            if "a" in val:
-                del val["a"]
-            return val
-
-    validator = DictValidatorAny(
-        {
-            "first_name": KeyNotRequired(StringValidator(preprocessors=[strip])),
-            "last_name": StringValidator(),
-        },
-        preprocessors=[RemoveKey()],
-    )
-
-    assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Valid(
-        {"last_name": "smith"}
     )
 
 
@@ -1244,33 +1176,6 @@ async def test_validate_dictionary_async() -> None:
     )
 
 
-@pytest.mark.asyncio
-async def test_dict_validator_async_processor() -> None:
-    class RemoveKey(Processor[Dict[Any, Any]]):
-        def __call__(self, val: Dict[Any, Any]) -> Dict[Any, Any]:
-            if "a" in val:
-                del val["a"]
-            return val
-
-    @dataclass
-    class Person:
-        first_name: Maybe[str]
-        last_name: str
-
-    validator = RecordValidator(
-        into=Person,
-        keys=(
-            ("first_name", KeyNotRequired(StringValidator(preprocessors=[strip]))),
-            ("last_name", StringValidator()),
-        ),
-        preprocessors=[RemoveKey()],
-    )
-
-    assert await validator.validate_async({"last_name": "smith", "a": 123.45}) == Valid(
-        Person(nothing, "smith")
-    )
-
-
 def test_key_not_required_repr() -> None:
     assert repr(KeyNotRequired(none_validator)) == "KeyNotRequired(NoneValidator())"
 
@@ -1292,12 +1197,10 @@ def test_map_validator_repr() -> None:
                 value=IntValidator(),
                 predicates=[MaxKeys(1)],
                 predicates_async=[AsyncWait()],
-                preprocessors=[(add_val := AddVal())],
             )
         )
-        == f"MapValidator(key=StringValidator(), value=IntValidator(), "
-        f"predicates=[MaxKeys(size=1)], predicates_async=[AsyncWait()], "
-        f"preprocessors=[{repr(add_val)}])"
+        == "MapValidator(key=StringValidator(), value=IntValidator(), "
+        "predicates=[MaxKeys(size=1)], predicates_async=[AsyncWait()])"
     )
 
 
@@ -1314,22 +1217,18 @@ def test_map_validator_eq() -> None:
         value=IntValidator(),
         predicates=[MaxKeys(1)],
         predicates_async=[AsyncWait()],
-        preprocessors=[AddVal()],
     ) != MapValidator(key=StringValidator(), value=IntValidator())
 
-    add_val = AddVal()
     assert MapValidator(
         key=StringValidator(),
         value=IntValidator(),
         predicates=[MaxKeys(1)],
         predicates_async=[AsyncWait()],
-        preprocessors=[add_val],
     ) == MapValidator(
         key=StringValidator(),
         value=IntValidator(),
         predicates=[MaxKeys(1)],
         predicates_async=[AsyncWait()],
-        preprocessors=[add_val],
     )
 
 
@@ -1406,16 +1305,6 @@ def test_dict_validator_any_eq() -> None:
     assert dva_2 != dva_1
 
     assert dva_2 == DictValidatorAny({"name": StringValidator()}, validate_object=fn_1)
-
-    add_val = AddVal()
-    dva_3 = DictValidatorAny(
-        {"name": StringValidator()}, preprocessors=[add_val], validate_object=fn_1
-    )
-    assert dva_3 != dva_2
-
-    assert dva_3 == DictValidatorAny(
-        {"name": StringValidator()}, preprocessors=[add_val], validate_object=fn_1
-    )
 
 
 def test_dict_validator_any_repr() -> None:

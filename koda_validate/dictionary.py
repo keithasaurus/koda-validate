@@ -54,7 +54,6 @@ from koda_validate.base import (
     Predicate,
     PredicateAsync,
     PredicateErrs,
-    Processor,
     TypeErr,
     ValidationResult,
     Validator,
@@ -104,7 +103,6 @@ class MapValidator(Validator[Dict[T1, T2]]):
         "value_validator",
         "predicates",
         "predicates_async",
-        "preprocessors",
     )
 
     def __init__(
@@ -114,20 +112,14 @@ class MapValidator(Validator[Dict[T1, T2]]):
         value: Validator[T2],
         predicates: Optional[List[Predicate[Dict[T1, T2]]]] = None,
         predicates_async: Optional[List[PredicateAsync[Dict[T1, T2]]]] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
     ) -> None:
         self.key_validator = key
         self.value_validator = value
         self.predicates = predicates
         self.predicates_async = predicates_async
-        self.preprocessors = preprocessors
 
     async def validate_async(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
         if isinstance(val, dict):
-            if self.preprocessors is not None:
-                for preproc in self.preprocessors:
-                    val = preproc(val)
-
             predicate_errors: List[
                 Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
             ] = []
@@ -176,10 +168,6 @@ class MapValidator(Validator[Dict[T1, T2]]):
             _async_predicates_warning(self.__class__)
 
         if isinstance(val, dict):
-            if self.preprocessors is not None:
-                for preproc in self.preprocessors:
-                    val = preproc(val)
-
             predicate_errors: List[
                 Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
             ] = []
@@ -224,7 +212,6 @@ class MapValidator(Validator[Dict[T1, T2]]):
             and self.value_validator == other.value_validator
             and self.predicates == other.predicates
             and self.predicates_async == other.predicates_async
-            and self.preprocessors == other.preprocessors
         )
 
     def __repr__(self) -> str:
@@ -239,7 +226,6 @@ class MapValidator(Validator[Dict[T1, T2]]):
                 for k, v in [
                     ("predicates", self.predicates),
                     ("predicates_async", self.predicates_async),
-                    ("preprocessors", self.preprocessors),
                 ]
                 if v
             ],
@@ -293,7 +279,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
     __match_args__ = (
         "keys",
         "into",
-        "preprocessors",
         "validate_object",
         "validate_object_async",
     )
@@ -310,7 +295,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -328,7 +312,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -347,7 +330,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -367,7 +349,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -388,7 +369,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -410,7 +390,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -433,7 +412,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -457,7 +435,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -482,7 +459,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -508,7 +484,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -535,7 +510,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -563,7 +537,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -592,7 +565,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -624,7 +596,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -657,7 +628,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -691,7 +661,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -881,7 +850,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
 
@@ -894,7 +862,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
             )
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
-        self.preprocessors = preprocessors
         self.fail_on_unknown_keys = fail_on_unknown_keys
 
         # so we don't need to calculate each time we validate
@@ -918,10 +885,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
     def validate_to_tuple(self, data: Any) -> ResultTuple[Ret]:
         if not isinstance(data, dict):
             return False, Invalid(TypeErr(dict), data, self)
-
-        if self.preprocessors:
-            for preproc in self.preprocessors:
-                data = preproc(data)
 
         if self.fail_on_unknown_keys:
             for key_ in data:
@@ -961,10 +924,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
     async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Ret]:
         if not isinstance(data, dict):
             return False, Invalid(TypeErr(dict), data, self)
-
-        if self.preprocessors:
-            for preproc in self.preprocessors:
-                data = preproc(data)
 
         if self.fail_on_unknown_keys:
             for key_ in data:
@@ -1009,7 +968,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
     def __eq__(self, other: Any) -> bool:
         return (
             type(self) == type(other)
-            and self.preprocessors == other.preprocessors
             and self.into == other.into
             and self.keys == other.keys
             and self.validate_object == other.validate_object
@@ -1024,7 +982,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
             + [
                 f"{k}={repr(v)}"
                 for k, v in [
-                    ("preprocessors", self.preprocessors),
                     ("validate_object", self.validate_object),
                     ("validate_object_async", self.validate_object_async),
                     # note that this coincidentally works as we want:
@@ -1057,7 +1014,6 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
     __match_args__ = (
         "schema",
-        "preprocessors",
         "validate_object",
         "validate_object_async",
     )
@@ -1075,7 +1031,6 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                 Awaitable[Optional[ErrType]],
             ]
         ] = None,
-        preprocessors: Optional[List[Processor[Dict[Any, Any]]]] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         self.schema: Dict[Any, Validator[Any]] = schema
@@ -1086,7 +1041,6 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             raise AssertionError(
                 "validate_object and validate_object_async cannot both be defined"
             )
-        self.preprocessors = preprocessors
         self.fail_on_unknown_keys = fail_on_unknown_keys
 
         # so we don't need to calculate each time we validate
@@ -1113,12 +1067,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 
-        if self.preprocessors:
-            for preproc in self.preprocessors:
-                data = preproc(data)
-
         if self.fail_on_unknown_keys:
-            # this seems to be faster than `for key_ in data.keys()`
             for key_ in data:
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
@@ -1148,10 +1097,6 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 
-        if self.preprocessors:
-            for preproc in self.preprocessors:
-                data = preproc(data)
-
         if self.fail_on_unknown_keys:
             # this seems to be faster than `for key_ in data.keys()`
             for key_ in data:
@@ -1177,9 +1122,9 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         elif self.validate_object and (result := self.validate_object(success_dict)):
             return False, Invalid(result, success_dict, self)
         elif self.validate_object_async and (
-            result := await self.validate_object_async((obj := success_dict))
+            result := await self.validate_object_async(success_dict)
         ):
-            return False, Invalid(result, obj, self)
+            return False, Invalid(result, success_dict, self)
 
         return True, success_dict
 
@@ -1187,7 +1132,6 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         return (
             type(self) == type(other)
             and self.schema == other.schema
-            and self.preprocessors == other.preprocessors
             and self.validate_object == other.validate_object
             and self.validate_object_async == other.validate_object_async
             and self.fail_on_unknown_keys == other.fail_on_unknown_keys
@@ -1200,7 +1144,6 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             + [
                 f"{k}={repr(v)}"
                 for k, v in [
-                    ("preprocessors", self.preprocessors),
                     ("validate_object", self.validate_object),
                     ("validate_object_async", self.validate_object_async),
                     # note that this coincidentally works as we want:

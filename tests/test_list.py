@@ -11,7 +11,6 @@ from koda_validate import (
     MaxLength,
     MinLength,
     PredicateAsync,
-    Processor,
     StringValidator,
     Valid,
 )
@@ -20,12 +19,6 @@ from koda_validate.float import FloatValidator
 from koda_validate.generic import MaxItems, Min, MinItems
 from koda_validate.list import ListValidator
 from tests.utils import BasicNoneValidator
-
-
-@dataclass
-class RemoveLast(Processor[List[Any]]):
-    def __call__(self, val: List[Any]) -> List[Any]:
-        return val[:-1]
 
 
 def test_list_validator() -> None:
@@ -47,10 +40,9 @@ def test_list_validator() -> None:
     l_validator = ListValidator(
         FloatValidator(Min(5.5)),
         predicates=[MinItems(1), MaxItems(3)],
-        preprocessors=[RemoveLast()],
     )
     assert l_validator([10.1, 7.7, 2.2, 5, 0.0]) == Invalid(
-        PredicateErrs([MaxItems(3)]), [10.1, 7.7, 2.2, 5], l_validator
+        PredicateErrs([MaxItems(3)]), [10.1, 7.7, 2.2, 5, 0.0], l_validator
     )
 
     n_v = ListValidator(BasicNoneValidator())
@@ -132,19 +124,14 @@ async def test_child_validator_async_is_used() -> None:
             await asyncio.sleep(0.001)
             return val == 3
 
-    class PopFrontOffList(Processor[List[Any]]):
-        def __call__(self, val: List[Any]) -> List[Any]:
-            return val[1:]
-
     l_validator = ListValidator(
         IntValidator(Min(2), predicates_async=[SomeIntDBCheck()]),
         predicates=[MaxItems(1)],
-        preprocessors=[PopFrontOffList()],
     )
 
-    assert await l_validator.validate_async([1, 3]) == Valid([3])
+    assert await l_validator.validate_async([3]) == Valid([3])
 
-    assert await l_validator.validate_async([1, 1, 1]) == Invalid(
+    assert await l_validator.validate_async([1, 1]) == Invalid(
         PredicateErrs([MaxItems(1)]), [1, 1], l_validator
     )
 
@@ -175,13 +162,12 @@ def test_list_repr() -> None:
         IntValidator(),
         predicates=[MinItems(5)],
         predicates_async=[SomeAsyncListCheck()],
-        preprocessors=[RemoveLast()],
     )
 
     assert (
         repr(s_all)
         == "ListValidator(IntValidator(), predicates=[MinItems(item_count=5)], "
-        "predicates_async=[SomeAsyncListCheck()], preprocessors=[RemoveLast()])"
+        "predicates_async=[SomeAsyncListCheck()])"
     )
 
 
@@ -209,19 +195,3 @@ def test_list_validator_equivalence() -> None:
         predicates_async=[SomeAsyncListCheck()],
     )
     assert l_pred_async_1 == l_pred_async_2
-
-    l_preproc_1 = ListValidator(
-        StringValidator(),
-        predicates=[MaxItems(1)],
-        predicates_async=[SomeAsyncListCheck()],
-        preprocessors=[RemoveLast()],
-    )
-    assert l_preproc_1 != l_pred_async_1
-
-    l_preproc_2 = ListValidator(
-        StringValidator(),
-        predicates=[MaxItems(1)],
-        predicates_async=[SomeAsyncListCheck()],
-        preprocessors=[RemoveLast()],
-    )
-    assert l_preproc_1 == l_preproc_2
