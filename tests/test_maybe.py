@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 from koda import Just, Maybe, nothing
 
@@ -33,7 +35,7 @@ def test_invalid_with_invalid_just() -> None:
 def test_not_maybe_is_invalid() -> None:
     mi_v = MaybeValidator(IntValidator())
 
-    assert mi_v("abc") == Invalid(TypeErr(Maybe), "abc", mi_v)
+    assert mi_v("abc") == Invalid(TypeErr(Maybe[Any]), "abc", mi_v)  # type: ignore[misc]
 
 
 @pytest.mark.asyncio
@@ -67,7 +69,9 @@ async def test_invalid_with_invalid_just_async() -> None:
 async def test_not_maybe_is_invalid_async() -> None:
     mi_v = MaybeValidator(IntValidator())
 
-    assert await mi_v.validate_async("abc") == Invalid(TypeErr(Maybe), "abc", mi_v)
+    assert await mi_v.validate_async("abc") == Invalid(
+        TypeErr(Maybe[Any]), "abc", mi_v
+    )  # type: ignore[misc]
 
 
 def test_eq() -> None:

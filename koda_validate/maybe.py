@@ -24,25 +24,25 @@ class MaybeValidator(_ToTupleValidator[Maybe[A]]):
         if val is nothing:
             return True, nothing
         elif type(val) is Just:
-            success, new_val = await self._validator_async(val.val)
-            if success:
-                return True, Just(new_val)
+            result = await self._validator_async(val.val)
+            if result[0]:
+                return True, Just(result[1])
             else:
-                return False, Invalid(ContainerErr(new_val), val, self)
+                return False, Invalid(ContainerErr(result[1]), val, self)
         else:
-            return False, Invalid(TypeErr(Maybe), val, self)
+            return False, Invalid(TypeErr(Maybe[Any]), val, self)  # type: ignore[misc]
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[Maybe[A]]:
         if val is nothing:
             return True, nothing
         elif type(val) is Just:
-            success, new_val = self._validator_sync(val.val)
-            if success:
-                return True, Just(new_val)
+            result = self._validator_sync(val.val)
+            if result[0]:
+                return True, Just(result[1])
             else:
-                return False, Invalid(ContainerErr(new_val), val, self)
+                return False, Invalid(ContainerErr(result[1]), val, self)
         else:
-            return False, Invalid(TypeErr(Maybe), val, self)
+            return False, Invalid(TypeErr(Maybe[Any]), val, self)  # type: ignore[misc]
 
     def __eq__(self, other: Any) -> bool:
         return type(self) == type(other) and self.validator == other.validator
