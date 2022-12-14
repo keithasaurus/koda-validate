@@ -27,6 +27,11 @@ class CoercionErr:
     dest_type: Type[Any]
 
 
+@dataclass
+class ContainerErr:
+    child: "Invalid"
+
+
 class MissingKeyErr:
     """
     A key is missing from a dictionary
@@ -165,6 +170,7 @@ ValidationResult = Union[Valid[A], Invalid]
 ErrType = Union[
     BasicErr,
     CoercionErr,
+    ContainerErr,
     ExtraKeysErr,
     IndexErrs,
     KeyErrs,

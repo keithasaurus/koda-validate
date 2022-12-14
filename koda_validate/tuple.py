@@ -6,6 +6,8 @@ from koda_validate._internal import (
     _async_predicates_warning,
     _repr_helper,
     _ToTupleValidator,
+    _wrap_async_validator,
+    _wrap_sync_validator,
 )
 from koda_validate.base import (
     CoercionErr,
@@ -38,6 +40,8 @@ class NTupleValidator(_ToTupleValidator[A]):
         self.fields = fields
         self.validate_object = validate_object
         self._len_predicate = ExactItemCount(len(fields))
+        self._wrapped_fields_sync = [_wrap_sync_validator(v) for v in fields]
+        self._wrapped_fields_async = [_wrap_async_validator(v) for v in fields]
 
     @overload
     @staticmethod
@@ -240,19 +244,15 @@ class NTupleValidator(_ToTupleValidator[A]):
                 return False, Invalid(PredicateErrs([self._len_predicate]), val, self)
             errs: Dict[int, Invalid] = {}
             vals = []
-            for i, (validator, tuple_val) in enumerate(zip(self.fields, val)):
-                if isinstance(validator, _ToTupleValidator):
-                    succeeded, new_val = validator.validate_to_tuple(tuple_val)
-                    if succeeded:
-                        vals.append(new_val)
-                    else:
-                        errs[i] = new_val
+            for i, (validator, tuple_val) in enumerate(
+                zip(self._wrapped_fields_sync, val)
+            ):
+                succeeded, new_val = validator(tuple_val)
+                if succeeded:
+                    vals.append(new_val)
                 else:
-                    result = validator(tuple_val)
-                    if result.is_valid:
-                        vals.append(result.val)
-                    else:
-                        errs[i] = result
+                    errs[i] = new_val
+
             if errs:
                 return False, Invalid(IndexErrs(errs), val, self)
             else:
@@ -275,21 +275,15 @@ class NTupleValidator(_ToTupleValidator[A]):
                 return False, Invalid(PredicateErrs([self._len_predicate]), val, self)
             errs: Dict[int, Invalid] = {}
             vals = []
-            for i, (validator, tuple_val) in enumerate(zip(self.fields, val)):
-                if isinstance(validator, _ToTupleValidator):
-                    succeeded, new_val = await validator.validate_to_tuple_async(
-                        tuple_val
-                    )
-                    if succeeded:
-                        vals.append(new_val)
-                    else:
-                        errs[i] = new_val
+            for i, (validator, tuple_val) in enumerate(
+                zip(self._wrapped_fields_async, val)
+            ):
+                succeeded, new_val = await validator(tuple_val)
+                if succeeded:
+                    vals.append(new_val)
                 else:
-                    result = await validator.validate_async(tuple_val)
-                    if result.is_valid:
-                        vals.append(result.val)
-                    else:
-                        errs[i] = result
+                    errs[i] = new_val
+
             if errs:
                 return False, Invalid(IndexErrs(errs), val, self)
             else:

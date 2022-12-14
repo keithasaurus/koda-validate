@@ -56,6 +56,7 @@ from koda_validate.dictionary import (
     is_dict_validator,
 )
 from koda_validate.generic import AlwaysValid
+from koda_validate.maybe import MaybeValidator
 from koda_validate.set import SetValidator
 from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
 from koda_validate.typeddict import TypedDictValidator
@@ -354,18 +355,28 @@ def test_always_valid_match() -> None:
             assert False
 
 
-# def test_match_dataclass() -> None:
-#     x = DataclassValidator(Person,
-#                            overrides={"name": (s := StringValidator(MaxLength(10)))},
-#                            fail_on_unknown_keys=True)
-#     match x:
-#         case DataclassValidator(cls, overrides, fail_on_unknown_keys):
-#             assert cls is Person
-#             assert overrides == {"name": s}
-#             assert fail_on_unknown_keys is True
-#         case _:
-#             assert False
-#
+def test_match_dataclass() -> None:
+    x = DataclassValidator(
+        Person,
+        overrides={"name": (s := StringValidator(MaxLength(10)))},
+        fail_on_unknown_keys=True,
+    )
+    match x:
+        case DataclassValidator(cls, overrides, fail_on_unknown_keys):
+            assert cls is Person
+            assert overrides == {"name": s}
+            assert fail_on_unknown_keys is True
+        case _:
+            assert False
+
+
+def test_maybe_validator() -> None:
+    v = MaybeValidator(s_v := StringValidator())
+    match v:
+        case MaybeValidator(vldtr):
+            assert vldtr is s_v
+        case _:
+            assert False
 
 
 @dataclass

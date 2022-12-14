@@ -3,6 +3,10 @@ from dataclasses import is_dataclass
 from datetime import date, datetime
 from decimal import Decimal
 
+from koda import Just, Nothing
+
+from .maybe import MaybeValidator
+
 if sys.version_info >= (3, 10):
     from types import UnionType
 from typing import Any, Dict, List, Literal, Set, Tuple, Union, get_args, get_origin
@@ -89,7 +93,10 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
                 key=get_typehint_validator(args[0]), value=get_typehint_validator(args[1])
             )
         if origin is Union or (sys.version_info >= (3, 10) and origin is UnionType):
-            return UnionValidator(*[get_typehint_validator(arg) for arg in args])
+            if len(args) == 2 and args[1] is Nothing and get_origin(args[0]) is Just:
+                return MaybeValidator(get_typehint_validator(get_args(args[0])[0]))
+            else:
+                return UnionValidator(*[get_typehint_validator(arg) for arg in args])
         if origin is tuple or origin is Tuple:
             if len(args) == 2 and args[1] is Ellipsis:
                 return TupleHomogenousValidator(get_typehint_validator(args[0]))
