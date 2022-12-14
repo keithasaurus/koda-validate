@@ -70,7 +70,7 @@ from koda_validate.dictionary import (
 from koda_validate.generic import AlwaysValid
 from koda_validate.maybe import MaybeValidator
 from koda_validate.set import SetValidator
-from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
+from koda_validate.tuple import NTupleValidator, UniformTupleValidator
 from koda_validate.typeddict import TypedDictValidator
 from koda_validate.typehints import get_typehint_validator
 from koda_validate.union import UnionValidator
@@ -667,7 +667,7 @@ def test_get_typehint_validator_tuple_n_any() -> None:
 
 def test_get_typehint_validator_tuple_homogenous() -> None:
     tuple_homogeneous_validator_1 = get_typehint_validator(tuple[str, ...])
-    assert isinstance(tuple_homogeneous_validator_1, TupleHomogenousValidator)
+    assert isinstance(tuple_homogeneous_validator_1, UniformTupleValidator)
     assert isinstance(tuple_homogeneous_validator_1.item_validator, StringValidator)
 
 

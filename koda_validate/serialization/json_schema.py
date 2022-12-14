@@ -40,7 +40,7 @@ from koda_validate.none import OptionalValidator
 from koda_validate.serialization.errors import Serializable
 from koda_validate.string import EmailPredicate, NotBlank, RegexPredicate, StringValidator
 from koda_validate.time import DatetimeValidator, DateValidator
-from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
+from koda_validate.tuple import NTupleValidator, UniformTupleValidator
 from koda_validate.typeddict import TypedDictValidator
 from koda_validate.union import UnionValidator
 
@@ -178,7 +178,7 @@ def uuid_schema(
 
 def array_of_schema(
     to_schema_fn: ValidatorToSchema,
-    validator: Union[ListValidator[Any], TupleHomogenousValidator[Any]],
+    validator: Union[ListValidator[Any], UniformTupleValidator[Any]],
 ) -> Dict[str, Serializable]:
     ret: Dict[str, Serializable] = {
         "type": "array",
@@ -432,7 +432,7 @@ def generate_schema_validator(
         return dict_validator_schema(to_schema_fn, obj)
     elif isinstance(obj, ListValidator):
         return array_of_schema(to_schema_fn, obj)
-    elif isinstance(obj, TupleHomogenousValidator):
+    elif isinstance(obj, UniformTupleValidator):
         return array_of_schema(to_schema_fn, obj)
     elif isinstance(obj, IsDictValidator):
         return {"type": "object"}

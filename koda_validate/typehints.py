@@ -26,7 +26,7 @@ from .none import NoneValidator
 from .set import SetValidator
 from .string import StringValidator
 from .time import DatetimeValidator, DateValidator
-from .tuple import NTupleValidator, TupleHomogenousValidator
+from .tuple import NTupleValidator, UniformTupleValidator
 from .union import UnionValidator
 from .uuid import UUIDValidator
 
@@ -61,7 +61,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
     elif annotations is Set or annotations is set:
         return SetValidator(always_valid)
     elif annotations is Tuple or annotations is tuple:
-        return TupleHomogenousValidator(always_valid)
+        return UniformTupleValidator(always_valid)
     elif annotations is Dict or annotations is dict:
         return MapValidator(key=always_valid, value=always_valid)
     elif is_dataclass(annotations):
@@ -99,7 +99,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
                 return UnionValidator(*[get_typehint_validator(arg) for arg in args])
         if origin is tuple or origin is Tuple:
             if len(args) == 2 and args[1] is Ellipsis:
-                return TupleHomogenousValidator(get_typehint_validator(args[0]))
+                return UniformTupleValidator(get_typehint_validator(args[0]))
             else:
                 return NTupleValidator.untyped(
                     fields=tuple(get_typehint_validator(a) for a in args)

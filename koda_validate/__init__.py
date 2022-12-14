@@ -82,7 +82,7 @@ __all__ = (
     "DatetimeValidator",
     # tuple.py
     "NTupleValidator",
-    "TupleHomogenousValidator",
+    "UniformTupleValidator",
     # uuid.py
     "UUIDValidator",
     # union.py
@@ -159,6 +159,6 @@ from koda_validate.string import (
     upper_case,
 )
 from koda_validate.time import DatetimeValidator, DateValidator
-from koda_validate.tuple import NTupleValidator, TupleHomogenousValidator
+from koda_validate.tuple import NTupleValidator, UniformTupleValidator
 from koda_validate.union import UnionValidator
 from koda_validate.uuid import UUIDValidator

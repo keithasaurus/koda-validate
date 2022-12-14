@@ -315,7 +315,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         return f"{self.__class__.__name__}(fields={fields_str})"
 
 
-class TupleHomogenousValidator(_ToTupleValidator[Tuple[A, ...]]):
+class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
     __match_args__ = ("item_validator", "predicates", "predicates_async")
 
     def __init__(

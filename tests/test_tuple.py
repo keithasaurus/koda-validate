@@ -18,7 +18,7 @@ from koda_validate import (
     MinLength,
     NTupleValidator,
     StringValidator,
-    TupleHomogenousValidator,
+    UniformTupleValidator,
     Valid,
 )
 from koda_validate._generics import A
@@ -141,7 +141,7 @@ async def test_tuple3_async() -> None:
 
 def test_tuple_homogenous_validator() -> None:
     f_v = FloatValidator()
-    tuple_v = TupleHomogenousValidator(f_v)
+    tuple_v = UniformTupleValidator(f_v)
     assert tuple_v("a string") == Invalid(TypeErr(tuple), "a string", tuple_v)
 
     assert tuple_v((5.5, "something else")) == Invalid(
@@ -156,7 +156,7 @@ def test_tuple_homogenous_validator() -> None:
 
     assert tuple_v(()) == Valid(())
 
-    t_p_p_validator = TupleHomogenousValidator(
+    t_p_p_validator = UniformTupleValidator(
         FloatValidator(Min(5.5)),
         predicates=[MinItems(1), MaxItems(3)],
     )
@@ -164,7 +164,7 @@ def test_tuple_homogenous_validator() -> None:
         PredicateErrs([MaxItems(3)]), (10.1, 7.7, 2.2, 5, 0.0), t_p_p_validator
     )
 
-    n_v = TupleHomogenousValidator(BasicNoneValidator())
+    n_v = UniformTupleValidator(BasicNoneValidator())
 
     assert n_v((None, None)) == Valid((None, None))
 
@@ -178,7 +178,7 @@ def test_tuple_homogenous_validator() -> None:
 @pytest.mark.asyncio
 async def test_tuple_homogenous_async() -> None:
     float_validator = FloatValidator()
-    validator = TupleHomogenousValidator(float_validator)
+    validator = UniformTupleValidator(float_validator)
     assert await validator.validate_async("a string") == Invalid(
         TypeErr(tuple), "a string", validator
     )
@@ -195,14 +195,14 @@ async def test_tuple_homogenous_async() -> None:
 
     assert await validator.validate_async(()) == Valid(())
 
-    t_validator = TupleHomogenousValidator(
+    t_validator = UniformTupleValidator(
         FloatValidator(Min(5.5)), predicates=[MinItems(1), MaxItems(3)]
     )
     assert await t_validator.validate_async((10.1, 7.7, 2.2, 5)) == Invalid(
         PredicateErrs([MaxItems(3)]), (10.1, 7.7, 2.2, 5), t_validator
     )
 
-    n_v = TupleHomogenousValidator(BasicNoneValidator())
+    n_v = UniformTupleValidator(BasicNoneValidator())
 
     assert await n_v.validate_async((None, None)) == Valid((None, None))
 
@@ -223,7 +223,7 @@ class SomeAsyncTupleHCheck(PredicateAsync[Tuple[Any, ...]]):
 @pytest.mark.asyncio
 async def test_tuple_h_validator_with_async_predicate_validator() -> None:
 
-    t_validator = TupleHomogenousValidator(
+    t_validator = UniformTupleValidator(
         StringValidator(), predicates_async=[SomeAsyncTupleHCheck()]
     )
     assert await t_validator.validate_async(()) == Invalid(
@@ -241,7 +241,7 @@ async def test_child_validator_async_is_used() -> None:
             await asyncio.sleep(0.001)
             return val == 3
 
-    l_validator = TupleHomogenousValidator(
+    l_validator = UniformTupleValidator(
         IntValidator(Min(2), predicates_async=[SomeIntDBCheck()]),
         predicates=[MaxItems(1)],
     )
@@ -270,7 +270,7 @@ def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
             await asyncio.sleep(0.001)
             return True
 
-    tuple_h_validator = TupleHomogenousValidator(
+    tuple_h_validator = UniformTupleValidator(
         StringValidator(), predicates_async=[AsyncWait()]
     )
     with pytest.raises(AssertionError):
@@ -325,47 +325,47 @@ def test_eq() -> None:
 
 
 def test_tuple_homogenous_repr() -> None:
-    s = TupleHomogenousValidator(StringValidator())
-    assert repr(s) == "TupleHomogenousValidator(StringValidator())"
+    s = UniformTupleValidator(StringValidator())
+    assert repr(s) == "UniformTupleValidator(StringValidator())"
 
-    s_len = TupleHomogenousValidator(StringValidator(MinLength(1), MaxLength(5)))
+    s_len = UniformTupleValidator(StringValidator(MinLength(1), MaxLength(5)))
     assert (
-        repr(s_len) == "TupleHomogenousValidator(StringValidator("
+        repr(s_len) == "UniformTupleValidator(StringValidator("
         "MinLength(length=1), MaxLength(length=5)))"
     )
 
-    s_all = TupleHomogenousValidator(
+    s_all = UniformTupleValidator(
         IntValidator(),
         predicates=[MinItems(5)],
         predicates_async=[SomeAsyncTupleHCheck()],
     )
 
     assert (
-        repr(s_all) == "TupleHomogenousValidator(IntValidator(), "
+        repr(s_all) == "UniformTupleValidator(IntValidator(), "
         "predicates=[MinItems(item_count=5)], "
         "predicates_async=[SomeAsyncTupleHCheck()])"
     )
 
 
 def test_tuple_h_tuple_homogenous_equivalence() -> None:
-    l_1 = TupleHomogenousValidator(StringValidator())
-    l_2 = TupleHomogenousValidator(StringValidator())
+    l_1 = UniformTupleValidator(StringValidator())
+    l_2 = UniformTupleValidator(StringValidator())
     assert l_1 == l_2
-    l_3 = TupleHomogenousValidator(IntValidator())
+    l_3 = UniformTupleValidator(IntValidator())
     assert l_2 != l_3
 
-    l_pred_1 = TupleHomogenousValidator(StringValidator(), predicates=[MaxItems(1)])
+    l_pred_1 = UniformTupleValidator(StringValidator(), predicates=[MaxItems(1)])
     assert l_pred_1 != l_1
-    l_pred_2 = TupleHomogenousValidator(StringValidator(), predicates=[MaxItems(1)])
+    l_pred_2 = UniformTupleValidator(StringValidator(), predicates=[MaxItems(1)])
     assert l_pred_2 == l_pred_1
 
-    l_pred_async_1 = TupleHomogenousValidator(
+    l_pred_async_1 = UniformTupleValidator(
         StringValidator(),
         predicates=[MaxItems(1)],
         predicates_async=[SomeAsyncTupleHCheck()],
     )
     assert l_pred_async_1 != l_pred_1
-    l_pred_async_2 = TupleHomogenousValidator(
+    l_pred_async_2 = UniformTupleValidator(
         StringValidator(),
         predicates=[MaxItems(1)],
         predicates_async=[SomeAsyncTupleHCheck()],

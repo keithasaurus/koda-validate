@@ -38,7 +38,7 @@ from koda_validate import (
     MinLength,
     NTupleValidator,
     OptionalValidator,
-    TupleHomogenousValidator,
+    UniformTupleValidator,
     UnionValidator,
     UniqueItems,
     UUIDValidator,
@@ -188,7 +188,7 @@ def test_person() -> None:
             ("country_code", StringValidator(MinLength(2), MaxLength(3))),
             (
                 "honorifics",
-                TupleHomogenousValidator(
+                UniformTupleValidator(
                     StringValidator(RegexPredicate(re.compile(r"[A-Z][a-z]+\.]"))),
                     predicates=[UniqueItems(), MinItems(1), MaxItems(3)],
                 ),

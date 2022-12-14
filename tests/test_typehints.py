@@ -10,8 +10,8 @@ from koda_validate import (
     EqualTo,
     Invalid,
     PredicateErrs,
-    TupleHomogenousValidator,
     TypeErr,
+    UniformTupleValidator,
     UnionErrs,
     UnionValidator,
     Valid,
@@ -22,7 +22,7 @@ from koda_validate.typehints import get_typehint_validator
 
 def test_get_typehint_validator_bare_tuple() -> None:
     for t_validator in [get_typehint_validator(tuple), get_typehint_validator(Tuple)]:
-        assert isinstance(t_validator, TupleHomogenousValidator)
+        assert isinstance(t_validator, UniformTupleValidator)
         assert isinstance(t_validator.item_validator, AlwaysValid)
 
 
