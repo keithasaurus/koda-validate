@@ -1,7 +1,19 @@
 import re
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Hashable, List, Optional, Set, TypedDict, Union, cast
+from typing import (
+    Any,
+    Dict,
+    Hashable,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Set,
+    TypedDict,
+    Union,
+    cast,
+)
 
 from koda import Maybe
 
@@ -42,7 +54,7 @@ from koda_validate.base import (
     MapErr,
     MissingKeyErr,
     TypeErr,
-    VariantErrs,
+    UnionErrs,
     missing_key_err,
 )
 from koda_validate.bytes import BytesValidator
@@ -414,7 +426,7 @@ def test_complex_union_dataclass() -> None:
         KeyErrs(
             {
                 "a": Invalid(
-                    VariantErrs(
+                    UnionErrs(
                         [
                             Invalid(
                                 TypeErr(str), False, validators_schema_key_a.validators[0]
@@ -679,3 +691,37 @@ def test_typeddict_respects_required_and_optional() -> None:
     assert v({"b": 5, "c": 2.2}) == Valid({"b": 5, "c": 2.2})
 
     assert v({"a": "ok", "b": 1, "c": 4.4}) == Valid({"a": "ok", "b": 1, "c": 4.4})
+
+
+def test_complex_typeddict() -> None:
+    @dataclass
+    class Person:
+        name: str
+
+    class Player(NamedTuple):
+        person: Person | str
+        position: Literal["fw", "mf", "gk"]
+
+    class SoccerTeam(TypedDict):
+        coach: Person
+        players: List[Player]
+        name: str
+
+    v = TypedDictValidator(SoccerTeam)
+
+    assert v(
+        {
+            "name": "some team",
+            "coach": {"name": "coachy coach"},
+            "players": [
+                {"person": "mr. fast", "position": "fw"},
+                {"person": {"name": "mr. pass pass"}, "position": "mf"},
+            ],
+        }
+    ) == Valid(
+        {
+            "name": "some team",
+            "coach": Person("coachy coach"),
+            "players": [Player("mr. fast", "fw"), Player(Person("mr. pass pass"), "mf")],
+        }
+    )

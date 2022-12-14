@@ -18,7 +18,7 @@ from koda_validate.base import (
     PredicateErrs,
     SetErrs,
     TypeErr,
-    VariantErrs,
+    UnionErrs,
 )
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import DictValidatorAny, MapValidator, MaxKeys, MinKeys
@@ -182,7 +182,7 @@ def test_variants() -> None:
     i_v = IntValidator(Min(5))
     assert serializable_validation_err(
         Invalid(
-            VariantErrs(
+            UnionErrs(
                 [
                     Invalid(TypeErr(str), 5, StringValidator()),
                     Invalid(PredicateErrs([Min(5)]), 5, i_v),

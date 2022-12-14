@@ -20,10 +20,10 @@ from koda_validate.base import (
     PredicateErrs,
     Processor,
     TypeErr,
+    UnionErrs,
     Valid,
     ValidationResult,
     Validator,
-    VariantErrs,
 )
 
 ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], Invalid]]
@@ -304,7 +304,7 @@ def _union_validator(
                 return True, (i, result.val)
             else:
                 errs.append(result)
-    return False, Invalid(VariantErrs(errs), val, source_validator)
+    return False, Invalid(UnionErrs(errs), val, source_validator)
 
 
 async def _union_validator_async(
@@ -324,7 +324,7 @@ async def _union_validator_async(
                 return True, (i, result.val)
             else:
                 errs.append(result)
-    return False, Invalid(VariantErrs(errs), val, source_validator)
+    return False, Invalid(UnionErrs(errs), val, source_validator)
 
 
 def _wrap_sync_validator(obj: Validator[A]) -> Callable[[Any], ResultTuple[A]]:

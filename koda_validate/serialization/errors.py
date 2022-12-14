@@ -15,7 +15,7 @@ from koda_validate.base import (
     PredicateErrs,
     SetErrs,
     TypeErr,
-    VariantErrs,
+    UnionErrs,
 )
 from koda_validate.dictionary import MaxKeys, MinKeys
 from koda_validate.generic import (
@@ -127,7 +127,7 @@ def serializable_validation_err(invalid: Invalid) -> Serializable:
 
     elif isinstance(err, KeyErrs):
         return {str(k): serializable_validation_err(v) for k, v in err.keys.items()}
-    elif isinstance(err, VariantErrs):
+    elif isinstance(err, UnionErrs):
         return {"variants": [serializable_validation_err(x) for x in err.variants]}
     else:
         raise TypeError(f"got unhandled type: {type(err)}")

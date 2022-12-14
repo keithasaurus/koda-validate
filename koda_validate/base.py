@@ -107,7 +107,7 @@ class SetErrs:
 
 
 @dataclass
-class VariantErrs:
+class UnionErrs:
     """
     none of these validators was satisfied by a given value
     """
@@ -180,7 +180,7 @@ ErrType = Union[
     SetErrs,
     TypeErr,
     ValidationErrBase,
-    VariantErrs,
+    UnionErrs,
 ]
 
 

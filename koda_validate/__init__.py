@@ -10,7 +10,7 @@ __all__ = (
     "PredicateErrs",
     "SetErrs",
     "TypeErr",
-    "VariantErrs",
+    "UnionErrs",
     "ValidationErrBase",
     "Valid",
     "Invalid",
@@ -104,11 +104,11 @@ from koda_validate.base import (
     Processor,
     SetErrs,
     TypeErr,
+    UnionErrs,
     Valid,
     ValidationErrBase,
     ValidationResult,
     Validator,
-    VariantErrs,
 )
 from koda_validate.boolean import BoolValidator
 from koda_validate.bytes import BytesValidator

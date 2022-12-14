@@ -12,9 +12,9 @@ from koda_validate import (
     PredicateErrs,
     TupleHomogenousValidator,
     TypeErr,
+    UnionErrs,
     UnionValidator,
     Valid,
-    VariantErrs,
 )
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.typehints import get_typehint_validator
@@ -34,7 +34,7 @@ def test_get_type_hint_for_literal() -> None:
     assert isinstance(abc_validator.validators[0], EqualsValidator)
     assert abc_validator("abc") == Valid("abc")
     assert abc_validator("a") == Invalid(
-        VariantErrs(
+        UnionErrs(
             [Invalid(PredicateErrs([EqualTo("abc")]), "a", abc_validator.validators[0])]
         ),
         "a",
@@ -53,7 +53,7 @@ def test_get_type_hint_for_literal() -> None:
     assert int_str_bool_validator(False) == Valid(False)
 
     assert int_str_bool_validator("a") == Invalid(
-        VariantErrs(
+        UnionErrs(
             [
                 Invalid(TypeErr(int), "a", int_str_bool_validator.validators[0]),
                 Invalid(

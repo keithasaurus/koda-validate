@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 
 from koda_validate import FloatValidator, IntValidator, Invalid, StringValidator, Valid
-from koda_validate.base import TypeErr, ValidationResult, Validator, VariantErrs
+from koda_validate.base import TypeErr, UnionErrs, ValidationResult, Validator
 from koda_validate.union import UnionValidator
 
 
@@ -17,7 +17,7 @@ def test_union_validator_typed() -> None:
     assert str_int_float_validator(5) == Valid(5)
     assert str_int_float_validator(5.5) == Valid(5.5)
     assert str_int_float_validator(None) == Invalid(
-        VariantErrs(
+        UnionErrs(
             [
                 Invalid(TypeErr(str), None, s_v),
                 Invalid(TypeErr(int), None, i_v),
@@ -29,7 +29,7 @@ def test_union_validator_typed() -> None:
     )
 
     assert str_int_float_validator(False) == Invalid(
-        VariantErrs(
+        UnionErrs(
             [
                 Invalid(TypeErr(str), False, s_v),
                 Invalid(TypeErr(int), False, i_v),
@@ -64,7 +64,7 @@ async def test_union_validator_any_async() -> None:
     assert await str_int_float_validator.validate_async(None) == Valid(None)
     result = await str_int_float_validator.validate_async([])
     assert result == Invalid(
-        VariantErrs(
+        UnionErrs(
             [
                 Invalid(TypeErr(str), [], s_v),
                 Invalid(TypeErr(int), [], i_v),
@@ -77,7 +77,7 @@ async def test_union_validator_any_async() -> None:
     )
 
     assert await str_int_float_validator.validate_async(False) == Invalid(
-        VariantErrs(
+        UnionErrs(
             [
                 Invalid(TypeErr(str), False, s_v),
                 Invalid(TypeErr(int), False, i_v),
