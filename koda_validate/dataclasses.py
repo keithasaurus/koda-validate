@@ -125,14 +125,10 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             return False, Invalid(KeyErrs(errs), data, self)
         else:
             obj = self.data_cls(**success_dict)
-            if self.validate_object:
-                result = self.validate_object(obj)
-                if result is None:
-                    return True, obj
-                else:
-                    return False, Invalid(result, obj, self)
-            else:
-                return True, obj
+            if self.validate_object and (result := self.validate_object(obj)):
+                return False, Invalid(result, obj, self)
+
+            return True, obj
 
     async def validate_to_tuple_async(self, val: Any) -> ResultTuple[_DCT]:
         if isinstance(val, dict):
@@ -173,14 +169,9 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             return False, Invalid(KeyErrs(errs), data, self)
         else:
             obj = self.data_cls(**success_dict)
-            if self.validate_object:
-                result = self.validate_object(obj)
-                if result is None:
-                    return True, obj
-                else:
-                    return False, Invalid(result, obj, self)
-            else:
-                return True, obj
+            if self.validate_object and (result := self.validate_object(obj)):
+                return False, Invalid(result, obj, self)
+            return True, obj
 
     def __eq__(self, other: Any) -> bool:
         return (

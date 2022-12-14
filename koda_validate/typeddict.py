@@ -124,14 +124,11 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         if errs:
             return False, Invalid(KeyErrs(errs), data, self)
         else:
-            if self.validate_object:
-                result = self.validate_object(cast(_TDT, success_dict))
-                if result:
-                    return False, Invalid(result, success_dict, self)
-                else:
-                    return True, cast(_TDT, success_dict)
-            else:
-                return True, cast(_TDT, success_dict)
+            if self.validate_object and (
+                result := self.validate_object(cast(_TDT, success_dict))
+            ):
+                return False, Invalid(result, success_dict, self)
+            return True, cast(_TDT, success_dict)
 
     async def validate_to_tuple_async(self, data: Any) -> ResultTuple[_TDT]:
         if not type(data) is dict:
@@ -159,14 +156,11 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         if errs:
             return False, Invalid(KeyErrs(errs), data, self)
         else:
-            if self.validate_object:
-                result = self.validate_object(cast(_TDT, success_dict))
-                if result:
-                    return False, Invalid(result, success_dict, self)
-                else:
-                    return True, cast(_TDT, success_dict)
-            else:
-                return True, cast(_TDT, success_dict)
+            if self.validate_object and (
+                result := self.validate_object(cast(_TDT, success_dict))
+            ):
+                return False, Invalid(result, success_dict, self)
+            return True, cast(_TDT, success_dict)
 
     def __eq__(self, other: Any) -> bool:
         return (
