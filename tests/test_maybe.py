@@ -70,8 +70,8 @@ async def test_not_maybe_is_invalid_async() -> None:
     mi_v = MaybeValidator(IntValidator())
 
     assert await mi_v.validate_async("abc") == Invalid(
-        TypeErr(Maybe[Any]), "abc", mi_v
-    )  # type: ignore[misc]
+        TypeErr(Maybe[Any]), "abc", mi_v  # type: ignore[misc]
+    )
 
 
 def test_eq() -> None:
