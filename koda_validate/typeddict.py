@@ -78,7 +78,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         self.schema = {
             field: (
-                overrides[field]
+                self.overrides[field]
                 if field in self.overrides
                 else typehint_resolver(annotations)
             )
