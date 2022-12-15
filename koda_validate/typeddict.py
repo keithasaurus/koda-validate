@@ -176,7 +176,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             ):
                 return False, Invalid(result, success_dict, self)
             elif self.validate_object_async and (
-                result_async := await self.validate_object_async(success_dict)
+                result_async := await self.validate_object_async(cast(_TDT, success_dict))
             ):
                 return False, Invalid(result_async, success_dict, self)
             return True, cast(_TDT, success_dict)

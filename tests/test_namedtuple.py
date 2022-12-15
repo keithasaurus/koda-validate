@@ -539,8 +539,8 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
         validator({})
     except AssertionError as e:
         assert str(e) == (
-            "NamedTupleValidator cannot run `validate_object_async` in synchronous calls. "
-            "Please `await` the `.validate_async` method instead."
+            "NamedTupleValidator cannot run `validate_object_async` in synchronous "
+            "calls. Please `await` the `.validate_async` method instead."
         )
     else:
         assert False
