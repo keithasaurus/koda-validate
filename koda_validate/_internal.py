@@ -302,7 +302,7 @@ def _union_validator(
     source_validator: Validator[A], validators: Tuple[Validator[Any], ...], val: Any
 ) -> ResultTuple[A]:
     errs = []
-    for i, validator in enumerate(validators):
+    for validator in validators:
         if isinstance(validator, _ToTupleValidator):
             result_tup = validator.validate_to_tuple(val)
             if result_tup[0]:
@@ -322,7 +322,7 @@ async def _union_validator_async(
     source_validator: Validator[A], validators: Tuple[Validator[Any], ...], val: Any
 ) -> ResultTuple[A]:
     errs = []
-    for i, validator in enumerate(validators):
+    for validator in validators:
         if isinstance(validator, _ToTupleValidator):
             result_tup = await validator.validate_to_tuple_async(val)
             if result_tup[0]:
