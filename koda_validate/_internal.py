@@ -134,7 +134,7 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
                 self, self._TYPE, _type_err
             )
         elif predicates_async:
-            self.validate_to_tuple = _disallow_sync(self.__class__)  # type: ignore[assignment]
+            self.validate_to_tuple = _disallow_sync(self.__class__)  # type: ignore[assignment]  # noqa: E501
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
         if type(val) is self._TYPE:
@@ -224,7 +224,7 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
         self.preprocessors = preprocessors
 
         if predicates_async:
-            self.validate_to_tuple = _disallow_sync(self.__class__)  # type: ignore[assignment]
+            self.validate_to_tuple = _disallow_sync(self.__class__)  # type: ignore[assignment]  # noqa: E501
 
     def coerce_to_type(self, val: Any) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
