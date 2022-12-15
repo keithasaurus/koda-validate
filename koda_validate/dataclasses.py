@@ -210,6 +210,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 for k, v in [
                     ("overrides", self.overrides),
                     ("validate_object", self.validate_object),
+                    ("validate_object_async", self.validate_object_async),
                     # note that this coincidentally works as we want:
                     # by default we don't fail on extra keys, so we don't
                     # show this in the repr if the default is defined

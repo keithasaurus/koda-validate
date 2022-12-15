@@ -396,6 +396,13 @@ def test_repr() -> None:
         f"DataclassValidator({repr(A)}, validate_object={repr(obj_fn)})"
     )
 
+    async def obj_fn_async(obj: A) -> Optional[ErrType]:
+        return obj_fn(obj)
+
+    assert repr(DataclassValidator(A, validate_object_async=obj_fn_async)) == (
+        f"DataclassValidator({repr(A)}, validate_object_async={repr(obj_fn_async)})"
+    )
+
     overrides_str = "overrides={'name': StringValidator()}"
     assert repr(
         DataclassValidator(
