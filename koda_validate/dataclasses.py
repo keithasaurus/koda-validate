@@ -1,4 +1,5 @@
 import inspect
+from dataclasses import is_dataclass
 from typing import (
     Any,
     Awaitable,
@@ -56,6 +57,8 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         fail_on_unknown_keys: bool = False,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
     ) -> None:
+        if not is_dataclass(data_cls):
+            raise TypeError("Must be a dataclass")
         self.data_cls = data_cls
         self.fail_on_unknown_keys = fail_on_unknown_keys
         self.overrides = overrides or {}

@@ -337,6 +337,18 @@ def test_validates_proper_uuid_type() -> None:
     )
 
 
+def test_raises_typeerror_for_non_dataclass() -> None:
+    class X:
+        pass
+
+    try:
+        DataclassValidator(X)  # type: ignore[type-var]
+    except TypeError as e:
+        assert str(e) == "Must be a dataclass"
+    else:
+        assert False
+
+
 def test_will_fail_if_not_exact_dataclass() -> None:
     @dataclass
     class Bad:
