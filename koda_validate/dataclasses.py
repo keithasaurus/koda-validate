@@ -197,6 +197,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             type(self) == type(other)
             and self.data_cls is other.data_cls
             and other.validate_object is self.validate_object
+            and other.validate_object_async is self.validate_object_async
             and other.schema == self.schema
             and other.fail_on_unknown_keys == self.fail_on_unknown_keys
         )

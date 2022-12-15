@@ -189,6 +189,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             type(self) == type(other)
             and self.named_tuple_cls is other.named_tuple_cls
             and other.validate_object is self.validate_object
+            and other.validate_object_async is self.validate_object_async
             and other.schema == self.schema
             and other.fail_on_unknown_keys == self.fail_on_unknown_keys
         )
@@ -202,6 +203,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
                 for k, v in [
                     ("overrides", self._input_overrides),
                     ("validate_object", self.validate_object),
+                    ("validate_object_async", self.validate_object_async),
                     # note that this coincidentally works as we want:
                     # by default we don't fail on extra keys, so we don't
                     # show this in the repr if the default is defined

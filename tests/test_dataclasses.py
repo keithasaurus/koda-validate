@@ -469,6 +469,24 @@ def test_eq() -> None:
         A, overrides={"name": StringValidator()}, validate_object=obj_fn_2
     )
 
+    async def obj_fn_async(obj: A) -> Optional[ErrType]:
+        return None
+
+    assert DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_async
+    ) == DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_async
+    )
+
+    async def obj_fn_2_async(obj: A) -> Optional[ErrType]:
+        return None
+
+    assert DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_async
+    ) != DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_2_async
+    )
+
 
 def test_extra_keys_invalid() -> None:
     v = DataclassValidator(PersonSimple, fail_on_unknown_keys=True)
