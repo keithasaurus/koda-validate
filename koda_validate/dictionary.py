@@ -910,7 +910,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         if errs:
             return False, Invalid(KeyErrs(errs), data, self)
         else:
-            # we know this should be ret
             obj = self.into(*args)
             if self.validate_object is None:
                 return True, obj
