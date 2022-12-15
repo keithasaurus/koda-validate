@@ -1004,6 +1004,16 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
         _JONES_ERROR_MSG, {"last_name": "jones", "first_name": "alice"}, validator
     )
 
+    try:
+        validator({})
+    except AssertionError as e:
+        assert str(e) == (
+            "DictValidatorAny cannot run `validate_object_async` in synchronous calls. "
+            "Please `await` the `.validate_async` method instead."
+        )
+    else:
+        assert False
+
 
 @pytest.mark.asyncio
 async def test_dict_validator_any_no_validate_object() -> None:
@@ -1114,6 +1124,16 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
     assert await validator_async.validate_async({"name": "other", "age": 100}) == Valid(
         Person("other", 100)
     )
+
+    try:
+        validator_async({})
+    except AssertionError as e:
+        assert str(e) == (
+            "RecordValidator cannot run `validate_object_async` in synchronous calls. "
+            "Please `await` the `.validate_async` method instead."
+        )
+    else:
+        assert False
 
 
 @pytest.mark.asyncio

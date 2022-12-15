@@ -39,6 +39,8 @@ from koda_validate._generics import (
 from koda_validate._internal import (
     ResultTuple,
     _async_predicates_warning,
+    _raise_cannot_define_validate_object_and_validate_object_async,
+    _raise_validate_object_async_in_sync_mode,
     _repr_helper,
     _ToTupleValidator,
     _wrap_async_validator,
@@ -857,9 +859,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         # needs to be `Any` until we have variadic generics presumably
         self.keys: Tuple[KeyValidator[Any], ...] = keys
         if validate_object is not None and validate_object_async is not None:
-            raise AssertionError(
-                "validate_object and validate_object_async cannot both be defined"
-            )
+            _raise_cannot_define_validate_object_and_validate_object_async()
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
         self.fail_on_unknown_keys = fail_on_unknown_keys
@@ -881,6 +881,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             self._key_set.add(key)
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(self._key_set)
+
+        if self.validate_object_async:
+            self._disallow_synchronous(_raise_validate_object_async_in_sync_mode)
 
     def validate_to_tuple(self, data: Any) -> ResultTuple[Ret]:
         if not isinstance(data, dict):
@@ -911,14 +914,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
             return False, Invalid(KeyErrs(errs), data, self)
         else:
             obj = self.into(*args)
-            if self.validate_object is None:
-                return True, obj
-            else:
-                result = self.validate_object(obj)
-                if result is None:
-                    return True, obj
-                else:
-                    return False, Invalid(result, obj, self)
+            if self.validate_object and (result := self.validate_object(obj)):
+                return False, Invalid(result, obj, self)
+            return True, obj
 
     async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Ret]:
         if not isinstance(data, dict):
@@ -949,20 +947,14 @@ class RecordValidator(_ToTupleValidator[Ret]):
             return False, Invalid(KeyErrs(errs), data, self)
         else:
             obj = self.into(*args)
-            if self.validate_object is not None:
-                result = self.validate_object(obj)
-                if result is None:
-                    return True, obj
-                else:
-                    return False, Invalid(result, obj, self)
-            elif self.validate_object_async is not None:
-                result = await self.validate_object_async(obj)
-                if result is None:
-                    return True, obj
-                else:
-                    return False, Invalid(result, obj, self)
-            else:
-                return True, obj
+            if self.validate_object and (result := self.validate_object(obj)):
+                return False, Invalid(result, obj, self)
+            elif self.validate_object_async and (
+                async_result := await self.validate_object_async(obj)
+            ):
+                return False, Invalid(async_result, obj, self)
+
+            return True, obj
 
     def __eq__(self, other: Any) -> bool:
         return (
@@ -1037,9 +1029,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
         self.validate_object_async = validate_object_async
 
         if validate_object is not None and validate_object_async is not None:
-            raise AssertionError(
-                "validate_object and validate_object_async cannot both be defined"
-            )
+            _raise_cannot_define_validate_object_and_validate_object_async()
         self.fail_on_unknown_keys = fail_on_unknown_keys
 
         # so we don't need to calculate each time we validate
@@ -1061,6 +1051,9 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             )
 
         self._unknown_keys_err = ExtraKeysErr(set(schema.keys()))
+
+        if self.validate_object_async:
+            self._disallow_synchronous(_raise_validate_object_async_in_sync_mode)
 
     def validate_to_tuple(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
         if not type(data) is dict:

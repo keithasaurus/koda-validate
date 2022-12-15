@@ -41,6 +41,14 @@ class _ToTupleValidator(Validator[SuccessT]):
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
 
+    def _disallow_synchronous(
+        self, raise_fn: Callable[[Type[Validator[Any]]], NoReturn]
+    ) -> None:
+        def _replacement_validate_to_tuple(val: Any) -> NoReturn:
+            raise_fn(self.__class__)
+
+        self.validate_to_tuple = _replacement_validate_to_tuple  # type: ignore[assignment]  # noqa: E501
+
     def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
@@ -82,16 +90,11 @@ def _async_predicates_warning(cls: Type[Any]) -> NoReturn:
     )
 
 
-def _disallow_sync(cls: Type[Validator[Any]]) -> Callable[[Any], NoReturn]:
-    """
-    If a user supplies async-specific configuration we disable the sync call
-    because we don't want to allow a user to accidentally skip some validation
-    """
-
-    def inner(_: Any) -> NoReturn:
-        _async_predicates_warning(cls)
-
-    return inner
+def _raise_validate_object_async_in_sync_mode(cls: Type[Any]) -> NoReturn:
+    raise AssertionError(
+        f"{cls.__name__} cannot run `validate_object_async` in synchronous calls. "
+        f"Please `await` the `.validate_async` method instead."
+    )
 
 
 def _repr_helper(cls: Type[Any], arg_strs: List[str]) -> str:
@@ -134,7 +137,7 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
                 self, self._TYPE, _type_err
             )
         elif predicates_async:
-            self.validate_to_tuple = _disallow_sync(self.__class__)  # type: ignore[assignment]  # noqa: E501
+            self._disallow_synchronous(_async_predicates_warning)
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
         if type(val) is self._TYPE:
@@ -224,7 +227,7 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
         self.preprocessors = preprocessors
 
         if predicates_async:
-            self.validate_to_tuple = _disallow_sync(self.__class__)  # type: ignore[assignment]  # noqa: E501
+            self._disallow_synchronous(_async_predicates_warning)
 
     def coerce_to_type(self, val: Any) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
@@ -374,4 +377,10 @@ def _wrap_async_validator(
 def _is_typed_dict_cls(t: Type[Any]) -> bool:
     return (
         hasattr(t, "__annotations__") and hasattr(t, "__total__") and hasattr(t, "keys")
+    )
+
+
+def _raise_cannot_define_validate_object_and_validate_object_async() -> None:
+    raise AssertionError(
+        "validate_object and validate_object_async cannot both be defined"
     )

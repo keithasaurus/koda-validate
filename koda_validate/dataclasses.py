@@ -1,6 +1,7 @@
 import inspect
 from typing import (
     Any,
+    Awaitable,
     Callable,
     ClassVar,
     Dict,
@@ -14,6 +15,8 @@ from typing import (
 
 from koda_validate._internal import (
     ResultTuple,
+    _raise_cannot_define_validate_object_and_validate_object_async,
+    _raise_validate_object_async_in_sync_mode,
     _repr_helper,
     _ToTupleValidator,
     _wrap_async_validator,
@@ -47,12 +50,21 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_DCT], Optional[ErrType]]] = None,
-        typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+        validate_object_async: Optional[
+            Callable[[_DCT], Awaitable[Optional[ErrType]]]
+        ] = None,
         fail_on_unknown_keys: bool = False,
+        typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
     ) -> None:
         self.data_cls = data_cls
         self.fail_on_unknown_keys = fail_on_unknown_keys
         self.overrides = overrides or {}
+        if validate_object and validate_object_async:
+            _raise_cannot_define_validate_object_and_validate_object_async()
+
+        self.validate_object = validate_object
+        self.validate_object_async = validate_object_async
+
         type_hints = get_type_hints(self.data_cls)
 
         keys_with_defaults: Set[str] = {
@@ -70,8 +82,6 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             for field, annotations in type_hints.items()
         }
 
-        self.validate_object = validate_object
-
         self.required_fields = []
 
         self._keys_set = set()
@@ -86,6 +96,8 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
+        if self.validate_object_async:
+            self._disallow_synchronous(_raise_validate_object_async_in_sync_mode)
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
         if isinstance(val, dict):
@@ -171,6 +183,10 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             obj = self.data_cls(**success_dict)
             if self.validate_object and (result := self.validate_object(obj)):
                 return False, Invalid(result, obj, self)
+            elif self.validate_object_async and (
+                result_async := await self.validate_object_async(obj)
+            ):
+                return False, Invalid(result_async, obj, self)
             return True, obj
 
     def __eq__(self, other: Any) -> bool:

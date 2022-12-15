@@ -4,7 +4,7 @@ from koda._generics import A
 
 from koda_validate._internal import (
     ResultTuple,
-    _disallow_sync,
+    _async_predicates_warning,
     _repr_helper,
     _ToTupleValidator,
     _wrap_async_validator,
@@ -38,7 +38,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
         self._wrapped_item_validator_sync = _wrap_sync_validator(item_validator)
         self._wrapped_item_validator_async = _wrap_async_validator(item_validator)
         if predicates_async:
-            self.validate_to_tuple = _disallow_sync(self.__class__)  # type: ignore[assignment]  # noqa: E501
+            self._disallow_synchronous(_async_predicates_warning)
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[List[A]]:
         if type(val) is list:
