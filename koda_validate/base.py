@@ -20,7 +20,8 @@ from koda_validate._generics import A, SuccessT
 @dataclass
 class CoercionErr:
     """
-    When one or more types can be coerced to a destination type
+    Similar to a TypeErr, but when one or more types can be
+    coerced to a destination type
     """
 
     compatible_types: Set[Type[Any]]
@@ -29,6 +30,10 @@ class CoercionErr:
 
 @dataclass
 class ContainerErr:
+    """
+    This is for simple containers like `Maybe` or `Result`
+    """
+
     child: "Invalid"
 
 
@@ -76,7 +81,8 @@ class KeyErrs:
 @dataclass
 class KeyValErrs:
     """
-    key and/or value errors from a single key/value pair
+    Key and/or value errors from a single key/value pair. This
+    is useful for mapping collections.
     """
 
     key: Optional["Invalid"]
@@ -103,13 +109,17 @@ class IndexErrs:
 
 @dataclass
 class SetErrs:
+    """
+    Errors from items in a set.
+    """
+
     item_errs: List["Invalid"]
 
 
 @dataclass
 class UnionErrs:
     """
-    none of these validators was satisfied by a given value
+    Errors from each variant of a union.
     """
 
     variants: List["Invalid"]
@@ -127,7 +137,8 @@ class PredicateErrs(Generic[A]):
 @dataclass
 class BasicErr:
     """
-    If all you want to do is produce a message, this can be useful
+    This is for the case where you may simply want to produce a human-readable
+    message.
     """
 
     err_message: str
@@ -135,7 +146,8 @@ class BasicErr:
 
 class ValidationErrBase:
     """
-    This class exists only to provide a class to subclass if desired
+    This class exists only to provide a class to subclass
+    for custom error types
     """
 
     pass
@@ -144,7 +156,7 @@ class ValidationErrBase:
 @dataclass
 class TypeErr:
     """
-    A specific type was required but not provided
+    A specific type was required but not found
     """
 
     expected_type: Type[Any]
@@ -152,6 +164,10 @@ class TypeErr:
 
 @dataclass
 class Valid(Generic[A]):
+    """
+    All validators will wrap valid results with this case, e.g. `Valid("abc")`
+    """
+
     val: A
     is_valid: ClassVar[Literal[True]] = True
 
