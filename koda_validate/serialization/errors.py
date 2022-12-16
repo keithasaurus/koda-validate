@@ -1,9 +1,11 @@
-from typing import Any, Dict, List, Tuple, Union
+from decimal import Decimal
+from typing import Any, Dict, List, Tuple, Type, Union
 
 from koda_validate import MaxLength, MinLength
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
+    ContainerErr,
     ExtraKeysErr,
     IndexErrs,
     Invalid,
@@ -85,7 +87,15 @@ def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str
         )
 
 
-def serializable_validation_err(invalid: Invalid) -> Serializable:
+TYPE_DESCRIPTION_LOOKUP: Dict[Type[Any], str] = {
+    str: "string",
+    int: "integer",
+    Decimal: "decimal",
+    bool: "boolean",
+}
+
+
+def to_serializable_errs(invalid: Invalid) -> Serializable:
     err = invalid.err_type
     if isinstance(err, CoercionErr):
         compatible_names = sorted([t.__name__ for t in err.compatible_types])
@@ -105,29 +115,37 @@ def serializable_validation_err(invalid: Invalid) -> Serializable:
         )
         return [err_message]
     elif isinstance(err, TypeErr):
-        return [f"expected {err.expected_type.__name__}"]
+        type_desc = TYPE_DESCRIPTION_LOOKUP.get(
+            err.expected_type, err.expected_type.__name__
+        )
+        if type_desc[0] in {"a", "e", "i", "o", "u"}:
+            type_desc = f"an {type_desc}"
+        else:
+            type_desc = f"a {type_desc}"
+        return [f"expected {type_desc}"]
     elif isinstance(err, PredicateErrs):
         return [pred_to_err_message(p) for p in err.predicates]
     elif isinstance(err, IndexErrs):
-        return [[i, serializable_validation_err(err)] for i, err in err.indexes.items()]
+        return [[i, to_serializable_errs(err)] for i, err in err.indexes.items()]
     elif isinstance(err, MissingKeyErr):
         return ["key missing"]
     elif isinstance(err, MapErr):
         errs_dict: Dict[str, Serializable] = {}
         for key, k_v_errs in err.keys.items():
             kv_dict: Dict[str, Serializable] = {
-                k: serializable_validation_err(v)
+                k: to_serializable_errs(v)
                 for k, v in [("key", k_v_errs.key), ("value", k_v_errs.val)]
                 if v is not None
             }
             errs_dict[str(key)] = kv_dict
         return errs_dict
     elif isinstance(err, SetErrs):
-        return {"member_errors": [serializable_validation_err(x) for x in err.item_errs]}
-
+        return {"member_errors": [to_serializable_errs(x) for x in err.item_errs]}
     elif isinstance(err, KeyErrs):
-        return {str(k): serializable_validation_err(v) for k, v in err.keys.items()}
+        return {str(k): to_serializable_errs(v) for k, v in err.keys.items()}
     elif isinstance(err, UnionErrs):
-        return {"variants": [serializable_validation_err(x) for x in err.variants]}
+        return {"variants": [to_serializable_errs(x) for x in err.variants]}
+    elif isinstance(err, ContainerErr):
+        return to_serializable_errs(err.child)
     else:
         raise TypeError(f"got unhandled type: {type(err)}")

@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import List, Optional, TypedDict
@@ -495,3 +496,68 @@ def test_total_is_respected() -> None:
     assert v({"b": 5}) == Valid({"b": 5})
 
     assert v({"a": "ok", "b": 1, "c": 4.4}) == Valid({"a": "ok", "b": 1, "c": 4.4})
+
+
+def test_raises_if_validate_object_and_validate_object_async() -> None:
+    class Person(TypedDict):
+        name: str
+        age: int
+
+    def _nobody_named_jones_is_100(
+        person: Person,
+    ) -> Optional[ErrType]:
+        if person["name"].lower() == "jones" and person["age"] == 100:
+            return BasicErr("Cannot be jones and 100")
+        else:
+            return None
+
+    async def val_obj_async(obj: Person) -> Optional[ErrType]:
+        await asyncio.sleep(0.001)
+        return _nobody_named_jones_is_100(obj)
+
+    with pytest.raises(AssertionError):
+        TypedDictValidator(
+            Person,
+            validate_object=_nobody_named_jones_is_100,
+            validate_object_async=val_obj_async,
+        )
+
+
+@pytest.mark.asyncio
+async def test_dict_validator_any_with_validate_object_async() -> None:
+    cant_be_100_message = BasicErr("jones can't be 100")
+
+    def _nobody_named_jones_can_be_100(
+        person: PersonSimpleTD,
+    ) -> Optional[ErrType]:
+        if person["name"].lower() == "jones" and person["age"] == 100:
+            return cant_be_100_message
+        else:
+            return None
+
+    async def val_obj_async(obj: PersonSimpleTD) -> Optional[ErrType]:
+        await asyncio.sleep(0.001)
+        return _nobody_named_jones_can_be_100(obj)
+
+    validator = TypedDictValidator(
+        PersonSimpleTD,
+        validate_object_async=val_obj_async,
+    )
+
+    assert await validator.validate_async({"name": "smith", "age": 100}) == Valid(
+        PersonSimpleTD(name="smith", age=100)
+    )
+
+    assert await validator.validate_async({"name": "jones", "age": 100}) == Invalid(
+        cant_be_100_message, PersonSimpleTD(name="jones", age=100), validator
+    )
+
+    try:
+        validator({})
+    except AssertionError as e:
+        assert str(e) == (
+            "TypedDictValidator cannot run `validate_object_async` in synchronous calls. "
+            "Please `await` the `.validate_async` method instead."
+        )
+    else:
+        assert False

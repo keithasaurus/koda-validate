@@ -1,4 +1,5 @@
 import inspect
+from dataclasses import is_dataclass
 from typing import (
     Any,
     Awaitable,
@@ -56,9 +57,11 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         fail_on_unknown_keys: bool = False,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
     ) -> None:
+        if not is_dataclass(data_cls):
+            raise TypeError("Must be a dataclass")
         self.data_cls = data_cls
         self.fail_on_unknown_keys = fail_on_unknown_keys
-        self.overrides = overrides or {}
+        self.overrides = overrides
         if validate_object and validate_object_async:
             _raise_cannot_define_validate_object_and_validate_object_async()
 
@@ -73,11 +76,10 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             if v.default != inspect.Parameter.empty
         }
 
+        overrides = self.overrides or {}
         self.schema = {
             field: (
-                self.overrides[field]
-                if field in self.overrides
-                else typehint_resolver(annotations)
+                overrides[field] if field in overrides else typehint_resolver(annotations)
             )
             for field, annotations in type_hints.items()
         }
@@ -194,6 +196,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             type(self) == type(other)
             and self.data_cls is other.data_cls
             and other.validate_object is self.validate_object
+            and other.validate_object_async is self.validate_object_async
             and other.schema == self.schema
             and other.fail_on_unknown_keys == self.fail_on_unknown_keys
         )
@@ -207,6 +210,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 for k, v in [
                     ("overrides", self.overrides),
                     ("validate_object", self.validate_object),
+                    ("validate_object_async", self.validate_object_async),
                     # note that this coincidentally works as we want:
                     # by default we don't fail on extra keys, so we don't
                     # show this in the repr if the default is defined

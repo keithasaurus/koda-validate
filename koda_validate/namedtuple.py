@@ -1,6 +1,7 @@
 import inspect
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Dict,
     NamedTuple,
@@ -13,6 +14,8 @@ from typing import (
 
 from koda_validate._internal import (
     ResultTuple,
+    _raise_cannot_define_validate_object_and_validate_object_async,
+    _raise_validate_object_async_in_sync_mode,
     _repr_helper,
     _ToTupleValidator,
     _wrap_async_validator,
@@ -33,7 +36,7 @@ _NTT = TypeVar("_NTT", bound=NamedTuple)
 
 
 class NamedTupleValidator(_ToTupleValidator[_NTT]):
-    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys")
+    __match_args__ = ("named_tuple_cls", "overrides", "fail_on_unknown_keys")
 
     def __init__(
         self,
@@ -41,15 +44,24 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_NTT], Optional[ErrType]]] = None,
-        typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+        validate_object_async: Optional[
+            Callable[[_NTT], Awaitable[Optional[ErrType]]]
+        ] = None,
         fail_on_unknown_keys: bool = False,
+        typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
     ) -> None:
 
         self.named_tuple_cls = named_tuple_cls
-        self._input_overrides = overrides  # for repr
+        self.overrides = overrides
         self.fail_on_unknown_keys = fail_on_unknown_keys
 
-        overrides = overrides or {}
+        if validate_object and validate_object_async:
+            _raise_cannot_define_validate_object_and_validate_object_async()
+
+        self.validate_object = validate_object
+        self.validate_object_async = validate_object_async
+
+        overrides = self.overrides or {}
         type_hints = get_type_hints(self.named_tuple_cls)
 
         keys_with_defaults: Set[str] = {
@@ -65,8 +77,6 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             for field, annotations in type_hints.items()
         }
 
-        self.validate_object = validate_object
-
         self.required_fields = []
 
         self._keys_set = set()
@@ -81,6 +91,9 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
+
+        if self.validate_object_async:
+            self._disallow_synchronous(_raise_validate_object_async_in_sync_mode)
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[_NTT]:
         if isinstance(val, dict):
@@ -165,7 +178,10 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             obj = self.named_tuple_cls(**success_dict)
             if self.validate_object and (result := self.validate_object(obj)):
                 return False, Invalid(result, obj, self)
-
+            elif self.validate_object_async and (
+                result_async := await self.validate_object_async(obj)
+            ):
+                return False, Invalid(result_async, obj, self)
             return True, obj
 
     def __eq__(self, other: Any) -> bool:
@@ -173,6 +189,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             type(self) == type(other)
             and self.named_tuple_cls is other.named_tuple_cls
             and other.validate_object is self.validate_object
+            and other.validate_object_async is self.validate_object_async
             and other.schema == self.schema
             and other.fail_on_unknown_keys == self.fail_on_unknown_keys
         )
@@ -184,8 +201,9 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             + [
                 f"{k}={repr(v)}"
                 for k, v in [
-                    ("overrides", self._input_overrides),
+                    ("overrides", self.overrides),
                     ("validate_object", self.validate_object),
+                    ("validate_object_async", self.validate_object_async),
                     # note that this coincidentally works as we want:
                     # by default we don't fail on extra keys, so we don't
                     # show this in the repr if the default is defined

@@ -1,6 +1,7 @@
 import sys
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Dict,
     FrozenSet,
@@ -15,6 +16,8 @@ from typing import (
 from koda_validate._internal import (
     ResultTuple,
     _is_typed_dict_cls,
+    _raise_cannot_define_validate_object_and_validate_object_async,
+    _raise_validate_object_async_in_sync_mode,
     _repr_helper,
     _ToTupleValidator,
     _wrap_async_validator,
@@ -41,7 +44,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
     it for non-TypedDict datatypes.
     """
 
-    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys")
+    __match_args__ = ("td_cls", "overrides", "fail_on_unknown_keys")
 
     def __init__(
         self,
@@ -49,6 +52,12 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         *,
         overrides: Optional[Dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_TDT], Optional[ErrType]]] = None,
+        validate_object_async: Optional[
+            Callable[
+                [_TDT],
+                Awaitable[Optional[ErrType]],
+            ]
+        ] = None,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
         fail_on_unknown_keys: bool = False,
     ) -> None:
@@ -57,9 +66,14 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             raise TypeError("must be a TypedDict subclass")
 
         self.td_cls = td_cls
-        self._input_overrides = overrides  # for repr
+        self.overrides = overrides  # for repr
         self.fail_on_unknown_keys = fail_on_unknown_keys
-        self.overrides = overrides or {}
+
+        if validate_object is not None and validate_object_async is not None:
+            _raise_cannot_define_validate_object_and_validate_object_async()
+
+        self.validate_object = validate_object
+        self.validate_object_async = validate_object_async
 
         type_hints = get_type_hints(self.td_cls)
 
@@ -76,16 +90,13 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                 else frozenset()
             )
 
+        overrides = self.overrides or {}
         self.schema = {
             field: (
-                self.overrides[field]
-                if field in self.overrides
-                else typehint_resolver(annotations)
+                overrides[field] if field in overrides else typehint_resolver(annotations)
             )
             for field, annotations in type_hints.items()
         }
-
-        self.validate_object = validate_object
 
         self._keys_set = set()
         self._fast_keys_sync = []
@@ -97,6 +108,9 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
+
+        if self.validate_object_async:
+            self._disallow_synchronous(_raise_validate_object_async_in_sync_mode)
 
     def validate_to_tuple(self, data: Any) -> ResultTuple[_TDT]:
         if not type(data) is dict:
@@ -160,6 +174,10 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                 result := self.validate_object(cast(_TDT, success_dict))
             ):
                 return False, Invalid(result, success_dict, self)
+            elif self.validate_object_async and (
+                result_async := await self.validate_object_async(cast(_TDT, success_dict))
+            ):
+                return False, Invalid(result_async, success_dict, self)
             return True, cast(_TDT, success_dict)
 
     def __eq__(self, other: Any) -> bool:
@@ -167,6 +185,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             type(self) == type(other)
             and self.schema == other.schema
             and self.validate_object == other.validate_object
+            and self.validate_object_async == other.validate_object_async
             and other.fail_on_unknown_keys == self.fail_on_unknown_keys
         )
 
@@ -177,8 +196,9 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             + [
                 f"{k}={repr(v)}"
                 for k, v in [
-                    ("overrides", self._input_overrides),
+                    ("overrides", self.overrides),
                     ("validate_object", self.validate_object),
+                    ("validate_object_async", self.validate_object_async),
                     # note that this coincidentally works as we want:
                     # by default we don't fail on extra keys, so we don't
                     # show this in the repr if the default is defined

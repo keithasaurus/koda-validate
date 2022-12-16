@@ -2,10 +2,13 @@ import re
 from decimal import Decimal
 from typing import Any, List, Tuple, Union
 
+from koda import Just
+
 from koda_validate import ListValidator, MaxLength, MinLength
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
+    ContainerErr,
     ExtraKeysErr,
     IndexErrs,
     Invalid,
@@ -35,10 +38,8 @@ from koda_validate.generic import (
     unique_items,
 )
 from koda_validate.integer import IntValidator
-from koda_validate.serialization.errors import (
-    pred_to_err_message,
-    serializable_validation_err,
-)
+from koda_validate.maybe import MaybeValidator
+from koda_validate.serialization.errors import pred_to_err_message, to_serializable_errs
 from koda_validate.set import SetValidator
 from koda_validate.string import (
     EmailPredicate,
@@ -50,29 +51,27 @@ from koda_validate.union import UnionValidator
 
 
 def test_type_err_users_message_in_list() -> None:
-    assert serializable_validation_err(Invalid(TypeErr(str), 5, StringValidator())) == [
-        "expected str"
+    assert to_serializable_errs(Invalid(TypeErr(str), 5, StringValidator())) == [
+        "expected a string"
     ]
 
 
 def test_predicate_returns_err_in_list() -> None:
     i_v = IntValidator(Min(15), Max(10))
-    assert serializable_validation_err(
-        Invalid(PredicateErrs([Min(15), Max(10)]), 12, i_v)
-    ) == [
+    assert to_serializable_errs(Invalid(PredicateErrs([Min(15), Max(10)]), 12, i_v)) == [
         pred_to_err_message(Min(15)),
         pred_to_err_message(Max(10)),
     ]
 
 
 def test_key_missing_returns_list_str() -> None:
-    assert serializable_validation_err(
-        Invalid(MissingKeyErr(), {}, DictValidatorAny({}))
-    ) == ["key missing"]
+    assert to_serializable_errs(Invalid(MissingKeyErr(), {}, DictValidatorAny({}))) == [
+        "key missing"
+    ]
 
 
 def test_coercion_err_uses_message() -> None:
-    assert serializable_validation_err(
+    assert to_serializable_errs(
         Invalid(CoercionErr({str, int, Decimal}, Decimal), "abc", DecimalValidator())
     ) == ["could not coerce to Decimal (compatible with Decimal, int, str)"]
 
@@ -80,9 +79,9 @@ def test_coercion_err_uses_message() -> None:
 def test_iterable_errs() -> None:
     l_v = ListValidator(StringValidator())
     # shouldn't really happen, but cover it anyway...
-    assert serializable_validation_err(Invalid(IndexErrs({}), [], l_v)) == []
+    assert to_serializable_errs(Invalid(IndexErrs({}), [], l_v)) == []
 
-    assert serializable_validation_err(
+    assert to_serializable_errs(
         Invalid(
             IndexErrs(
                 {
@@ -98,13 +97,13 @@ def test_iterable_errs() -> None:
             l_v,
         )
     ) == [
-        [0, ["expected str"]],
+        [0, ["expected a string"]],
         [5, [pred_to_err_message(MaxLength(10)), pred_to_err_message(MinLength(2))]],
     ]
 
 
 def test_invalid_dict() -> None:
-    assert serializable_validation_err(
+    assert to_serializable_errs(
         Invalid(
             KeyErrs(
                 {
@@ -123,20 +122,20 @@ def test_invalid_dict() -> None:
             {5: "ok"},
             DictValidatorAny({}),
         )
-    ) == {"5": ["expected float"], "ok": ["key missing"]}
+    ) == {"5": ["expected a float"], "ok": ["key missing"]}
 
 
 def test_invalid_custom() -> None:
-    assert serializable_validation_err(
-        Invalid(BasicErr("abc"), "123", StringValidator())
-    ) == ["abc"]
+    assert to_serializable_errs(Invalid(BasicErr("abc"), "123", StringValidator())) == [
+        "abc"
+    ]
 
 
 def test_extra_keys() -> None:
     invalid_keys = Invalid(ExtraKeysErr({"a", "b", "cde"}), {}, DictValidatorAny({}))
     error_detail = invalid_keys.err_type
     assert isinstance(error_detail, ExtraKeysErr)
-    assert serializable_validation_err(invalid_keys) == [
+    assert to_serializable_errs(invalid_keys) == [
         "Received unknown keys. Only expected "
         + ", ".join(sorted([repr(k) for k in error_detail.expected_keys]))
         + "."
@@ -145,7 +144,7 @@ def test_extra_keys() -> None:
 
 def test_map_err() -> None:
     i_v = IntValidator()
-    result = serializable_validation_err(
+    result = to_serializable_errs(
         Invalid(
             MapErr(
                 {
@@ -173,14 +172,14 @@ def test_map_err() -> None:
 
     assert result == {
         "5": {"key": [pred_to_err_message(Min(6))]},
-        "6": {"value": ["expected str"]},
-        "7": {"key": ["expected int"], "value": ["expected str"]},
+        "6": {"value": ["expected a string"]},
+        "7": {"key": ["expected an integer"], "value": ["expected a string"]},
     }
 
 
 def test_variants() -> None:
     i_v = IntValidator(Min(5))
-    assert serializable_validation_err(
+    assert to_serializable_errs(
         Invalid(
             UnionErrs(
                 [
@@ -191,19 +190,29 @@ def test_variants() -> None:
             5,
             UnionValidator(StringValidator(), i_v),
         )
-    ) == {"variants": [["expected str"], [pred_to_err_message(Min(5))]]}
+    ) == {"variants": [["expected a string"], [pred_to_err_message(Min(5))]]}
+
+
+def test_container_err() -> None:
+    assert to_serializable_errs(
+        Invalid(
+            ContainerErr(Invalid(TypeErr(str), 4, StringValidator())),
+            Just(4),
+            MaybeValidator(StringValidator()),
+        )
+    ) == ["expected a string"]
 
 
 def test_set_errs_message() -> None:
     str_v = StringValidator()
     bad_type_err = Invalid(TypeErr(str), 1, str_v)
     bad_type_err_1 = Invalid(TypeErr(str), 2, str_v)
-    assert serializable_validation_err(
+    assert to_serializable_errs(
         Invalid(SetErrs([bad_type_err, bad_type_err_1]), {1, 2}, SetValidator(str_v))
     ) == {
         "member_errors": [
-            serializable_validation_err(bad_type_err),
-            serializable_validation_err(bad_type_err_1),
+            to_serializable_errs(bad_type_err),
+            to_serializable_errs(bad_type_err_1),
         ]
     }
 

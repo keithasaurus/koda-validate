@@ -337,6 +337,18 @@ def test_validates_proper_uuid_type() -> None:
     )
 
 
+def test_raises_typeerror_for_non_dataclass() -> None:
+    class X:
+        pass
+
+    try:
+        DataclassValidator(X)  # type: ignore[type-var]
+    except TypeError as e:
+        assert str(e) == "Must be a dataclass"
+    else:
+        assert False
+
+
 def test_will_fail_if_not_exact_dataclass() -> None:
     @dataclass
     class Bad:
@@ -382,6 +394,13 @@ def test_repr() -> None:
 
     assert repr(DataclassValidator(A, validate_object=obj_fn)) == (
         f"DataclassValidator({repr(A)}, validate_object={repr(obj_fn)})"
+    )
+
+    async def obj_fn_async(obj: A) -> Optional[ErrType]:
+        return obj_fn(obj)
+
+    assert repr(DataclassValidator(A, validate_object_async=obj_fn_async)) == (
+        f"DataclassValidator({repr(A)}, validate_object_async={repr(obj_fn_async)})"
     )
 
     overrides_str = "overrides={'name': StringValidator()}"
@@ -448,6 +467,24 @@ def test_eq() -> None:
         A, overrides={"name": StringValidator()}, validate_object=obj_fn
     ) != DataclassValidator(
         A, overrides={"name": StringValidator()}, validate_object=obj_fn_2
+    )
+
+    async def obj_fn_async(obj: A) -> Optional[ErrType]:
+        return None
+
+    assert DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_async
+    ) == DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_async
+    )
+
+    async def obj_fn_2_async(obj: A) -> Optional[ErrType]:
+        return None
+
+    assert DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_async
+    ) != DataclassValidator(
+        A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_2_async
     )
 
 
