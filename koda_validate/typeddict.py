@@ -75,6 +75,8 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
+        self._disallow_synchronous = bool(validate_object_async)
+
         type_hints = get_type_hints(self.td_cls)
 
         if sys.version_info >= (3, 9):
@@ -109,10 +111,10 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
 
-        if self.validate_object_async:
-            self._disallow_synchronous(_raise_validate_object_async_in_sync_mode)
-
     def validate_to_tuple(self, data: Any) -> ResultTuple[_TDT]:
+        if self._disallow_synchronous:
+            _raise_validate_object_async_in_sync_mode(self.__class__)
+
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 

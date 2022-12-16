@@ -34,13 +34,14 @@ class ListValidator(_ToTupleValidator[List[A]]):
         self.item_validator = item_validator
         self.predicates = predicates
         self.predicates_async = predicates_async
+        self._disallow_synchronous = bool(predicates_async)
 
         self._wrapped_item_validator_sync = _wrap_sync_validator(item_validator)
         self._wrapped_item_validator_async = _wrap_async_validator(item_validator)
-        if predicates_async:
-            self._disallow_synchronous(_async_predicates_warning)
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[List[A]]:
+        if self._disallow_synchronous:
+            _async_predicates_warning(self.__class__)
         if type(val) is list:
             if self.predicates:
                 list_errors: List[Union[Predicate[List[A]], PredicateAsync[List[A]]]] = [

@@ -68,6 +68,8 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
+        self._disallow_synchronous = bool(validate_object_async)
+
         type_hints = get_type_hints(self.data_cls)
 
         keys_with_defaults: Set[str] = {
@@ -98,10 +100,11 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
-        if self.validate_object_async:
-            self._disallow_synchronous(_raise_validate_object_async_in_sync_mode)
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
+        if self._disallow_synchronous:
+            _raise_validate_object_async_in_sync_mode(self.__class__)
+
         if isinstance(val, dict):
             data = val
         elif isinstance(val, self.data_cls):

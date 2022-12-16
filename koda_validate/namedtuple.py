@@ -61,6 +61,8 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
+        self._disallow_synchronous = bool(validate_object_async)
+
         overrides = self.overrides or {}
         type_hints = get_type_hints(self.named_tuple_cls)
 
@@ -92,10 +94,10 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
 
-        if self.validate_object_async:
-            self._disallow_synchronous(_raise_validate_object_async_in_sync_mode)
-
     def validate_to_tuple(self, val: Any) -> ResultTuple[_NTT]:
+        if self._disallow_synchronous:
+            _raise_validate_object_async_in_sync_mode(self.__class__)
+
         if isinstance(val, dict):
             data = val
         elif isinstance(val, self.named_tuple_cls):

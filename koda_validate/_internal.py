@@ -41,14 +41,6 @@ class _ToTupleValidator(Validator[SuccessT]):
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
 
-    def _disallow_synchronous(
-        self, raise_fn: Callable[[Type[Validator[Any]]], NoReturn]
-    ) -> None:
-        def _replacement_validate_to_tuple(val: Any) -> NoReturn:
-            raise_fn(self.__class__)
-
-        self.validate_to_tuple = _replacement_validate_to_tuple  # type: ignore[assignment]  # noqa: E501
-
     def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
@@ -130,16 +122,18 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
         self.preprocessors = preprocessors
         _type_err = TypeErr(self._TYPE)
         self._type_err = _type_err
+        self._disallow_synchronous = bool(predicates_async)
 
         # optimization for simple  validators. can speed up by ~15%
         if not predicates and not predicates_async and not preprocessors:
             self.validate_to_tuple = _simple_type_validator(  # type: ignore
                 self, self._TYPE, _type_err
             )
-        elif predicates_async:
-            self._disallow_synchronous(_async_predicates_warning)
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
+        if self._disallow_synchronous:
+            _async_predicates_warning(self.__class__)
+
         if type(val) is self._TYPE:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -225,14 +219,15 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
         self.predicates = predicates
         self.predicates_async = predicates_async
         self.preprocessors = preprocessors
-
-        if predicates_async:
-            self._disallow_synchronous(_async_predicates_warning)
+        self._disallow_synchronous = bool(self.predicates_async)
 
     def coerce_to_type(self, val: Any) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
     def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
+        if self._disallow_synchronous:
+            _async_predicates_warning(self.__class__)
+
         result = self.coerce_to_type(val)
         if result[0]:
             val_or_type_err = result[1]

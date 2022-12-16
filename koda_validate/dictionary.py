@@ -864,6 +864,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self.validate_object_async = validate_object_async
         self.fail_on_unknown_keys = fail_on_unknown_keys
 
+        self._disallow_synchronous = bool(validate_object_async)
+
         # so we don't need to calculate each time we validate
         self._key_set = set()
         self._fast_keys_sync: List[
@@ -882,10 +884,9 @@ class RecordValidator(_ToTupleValidator[Ret]):
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(self._key_set)
 
-        if self.validate_object_async:
-            self._disallow_synchronous(_raise_validate_object_async_in_sync_mode)
-
     def validate_to_tuple(self, data: Any) -> ResultTuple[Ret]:
+        if self._disallow_synchronous:
+            _raise_validate_object_async_in_sync_mode(self.__class__)
         if not isinstance(data, dict):
             return False, Invalid(TypeErr(dict), data, self)
 
@@ -1032,6 +1033,8 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
             _raise_cannot_define_validate_object_and_validate_object_async()
         self.fail_on_unknown_keys = fail_on_unknown_keys
 
+        self._disallow_synchronous = bool(validate_object_async)
+
         # so we don't need to calculate each time we validate
         self._fast_keys_sync = []
         self._fast_keys_async = []
@@ -1052,10 +1055,10 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
         self._unknown_keys_err = ExtraKeysErr(set(schema.keys()))
 
-        if self.validate_object_async:
-            self._disallow_synchronous(_raise_validate_object_async_in_sync_mode)
-
     def validate_to_tuple(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
+        if self._disallow_synchronous:
+            _raise_validate_object_async_in_sync_mode(self.__class__)
+
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 

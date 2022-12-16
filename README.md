@@ -39,7 +39,74 @@ poetry add koda-validate
 
 ## The Basics
 
-### Scalars
+### High-Level Validators
+```python3
+from typing import TypedDict
+from koda_validate import TypedDictValidator
+
+
+class Person(TypedDict):
+    name: str
+    hobbies: list[str]
+
+
+person_validator = TypedDictValidator(Person)
+person_validator({"name": "Bob", "hobbies": ["eating", "coding", "sleeping"]})
+# > Valid({'name': 'Bob', 'hobbies': ['eating', 'coding', 'sleeping']})
+```
+Koda Validate can derive validators from `TypedDict`s, as well as `dataclass`es 
+and `NamedTuples`. It can even derive validations from complex nested types. Here's an
+example:
+```python
+from dataclasses import dataclass
+from typing import Literal, List, TypedDict, Optional, Union
+
+from koda_validate import TypedDictValidator, Valid
+
+
+@dataclass
+class Ingredient:
+    quantity: Union[int, float]
+    unit: Optional[Literal["teaspoon", "tablespoon"]]  # etc...
+    name: str
+
+
+class Recipe(TypedDict):
+    title: str
+    ingredients: List[Ingredient]
+    instructions: str
+
+
+recipe_validator = TypedDictValidator(Recipe)
+
+result = recipe_validator(
+    {
+        "title": "Peanut Butter and Jelly Sandwich",
+        "ingredients": [
+            {"quantity": 2, "unit": None, "name": "slices of bread"},
+            {"quantity": 2, "unit": "tablespoon", "name": "peanut butter"},
+            {"quantity": 4.5, "unit": "teaspoon", "name": "jelly"},
+        ],
+        "instructions": "spread the peanut butter and jelly onto the bread and make a sandwich",
+    }
+)
+
+assert result == Valid(
+    {
+        "title": "Peanut Butter and Jelly Sandwich",
+        "ingredients": [
+            Ingredient(quantity=2, unit=None, name="slices of bread"),
+            Ingredient(quantity=2, unit="tablespoon", name="peanut butter"),
+            Ingredient(quantity=4.5, unit="teaspoon", name="jelly"),
+        ],
+        "instructions": "spread the peanut butter and jelly onto the bread and make a sandwich",
+    }
+)
+```
+
+### Explicit Validation
+
+#### Scalars
 ```python3
 from koda_validate import * 
 
@@ -50,7 +117,6 @@ string_validator("hello world")
 
 string_validator(5)
 # > Invalid(['expected a string'])
-
 ```
 Note that you can pattern match on validated data on python >= 3.10
 ```python3

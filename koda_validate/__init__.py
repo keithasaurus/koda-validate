@@ -59,6 +59,8 @@ __all__ = (
     "IntValidator",
     # list.py
     "ListValidator",
+    # namedtuple.py
+    "NamedTupleValidator",
     # none.py
     "OptionalValidator",
     "NoneValidator",
@@ -83,6 +85,8 @@ __all__ = (
     # tuple.py
     "NTupleValidator",
     "UniformTupleValidator",
+    # typeddict.py
+    "TypedDictValidator",
     # uuid.py
     "UUIDValidator",
     # union.py
@@ -145,6 +149,7 @@ from koda_validate.generic import (
 )
 from koda_validate.integer import IntValidator
 from koda_validate.list import ListValidator
+from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.none import NoneValidator, OptionalValidator, none_validator
 from koda_validate.serialization.errors import Serializable, to_serializable_errs
 from koda_validate.set import SetValidator
@@ -160,5 +165,6 @@ from koda_validate.string import (
 )
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import NTupleValidator, UniformTupleValidator
+from koda_validate.typeddict import TypedDictValidator
 from koda_validate.union import UnionValidator
 from koda_validate.uuid import UUIDValidator
