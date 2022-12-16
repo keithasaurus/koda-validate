@@ -69,6 +69,7 @@ from koda_validate.dictionary import (
 )
 from koda_validate.generic import AlwaysValid
 from koda_validate.maybe import MaybeValidator
+from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.set import SetValidator
 from koda_validate.tuple import NTupleValidator, UniformTupleValidator
 from koda_validate.typeddict import TypedDictValidator
@@ -376,6 +377,45 @@ def test_match_dataclass() -> None:
     match x:
         case DataclassValidator(cls, overrides, fail_on_unknown_keys):
             assert cls is Person
+            assert overrides == {"name": s}
+            assert fail_on_unknown_keys is True
+        case _:
+            assert False
+
+
+def test_match_namedtuple() -> None:
+    class PersonNT(NamedTuple):
+        name: str
+        age: Maybe[int]
+
+    x = NamedTupleValidator(
+        PersonNT,
+        overrides={"name": (s := StringValidator(MaxLength(10)))},
+        fail_on_unknown_keys=True,
+    )
+    match x:
+        case NamedTupleValidator(cls, overrides, fail_on_unknown_keys):
+            assert cls is PersonNT
+            assert overrides == {"name": s}
+            assert fail_on_unknown_keys is True
+        case _:
+            assert False
+
+
+def test_match_typeddict() -> None:
+    class PersonTD(TypedDict):
+        name: str
+        age: Optional[int]
+
+    x = TypedDictValidator(
+        PersonTD,
+        overrides={"name": (s := StringValidator(MaxLength(10)))},
+        fail_on_unknown_keys=True,
+    )
+
+    match x:
+        case TypedDictValidator(cls, overrides, fail_on_unknown_keys):
+            assert cls is PersonTD
             assert overrides == {"name": s}
             assert fail_on_unknown_keys is True
         case _:

@@ -36,7 +36,7 @@ _NTT = TypeVar("_NTT", bound=NamedTuple)
 
 
 class NamedTupleValidator(_ToTupleValidator[_NTT]):
-    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys")
+    __match_args__ = ("named_tuple_cls", "overrides", "fail_on_unknown_keys")
 
     def __init__(
         self,
@@ -52,7 +52,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
     ) -> None:
 
         self.named_tuple_cls = named_tuple_cls
-        self._input_overrides = overrides  # for repr
+        self.overrides = overrides
         self.fail_on_unknown_keys = fail_on_unknown_keys
 
         if validate_object and validate_object_async:
@@ -61,7 +61,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
-        overrides = overrides or {}
+        overrides = self.overrides or {}
         type_hints = get_type_hints(self.named_tuple_cls)
 
         keys_with_defaults: Set[str] = {
@@ -201,7 +201,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             + [
                 f"{k}={repr(v)}"
                 for k, v in [
-                    ("overrides", self._input_overrides),
+                    ("overrides", self.overrides),
                     ("validate_object", self.validate_object),
                     ("validate_object_async", self.validate_object_async),
                     # note that this coincidentally works as we want:

@@ -44,7 +44,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
     it for non-TypedDict datatypes.
     """
 
-    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys")
+    __match_args__ = ("td_cls", "overrides", "fail_on_unknown_keys")
 
     def __init__(
         self,
@@ -66,9 +66,9 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             raise TypeError("must be a TypedDict subclass")
 
         self.td_cls = td_cls
-        self._input_overrides = overrides  # for repr
+        self.overrides = overrides  # for repr
         self.fail_on_unknown_keys = fail_on_unknown_keys
-        self.overrides = overrides or {}
+
         if validate_object is not None and validate_object_async is not None:
             _raise_cannot_define_validate_object_and_validate_object_async()
 
@@ -90,11 +90,10 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                 else frozenset()
             )
 
+        overrides = self.overrides or {}
         self.schema = {
             field: (
-                self.overrides[field]
-                if field in self.overrides
-                else typehint_resolver(annotations)
+                overrides[field] if field in overrides else typehint_resolver(annotations)
             )
             for field, annotations in type_hints.items()
         }
@@ -197,7 +196,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             + [
                 f"{k}={repr(v)}"
                 for k, v in [
-                    ("overrides", self._input_overrides),
+                    ("overrides", self.overrides),
                     ("validate_object", self.validate_object),
                     ("validate_object_async", self.validate_object_async),
                     # note that this coincidentally works as we want:

@@ -61,7 +61,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             raise TypeError("Must be a dataclass")
         self.data_cls = data_cls
         self.fail_on_unknown_keys = fail_on_unknown_keys
-        self.overrides = overrides or {}
+        self.overrides = overrides
         if validate_object and validate_object_async:
             _raise_cannot_define_validate_object_and_validate_object_async()
 
@@ -76,11 +76,10 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             if v.default != inspect.Parameter.empty
         }
 
+        overrides = self.overrides or {}
         self.schema = {
             field: (
-                self.overrides[field]
-                if field in self.overrides
-                else typehint_resolver(annotations)
+                overrides[field] if field in overrides else typehint_resolver(annotations)
             )
             for field, annotations in type_hints.items()
         }
