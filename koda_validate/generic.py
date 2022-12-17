@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, ClassVar, List, Optional, Set, Tuple, Type, TypeVar
+from typing import Any, ClassVar, Hashable, List, Optional, Set, Tuple, Type, TypeVar
 from uuid import UUID
 
 from koda import Thunk
@@ -12,8 +12,6 @@ from koda_validate._internal import ResultTuple, _ToTupleValidator
 from koda_validate.base import Predicate, Processor, Validator
 from koda_validate.errors import PredicateErrs, TypeErr
 from koda_validate.valid import Invalid, ValidationResult
-
-EnumT = TypeVar("EnumT", str, int)
 
 
 class Lazy(Validator[Ret]):
@@ -54,16 +52,19 @@ class Lazy(Validator[Ret]):
         return f"Lazy({repr(self.validator)}, recurrent={repr(self.recurrent)})"
 
 
+ChoiceT = TypeVar("ChoiceT", bound=Hashable)
+
+
 @dataclass
-class Choices(Predicate[EnumT]):
+class Choices(Predicate[ChoiceT]):
     """
     This only exists separately from a more generic form because
     mypy was having difficulty understanding the narrowed generic types. mypy 0.800
     """
 
-    choices: Set[EnumT]
+    choices: Set[ChoiceT]
 
-    def __call__(self, val: EnumT) -> bool:
+    def __call__(self, val: ChoiceT) -> bool:
         return val in self.choices
 
 
