@@ -2,7 +2,6 @@ from typing import Any, ClassVar, Optional
 
 from koda._generics import A
 
-from koda_validate import Invalid, TypeErr
 from koda_validate._internal import (
     ResultTuple,
     _ToTupleValidator,
@@ -10,6 +9,8 @@ from koda_validate._internal import (
     _union_validator_async,
 )
 from koda_validate.base import Validator
+from koda_validate.errors import TypeErr
+from koda_validate.valid import Invalid
 
 
 class NoneValidator(_ToTupleValidator[None]):
