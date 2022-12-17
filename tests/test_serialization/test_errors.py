@@ -1,10 +1,21 @@
 import re
+from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, List, Tuple, Union
+from typing import Any, List, NamedTuple, Tuple, Union
 
 from koda import Just
 
-from koda_validate import ListValidator, MaxLength, MinLength
+from koda_validate import (
+    DataclassValidator,
+    DatetimeValidator,
+    DateValidator,
+    ListValidator,
+    MaxLength,
+    MinLength,
+    NamedTupleValidator,
+    NTupleValidator,
+    UUIDValidator,
+)
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
@@ -73,7 +84,7 @@ def test_key_missing_returns_list_str() -> None:
 def test_coercion_err_uses_message() -> None:
     assert to_serializable_errs(
         Invalid(CoercionErr({str, int, Decimal}, Decimal), "abc", DecimalValidator())
-    ) == ["could not coerce to Decimal (compatible with Decimal, int, str)"]
+    ) == ["expected a decimal-formatted string"]
 
 
 def test_iterable_errs() -> None:
@@ -259,3 +270,65 @@ def test_raises_err_for_unknown_pred() -> None:
         )
     else:
         assert False
+
+
+def test_uuid_coercion_err() -> None:
+    result = UUIDValidator()(5)
+    assert isinstance(result, Invalid)
+    assert to_serializable_errs(result) == ["expected a UUID"]
+
+
+def test_decimal_coercion_err() -> None:
+    result = DecimalValidator()(4.3)
+    assert isinstance(result, Invalid)
+    assert to_serializable_errs(result) == ["expected a decimal-formatted string"]
+
+
+def test_datetime_coercion_err() -> None:
+    result = DatetimeValidator()(4)
+    assert isinstance(result, Invalid)
+    assert to_serializable_errs(result) == ["expected an iso8601 datetime string"]
+
+
+def test_date_coercion_err() -> None:
+    result = DateValidator()(4)
+    assert isinstance(result, Invalid)
+    assert to_serializable_errs(result) == ["expected YYYY-MM-DD"]
+
+
+def test_ntuple_coercion_err() -> None:
+    result = NTupleValidator.typed(fields=(StringValidator(), IntValidator()))(4)
+    assert isinstance(result, Invalid)
+    assert to_serializable_errs(result) == ["expected an array"]
+
+
+def test_dataclass_coercion_err() -> None:
+    @dataclass
+    class Person:
+        name: str
+        age: int
+
+    validator = DataclassValidator(Person)
+    result = validator(4)
+    assert isinstance(result, Invalid)
+    assert to_serializable_errs(result) == ["expected an object"]
+
+
+def test_namedtuple_coercion_err() -> None:
+    class Person(NamedTuple):
+        name: str
+        age: int
+
+    validator = NamedTupleValidator(Person)
+    result = validator(4)
+    assert isinstance(result, Invalid)
+    assert to_serializable_errs(result) == ["expected an object"]
+
+
+def test_default_coercion_err() -> None:
+    # just pretend data
+    invalid = Invalid(CoercionErr({int, float}, int), "s", IntValidator())
+    assert isinstance(invalid, Invalid)
+    assert to_serializable_errs(invalid) == [
+        "could not coerce to int (compatible with float, int)"
+    ]

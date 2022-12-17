@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Any, Dict, List, Tuple, Type, Union
 
-from koda_validate import MaxLength, MinLength
+from koda_validate import DataclassValidator, NamedTupleValidator
 from koda_validate.base import (
     BasicErr,
     CoercionErr,
@@ -19,6 +19,7 @@ from koda_validate.base import (
     TypeErr,
     UnionErrs,
 )
+from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import MaxKeys, MinKeys
 from koda_validate.generic import (
     Choices,
@@ -26,12 +27,17 @@ from koda_validate.generic import (
     ExactItemCount,
     Max,
     MaxItems,
+    MaxLength,
     Min,
     MinItems,
+    MinLength,
     MultipleOf,
     UniqueItems,
 )
 from koda_validate.string import EmailPredicate, NotBlank, RegexPredicate
+from koda_validate.time import DatetimeValidator, DateValidator
+from koda_validate.tuple import NTupleValidator
+from koda_validate.uuid import UUIDValidator
 
 Serializable = Union[
     None,
@@ -97,17 +103,32 @@ TYPE_DESCRIPTION_LOOKUP: Dict[Type[Any], str] = {
 
 def to_serializable_errs(invalid: Invalid) -> Serializable:
     err = invalid.err_type
+    vldtr = invalid.validator
     if isinstance(err, CoercionErr):
-        compatible_names = sorted([t.__name__ for t in err.compatible_types])
-        return [
-            f"could not coerce to {err.dest_type.__name__} "
-            f"(compatible with {', '.join(compatible_names)})"
-        ]
+        if isinstance(vldtr, UUIDValidator):
+            return ["expected a UUID"]
+        elif isinstance(vldtr, DecimalValidator):
+            return ["expected a decimal-formatted string"]
+        elif isinstance(vldtr, DatetimeValidator):
+            return ["expected an iso8601 datetime string"]
+        elif isinstance(vldtr, DateValidator):
+            return ["expected YYYY-MM-DD"]
+        elif isinstance(vldtr, NTupleValidator):
+            return ["expected an array"]
+        elif isinstance(vldtr, (DataclassValidator, NamedTupleValidator)):
+            return ["expected an object"]
+            # todo
+        else:
+            compatible_names = sorted([t.__name__ for t in err.compatible_types])
+            return [
+                f"could not coerce to {err.dest_type.__name__} "
+                f"(compatible with {', '.join(compatible_names)})"
+            ]
     elif isinstance(err, BasicErr):
         return [err.err_message]
     elif isinstance(err, ExtraKeysErr):
         err_message = "Received unknown keys. " + (
-            "Expected empty dictionary."
+            "Expected an empty object."
             if len(err.expected_keys) == 0
             else "Only expected "
             + ", ".join(sorted([repr(k) for k in err.expected_keys]))
