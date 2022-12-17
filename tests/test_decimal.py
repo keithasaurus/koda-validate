@@ -5,16 +5,17 @@ from decimal import Decimal
 import pytest
 
 from koda_validate import (
+    CoercionErr,
     DecimalValidator,
     Invalid,
     Max,
     Min,
     PredicateAsync,
+    PredicateErrs,
     Processor,
     Valid,
 )
 from koda_validate._generics import A
-from koda_validate.base import CoercionErr, PredicateErrs
 
 
 @dataclass

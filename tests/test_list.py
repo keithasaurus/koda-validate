@@ -6,15 +6,17 @@ import pytest
 from koda._generics import A
 
 from koda_validate import (
+    IndexErrs,
     IntValidator,
     Invalid,
     MaxLength,
     MinLength,
     PredicateAsync,
+    PredicateErrs,
     StringValidator,
+    TypeErr,
     Valid,
 )
-from koda_validate.base import IndexErrs, PredicateErrs, TypeErr
 from koda_validate.float import FloatValidator
 from koda_validate.generic import MaxItems, Min, MinItems
 from koda_validate.list import ListValidator

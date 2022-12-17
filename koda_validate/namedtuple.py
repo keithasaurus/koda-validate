@@ -12,6 +12,7 @@ from typing import (
     get_type_hints,
 )
 
+from koda_validate import CoercionErr, ExtraKeysErr, Invalid, KeyErrs
 from koda_validate._internal import (
     ResultTuple,
     _raise_cannot_define_validate_object_and_validate_object_async,
@@ -21,15 +22,8 @@ from koda_validate._internal import (
     _wrap_async_validator,
     _wrap_sync_validator,
 )
-from koda_validate.base import (
-    CoercionErr,
-    ErrType,
-    ExtraKeysErr,
-    Invalid,
-    KeyErrs,
-    Validator,
-    missing_key_err,
-)
+from koda_validate.base import Validator
+from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.typehints import get_typehint_validator
 
 _NTT = TypeVar("_NTT", bound=NamedTuple)

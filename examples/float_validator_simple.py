@@ -1,7 +1,7 @@
 from typing import Any
 
 from koda_validate import *
-from koda_validate.base import TypeErr, ValidationResult
+from koda_validate import TypeErr, ValidationResult
 
 
 class SimpleFloatValidator(Validator[float]):

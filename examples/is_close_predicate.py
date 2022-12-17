@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass
 
 from koda_validate import *
-from koda_validate.base import PredicateErrs
+from koda_validate import PredicateErrs
 
 
 @dataclass

@@ -5,17 +5,19 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from koda_validate import Invalid, MaxLength, StringValidator, Valid
-from koda_validate.base import (
+from koda_validate import (
     BasicErr,
     CoercionErr,
-    ErrType,
     ExtraKeysErr,
+    Invalid,
     KeyErrs,
+    MaxLength,
     PredicateErrs,
+    StringValidator,
     TypeErr,
-    missing_key_err,
+    Valid,
 )
+from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.namedtuple import NamedTupleValidator
 
 

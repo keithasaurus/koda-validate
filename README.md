@@ -39,7 +39,7 @@ poetry add koda-validate
 
 ## The Basics
 
-### High-Level Validators
+### Derived Validators
 ```python3
 from typing import TypedDict
 from koda_validate import TypedDictValidator
@@ -104,7 +104,7 @@ assert result == Valid(
 )
 ```
 
-### Explicit Validation
+### Explicit Validators
 
 #### Scalars
 ```python3
@@ -116,7 +116,7 @@ string_validator("hello world")
 # > Valid('hello world')
 
 string_validator(5)
-# > Invalid(['expected a string'])
+# > Invalid(...)
 ```
 Note that you can pattern match on validated data on python >= 3.10
 ```python3

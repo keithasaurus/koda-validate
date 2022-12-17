@@ -5,9 +5,12 @@ from typing import Any, Optional, Tuple
 import pytest
 
 from koda_validate import (
+    BasicErr,
     BoolValidator,
+    CoercionErr,
     ExactItemCount,
     FloatValidator,
+    IndexErrs,
     IntValidator,
     Invalid,
     Max,
@@ -17,20 +20,15 @@ from koda_validate import (
     MinItems,
     MinLength,
     NTupleValidator,
+    PredicateErrs,
     StringValidator,
+    TypeErr,
     UniformTupleValidator,
     Valid,
 )
 from koda_validate._generics import A
-from koda_validate.base import (
-    BasicErr,
-    CoercionErr,
-    ErrType,
-    IndexErrs,
-    PredicateAsync,
-    PredicateErrs,
-    TypeErr,
-)
+from koda_validate.base import PredicateAsync
+from koda_validate.errors import ErrType
 from tests.utils import BasicNoneValidator
 
 

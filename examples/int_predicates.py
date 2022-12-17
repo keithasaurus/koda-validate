@@ -1,5 +1,5 @@
 from koda_validate import *
-from koda_validate.base import PredicateErrs
+from koda_validate import PredicateErrs
 
 int_validator = IntValidator(Min(5), Max(20), MultipleOf(4))
 

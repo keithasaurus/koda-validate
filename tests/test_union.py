@@ -2,8 +2,17 @@ from typing import Any
 
 import pytest
 
-from koda_validate import FloatValidator, IntValidator, Invalid, StringValidator, Valid
-from koda_validate.base import TypeErr, UnionErrs, ValidationResult, Validator
+from koda_validate import (
+    FloatValidator,
+    IntValidator,
+    Invalid,
+    StringValidator,
+    TypeErr,
+    UnionErrs,
+    Valid,
+    ValidationResult,
+)
+from koda_validate.base import Validator
 from koda_validate.union import UnionValidator
 
 

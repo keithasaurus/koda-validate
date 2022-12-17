@@ -8,11 +8,12 @@ from koda_validate import (
     Invalid,
     Predicate,
     PredicateAsync,
+    PredicateErrs,
     Processor,
+    TypeErr,
     Valid,
 )
 from koda_validate._generics import A
-from koda_validate.base import PredicateErrs, TypeErr
 
 
 class Flip(Processor[bool]):

@@ -4,7 +4,7 @@ import pytest
 from koda import Just, Maybe, nothing
 
 from koda_validate import IntValidator, Invalid, StringValidator, TypeErr, Valid
-from koda_validate.base import ContainerErr
+from koda_validate.errors import ContainerErr
 from koda_validate.maybe import MaybeValidator
 
 

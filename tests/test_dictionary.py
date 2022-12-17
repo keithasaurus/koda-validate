@@ -7,38 +7,33 @@ import pytest
 from koda import Just, Maybe, nothing
 
 from koda_validate import (
+    BasicErr,
     BoolValidator,
+    ExtraKeysErr,
     FloatValidator,
     IntValidator,
     Invalid,
+    KeyErrs,
     ListValidator,
+    MapErr,
     MapValidator,
     MaxKeys,
     MaxLength,
     Min,
     MinKeys,
+    MissingKeyErr,
     Predicate,
     PredicateAsync,
+    PredicateErrs,
     Processor,
     StringValidator,
+    TypeErr,
     Valid,
     none_validator,
     strip,
 )
 from koda_validate._generics import A
-from koda_validate.base import (
-    BasicErr,
-    ErrType,
-    ExtraKeysErr,
-    KeyErrs,
-    KeyValErrs,
-    MapErr,
-    MissingKeyErr,
-    PredicateErrs,
-    TypeErr,
-    Validator,
-    missing_key_err,
-)
+from koda_validate.base import Validator
 from koda_validate.dictionary import (
     DictValidatorAny,
     IsDictValidator,
@@ -46,6 +41,7 @@ from koda_validate.dictionary import (
     RecordValidator,
     is_dict_validator,
 )
+from koda_validate.errors import ErrType, KeyValErrs, missing_key_err
 
 
 class PersonLike(Protocol):

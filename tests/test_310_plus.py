@@ -18,6 +18,7 @@ from typing import (
 from koda import Maybe
 
 from koda_validate import (
+    BasicErr,
     BoolValidator,
     Choices,
     DatetimeValidator,
@@ -28,8 +29,10 @@ from koda_validate import (
     IntValidator,
     Invalid,
     IsDictValidator,
+    KeyErrs,
     Lazy,
     ListValidator,
+    MapErr,
     MapValidator,
     Max,
     MaxItems,
@@ -37,25 +40,17 @@ from koda_validate import (
     Min,
     MinItems,
     MinLength,
+    MissingKeyErr,
     MultipleOf,
     NoneValidator,
     OptionalValidator,
     RegexPredicate,
     StringValidator,
+    TypeErr,
+    UnionErrs,
     Valid,
     Validator,
     strip,
-)
-from koda_validate.base import (
-    BasicErr,
-    ErrType,
-    KeyErrs,
-    KeyValErrs,
-    MapErr,
-    MissingKeyErr,
-    TypeErr,
-    UnionErrs,
-    missing_key_err,
 )
 from koda_validate.bytes import BytesValidator
 from koda_validate.dataclasses import DataclassValidator
@@ -67,6 +62,7 @@ from koda_validate.dictionary import (
     RecordValidator,
     is_dict_validator,
 )
+from koda_validate.errors import ErrType, KeyValErrs, missing_key_err
 from koda_validate.generic import AlwaysValid
 from koda_validate.maybe import MaybeValidator
 from koda_validate.namedtuple import NamedTupleValidator

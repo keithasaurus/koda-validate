@@ -1,7 +1,14 @@
 import pytest
 
-from koda_validate import IntValidator, Invalid, OptionalValidator, StringValidator, Valid
-from koda_validate.base import TypeErr, UnionErrs
+from koda_validate import (
+    IntValidator,
+    Invalid,
+    OptionalValidator,
+    StringValidator,
+    TypeErr,
+    UnionErrs,
+    Valid,
+)
 from koda_validate.none import NoneValidator, none_validator
 
 

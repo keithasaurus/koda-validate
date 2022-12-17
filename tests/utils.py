@@ -1,7 +1,6 @@
 from typing import Any
 
-from koda_validate import Invalid, Valid, Validator
-from koda_validate.base import TypeErr, ValidationResult
+from koda_validate import Invalid, TypeErr, Valid, ValidationResult, Validator
 
 
 class BasicNoneValidator(Validator[None]):

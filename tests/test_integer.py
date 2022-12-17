@@ -11,10 +11,11 @@ from koda_validate import (
     Min,
     Predicate,
     PredicateAsync,
+    PredicateErrs,
     Processor,
+    TypeErr,
     Valid,
 )
-from koda_validate.base import PredicateErrs, TypeErr
 
 
 class Add1Int(Processor[int]):

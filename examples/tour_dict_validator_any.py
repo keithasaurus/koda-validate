@@ -1,7 +1,8 @@
 from typing import Any, Dict, Hashable, Optional
 
 from koda_validate import *
-from koda_validate.base import BasicErr, ErrType
+from koda_validate import BasicErr
+from koda_validate.errors import ErrType
 
 
 def no_dwight_regional_manager(employee: Dict[Hashable, Any]) -> Optional[ErrType]:

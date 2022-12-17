@@ -1,5 +1,6 @@
 from koda_validate import *
-from koda_validate.base import KeyValErrs, MapErr, TypeErr
+from koda_validate import MapErr, TypeErr
+from koda_validate.errors import KeyValErrs
 
 str_validator = StringValidator()
 int_validator = IntValidator()

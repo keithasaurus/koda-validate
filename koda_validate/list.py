@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from koda._generics import A
 
+from koda_validate import IndexErrs, Invalid, PredicateErrs, TypeErr
 from koda_validate._internal import (
     ResultTuple,
     _async_predicates_warning,
@@ -10,15 +11,7 @@ from koda_validate._internal import (
     _wrap_async_validator,
     _wrap_sync_validator,
 )
-from koda_validate.base import (
-    IndexErrs,
-    Invalid,
-    Predicate,
-    PredicateAsync,
-    PredicateErrs,
-    TypeErr,
-    Validator,
-)
+from koda_validate.base import Predicate, PredicateAsync, Validator
 
 
 class ListValidator(_ToTupleValidator[List[A]]):

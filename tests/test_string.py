@@ -10,11 +10,12 @@ from koda_validate import (
     MaxLength,
     MinLength,
     PredicateAsync,
+    PredicateErrs,
     RegexPredicate,
+    TypeErr,
     Valid,
 )
 from koda_validate._generics import A
-from koda_validate.base import PredicateErrs, TypeErr
 from koda_validate.string import (
     NotBlank,
     StringValidator,

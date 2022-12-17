@@ -9,10 +9,11 @@ from koda_validate import (
     Max,
     Min,
     MultipleOf,
+    PredicateErrs,
+    TypeErr,
     Valid,
     strip,
 )
-from koda_validate.base import PredicateErrs, TypeErr
 from koda_validate.generic import (
     AlwaysValid,
     EqualTo,

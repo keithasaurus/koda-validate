@@ -4,9 +4,16 @@ from uuid import UUID
 
 import pytest
 
-from koda_validate import Invalid, Predicate, PredicateAsync, Processor, Valid
+from koda_validate import (
+    CoercionErr,
+    Invalid,
+    Predicate,
+    PredicateAsync,
+    PredicateErrs,
+    Processor,
+    Valid,
+)
 from koda_validate._generics import A
-from koda_validate.base import CoercionErr, PredicateErrs
 from koda_validate.uuid import UUIDValidator
 
 

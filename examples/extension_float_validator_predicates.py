@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 from koda_validate import *
-from koda_validate.base import PredicateErrs, TypeErr, ValidationResult
+from koda_validate import PredicateErrs, TypeErr, ValidationResult
 
 
 @dataclass

@@ -2,6 +2,7 @@ from typing import Any
 
 from koda import Just, Maybe, nothing
 
+from koda_validate import Invalid, TypeErr
 from koda_validate._generics import A
 from koda_validate._internal import (
     ResultTuple,
@@ -9,7 +10,8 @@ from koda_validate._internal import (
     _wrap_async_validator,
     _wrap_sync_validator,
 )
-from koda_validate.base import ContainerErr, Invalid, TypeErr, Validator
+from koda_validate.base import Validator
+from koda_validate.errors import ContainerErr
 
 
 class MaybeValidator(_ToTupleValidator[Maybe[A]]):

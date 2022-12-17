@@ -1,5 +1,5 @@
 from koda_validate import *
-from koda_validate.base import IndexErrs, PredicateErrs, TypeErr
+from koda_validate import IndexErrs, PredicateErrs, TypeErr
 
 binary_int_validator = IntValidator(Choices({0, 1}))
 binary_list_validator = ListValidator(binary_int_validator, predicates=[MinItems(2)])

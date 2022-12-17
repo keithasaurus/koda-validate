@@ -1,7 +1,6 @@
 import pytest
 
-from koda_validate import Invalid, Valid
-from koda_validate.base import TypeErr
+from koda_validate import Invalid, TypeErr, Valid
 from koda_validate.bytes import BytesValidator
 
 

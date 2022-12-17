@@ -6,20 +6,22 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from koda_validate import IntValidator, ListValidator, MaxLength, StringValidator
-from koda_validate.base import (
+from koda_validate import (
     BasicErr,
     CoercionErr,
-    ErrType,
     ExtraKeysErr,
     IndexErrs,
+    IntValidator,
     Invalid,
     KeyErrs,
+    ListValidator,
+    MaxLength,
     PredicateErrs,
+    StringValidator,
     TypeErr,
     Valid,
-    missing_key_err,
 )
+from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.typeddict import TypedDictValidator
 
 

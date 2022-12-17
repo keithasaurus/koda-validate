@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Optional
 
 from koda_validate import *
-from koda_validate.base import BasicErr, ErrType
+from koda_validate import BasicErr
+from koda_validate.errors import ErrType
 
 
 @dataclass

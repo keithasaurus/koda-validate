@@ -1,5 +1,12 @@
-from koda_validate import EqualsValidator, Invalid, MinLength, StringValidator, Valid
-from koda_validate.base import PredicateErrs, TypeErr
+from koda_validate import (
+    EqualsValidator,
+    Invalid,
+    MinLength,
+    PredicateErrs,
+    StringValidator,
+    TypeErr,
+    Valid,
+)
 
 min_length_3_validator = StringValidator(MinLength(4))
 assert min_length_3_validator("good") == Valid("good")

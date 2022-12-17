@@ -7,17 +7,10 @@ from uuid import UUID
 from koda import Thunk
 from koda._generics import A
 
+from koda_validate import Invalid, PredicateErrs, TypeErr, ValidationResult
 from koda_validate._generics import Ret
 from koda_validate._internal import ResultTuple, _ToTupleValidator
-from koda_validate.base import (
-    Invalid,
-    Predicate,
-    PredicateErrs,
-    Processor,
-    TypeErr,
-    ValidationResult,
-    Validator,
-)
+from koda_validate.base import Predicate, Processor, Validator
 
 EnumT = TypeVar("EnumT", str, int)
 
