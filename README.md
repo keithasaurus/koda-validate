@@ -104,12 +104,14 @@ assert result == Valid(
 )
 ```
 A few things to note:
-- `DataclassValidator[Ingredient]` can validate against a `dict`s or an `Ingredient` instance -- in both cases it will result in will return an `Ingredient` dataclass if valid. (NamedTupleValidators behave similarly) 
 - All the types used in the above example are understood by Koda Validate -- even `Literal`s. It can derive validators from most common types in Python.
+- `DataclassValidator[Ingredient]` can validate against a `dict`s or an `Ingredient` instance -- in both cases it will result in will return an `Ingredient` dataclass if valid. (NamedTupleValidators behave similarly) 
 
 Even when validators are derived, Koda Validate allows for customization. See DataclassValidator, TypedDictValidator, NamedTupleValidator for more info. 
 
 ### Explicit Validators
+
+The heart of Koda Validate are a set of explicit `Validator`s which cover a wide range, from simple scalars to complex collections and unions. 
 
 #### Scalars
 ```python3
@@ -135,12 +137,12 @@ match string_validator("new string"):
 
 # prints: "new string is valid"
 ```
-You can also use `.is_valid` on python >= 3.8+:
+You can also use `.is_valid` on all supported version of Python:
 
 ```python3
 # continued from above
 
-if (result := string_validator("another string")).__call__:
+if (result := string_validator("another string")).is_valid:
   print(f"{result.val} is valid!")
 else:
   print(f"got error: {result.val}")
@@ -158,7 +160,7 @@ validator(["cool"])
 # > Valid(['cool'])
 
 validator([5])
-# > Invalid({'0': ['expected a string']}))
+# > Invalid(...)
 
 ```
 
