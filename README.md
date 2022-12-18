@@ -54,8 +54,8 @@ person_validator = TypedDictValidator(Person)
 person_validator({"name": "Bob", "hobbies": ["eating", "coding", "sleeping"]})
 # > Valid({'name': 'Bob', 'hobbies': ['eating', 'coding', 'sleeping']})
 ```
-Koda Validate can derive validators from `TypedDict`s, as well as `dataclass`es 
-and `NamedTuples`. It can even derive validations from complex nested types. Here's an
+Koda Validate can derive validators from `TypedDict`s (as well as `dataclass`es 
+and `NamedTuples`). It can even derive validations from complex nested types. Here's an
 example:
 ```python
 from dataclasses import dataclass
@@ -105,7 +105,8 @@ assert result == Valid(
 ```
 A few things to note:
 - All the types used in the above example are understood by Koda Validate -- even `Literal`s. It can derive validators from most common types in Python.
-- `DataclassValidator[Ingredient]` can validate against a `dict`s or an `Ingredient` instance -- in both cases it will result in will return an `Ingredient` dataclass if valid. (NamedTupleValidators behave similarly) 
+- Mypy understands Koda Validate's return types. It interprets result as `Union[Valid[Person], Invalid]` -- in Koda Validate we shorten this to `ValidationResult[Person]`
+- `DataclassValidator[Ingredient]` can validate against a `dict` or an `Ingredient` instance -- in both cases it will return an `Ingredient` dataclass if valid. (NamedTupleValidator behaves similarly)
 
 Even when validators are derived, Koda Validate allows for customization. See DataclassValidator, TypedDictValidator, NamedTupleValidator for more info. 
 
@@ -150,7 +151,7 @@ else:
 ```
 Mypy understands `.is_valid` and narrows the `Validated` type to `Valid` or `Invalid` appropriately.
 
-### Lists
+#### Lists
 ```python3
 from koda_validate import *
 
@@ -163,8 +164,20 @@ validator([5])
 # > Invalid(...)
 
 ```
+#### Tuples
 
-### Record-like Dictionaries
+
+
+#### Sets
+
+
+#### Unions
+
+
+#### Maps
+
+
+#### Record-like Dictionaries
 
 ```python3
 from dataclasses import dataclass
