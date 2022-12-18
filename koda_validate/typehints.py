@@ -10,7 +10,18 @@ from .maybe import MaybeValidator
 if sys.version_info >= (3, 10):
     from types import UnionType
 
-from typing import Any, Dict, List, Literal, Set, Tuple, Union, get_args, get_origin
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Set,
+    Tuple,
+    Union,
+    get_args,
+    get_origin,
+)
 from uuid import UUID
 
 from ._internal import _is_typed_dict_cls
@@ -34,7 +45,14 @@ from .uuid import UUIDValidator
 
 # todo: evolve into general-purpose type-hint driven validator
 # will probably need significant changes
-def get_typehint_validator(annotations: Any) -> Validator[Any]:
+def get_typehint_validator_base(
+    get_hint_next_depth: Callable[[Any], Validator[Any]], annotations: Any
+) -> Validator[Any]:
+    """
+    get_hint_next_depth allows a developer to wrap this function but still have it
+    use their wrapper recursively (otherwise we might simply recur to this function in
+    each depth)
+    """
     if annotations is str:
         return StringValidator()
     elif annotations is int:
@@ -84,26 +102,26 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
     else:
         origin, args = get_origin(annotations), get_args(annotations)
         if (origin is list or origin is List) and len(args) == 1:
-            item_validator = get_typehint_validator(args[0])
+            item_validator = get_hint_next_depth(args[0])
             return ListValidator(item_validator)
         if (origin is set or origin is Set) and len(args) == 1:
-            item_validator = get_typehint_validator(args[0])
+            item_validator = get_hint_next_depth(args[0])
             return SetValidator(item_validator)
         if (origin is dict or origin is Dict) and len(args) == 2:
             return MapValidator(
-                key=get_typehint_validator(args[0]), value=get_typehint_validator(args[1])
+                key=get_hint_next_depth(args[0]), value=get_hint_next_depth(args[1])
             )
         if origin is Union or (sys.version_info >= (3, 10) and origin is UnionType):
             if len(args) == 2 and args[1] is Nothing and get_origin(args[0]) is Just:
-                return MaybeValidator(get_typehint_validator(get_args(args[0])[0]))
+                return MaybeValidator(get_hint_next_depth(get_args(args[0])[0]))
             else:
-                return UnionValidator(*[get_typehint_validator(arg) for arg in args])
+                return UnionValidator(*[get_hint_next_depth(arg) for arg in args])
         if origin is tuple or origin is Tuple:
             if len(args) == 2 and args[1] is Ellipsis:
-                return UniformTupleValidator(get_typehint_validator(args[0]))
+                return UniformTupleValidator(get_hint_next_depth(args[0]))
             else:
                 return NTupleValidator.untyped(
-                    fields=tuple(get_typehint_validator(a) for a in args)
+                    fields=tuple(get_hint_next_depth(a) for a in args)
                 )
         # not validating with annotations at this point
         # if sys.version_info >= (3, 9) and origin is Annotated:
@@ -134,3 +152,7 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
             # or we haven't defined an explicit validator to use
             return UnionValidator(*[EqualsValidator(a) for a in args])
         raise TypeError(f"Got unhandled annotation: {repr(annotations)}.")
+
+
+def get_typehint_validator(annotations: Any) -> Validator[Any]:
+    return get_typehint_validator_base(get_typehint_validator, annotations)
