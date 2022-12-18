@@ -9,6 +9,7 @@ from .maybe import MaybeValidator
 
 if sys.version_info >= (3, 10):
     from types import UnionType
+
 from typing import Any, Dict, List, Literal, Set, Tuple, Union, get_args, get_origin
 from uuid import UUID
 
@@ -19,10 +20,10 @@ from .bytes import BytesValidator
 from .decimal import DecimalValidator
 from .dictionary import MapValidator
 from .float import FloatValidator
-from .generic import EqualsValidator, always_valid
+from .generic import Choices, EqualsValidator, always_valid
 from .integer import IntValidator
 from .list import ListValidator
-from .none import NoneValidator
+from .none import NoneValidator, none_validator
 from .set import SetValidator
 from .string import StringValidator
 from .time import DatetimeValidator, DateValidator
@@ -108,6 +109,28 @@ def get_typehint_validator(annotations: Any) -> Validator[Any]:
         # if sys.version_info >= (3, 9) and origin is Annotated:
         #     return get_typehint_validator(args[0])
         if origin is Literal:
-            return UnionValidator(*[EqualsValidator(a) for a in args])
+            # The common case is that literals will be of the same type. For those
+            # cases, we return the relevant type validator (if we have it).
+            if len(args) == 0:
+                ValueError("Literal types cannot be empty")
+            else:
+                type_ = type(args[0])
+                for a in args[1:]:
+                    if type(a) is not type_:
+                        break
+                else:
+                    if type_ is str:
+                        return StringValidator(Choices(set(args)))
+                    elif type_ is int:
+                        return IntValidator(Choices(set(args)))
+                    elif type_ is bool:
+                        return BoolValidator(Choices(set(args)))
+                    elif type_ is bytes:
+                        return BytesValidator(Choices(set(args)))
+                    elif type_ is type(None) or type_ is None:  # noqa: E721
+                        return none_validator
 
+            # ok, we have to use a union because we have multiple types
+            # or we haven't defined an explicit validator to use
+            return UnionValidator(*[EqualsValidator(a) for a in args])
         raise TypeError(f"Got unhandled annotation: {repr(annotations)}.")

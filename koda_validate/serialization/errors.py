@@ -117,7 +117,6 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
             return ["expected an array"]
         elif isinstance(vldtr, (DataclassValidator, NamedTupleValidator)):
             return ["expected an object"]
-            # todo
         else:
             compatible_names = sorted([t.__name__ for t in err.compatible_types])
             return [
