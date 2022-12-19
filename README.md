@@ -126,6 +126,50 @@ string_validator("hello world")
 string_validator(5)
 # > Invalid(...)
 ```
+Similar validators exist for common scalars. See IntValidator, FloatValidator, NoneValidator, DecimalValiator, DateValidator,
+DatetimeValidator, and UUIDValidator.
+
+#### Collections
+
+Validators exist for common kinds of collections as well:
+
+```python3
+from koda_validate import *
+
+validator = ListValidator(StringValidator())
+
+validator(["cool"])
+# > Valid(['cool'])
+
+validator([5])
+# > Invalid(...)
+
+```
+
+There are many other collections supported, such as tuples, dictionaries, and sets.
+
+Even though some validators are explicit and others are derived, they can seamlessly be used in combination.
+
+```python
+from typing import TypedDict
+from koda_validate import ListValidator, TypedDictValidator
+
+class (TypedDict):
+    id: str
+    author: str 
+
+books_validator = ListValidator(TypedDictValidator(Book))
+
+print(books_validator([
+  {"title": "Pale Fire",
+   "author": "Vladimir Nabokov"}
+])
+)
+
+```
+
+You 
+
 Note that you can pattern match on validated data on python >= 3.10
 ```python3
 # continued from above
@@ -152,18 +196,6 @@ else:
 Mypy understands `.is_valid` and narrows the `Validated` type to `Valid` or `Invalid` appropriately.
 
 #### Lists
-```python3
-from koda_validate import *
-
-validator = ListValidator(StringValidator())
-
-validator(["cool"])
-# > Valid(['cool'])
-
-validator([5])
-# > Invalid(...)
-
-```
 #### Tuples
 
 
@@ -216,25 +248,6 @@ assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
 )
 
 ```
-
-### Schema-ed Dictionaries  
-```python3
-from koda_validate import *
-
-person_validator = DictValidatorAny({
-    "name": StringValidator(),
-    "age": IntValidator(),
-})
-
-result = person_validator({"name": "John Doe", "age": 30})
-if isinstance(result, Valid):
-    print(f"{result.val['name']} is {result.val['age']} years old")
-else:
-    print(result.val)
-
-# prints: "John Doe is 30 years old"
-```
-Note that `DictValidatorAny` is not typesafe.
 
 Some of what we've seen so far:
 - All validators we've created are simple `Callable`s that return an `Valid` instance when validation succeeds, or an `Invalid` instance when validation fails.
