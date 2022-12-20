@@ -155,6 +155,7 @@ string_validator("hello world")
 string_validator(5)
 # > Invalid(...)
 ```
+<<<<<<< HEAD
 
 Because validators in Koda Validate are composable, we can easily nest Scalar validators within more
 complex validators:
