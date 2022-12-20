@@ -17,11 +17,33 @@ Koda Validate is:
   - [Validators](#validators)
   - [Predicates](#predicates)
   - [Processors](#processors)
-- [Extension](#extension) 
-- [Validation Errors](#validation-errors)
-- [Async Validation](#async-validation)
-- [Using Metadata](#using-metadata)
-- [Tour](#tour)
+  - [Using Metadata](#using-metadata)
+- [Working with Koda Validate]()
+  - [Handing Validation Errors](#validation-errors) 
+  - [Extension](#extension)
+  - [Async Validation](#async-validation)
+- [Validator Reference]()
+  - [Derived Validators]()
+    - [DataclassValidator]()
+    - [NamedTupleValidator]()
+    - [TypedDictValidator]()
+  - [Explicit Validators]()
+    - [Scalars]()
+      - [BoolValidator]()
+      - [BytesValidator]()
+      - [DecimalValidator]()
+      - [IntValidator]()
+      - [StringValidator]()
+    - [Collections]()
+      - [DictValidatorAny]()
+      - [ListValidator]()
+      - [MapValidator]()
+      - [NTupleValidator]()
+      - [RecordValidator]()
+      - [UniformTupleValidator]()
+    - [Unions]()
+      - [UnionValidator]()
+      - [OptionalValidator]()
 - [Comparison to Pydantic](#comparison-to-pydantic)
 
 
@@ -40,6 +62,10 @@ poetry add koda-validate
 ## The Basics
 
 ### Derived Validators
+Koda Validate can derive validators from `TypedDict`s,`dataclass`es, and  
+`NamedTuple`s. Here's an example with a TypeDict. 
+
+
 ```python3
 from typing import TypedDict
 from koda_validate import TypedDictValidator
@@ -54,8 +80,7 @@ person_validator = TypedDictValidator(Person)
 person_validator({"name": "Bob", "hobbies": ["eating", "coding", "sleeping"]})
 # > Valid({'name': 'Bob', 'hobbies': ['eating', 'coding', 'sleeping']})
 ```
-Koda Validate can derive validators from `TypedDict`s (as well as `dataclass`es 
-and `NamedTuples`). It can even derive validations from complex nested types. Here's an
+It can even derive validations from complex nested types. Here's an
 example:
 ```python
 from dataclasses import dataclass
@@ -103,18 +128,22 @@ assert result == Valid(
     }
 )
 ```
-A few things to note:
-- All the types used in the above example are understood by Koda Validate -- even `Literal`s. It can derive validators from most common types in Python.
-- Mypy understands Koda Validate's return types. It interprets result as `Union[Valid[Person], Invalid]` -- in Koda Validate we shorten this to `ValidationResult[Person]`
-- `DataclassValidator[Ingredient]` can validate against a `dict` or an `Ingredient` instance -- in both cases it will return an `Ingredient` dataclass if valid. (NamedTupleValidator behaves similarly)
+
+All the types used in the above example are understood by Koda Validate -- even `Literal`s. It can derive validators from most common types in Python. Mypy, for its part,
+understands Koda Validate's return types -- `Union[Valid[Person], Invalid]` in this case (which can be shortened to `ValidationResult[Person]`). Note that
+`DataclassValidator[Ingredient]` can validate against a `dict` or an `Ingredient` instance -- in both cases it will return an `Ingredient` dataclass 
+if valid (NamedTupleValidator behaves similarly).
 
 Even when validators are derived, Koda Validate allows for customization. See DataclassValidator, TypedDictValidator, NamedTupleValidator for more info. 
 
 ### Explicit Validators
 
-The heart of Koda Validate are a set of explicit `Validator`s which cover a wide range, from simple scalars to complex collections and unions. 
+The heart of Koda Validate is comprised of a set of explicit (as opposed to "derived") `Validator`s. In fact, derived `Validator`s are simply higher-level `Validator`s which compose
+lower-level, explicit validators for their purposes. These validators cover a lot of ground, from simple scalars to complex collections and unions. 
 
-#### Scalars
+Scalar types like `str`, `int`, `float`, `bool`, `None`, and others, all have a dedicated Validator in Koda Validate. 
+For instance, here's a simple usage of `StringValidator`. 
+
 ```python3
 from koda_validate import * 
 
@@ -126,32 +155,9 @@ string_validator("hello world")
 string_validator(5)
 # > Invalid(...)
 ```
-Note that you can pattern match on validated data on python >= 3.10
-```python3
-# continued from above
 
-match string_validator("new string"):
-    case Valid(valid_val):
-        print(f"{valid_val} is valid!")
-    case Invalid(err):
-        print(f"got error: {err}")
-
-# prints: "new string is valid"
-```
-You can also use `.is_valid` on all supported version of Python:
-
-```python3
-# continued from above
-
-if (result := string_validator("another string")).is_valid:
-  print(f"{result.val} is valid!")
-else:
-  print(f"got error: {result.val}")
-# prints: "another string is valid"
-```
-Mypy understands `.is_valid` and narrows the `Validated` type to `Valid` or `Invalid` appropriately.
-
-#### Lists
+Because validators in Koda Validate are composable, we can easily nest Scalar validators within more
+complex validators:
 ```python3
 from koda_validate import *
 
@@ -162,87 +168,16 @@ validator(["cool"])
 
 validator([5])
 # > Invalid(...)
-
 ```
-#### Tuples
+The example here is for `list`s, but there are a wide array of collection validators for things like dictionaries, sets,
+tuples, unions, etc. that you can combine in arbitrary ways.
 
-
-
-#### Sets
-
-
-#### Unions
-
-
-#### Maps
-
-
-#### Record-like Dictionaries
-
-```python3
-from dataclasses import dataclass
-
-from koda_validate import *
-
-
-@dataclass
-class Person:
-  name: str
-  hobbies: list[str]
-
-
-person_validator = RecordValidator(
-  keys=(
-    ("name", StringValidator()),
-    ("hobbies", ListValidator(StringValidator())),
-  ),
-  into=Person
+TODO: example of more complex validation.
+```python
+ListValidator(
+  
 )
-
-print(person_validator({"name": "Bob",
-                        "hobbies": ["eating", "running"]}))
-# > Valid(Person(name='Bob', hobbies=['eating', 'running']))
 ```
-
-### Map-like Dictionaries
-```python3
-from koda_validate import *
-
-str_to_int_validator = MapValidator(key=StringValidator(),
-                                    value=IntValidator())
-
-assert str_to_int_validator({"a": 1, "b": 25, "xyz": 900}) == Valid(
-    {"a": 1, "b": 25, "xyz": 900}
-)
-
-```
-
-### Schema-ed Dictionaries  
-```python3
-from koda_validate import *
-
-person_validator = DictValidatorAny({
-    "name": StringValidator(),
-    "age": IntValidator(),
-})
-
-result = person_validator({"name": "John Doe", "age": 30})
-if isinstance(result, Valid):
-    print(f"{result.val['name']} is {result.val['age']} years old")
-else:
-    print(result.val)
-
-# prints: "John Doe is 30 years old"
-```
-Note that `DictValidatorAny` is not typesafe.
-
-Some of what we've seen so far:
-- All validators we've created are simple `Callable`s that return an `Valid` instance when validation succeeds, or an `Invalid` instance when validation fails.
-- Nesting one validator within another is straightforward
-- We have multiple means of validating dictionaries
-- [RecordValidator](#recordvalidator) requires a separate target for its validated data; more on that [here](#recordvalidator).
-
-It's worth noting that all this code is typesafe (aside from [DictValidatorAny](#dictvalidatorany), which is explicitly not typesafe). No plugins are required for mypy. 
 
 ## Philosophy
 At it's core, Koda Validate is based on a few simple ideas about what validation _is_. This 
@@ -255,25 +190,25 @@ validation can be universally represented by the function signature (pseudocode)
 ```
 InputType -> ValidType | InvalidType
 ```
-In Koda Validate this looks more like: 
+In Koda Validate (and Python) this looks more like: 
 ```python3
-Callable[[InputType], Validated[ValidType, InvalidType]]
+Callable[[Any], Union[Valid[ValidType], Invalid]]
+
+# it's shorter when using the ValidationResult type alias
+Callable[[Any], ValidationResult[ValidType]]
 ``` 
 A quick example:
 
 ```python3
-from koda_validate import IntValidator, Valid, Invalid
+from koda_validate import IntValidator, Valid, Invalid, TypeErr
 
 int_validator = IntValidator()
 
 assert int_validator(5) == Valid(5)
-assert int_validator("not an integer") == Invalid(,
+assert int_validator("not an integer") == Invalid(TypeErr(int), 5, IntValidator())
 ```
-Here, we can tell the type of `int_validator` is something like `Callable[[Any], Validated[int, List[str]]` (it's not exactly 
-that in reality, but it isn't far off.) In this case, the `InputType` is `Any` -- any kind of data can be submitted to validation; if the data is valid it returns `Valid[int]`; and
-if it's invalid it returns `Invalid[List[str]]`. 
 
-This is a useful model to have for validation, because it means we can **combine**
+This is a useful model to have for validation, because it means we can combine
 validators in different ways (i.e. nesting them), and have our model of validation be consistent throughout.
 
 Take a look at [Extension](#extension) to see how to build custom `Validator`s.
@@ -285,7 +220,8 @@ differ from those of its input, it's difficult to do something like apply a list
 even _if_ the types all match up, there's no assurance that the values won't change from one validator to the next. 
 
 The role of a `Predicate` in Koda Validate is to perform additional validation _after_ the data has been verified to be 
-of a specific type or shape. To this end, `Predicate`s in Koda Validate cannot change their input types or values. Let's go further with our `IntValidator`:
+of a specific type or shape(whether through a simple check or through coercion). To this end, `Predicate`s in 
+Koda Validate cannot change their input types or values. Let's go further with our `IntValidator`:
 
 ```python3
 from koda_validate import *
@@ -294,32 +230,37 @@ int_validator = IntValidator(Min(5))
 
 assert int_validator(6) == Valid(6)
 
-assert int_validator(4) == Invalid(,
+assert int_validator(4) == Invalid(PredicateErrs([Min(5)]), 4, IntValidator(Min(5)))
 ```
 In this example `Min(5)` is a `Predicate`. As you can see the value 4
-passes the `int` check but fails to pass the `Min(5)` predicate.
+passes the `int` type check but fails to pass the `Min(5)` predicate.
 
 Because we know that predicates don't change the type or value of their inputs, we can 
 sequence an arbitrary number of them together, and validate them all.
 
 ```python3
 from koda_validate import *
+from koda_validate import PredicateErrs
 
 int_validator = IntValidator(Min(5), Max(20), MultipleOf(4))
 
 assert int_validator(12) == Valid(12)
 
-assert int_validator(23) == Invalid(,
+assert int_validator(23) == Invalid(
+    PredicateErrs([Max(20), MultipleOf(4)]), 23, int_validator
+)
+
 ```
-Here we have 3 `Predicate`s, but we could easily have dozens. Note that the errors from all invalid
-predicates are returned. This is possible because we know that the value should be consistent from one predicate to the next.
+Here we have 3 `Predicate`s, but we could easily have dozens. Note that Predicates for which the 
+value is invalid are returned within a `PredicateErrs` instance. We are only able to return all the 
+failing `Predicate`s because we know that the value will be consistent from one predicate to the next.
 
 `Predicate`s are easy to write -- take a look at [Extension](#extension) for more details.
 
 
 ### Processors
-`Processor`s allow us to take a value of a given type and transform it into another value of that type. Processors are most useful
-_after_ type validation, but _before_ predicates are checked. Here's an example:
+`Processor`s allow us to take a value of a given type and transform it into another value of that type. `Processor`s are most useful
+_after_ type validation, but _before_ predicates are checked. They tend to be more useful on strings than any other type: 
 ```python3
 from koda_validate import *
 
@@ -344,15 +285,17 @@ need to be limited to new functionality; it can also be writing alternatives to 
 
 ```python3
 from typing import Any
+
 from koda_validate import *
+from koda_validate import TypeErr, ValidationResult
 
 
 class SimpleFloatValidator(Validator[float]):
-    def __call__(self, val: Any) -> ValidationResult[float, Serializable]:
+    def __call__(self, val: Any) -> ValidationResult[float]:
         if isinstance(val, float):
             return Valid(val)
         else:
-            return Invalid(,
+            return Invalid(TypeErr(float), val, self)
 
 
 float_validator = SimpleFloatValidator()
@@ -361,20 +304,15 @@ test_val = 5.5
 
 assert float_validator(test_val) == Valid(test_val)
 
-assert float_validator(5) == Invalid(,
+assert float_validator(5) == Invalid(TypeErr(float), 5, float_validator)
+
 ```
 
 What is this doing? 
-- extending `Validator`, using the following types:
-  - `Any`: any type of input can be passed in to be validated
-  - `float`: if the data is valid, a value of type `Valid[float]` will be returned 
-  - `Serializable`: if it's invalid, a value of type `Invalid[Serializable]` will be returned
-  - note that mypy understands the role of all of these types 
-- the `__call__` method performs any kind of validation needed, so long as the input and output type signatures -- as determined by the `Validator` type parameters - are abided
-
-We accept `Any` because the type of input may be unknown before submitting to the `Validator`. After our 
-validation in `SimpleFloatValidator` succeeds, we know the type must be `float`. (Note that we could have coerced the value
-to a `float` instead of checking its type -- that is 100% OK to do. For simplicity's sake, this validator does not coerce.)
+- extending `Validator`, where a value of type `Valid[float]` will be returned if valid 
+- implementing the `__call__` method where (synchronous) validation is expected to be performed
+- __call__ accepts `Any` because the type of input may be unknown before submitting to the `Validator`. (After our 
+validation in `SimpleFloatValidator` succeeds, we know the type must be `float`) 
 
 This is all well and good, but we'll probably want to be able to validate against values of the floats, such as min, 
 max, or rough equality checks. For this we use `Predicate`s. For example, if we wanted to allow a single `Predicate` in 
