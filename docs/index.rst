@@ -71,7 +71,11 @@ validators are derived, Koda Validate allows for user overrides to customize beh
    :maxdepth: 3
    :caption: Philosophy
 
-   philosophy
+   validators
+   predicates
+   processors
+   extension
+   metadata
 
 
 Indices and tables
