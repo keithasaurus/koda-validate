@@ -1,13 +1,13 @@
 Predicates
 ----------
 In the world of validation, predicates are simple expressions that return a ``True`` or ``False`` for a given condition. Koda Validate uses a
-class based on this concept, ``Predicate``, to *enrich* ``Validator``s. Because the type and value of a ``Validator``\'s valid state may
+class based on this concept, ``Predicate``, to *enrich* ``Validator``\s. Because the type and value of a ``Validator``\'s valid state may
 differ from those of its input, it's difficult to do something like apply a list of ``Validator``\s to a given value:
 even *if* the types all match up, there's no assurance that the values won't change from one validator to the next.
 
 The role of a ``Predicate`` in Koda Validate is to perform additional validation *after* the data has been verified to be
 of a specific type or shape(whether through a simple check or through coercion). To this end, ``Predicate``\s in
-Koda Validate cannot change their input types or values. Let's go further with our ``IntValidator``:
+Koda Validate cannot change their input types or values. Let's go further with our ``IntValidator``\:
 
 .. code-block:: python
 
