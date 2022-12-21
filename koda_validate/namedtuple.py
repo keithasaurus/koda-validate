@@ -1,4 +1,5 @@
 import inspect
+import sys
 from typing import (
     Any,
     Awaitable,
@@ -64,7 +65,10 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         self._disallow_synchronous = bool(validate_object_async)
 
         overrides = self.overrides or {}
-        type_hints = get_type_hints(self.named_tuple_cls)
+        if sys.version_info >= (3, 9):
+            type_hints = get_type_hints(self.named_tuple_cls, include_extras=True)
+        else:
+            type_hints = get_type_hints(self.named_tuple_cls)
 
         keys_with_defaults: Set[str] = {
             k

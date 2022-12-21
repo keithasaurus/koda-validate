@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import (
+    Annotated,
     Any,
     Dict,
     Hashable,
@@ -62,7 +63,7 @@ from koda_validate.dictionary import (
     RecordValidator,
     is_dict_validator,
 )
-from koda_validate.errors import ErrType, KeyValErrs, missing_key_err
+from koda_validate.errors import ErrType, KeyValErrs, PredicateErrs, missing_key_err
 from koda_validate.generic import AlwaysValid
 from koda_validate.maybe import MaybeValidator
 from koda_validate.namedtuple import NamedTupleValidator
@@ -760,4 +761,74 @@ def test_complex_typeddict() -> None:
             "coach": Person("coachy coach"),
             "players": [Player("mr. fast", "fw"), Player(Person("mr. pass pass"), "mf")],
         }
+    )
+
+
+def test_dataclass_can_handle_annotated() -> None:
+    @dataclass
+    class EmailSubscription:
+        email: Annotated[str, StringValidator(MaxLength(20))]
+
+    validator = DataclassValidator(EmailSubscription)
+
+    assert validator.schema["email"] == StringValidator(MaxLength(20))
+    assert validator({"email": "a@b.com"}) == Valid(EmailSubscription("a@b.com"))
+    assert validator({"email": "x" * 21}) == Invalid(
+        KeyErrs(
+            {
+                "email": Invalid(
+                    PredicateErrs([MaxLength(20)]),
+                    "x" * 21,
+                    StringValidator(MaxLength(20)),
+                )
+            }
+        ),
+        {"email": "x" * 21},
+        validator,
+    )
+
+
+def test_namedtuple_can_handle_annotated() -> None:
+    class EmailSubscription(NamedTuple):
+        email: Annotated[str, StringValidator(MaxLength(20))]
+
+    validator = NamedTupleValidator(EmailSubscription)
+
+    assert validator.schema["email"] == StringValidator(MaxLength(20))
+    assert validator({"email": "a@b.com"}) == Valid(EmailSubscription("a@b.com"))
+    assert validator({"email": "x" * 21}) == Invalid(
+        KeyErrs(
+            {
+                "email": Invalid(
+                    PredicateErrs([MaxLength(20)]),
+                    "x" * 21,
+                    StringValidator(MaxLength(20)),
+                )
+            }
+        ),
+        {"email": "x" * 21},
+        validator,
+    )
+
+
+def test_typeddict_can_handle_annotated() -> None:
+    class EmailSubscription(TypedDict):
+        email: Annotated[str, StringValidator(MaxLength(20))]
+
+    validator = TypedDictValidator(EmailSubscription)
+
+    assert validator.schema["email"] == StringValidator(MaxLength(20))
+    assert validator({"email": "ok"}) == Valid({"email": "ok"})
+    assert validator({"email": "x" * 21}) == Invalid(
+        KeyErrs(
+            {
+                "email": Invalid(
+                    PredicateErrs([MaxLength(20)]),
+                    "x" * 21,
+                    StringValidator(MaxLength(20)),
+                )
+            }
+        ),
+        {"email": "x" * 21},
+        validator,
     )

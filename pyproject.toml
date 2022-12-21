@@ -14,7 +14,7 @@ koda = "1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "7.2.0"
-pyright = "1.1.284"
+pyright = "1.1.285"
 pytest-cov = "4.0.0"
 isort = "5.10.1"
 flake8 = "5.0.4"
@@ -27,7 +27,7 @@ ssort = "0.11.6"
 jsonschema = "4.17.3"
 types-jsonschema = "4.17.0.2"
 sphinx = "5.3.0"
-furo = "^2022.12.7"
+furo = "2022.12.7"
 
 [tool.mypy]
 exclude = ["build", "bench"]

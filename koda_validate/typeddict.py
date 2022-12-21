@@ -71,13 +71,12 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         self._disallow_synchronous = bool(validate_object_async)
 
-        type_hints = get_type_hints(self.td_cls)
-
         if sys.version_info >= (3, 9):
             # Required/NotRequired keys are always present in
             self.required_keys: FrozenSet[str] = getattr(
                 td_cls, "__required_keys__", frozenset()
             )
+            type_hints = get_type_hints(self.td_cls, include_extras=True)
         else:
             # not going to try to handle superclasses
             self.required_keys = (
@@ -85,6 +84,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                 if getattr(td_cls, "__total__", True)
                 else frozenset()
             )
+            type_hints = get_type_hints(self.td_cls)
 
         overrides = self.overrides or {}
         self.schema = {

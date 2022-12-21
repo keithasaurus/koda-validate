@@ -80,6 +80,12 @@ validators are derived, Koda Validate allows for user overrides to customize beh
    philosophy/async
 
 
+.. toctree::
+   :maxdepth: 3
+   :caption: Working with Koda Validate
+
+   working_with/api
+
 Indices and tables
 ==================
 

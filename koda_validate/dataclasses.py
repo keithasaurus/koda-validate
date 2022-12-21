@@ -1,4 +1,5 @@
 import inspect
+import sys
 from dataclasses import is_dataclass
 from typing import (
     Any,
@@ -70,13 +71,16 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         self._disallow_synchronous = bool(validate_object_async)
 
-        type_hints = get_type_hints(self.data_cls)
-
         keys_with_defaults: Set[str] = {
             k
             for k, v in inspect.signature(self.data_cls).parameters.items()
             if v.default != inspect.Parameter.empty
         }
+
+        if sys.version_info >= (3, 9):
+            type_hints = get_type_hints(self.data_cls, include_extras=True)
+        else:
+            type_hints = get_type_hints(self.data_cls)
 
         overrides = self.overrides or {}
         self.schema = {

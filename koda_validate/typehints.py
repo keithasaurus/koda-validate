@@ -11,6 +11,7 @@ if sys.version_info >= (3, 10):
     from types import UnionType
 
 from typing import (
+    Annotated,
     Any,
     Callable,
     Dict,
@@ -124,8 +125,15 @@ def get_typehint_validator_base(
                     fields=tuple(get_hint_next_depth(a) for a in args)
                 )
         # not validating with annotations at this point
-        # if sys.version_info >= (3, 9) and origin is Annotated:
-        #     return get_typehint_validator(args[0])
+        if sys.version_info >= (3, 9) and origin is Annotated:
+            if len(args) == 1:
+                return get_typehint_validator(args[0])
+            else:
+                # only return the first annotation validator
+                for x in args:
+                    if isinstance(x, Validator):
+                        return x
+
         if origin is Literal:
             # The common case is that literals will be of the same type. For those
             # cases, we return the relevant type validator (if we have it).
