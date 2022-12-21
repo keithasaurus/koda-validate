@@ -7,11 +7,13 @@ from koda import Just, Nothing
 
 from .maybe import MaybeValidator
 
+if sys.version_info >= (3, 9):
+    from typing import Annotated
+
 if sys.version_info >= (3, 10):
     from types import UnionType
 
 from typing import (
-    Annotated,
     Any,
     Callable,
     Dict,
