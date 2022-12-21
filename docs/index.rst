@@ -77,6 +77,7 @@ validators are derived, Koda Validate allows for user overrides to customize beh
    philosophy/processors
    philosophy/extension
    philosophy/metadata
+   philosophy/async
 
 
 Indices and tables
