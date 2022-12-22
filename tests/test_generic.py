@@ -18,6 +18,7 @@ from koda_validate.generic import (
     AlwaysValid,
     EqualTo,
     ExactItemCount,
+    ExactLength,
     MaxItems,
     MinItems,
     always_valid,
@@ -149,6 +150,11 @@ def test_max_items() -> None:
     assert MaxItems(5)([1, 2, 3]) is True
 
     assert MaxItems(5)(["a", "b", "c", "d", "e", "fghij"]) is False
+
+
+def test_exact_length() -> None:
+    assert ExactLength(2)("ok") is True
+    assert ExactLength(10)("nok") is False
 
 
 def test_min_items() -> None:
