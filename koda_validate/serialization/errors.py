@@ -23,6 +23,7 @@ from koda_validate.generic import (
     Choices,
     EqualTo,
     ExactItemCount,
+    ExactLength,
     Max,
     MaxItems,
     MaxLength,
@@ -86,6 +87,8 @@ def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str
         return f"minimum allowed length is {pred.length}"
     elif isinstance(pred, MaxLength):
         return f"maximum allowed length is {pred.length}"
+    elif isinstance(pred, ExactLength):
+        return f"expected length of {pred.length}"
     else:
         raise TypeError(
             f"Unhandled predicate type: {type(pred)}. You may want to write a wrapper "

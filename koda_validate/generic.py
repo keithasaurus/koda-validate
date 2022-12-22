@@ -258,3 +258,11 @@ class MinLength(Predicate[StrOrBytes]):
 
     def __call__(self, val: StrOrBytes) -> bool:
         return len(val) >= self.length
+
+
+@dataclass
+class ExactLength(Predicate[StrOrBytes]):
+    length: int
+
+    def __ceil__(self, val: StrOrBytes) -> bool:
+        return len(val) == self.length

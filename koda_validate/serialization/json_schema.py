@@ -24,6 +24,7 @@ from koda_validate.generic import (
     Choices,
     EqualsValidator,
     EqualTo,
+    ExactLength,
     Lazy,
     Max,
     MaxItems,
@@ -303,6 +304,8 @@ def generate_schema_predicate(
         return {"maxLength": validator.length}
     elif isinstance(validator, MinLength):
         return {"minLength": validator.length}
+    elif isinstance(validator, ExactLength):
+        return {"minLength": validator.length, "maxLength": validator.length}
     elif isinstance(validator, Choices):
         return {"enum": (list(sorted(validator.choices)))}
     elif isinstance(validator, NotBlank):
@@ -485,7 +488,7 @@ def generate_named_schema_base(
             if obj.recurrent:
                 return {"$ref": f"{ref_location}{schema_name}"}
             else:
-                # cannot_proceed_from_here since the validator is a thunka
+                # cannot_proceed_from_here since the validator is a thunk
                 return {}
         else:
             return generate_schema_validator(to_schema_fn, obj)

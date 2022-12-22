@@ -54,6 +54,7 @@ from koda_validate.dictionary import (
     RecordValidator,
     is_dict_validator,
 )
+from koda_validate.generic import ExactLength
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.serialization.json_schema import generate_named_schema, generate_schema
 from koda_validate.string import (
@@ -121,7 +122,7 @@ def test_person() -> None:
         name: str
         email: str
         occupation: str
-        country_code: str
+        state_code: str
         honorifics: List[str]
 
     person_validator = RecordValidator(
@@ -132,7 +133,7 @@ def test_person() -> None:
                 "occupation",
                 StringValidator(Choices({"teacher", "engineer", "musician", "cook"})),
             ),
-            ("country_code", StringValidator(MinLength(2), MaxLength(3))),
+            ("state_code", StringValidator(ExactLength(2))),
             (
                 "honorifics",
                 ListValidator(
@@ -147,7 +148,7 @@ def test_person() -> None:
     schema = {
         "type": "object",
         "additionalProperties": True,
-        "required": ["name", "email", "occupation", "country_code", "honorifics"],
+        "required": ["name", "email", "occupation", "state_code", "honorifics"],
         "properties": {
             "name": {"type": "string", "pattern": r"^(?!\s*$).+"},
             "email": {"type": "string", "format": "email", "maxLength": 50},
@@ -155,7 +156,7 @@ def test_person() -> None:
                 "type": "string",
                 "enum": ["cook", "engineer", "musician", "teacher"],
             },
-            "country_code": {"type": "string", "minLength": 2, "maxLength": 3},
+            "state_code": {"type": "string", "minLength": 2, "maxLength": 2},
             "honorifics": {
                 "uniqueItems": True,
                 "type": "array",
@@ -174,7 +175,7 @@ def test_person() -> None:
         name: str
         email: str
         occupation: str
-        country_code: str
+        state_code: str
         honorifics: Tuple[str, ...]
 
     person_validator_tuple = RecordValidator(
@@ -185,7 +186,7 @@ def test_person() -> None:
                 "occupation",
                 StringValidator(Choices({"teacher", "engineer", "musician", "cook"})),
             ),
-            ("country_code", StringValidator(MinLength(2), MaxLength(3))),
+            ("state_code", StringValidator(ExactLength(2))),
             (
                 "honorifics",
                 UniformTupleValidator(

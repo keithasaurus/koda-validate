@@ -38,6 +38,7 @@ from koda_validate.generic import (
     Choices,
     EqualTo,
     ExactItemCount,
+    ExactLength,
     Max,
     MaxItems,
     Min,
@@ -262,6 +263,7 @@ def test_pred_to_err_message() -> None:
         (EmailPredicate(), "expected a valid email address"),
         (MinLength(3), "minimum allowed length is 3"),
         (MaxLength(5), "maximum allowed length is 5"),
+        (ExactLength(5), "expected length of 5"),
         (RegexPredicate(re.compile(r".+")), r"must match pattern .+"),
     ]
     for pred, expected_str in pred_list:
