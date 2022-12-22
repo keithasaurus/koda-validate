@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 class ContactForm(TypedDict):
     email: Annotated[str, StringValidator(EmailPredicate())]
-    message: Annotated[str, StringValidator(MaxLength(500), MinLength(10))]
+    message: str
 
 
 contact_validator = TypedDictValidator(ContactForm)

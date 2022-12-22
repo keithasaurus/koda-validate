@@ -14,13 +14,13 @@ def test_request_example_empty() -> None:
 def test_request_example_bad_vals() -> None:
     response = app.test_client().post(
         "/contact",
-        data=json.dumps({"email": "invalidemail", "message": "short"}),
+        data=json.dumps({"email": "invalidemail", "message": 5}),
         content_type="application/json",
     )
     assert response.status_code == 400
     assert response.json == {
         "email": ["expected a valid email address"],
-        "message": ["minimum allowed length is 10"],
+        "message": ["expected a string"],
     }
 
 
