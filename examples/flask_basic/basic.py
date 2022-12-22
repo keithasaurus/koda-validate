@@ -23,10 +23,14 @@ def errs_to_response_value(val: Invalid) -> ResponseValue:
 
 @app.route("/contact", methods=["POST"])
 def users_api() -> Tuple[ResponseValue, int]:
-    result = TypedDictValidator(ContactForm)(request.json)
+    result = TypedDictValidator(ContactForm, fail_on_unknown_keys=True)(request.json)
     match result:
         case Valid(contact_form):
             print(contact_form)
             return {"success": True}, 200
         case Invalid() as inv:
             return errs_to_response_value(inv), 400
+
+
+if __name__ == "__main__":
+    app.run()

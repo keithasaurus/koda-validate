@@ -98,6 +98,9 @@ TYPE_DESCRIPTION_LOOKUP: Dict[Type[Any], str] = {
     int: "integer",
     Decimal: "decimal",
     bool: "boolean",
+    dict: "object",
+    list: "array",
+    tuple: "array",
 }
 
 
@@ -126,14 +129,13 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
     elif isinstance(err, BasicErr):
         return [err.err_message]
     elif isinstance(err, ExtraKeysErr):
-        err_message = "Received unknown keys. " + (
-            "Expected an empty object."
+        err_message = (
+            "expected an empty object"
             if len(err.expected_keys) == 0
-            else "Only expected "
+            else "only expected "
             + ", ".join(sorted([repr(k) for k in err.expected_keys]))
-            + "."
         )
-        return [err_message]
+        return {"__unknown_keys__": err_message}
     elif isinstance(err, TypeErr):
         type_desc = TYPE_DESCRIPTION_LOOKUP.get(
             err.expected_type, err.expected_type.__name__

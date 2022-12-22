@@ -25,6 +25,7 @@ from koda_validate import (
     PredicateErrs,
     SetErrs,
     TypeErr,
+    UniformTupleValidator,
     UnionErrs,
     UUIDValidator,
 )
@@ -57,10 +58,28 @@ from koda_validate.string import (
 from koda_validate.union import UnionValidator
 
 
-def test_type_err_users_message_in_list() -> None:
+def test_type_err_str() -> None:
     assert to_serializable_errs(Invalid(TypeErr(str), 5, StringValidator())) == [
         "expected a string"
     ]
+
+
+def test_type_err_dict() -> None:
+    assert to_serializable_errs(Invalid(TypeErr(dict), 5, DictValidatorAny({}))) == [
+        "expected an object"
+    ]
+
+
+def test_type_err_list() -> None:
+    assert to_serializable_errs(
+        Invalid(TypeErr(list), 5, ListValidator(StringValidator()))
+    ) == ["expected an array"]
+
+
+def test_type_err_tuple() -> None:
+    assert to_serializable_errs(
+        Invalid(TypeErr(tuple), 5, UniformTupleValidator(StringValidator()))
+    ) == ["expected an array"]
 
 
 def test_predicate_returns_err_in_list() -> None:
@@ -142,11 +161,10 @@ def test_extra_keys() -> None:
     invalid_keys = Invalid(ExtraKeysErr({"a", "b", "cde"}), {}, DictValidatorAny({}))
     error_detail = invalid_keys.err_type
     assert isinstance(error_detail, ExtraKeysErr)
-    assert to_serializable_errs(invalid_keys) == [
-        "Received unknown keys. Only expected "
+    assert to_serializable_errs(invalid_keys) == {
+        "__unknown_keys__": "only expected "
         + ", ".join(sorted([repr(k) for k in error_detail.expected_keys]))
-        + "."
-    ]
+    }
 
 
 def test_map_err() -> None:
