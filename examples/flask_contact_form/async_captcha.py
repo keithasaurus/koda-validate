@@ -14,28 +14,34 @@ class Captcha(TypedDict):
     response: Annotated[str, StringValidator(MaxLength(16))]
 
 
-class ContactForm(TypedDict):
-    email: Annotated[str, StringValidator(EmailPredicate())]
-    message: Annotated[str, StringValidator(MaxLength(500), MinLength(10))]
-    captcha: Captcha
-
-
-async def validate_captcha(form: ContactForm) -> Optional[ErrType]:
+async def validate_captcha(captcha: Captcha) -> Optional[ErrType]:
+    """
+    after we validate that the seed and response both conform to the types/shapes we want,
+    we need to check our database to make sure the response is correct
+    """
     await asyncio.sleep(0.01)  # pretend to ask db
-    if form["captcha"]["seed"] != form["captcha"]["response"][::-1]:
-        return SerializableErr({"captcha": {"response": "bad captcha response"}})
+    if captcha["seed"] != captcha["response"][::-1]:
+        return SerializableErr({"response": "bad captcha response"})
     else:
         return None
 
 
-contact_validator = TypedDictValidator(
-    ContactForm, validate_object_async=validate_captcha
-)
+class ContactForm(TypedDict):
+    email: Annotated[str, StringValidator(EmailPredicate())]
+    message: Annotated[str, StringValidator(MaxLength(500), MinLength(10))]
+    # we only need to explicitly define the TypedDictValidator here because we want
+    # to include additional validation in validate_captcha
+    captcha: Annotated[
+        Captcha, TypedDictValidator(Captcha, validate_object_async=validate_captcha)
+    ]
+
+
+contact_validator = TypedDictValidator(ContactForm)
 
 
 def errs_to_response_value(val: Invalid) -> ResponseValue:
     """
-    Serializable and Response should be compatible, but mypy doesn't understand that
+    Serializable and Response should be compatible, but mypy doesn't understand that --
     just making that explicit here.
     """
     return cast(ResponseValue, to_serializable_errs(val))

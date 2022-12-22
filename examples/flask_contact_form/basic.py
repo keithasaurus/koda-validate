@@ -18,7 +18,7 @@ contact_validator = TypedDictValidator(ContactForm)
 
 def errs_to_response_value(val: Invalid) -> ResponseValue:
     """
-    Serializable and Response should be compatible, but mypy doesn't understand that
+    Serializable and Response should be compatible, but mypy doesn't understand that --
     just making that explicit here.
     """
     return cast(ResponseValue, to_serializable_errs(val))
