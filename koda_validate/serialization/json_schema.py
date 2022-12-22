@@ -485,7 +485,8 @@ def generate_named_schema_base(
             if obj.recurrent:
                 return {"$ref": f"{ref_location}{schema_name}"}
             else:
-                return to_schema_fn(obj.validator)
+                # cannot_proceed_from_here since the validator is a thunka
+                return {}
         else:
             return generate_schema_validator(to_schema_fn, obj)
     elif isinstance(obj, (Predicate, PredicateAsync)):
