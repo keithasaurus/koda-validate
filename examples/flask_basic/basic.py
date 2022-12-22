@@ -13,6 +13,9 @@ class ContactForm(TypedDict):
     message: Annotated[str, StringValidator(MaxLength(500), MinLength(10))]
 
 
+contact_validator = TypedDictValidator(ContactForm)
+
+
 def errs_to_response_value(val: Invalid) -> ResponseValue:
     """
     Serializable and Response should be compatible, but mypy doesn't understand that
@@ -22,8 +25,8 @@ def errs_to_response_value(val: Invalid) -> ResponseValue:
 
 
 @app.route("/contact", methods=["POST"])
-def users_api() -> Tuple[ResponseValue, int]:
-    result = TypedDictValidator(ContactForm, fail_on_unknown_keys=True)(request.json)
+def contact_api() -> Tuple[ResponseValue, int]:
+    result = contact_validator(request.json)
     match result:
         case Valid(contact_form):
             print(contact_form)
