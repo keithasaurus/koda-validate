@@ -5,7 +5,6 @@ from typing import Any, Optional, Tuple
 import pytest
 
 from koda_validate import (
-    BasicErr,
     BoolValidator,
     CoercionErr,
     ExactItemCount,
@@ -21,6 +20,7 @@ from koda_validate import (
     MinLength,
     NTupleValidator,
     PredicateErrs,
+    SerializableErr,
     StringValidator,
     TypeErr,
     UniformTupleValidator,
@@ -64,7 +64,7 @@ def test_tuple3() -> None:
             if abc[0] == "a":
                 return None
             else:
-                return BasicErr("must be a if int is 1 and bool is True")
+                return SerializableErr("must be a if int is 1 and bool is True")
         else:
             return None
 
@@ -75,7 +75,9 @@ def test_tuple3() -> None:
 
     assert a1_validator(["a", 1, True]) == Valid(("a", 1, True))
     assert a1_validator(["b", 1, True]) == Invalid(
-        BasicErr("must be a if int is 1 and bool is True"), ("b", 1, True), a1_validator
+        SerializableErr("must be a if int is 1 and bool is True"),
+        ("b", 1, True),
+        a1_validator,
     )
     assert a1_validator(["b", 2, False]) == Valid(("b", 2, False))
 
@@ -121,7 +123,7 @@ async def test_tuple3_async() -> None:
             if abc[0] == "a":
                 return None
             else:
-                return BasicErr("must be a if int is 1 and bool is True")
+                return SerializableErr("must be a if int is 1 and bool is True")
         else:
             return None
 
@@ -132,7 +134,9 @@ async def test_tuple3_async() -> None:
 
     assert await a1_validator.validate_async(["a", 1, True]) == Valid(("a", 1, True))
     assert await a1_validator.validate_async(["b", 1, True]) == Invalid(
-        BasicErr("must be a if int is 1 and bool is True"), ("b", 1, True), a1_validator
+        SerializableErr("must be a if int is 1 and bool is True"),
+        ("b", 1, True),
+        a1_validator,
     )
     assert await a1_validator.validate_async(["b", 2, False]) == Valid(("b", 2, False))
 

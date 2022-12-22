@@ -2,8 +2,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 from koda_validate import *
-from koda_validate import BasicErr
-from koda_validate.errors import ErrType
 
 
 @dataclass
@@ -17,7 +15,7 @@ def no_dwight_regional_manager(employee: Employee) -> Optional[ErrType]:
         "schrute" in employee.name.lower()
         and employee.title.lower() == "assistant regional manager"
     ):
-        return BasicErr("Assistant TO THE Regional Manager!")
+        return SerializableErr("Assistant TO THE Regional Manager!")
     else:
         return None
 
@@ -40,7 +38,7 @@ assert employee_validator(
         "name": "Dwight Schrute",
     }
 ) == Invalid(
-    BasicErr("Assistant TO THE Regional Manager!"),
+    SerializableErr("Assistant TO THE Regional Manager!"),
     Employee(
         "Assistant Regional Manager",
         "Dwight Schrute",

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, List, Tuple, Type, Union
 
@@ -6,7 +7,6 @@ from koda_validate.dataclasses import DataclassValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import MaxKeys, MinKeys
 from koda_validate.errors import (
-    BasicErr,
     CoercionErr,
     ContainerErr,
     ExtraKeysErr,
@@ -18,6 +18,7 @@ from koda_validate.errors import (
     SetErrs,
     TypeErr,
     UnionErrs,
+    ValidationErrBase,
 )
 from koda_validate.generic import (
     Choices,
@@ -50,6 +51,16 @@ Serializable = Union[
     Tuple["Serializable", ...],
     Dict[str, "Serializable"],
 ]
+
+
+@dataclass
+class SerializableErr(ValidationErrBase):
+    """
+    This is for the case where you may simply want to produce a human-readable
+    message.
+    """
+
+    obj: Serializable
 
 
 def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str:
@@ -129,8 +140,8 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
                 f"could not coerce to {err.dest_type.__name__} "
                 f"(compatible with {', '.join(compatible_names)})"
             ]
-    elif isinstance(err, BasicErr):
-        return [err.err_message]
+    elif isinstance(err, SerializableErr):
+        return err.obj
     elif isinstance(err, ExtraKeysErr):
         err_message = (
             "expected an empty object"

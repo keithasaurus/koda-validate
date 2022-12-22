@@ -7,6 +7,17 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "asgiref"
+version = "3.6.0"
+description = "ASGI specs, helper code, and adapters"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+tests = ["mypy (>=0.800)", "pytest", "pytest-asyncio"]
+
+[[package]]
 name = "attrs"
 version = "22.2.0"
 description = "Classes Without Boilerplate"
@@ -168,6 +179,7 @@ optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
+asgiref = {version = ">=3.2", optional = true, markers = "extra == \"async\""}
 click = ">=8.0"
 importlib-metadata = {version = ">=3.6.0", markers = "python_version < \"3.10\""}
 itsdangerous = ">=2.0"
@@ -842,12 +854,16 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "b5f6bd2fef3093144d022e997b05a94aa57209700ba2880bf62a804f31d88eaa"
+content-hash = "83c124d54ba13274941eef92279e1deb15fbba8c2fd7e8aa411bac8030db2d0c"
 
 [metadata.files]
 alabaster = [
     {file = "alabaster-0.7.12-py2.py3-none-any.whl", hash = "sha256:446438bdcca0e05bd45ea2de1668c1d9b032e1a9154c2c259092d77031ddd359"},
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
+]
+asgiref = [
+    {file = "asgiref-3.6.0-py3-none-any.whl", hash = "sha256:71e68008da809b957b7ee4b43dbccff33d1b23519fb8344e33f049897077afac"},
+    {file = "asgiref-3.6.0.tar.gz", hash = "sha256:9567dfe7bd8d3c8c892227827c41cce860b368104c3431da67a0c5a65a949506"},
 ]
 attrs = [
     {file = "attrs-22.2.0-py3-none-any.whl", hash = "sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836"},

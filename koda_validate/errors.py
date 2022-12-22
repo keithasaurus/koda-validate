@@ -137,16 +137,6 @@ class PredicateErrs(Generic[A]):
     predicates: List[Union["Predicate[A]", "PredicateAsync[A]"]]
 
 
-@dataclass
-class BasicErr:
-    """
-    This is for the case where you may simply want to produce a human-readable
-    message.
-    """
-
-    err_message: str
-
-
 class ValidationErrBase:
     """
     This class exists only to provide a class to subclass
@@ -166,7 +156,6 @@ class TypeErr:
 
 
 ErrType = Union[
-    BasicErr,
     CoercionErr,
     ContainerErr,
     ExtraKeysErr,

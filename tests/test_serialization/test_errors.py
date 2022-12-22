@@ -6,7 +6,6 @@ from typing import Any, List, NamedTuple, Tuple, Union
 from koda import Just
 
 from koda_validate import (
-    BasicErr,
     CoercionErr,
     DataclassValidator,
     DatetimeValidator,
@@ -23,6 +22,7 @@ from koda_validate import (
     NamedTupleValidator,
     NTupleValidator,
     PredicateErrs,
+    SerializableErr,
     SetErrs,
     TypeErr,
     UniformTupleValidator,
@@ -153,9 +153,10 @@ def test_invalid_dict() -> None:
 
 
 def test_invalid_custom() -> None:
-    assert to_serializable_errs(Invalid(BasicErr("abc"), "123", StringValidator())) == [
-        "abc"
-    ]
+    assert (
+        to_serializable_errs(Invalid(SerializableErr("abc"), "123", StringValidator()))
+        == "abc"
+    )
 
 
 def test_extra_keys() -> None:

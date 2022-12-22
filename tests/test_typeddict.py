@@ -7,7 +7,6 @@ from uuid import UUID, uuid4
 import pytest
 
 from koda_validate import (
-    BasicErr,
     CoercionErr,
     ExtraKeysErr,
     IndexErrs,
@@ -17,6 +16,7 @@ from koda_validate import (
     ListValidator,
     MaxLength,
     PredicateErrs,
+    SerializableErr,
     StringValidator,
     TypeErr,
     Valid,
@@ -234,13 +234,13 @@ def test_validate_object_works() -> None:
 
     def first_name_last_name_are_different(obj: A) -> Optional[ErrType]:
         if obj["first_name"] == obj["last_name"]:
-            return BasicErr("first name cannot be last name")
+            return SerializableErr("first name cannot be last name")
         return None
 
     v1 = TypedDictValidator(A, validate_object=first_name_last_name_are_different)
     test_dict_same = {"first_name": "same", "last_name": "same"}
     assert v1(test_dict_same) == Invalid(
-        BasicErr("first name cannot be last name"),
+        SerializableErr("first name cannot be last name"),
         A(first_name="same", last_name="same"),
         v1,
     )
@@ -252,7 +252,7 @@ def test_validate_object_works() -> None:
     # should also work with typeddictes
     test_dc_same = A(first_name="same", last_name="same")
     assert v1(test_dc_same) == Invalid(
-        BasicErr("first name cannot be last name"), test_dc_same, v1
+        SerializableErr("first name cannot be last name"), test_dc_same, v1
     )
 
     test_dc_different = A(first_name="different", last_name="names")
@@ -268,13 +268,13 @@ async def test_validate_object_works_async() -> None:
 
     def first_name_last_name_are_different(obj: A) -> Optional[ErrType]:
         if obj["first_name"] == obj["last_name"]:
-            return BasicErr("first name cannot be last name")
+            return SerializableErr("first name cannot be last name")
         return None
 
     v1 = TypedDictValidator(A, validate_object=first_name_last_name_are_different)
     test_dict_same = {"first_name": "same", "last_name": "same"}
     assert await v1.validate_async(test_dict_same) == Invalid(
-        BasicErr("first name cannot be last name"),
+        SerializableErr("first name cannot be last name"),
         A(first_name="same", last_name="same"),
         v1,
     )
@@ -286,7 +286,7 @@ async def test_validate_object_works_async() -> None:
     # should also work with typeddictes
     test_dc_same = A(first_name="same", last_name="same")
     assert await v1.validate_async(test_dc_same) == Invalid(
-        BasicErr("first name cannot be last name"), test_dc_same, v1
+        SerializableErr("first name cannot be last name"), test_dc_same, v1
     )
 
     test_dc_different = A(first_name="different", last_name="names")
@@ -509,7 +509,7 @@ def test_raises_if_validate_object_and_validate_object_async() -> None:
         person: Person,
     ) -> Optional[ErrType]:
         if person["name"].lower() == "jones" and person["age"] == 100:
-            return BasicErr("Cannot be jones and 100")
+            return SerializableErr("Cannot be jones and 100")
         else:
             return None
 
@@ -527,7 +527,7 @@ def test_raises_if_validate_object_and_validate_object_async() -> None:
 
 @pytest.mark.asyncio
 async def test_dict_validator_any_with_validate_object_async() -> None:
-    cant_be_100_message = BasicErr("jones can't be 100")
+    cant_be_100_message = SerializableErr("jones can't be 100")
 
     def _nobody_named_jones_can_be_100(
         person: PersonSimpleTD,

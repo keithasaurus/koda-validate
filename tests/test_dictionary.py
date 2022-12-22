@@ -7,7 +7,6 @@ import pytest
 from koda import Just, Maybe, nothing
 
 from koda_validate import (
-    BasicErr,
     BoolValidator,
     ExtraKeysErr,
     FloatValidator,
@@ -26,6 +25,7 @@ from koda_validate import (
     PredicateAsync,
     PredicateErrs,
     Processor,
+    SerializableErr,
     StringValidator,
     TypeErr,
     Valid,
@@ -49,7 +49,7 @@ class PersonLike(Protocol):
     eye_color: str
 
 
-_JONES_ERROR_MSG = BasicErr("can't have last_name of jones and eye color of brown")
+_JONES_ERROR_MSG = SerializableErr("can't have last_name of jones and eye color of brown")
 
 
 def test_is_dict() -> None:
@@ -1050,7 +1050,7 @@ def test_dict_validator_cannot_have_validate_object_and_validate_object_async() 
         person: Person,
     ) -> Optional[ErrType]:
         if person.name.lower() == "jones" and person.age == 100:
-            return BasicErr("Cannot be jones and 100")
+            return SerializableErr("Cannot be jones and 100")
         else:
             return None
 
@@ -1081,7 +1081,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
         person: Person,
     ) -> Optional[ErrType]:
         if person.name.lower() == "jones" and person.age == 100:
-            return BasicErr("Cannot be jones and 100")
+            return SerializableErr("Cannot be jones and 100")
         return None
 
     async def val_obj_async(obj: Person) -> Optional[ErrType]:
@@ -1099,7 +1099,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     # calling sync validate_object, even within async context
     assert await validator_sync.validate_async({"name": "jones", "age": 100}) == Invalid(
-        BasicErr("Cannot be jones and 100"), Person("jones", 100), validator_sync
+        SerializableErr("Cannot be jones and 100"), Person("jones", 100), validator_sync
     )
 
     validator_async = RecordValidator(
@@ -1113,7 +1113,7 @@ async def test_dict_validator_handles_validate_object_async_or_validate_object()
 
     # calling sync validate_object_async within async context
     assert await validator_async.validate_async({"name": "jones", "age": 100}) == Invalid(
-        BasicErr("Cannot be jones and 100"), Person("jones", 100), validator_async
+        SerializableErr("Cannot be jones and 100"), Person("jones", 100), validator_async
     )
 
     # calling sync validate_object_async within async context
