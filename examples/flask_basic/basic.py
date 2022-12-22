@@ -26,7 +26,6 @@ def users_api() -> Tuple[ResponseValue, int]:
     result = TypedDictValidator(ContactForm)(request.json)
     match result:
         case Valid(contact_form):
-            # send the contact form somewhere
             print(contact_form)
             return {"success": True}, 200
         case Invalid() as inv:
