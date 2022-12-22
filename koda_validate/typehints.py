@@ -13,6 +13,9 @@ if sys.version_info >= (3, 9):
 if sys.version_info >= (3, 10):
     from types import UnionType
 
+if sys.version_info >= (3, 11):
+    from typing import NotRequired, Required
+
 from typing import (
     Any,
     Callable,
@@ -126,15 +129,6 @@ def get_typehint_validator_base(
                 return NTupleValidator.untyped(
                     fields=tuple(get_hint_next_depth(a) for a in args)
                 )
-        # not validating with annotations at this point
-        if sys.version_info >= (3, 9) and origin is Annotated:
-            if len(args) == 1:
-                return get_typehint_validator(args[0])
-            else:
-                # only return the first annotation validator
-                for x in args:
-                    if isinstance(x, Validator):
-                        return x
 
         if origin is Literal:
             # The common case is that literals will be of the same type. For those
@@ -161,6 +155,20 @@ def get_typehint_validator_base(
             # ok, we have to use a union because we have multiple types
             # or we haven't defined an explicit validator to use
             return UnionValidator(*[EqualsValidator(a) for a in args])
+
+        if sys.version_info >= (3, 11) and (origin is NotRequired or origin is Required):
+            return get_typehint_validator(args[0])
+
+        # not validating with annotations at this point
+        if sys.version_info >= (3, 9) and origin is Annotated:
+            if len(args) == 1:
+                return get_typehint_validator(args[0])
+            else:
+                # only return the first annotation validator
+                for x in args:
+                    if isinstance(x, Validator):
+                        return x
+
         raise TypeError(f"Got unhandled annotation: {repr(annotations)}.")
 
 
