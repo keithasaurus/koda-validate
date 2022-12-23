@@ -66,9 +66,9 @@ def test_type_err_str() -> None:
 
 
 def test_type_err_dict() -> None:
-    assert to_serializable_errs(Invalid(TypeErr(dict), 5, DictValidatorAny({}))) == [
-        "expected an object"
-    ]
+    assert to_serializable_errs(Invalid(TypeErr(dict), 5, DictValidatorAny({}))) == {
+        "__container__": ["expected an object"]
+    }
 
 
 def test_type_err_list() -> None:
@@ -328,7 +328,7 @@ def test_dataclass_coercion_err() -> None:
     validator = DataclassValidator(Person)
     result = validator(4)
     assert isinstance(result, Invalid)
-    assert to_serializable_errs(result) == ["expected an object"]
+    assert to_serializable_errs(result) == {"__container__": ["expected an object"]}
 
 
 def test_namedtuple_coercion_err() -> None:
@@ -339,7 +339,7 @@ def test_namedtuple_coercion_err() -> None:
     validator = NamedTupleValidator(Person)
     result = validator(4)
     assert isinstance(result, Invalid)
-    assert to_serializable_errs(result) == ["expected an object"]
+    assert to_serializable_errs(result) == {"__container__": ["expected an object"]}
 
 
 def test_default_coercion_err() -> None:

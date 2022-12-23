@@ -133,7 +133,7 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
         elif isinstance(vldtr, NTupleValidator):
             return ["expected an array"]
         elif isinstance(vldtr, (DataclassValidator, NamedTupleValidator)):
-            return ["expected an object"]
+            return {"__container__": ["expected an object"]}
         else:
             compatible_names = sorted([t.__name__ for t in err.compatible_types])
             return [
@@ -151,14 +151,17 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
         )
         return {"__unknown_keys__": err_message}
     elif isinstance(err, TypeErr):
-        type_desc = TYPE_DESCRIPTION_LOOKUP.get(
-            err.expected_type, err.expected_type.__name__
-        )
-        if type_desc[0] in {"a", "e", "i", "o", "u"}:
-            type_desc = f"an {type_desc}"
+        if err.expected_type is dict:
+            return {"__container__": ["expected an object"]}
         else:
-            type_desc = f"a {type_desc}"
-        return [f"expected {type_desc}"]
+            type_desc = TYPE_DESCRIPTION_LOOKUP.get(
+                err.expected_type, err.expected_type.__name__
+            )
+            if type_desc[0] in {"a", "e", "i", "o", "u"}:
+                type_desc = f"an {type_desc}"
+            else:
+                type_desc = f"a {type_desc}"
+            return [f"expected {type_desc}"]
     elif isinstance(err, PredicateErrs):
         return [pred_to_err_message(p) for p in err.predicates]
     elif isinstance(err, IndexErrs):
