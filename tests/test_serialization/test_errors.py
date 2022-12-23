@@ -74,13 +74,13 @@ def test_type_err_dict() -> None:
 def test_type_err_list() -> None:
     assert to_serializable_errs(
         Invalid(TypeErr(list), 5, ListValidator(StringValidator()))
-    ) == ["expected an array"]
+    ) == {"__container__": ["expected an array"]}
 
 
 def test_type_err_tuple() -> None:
     assert to_serializable_errs(
         Invalid(TypeErr(tuple), 5, UniformTupleValidator(StringValidator()))
-    ) == ["expected an array"]
+    ) == {"__container__": ["expected an array"]}
 
 
 def test_predicate_returns_err_in_list() -> None:
@@ -316,7 +316,7 @@ def test_date_coercion_err() -> None:
 def test_ntuple_coercion_err() -> None:
     result = NTupleValidator.typed(fields=(StringValidator(), IntValidator()))(4)
     assert isinstance(result, Invalid)
-    assert to_serializable_errs(result) == ["expected an array"]
+    assert to_serializable_errs(result) == {"__container__": ["expected an array"]}
 
 
 def test_dataclass_coercion_err() -> None:

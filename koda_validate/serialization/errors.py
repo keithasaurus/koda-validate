@@ -130,8 +130,8 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
             return ["expected an iso8601 datetime string"]
         elif isinstance(vldtr, DateValidator):
             return ["expected YYYY-MM-DD"]
-        elif isinstance(vldtr, NTupleValidator):
-            return ["expected an array"]
+        elif err.dest_type is list or err.dest_type is tuple:
+            return {"__container__": ["expected an array"]}
         elif isinstance(vldtr, (DataclassValidator, NamedTupleValidator)):
             return {"__container__": ["expected an object"]}
         else:
@@ -153,6 +153,8 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
     elif isinstance(err, TypeErr):
         if err.expected_type is dict:
             return {"__container__": ["expected an object"]}
+        elif err.expected_type is list or err.expected_type is tuple:
+            return {"__container__": ["expected an array"]}
         else:
             type_desc = TYPE_DESCRIPTION_LOOKUP.get(
                 err.expected_type, err.expected_type.__name__
