@@ -1,4 +1,5 @@
-from typing import Annotated, NotRequired, Tuple, TypedDict, cast
+from dataclasses import dataclass
+from typing import Annotated, Optional, Tuple, cast
 
 from flask import Flask, request
 from flask.typing import ResponseValue
@@ -8,13 +9,14 @@ from koda_validate import *
 app = Flask(__name__)
 
 
-class ContactForm(TypedDict):
+@dataclass
+class ContactForm:
     name: str
-    subject: NotRequired[str]
     message: str
     # Annotated `Validator`s are used if defined -- instead
     # of Koda Validate's default for the type)
     email: Annotated[str, StringValidator(EmailPredicate())]
+    subject: Optional[str] = None
 
 
 def errs_to_response_value(val: Invalid) -> ResponseValue:
@@ -27,7 +29,7 @@ def errs_to_response_value(val: Invalid) -> ResponseValue:
 
 @app.route("/contact", methods=["POST"])
 def contact_api() -> Tuple[ResponseValue, int]:
-    result = TypedDictValidator(ContactForm)(request.json)
+    result = DataclassValidator(ContactForm)(request.json)
     match result:
         case Valid(contact_form):
             print(contact_form)
