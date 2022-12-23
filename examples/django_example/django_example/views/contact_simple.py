@@ -7,14 +7,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from koda_validate import (
-    DataclassValidator,
-    EmailPredicate,
-    Invalid,
-    StringValidator,
-    Valid,
-    to_serializable_errs,
-)
+from koda_validate import *
 
 
 @dataclass

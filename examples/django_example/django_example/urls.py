@@ -15,6 +15,6 @@ Including another URLconf
 """
 from django.urls import path
 
-from examples.django_example.django_example.views.contact_simple import contact
+from .views.contact_simple import contact
 
 urlpatterns = [path("contact", contact)]
