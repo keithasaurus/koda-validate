@@ -10,10 +10,10 @@ Koda Validate is a library focused on composable, type-safe data validation.
 
 
 At a glance
------------
+^^^^^^^^^^^
 
-Scalars
-^^^^^^^
+**Scalars**
+
 .. code-block:: python
 
    from koda_validate import *
@@ -29,8 +29,8 @@ Scalars
    # > "long enough"
 
 
-Collections
-^^^^^^^^^^^
+**Collections**
+
 .. code-block:: python
 
    from koda_validate import *
@@ -40,8 +40,9 @@ Collections
    list_int_validator([1,2,3])
    # > Valid([1,2,3])
 
-Derived Validators
-^^^^^^^^^^^^^^^^^^
+
+**Derived Validators**
+
 .. code-block:: python
 
    from typing import TypedDict
@@ -58,14 +59,15 @@ Derived Validators
    # > Valid({'name': 'Bob',
    #          'hobbies': ['eating', 'coding', 'sleeping']})
 
-Koda Validate is flexible. It can validate based on explicit definition, or by inspecting typehints. Even when
+Koda Validate can validate based on explicit definition, or by inspecting typehints. Even when
 validators are derived, Koda Validate allows for user overrides to customize behavior.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Installation
+   :caption: Setup
 
-   installation
+   setup/installation
+   setup/type-checking
 
 .. toctree::
    :maxdepth: 3
@@ -85,10 +87,3 @@ validators are derived, Koda Validate allows for user overrides to customize beh
    :caption: Working with Koda Validate
 
    working_with/api
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

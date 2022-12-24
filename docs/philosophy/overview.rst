@@ -3,7 +3,16 @@ Overview
 At it's core, Koda Validate is little more than a few function signatures (see Validators,
 Predicates, and Processors), which can be combined to build validators of arbitrary
 complexity. This simplicity also provides straightforward
-paths for optimization -- Koda Validate tends to be fast (for Python).
+paths for:
+
+- optimization: Koda Validate tends to be fast (for Python)
+- extension: Koda Validate can be extended to Validate essentially anything, even asynchronusly.
+
+.. note::
+
+    If you've run into edge cases that you can't work around in other validation libraries, please
+    take a look at Extension. The simple way to work around Validator quirks in Koda Validate
+    is write your own. It's easy.
 
 Validation in Koda Validate naturally forms into graph structures -- usually
 a tree (a notable exception would be the use of ``Lazy``). It is an

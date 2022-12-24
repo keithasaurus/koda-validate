@@ -9,16 +9,14 @@ In Python type hints, predicates can be expressed like this:
 
     Predicate = Callable[[A], bool]
 
-Koda Validate has a ``Predicate`` class based on this concept (the reason it's a class and not a
-``function`` is because we want to be able to easily do things like pattern match on
-``Predicate`` instances). In Koda Validate we use ``Predicate``\s to enrich ``Validator``\s. Specifically, ``Predicate``\s perform additional
+Koda Validate has a ``Predicate`` class based on this concept, which is used to enrich ``Validator``\s. In Koda Validate we use ``Predicate``\s to  Specifically, ``Predicate``\s perform additional
 validation *after* the data has been verified to be of a specific type or shape.
 
 .. code-block:: python
 
     from koda_validate import *
 
-    int_validator = IntValidator(Min(5))  # `Min` is a `Predicate` subclass
+    int_validator = IntValidator(Min(5))  # `Min` is a `Predicate`
 
     int_validator(6)
     # > Valid(6)
@@ -44,8 +42,7 @@ sequence an arbitrary number of them together, and validate them all.
     # > Invalid(PredicateErrs([Max(20), MultipleOf(4)]), ...)
 
 Here ``int_validator`` has 3 ``Predicate``\s, but we could have as many as we want. Note
-that ``Predicate``\s for which the value is invalid are returned within a ``PredicateErrs`` instance. We are only able to return all the
-failing ``Predicate``\s because we know that each `Predicate` will not be able to change the value.
+that ``Predicate``\s for which a value is invalid are returned within a ``PredicateErrs`` instance. We are only able
+to return all the failing ``Predicate``\s because we know that each `Predicate` will not be able to change the value.
 
 ``Predicate``\s are easy to write -- take a look at [Extension](#extension) for more details.
-

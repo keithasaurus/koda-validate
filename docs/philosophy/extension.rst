@@ -4,7 +4,7 @@ Koda Validate aims to provide enough tools to handle most common validation need
 cover, it aims to allow easy extension.
 
 Even though there is an existing ``FloatValidator`` in Koda Validate, we'll build our own
-for demonstrating purposes.
+for demonstration purposes.
 
 .. code-block:: python
 
