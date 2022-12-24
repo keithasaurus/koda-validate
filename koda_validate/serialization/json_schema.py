@@ -498,7 +498,7 @@ def generate_named_schema_base(
         unhandled_type(obj)
 
 
-def generate_named_schema(
+def to_named_json_schema(
     schema_name: str,
     obj: AnyValidatorOrPredicate,
     ref_location: str = "#/components/schemas/",
@@ -509,5 +509,5 @@ def generate_named_schema(
     return {schema_name: generate_named_schema_base(ref_location, schema_name, obj)}
 
 
-def generate_schema(obj: AnyValidatorOrPredicate) -> Dict[str, Serializable]:
+def to_json_schema(obj: AnyValidatorOrPredicate) -> Dict[str, Serializable]:
     return generate_schema_base(obj)

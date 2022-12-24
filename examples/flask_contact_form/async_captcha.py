@@ -1,10 +1,11 @@
 import asyncio
-from typing import Annotated, Optional, Tuple, TypedDict, cast
+from typing import Annotated, Optional, Tuple, TypedDict
 
-from flask import Flask, request
+from flask import Flask, jsonify, request
 from flask.typing import ResponseValue
 
 from koda_validate import *
+from koda_validate.serialization.json_schema import to_json_schema
 
 app = Flask(__name__)
 
@@ -38,13 +39,9 @@ class ContactForm(TypedDict):
 
 contact_validator = TypedDictValidator(ContactForm)
 
-
-def errs_to_response_value(val: Invalid) -> ResponseValue:
-    """
-    Serializable and Response should be compatible, but mypy doesn't understand that --
-    just making that explicit here.
-    """
-    return cast(ResponseValue, to_serializable_errs(val))
+contact_schema = to_json_schema(contact_validator)
+# if you want to produce an JSON Schema, you can do something like:
+# hook_into_some_schema(contact_schema)
 
 
 @app.route("/contact", methods=["POST"])
@@ -55,7 +52,7 @@ async def contact_api() -> Tuple[ResponseValue, int]:
             print(contact_form)
             return {"success": True}, 200
         case Invalid() as inv:
-            return errs_to_response_value(inv), 400
+            return jsonify(to_serializable_errs(inv)), 400
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ sphinx = "5.3.0"
 furo = "2022.12.7"
 flask = {version = "2.2.2", extras = ["async"]}
 django = "4.1.4"
-django-stubs = "^1.13.1"
+django-stubs = "1.13.1"
 
 [tool.mypy]
 exclude = ["build", "bench"]

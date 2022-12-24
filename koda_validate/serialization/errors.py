@@ -37,7 +37,6 @@ from koda_validate.generic import (
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.string import EmailPredicate, NotBlank, RegexPredicate
 from koda_validate.time import DatetimeValidator, DateValidator
-from koda_validate.tuple import NTupleValidator
 from koda_validate.uuid import UUIDValidator
 from koda_validate.valid import Invalid
 

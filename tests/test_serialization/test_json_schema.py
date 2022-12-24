@@ -56,7 +56,7 @@ from koda_validate.dictionary import (
 )
 from koda_validate.generic import ExactLength
 from koda_validate.namedtuple import NamedTupleValidator
-from koda_validate.serialization.json_schema import generate_named_schema, generate_schema
+from koda_validate.serialization.json_schema import to_json_schema, to_named_json_schema
 from koda_validate.string import (
     EmailPredicate,
     RegexPredicate,
@@ -90,7 +90,7 @@ def test_recursive_validator() -> None:
         into=Comment,
     )
 
-    assert generate_named_schema("Comment", comment_validator) == {
+    assert to_named_json_schema("Comment", comment_validator) == {
         "Comment": {
             "additionalProperties": True,
             "properties": {
@@ -106,7 +106,7 @@ def test_recursive_validator() -> None:
     }
 
     try:
-        generate_schema(comment_validator)
+        to_json_schema(comment_validator)
     except TypeError as e:
         assert (
             str(e) == "`Lazy` type was not handled -- perhaps "
@@ -168,7 +168,7 @@ def test_person() -> None:
     }
     # will throw if bad
     validate_schema(schema)
-    assert generate_schema(person_validator) == schema
+    assert to_json_schema(person_validator) == schema
 
     @dataclass
     class Person2:
@@ -198,7 +198,7 @@ def test_person() -> None:
         into=Person2,
     )
 
-    assert generate_schema(person_validator_tuple) == schema
+    assert to_json_schema(person_validator_tuple) == schema
 
 
 def test_cities() -> None:
@@ -255,7 +255,7 @@ def test_cities() -> None:
     )
 
     validate_schema(expected_schema)
-    assert generate_schema(validate_cities) == expected_schema
+    assert to_json_schema(validate_cities) == expected_schema
 
 
 def test_auth_creds() -> None:
@@ -299,7 +299,7 @@ def test_auth_creds() -> None:
         EmailCreds("a@example.com", "b")
     )
 
-    assert generate_schema(validator_one_of_2) == {
+    assert to_json_schema(validator_one_of_2) == {
         "oneOf": [
             {
                 "type": "object",
@@ -374,7 +374,7 @@ def test_auth_creds() -> None:
 
     validate_schema(expected_schema)
 
-    assert generate_schema(validator_one_of_3) == expected_schema
+    assert to_json_schema(validator_one_of_3) == expected_schema
 
     union_validator = UnionValidator.typed(
         username_creds_validator,
@@ -386,7 +386,7 @@ def test_auth_creds() -> None:
         ),
     )
 
-    assert generate_schema(union_validator) == expected_schema
+    assert to_json_schema(union_validator) == expected_schema
 
 
 def test_forecast() -> None:
@@ -397,7 +397,7 @@ def test_forecast() -> None:
         {date(2021, 4, 6): 55.5, date(2021, 4, 7): 57.9}
     )
 
-    assert generate_schema(validator) == {
+    assert to_json_schema(validator) == {
         "type": "object",
         "additionalProperties": {"type": "number"},
     }
@@ -415,9 +415,9 @@ def test_tuples() -> None:
 
     # sanity check
     assert validator(["ok", ["", 0, False]]) == Valid(("ok", ("", 0, False)))
-    schema = generate_schema(validator)
+    schema = to_json_schema(validator)
 
-    assert generate_schema(validator) == {
+    assert to_json_schema(validator) == {
         "type": "array",
         "description": 'a 2-tuple of the fields in "prefixItems"',
         "maxItems": 2,
@@ -460,7 +460,7 @@ def test_dict_validator_any() -> None:
     }
 
     validate_schema(expected_schema)
-    assert generate_schema(x) == expected_schema
+    assert to_json_schema(x) == expected_schema
 
 
 def test_dataclass_validator() -> None:
@@ -482,7 +482,7 @@ def test_dataclass_validator() -> None:
     }
 
     validate_schema(expected_schema)
-    assert generate_schema(x) == expected_schema
+    assert to_json_schema(x) == expected_schema
 
 
 def test_namedtuple_validator() -> None:
@@ -503,7 +503,7 @@ def test_namedtuple_validator() -> None:
     }
 
     validate_schema(expected_schema)
-    assert generate_schema(x) == expected_schema
+    assert to_json_schema(x) == expected_schema
 
 
 def test_typeddict_validator() -> None:
@@ -524,40 +524,40 @@ def test_typeddict_validator() -> None:
     }
 
     validate_schema(expected_schema)
-    assert generate_schema(x) == expected_schema
+    assert to_json_schema(x) == expected_schema
 
 
 def test_isdict_validator() -> None:
     expected_schema = {"type": "object"}
 
     validate_schema(expected_schema)
-    assert generate_schema(is_dict_validator) == expected_schema
+    assert to_json_schema(is_dict_validator) == expected_schema
 
 
 def test_equals_validator() -> None:
     expected_schema_int = {"type": "integer", "enum": [5]}
 
     validate_schema(expected_schema_int)
-    assert generate_schema(EqualsValidator(5))
+    assert to_json_schema(EqualsValidator(5))
 
     expected_schema_str = {"type": "string", "enum": ["hooray"]}
 
     validate_schema(expected_schema_str)
 
-    assert generate_schema(EqualsValidator("hooray")) == expected_schema_str
+    assert to_json_schema(EqualsValidator("hooray")) == expected_schema_str
 
     expected_schema_str = {"type": "string", "format": "date", "enum": ["2022-12-12"]}
 
     validate_schema(expected_schema_str)
 
-    assert generate_schema(EqualsValidator(date(2022, 12, 12))) == expected_schema_str
+    assert to_json_schema(EqualsValidator(date(2022, 12, 12))) == expected_schema_str
 
     uu = uuid.uuid4()
     expected_schema_uuid = {"type": "string", "format": "uuid", "enum": [str(uu)]}
 
     validate_schema(expected_schema_uuid)
 
-    assert generate_schema(EqualsValidator(uu)) == expected_schema_uuid
+    assert to_json_schema(EqualsValidator(uu)) == expected_schema_uuid
 
     now_ = datetime.now()
     expected_schema_datetime = {
@@ -568,7 +568,7 @@ def test_equals_validator() -> None:
 
     validate_schema(expected_schema_datetime)
 
-    assert generate_schema(EqualsValidator(now_)) == expected_schema_datetime
+    assert to_json_schema(EqualsValidator(now_)) == expected_schema_datetime
 
     dec = Decimal("3.14")
     expected_schema_dec = {
@@ -580,7 +580,7 @@ def test_equals_validator() -> None:
 
     validate_schema(expected_schema_dec)
 
-    assert generate_schema(EqualsValidator(dec)) == expected_schema_dec
+    assert to_json_schema(EqualsValidator(dec)) == expected_schema_dec
 
     bytes_ = b"abc123def456"
     expected_schema_bytes = {
@@ -591,7 +591,7 @@ def test_equals_validator() -> None:
 
     validate_schema(expected_schema_bytes)
 
-    assert generate_schema(EqualsValidator(bytes_)) == expected_schema_bytes
+    assert to_json_schema(EqualsValidator(bytes_)) == expected_schema_bytes
 
 
 def test_bytes_validator() -> None:
@@ -599,7 +599,7 @@ def test_bytes_validator() -> None:
 
     validate_schema(expected_schema_bytes)
 
-    assert generate_schema(BytesValidator(MaxLength(12))) == expected_schema_bytes
+    assert to_json_schema(BytesValidator(MaxLength(12))) == expected_schema_bytes
 
 
 def test_decimal_validator() -> None:
@@ -614,7 +614,7 @@ def test_decimal_validator() -> None:
     validate_schema(expected_schema_dec)
 
     assert (
-        generate_schema(
+        to_json_schema(
             DecimalValidator(
                 Max(Decimal("345.678")), Min(Decimal("111.2"), exclusive_minimum=True)
             )
@@ -631,7 +631,7 @@ def test_float_validator() -> None:
 
     validate_schema(expected_schema_float)
 
-    assert generate_schema(FloatValidator(Max(345.678, True))) == expected_schema_float
+    assert to_json_schema(FloatValidator(Max(345.678, True))) == expected_schema_float
 
 
 def test_date_validator() -> None:
@@ -645,7 +645,7 @@ def test_date_validator() -> None:
     validate_schema(expected_schema_date)
 
     assert (
-        generate_schema(DateValidator(Min(min_date, exclusive_minimum=True)))
+        to_json_schema(DateValidator(Min(min_date, exclusive_minimum=True)))
         == expected_schema_date
     )
 
@@ -660,7 +660,7 @@ def test_datetime_validator() -> None:
 
     validate_schema(expected_schema_datetime)
 
-    assert generate_schema(DatetimeValidator(Max(max_dt))) == expected_schema_datetime
+    assert to_json_schema(DatetimeValidator(Max(max_dt))) == expected_schema_datetime
 
 
 def test_uuid_validator() -> None:
@@ -671,4 +671,4 @@ def test_uuid_validator() -> None:
 
     validate_schema(expected_schema_datetime)
 
-    assert generate_schema(UUIDValidator()) == expected_schema_datetime
+    assert to_json_schema(UUIDValidator()) == expected_schema_datetime
