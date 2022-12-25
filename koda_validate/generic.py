@@ -266,3 +266,19 @@ class ExactLength(Predicate[StrOrBytes]):
 
     def __call__(self, val: StrOrBytes) -> bool:
         return len(val) == self.length
+
+
+@dataclass
+class StartsWith(Predicate[StrOrBytes]):
+    prefix: StrOrBytes
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return val.startswith(self.prefix)
+
+
+@dataclass
+class EndsWith(Predicate[StrOrBytes]):
+    prefix: StrOrBytes
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return val.endswith(self.prefix)

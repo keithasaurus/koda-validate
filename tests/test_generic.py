@@ -16,11 +16,13 @@ from koda_validate import (
 )
 from koda_validate.generic import (
     AlwaysValid,
+    EndsWith,
     EqualTo,
     ExactItemCount,
     ExactLength,
     MaxItems,
     MinItems,
+    StartsWith,
     always_valid,
     unique_items,
 )
@@ -171,3 +173,35 @@ def test_always_valid_repr() -> None:
 def test_always_valid_eq() -> None:
     assert always_valid == AlwaysValid()
     assert always_valid is AlwaysValid()
+
+
+def test_starts_with() -> None:
+    str_abc = StartsWith("abc")
+    assert str_abc("abc") is True
+    assert str_abc("abc123") is True
+    assert str_abc(" abc") is False
+    assert str_abc("123") is False
+    assert str_abc("") is False
+
+    b_abc = StartsWith(b"abc")
+    assert b_abc(b"abc") is True
+    assert b_abc(b"abc123") is True
+    assert b_abc(b" abc") is False
+    assert b_abc(b"123") is False
+    assert b_abc(b"") is False
+
+
+def test_ends_with() -> None:
+    str_abc = EndsWith("abc")
+    assert str_abc("abc") is True
+    assert str_abc("123abc") is True
+    assert str_abc("abc ") is False
+    assert str_abc("123") is False
+    assert str_abc("") is False
+
+    b_abc = EndsWith(b"abc")
+    assert b_abc(b"abc") is True
+    assert b_abc(b"123abc") is True
+    assert b_abc(b"abc ") is False
+    assert b_abc(b"123") is False
+    assert b_abc(b"") is False

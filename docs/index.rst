@@ -6,7 +6,8 @@
 Koda Validate
 =========================================
 
-Koda Validate is a library focused on composable, type-safe data validation.
+Koda Validate is a library focused on composable, type-safe data validation. It supplies a wide array of
+validators out-of-the-box, but it also encourages users to build their own validators.
 
 
 At a glance
@@ -18,15 +19,15 @@ At a glance
 
    from koda_validate import *
 
-   str_validator = StringValidator(MinLength(5))
+   str_validator = StringValidator()
 
-   result = str_validator("long enough")
+   result = str_validator("a string")
 
    print(result)
-   # > Valid("long enough")
+   # > Valid("a string")
 
    print(result.val)
-   # > "long enough"
+   # > "a string"
 
 
 **Collections**
@@ -58,6 +59,23 @@ At a glance
                      "hobbies": ["eating", "coding", "sleeping"]})
    # > Valid({'name': 'Bob',
    #          'hobbies': ['eating', 'coding', 'sleeping']})
+
+
+**Refinement**
+
+.. code-block:: python
+
+   from koda_validate import *
+
+   s_validator = StringValidator(MinLength(5),
+                                 MaxLength(10),
+                                 StartsWith("a"))
+
+   l_validator(["long string 1", "long string 2"])
+   # > Valid(["long string 1", "long string 2"])
+
+   l_validator(["long enough", "nope"])
+   # > Invalid(...)  # second string too short
 
 Koda Validate can validate based on explicit definition, or by inspecting typehints. Even when
 validators are derived, Koda Validate allows for user overrides to customize behavior.

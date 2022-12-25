@@ -57,6 +57,8 @@ __all__ = (
     "MinLength",
     "MaxLength",
     "ExactLength",
+    "StartsWith",
+    "EndsWith",
     # integer.py
     "IntValidator",
     # list.py
@@ -136,6 +138,7 @@ from koda_validate.float import FloatValidator
 from koda_validate.generic import (
     AlwaysValid,
     Choices,
+    EndsWith,
     EqualsValidator,
     EqualTo,
     ExactItemCount,
@@ -148,6 +151,7 @@ from koda_validate.generic import (
     MinItems,
     MinLength,
     MultipleOf,
+    StartsWith,
     UniqueItems,
     always_valid,
     unique_items,
