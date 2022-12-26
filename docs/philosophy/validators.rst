@@ -31,7 +31,7 @@ The way we actually represent this concept in Koda Validate is even simpler:
     - ``Validator``\s are always subclasses of ``Validator``. Using callable ``class``\es (instead of ``function``\s) makes it easy to branch on validators based on their class name.
     - ``Validator``\s have a ``validate_async`` method, which allows them to be used in both sync and async contexts.
 
-    In summation, a ``Validator[ValidType]`` can be used in places where ``Callable[[Any], ValidationResult[ValidType]]`` is required, but
+    In sum, a ``Validator[ValidType]`` can be used in places where ``Callable[[Any], ValidationResult[ValidType]]`` is required, but
     ``Validator[ValidType]`` is fundamentally a richer type.
 
 We can see in the following example how ``Validator``\s act like simple functions
@@ -63,5 +63,5 @@ validators. Perhaps the simplest example of this is how ``ListValidator`` accept
     list_str_validator([1,2,3])
     # > Invalid(...)
 
-Since ``Validator``\s are essentially functions packaged as classes, they are easy to write. Take a look at
+Since ``Validator``\s are essentially functions (packaged as classes), they are easy to write and very flexible. Take a look at
 Extension to see how.

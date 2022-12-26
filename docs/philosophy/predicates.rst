@@ -7,10 +7,10 @@ In Python type hints, predicates can be expressed like this:
 
     A = TypeVar('A')
 
-    Predicate = Callable[[A], bool]
+    PredicateFunc = Callable[[A], bool]
 
-Koda Validate has a ``Predicate`` class based on this concept, which is used to enrich ``Validator``\s. In Koda Validate we use ``Predicate``\s to  Specifically, ``Predicate``\s perform additional
-validation *after* the data has been verified to be of a specific type or shape.
+Koda Validate has a ``Predicate`` class based on this concept. In Koda Validate, ``Predicate``\s are used to *enrich* ``validator``\s
+by performing additional validation *after* the data has been verified to be of a specific type or shape.
 
 .. code-block:: python
 
@@ -21,10 +21,13 @@ validation *after* the data has been verified to be of a specific type or shape.
     int_validator(6)
     # > Valid(6)
 
+    int_validator("a string")
+    # > Invalid(TypeErr(int), ...)
+
     int_validator(4)
     # > Invalid(PredicateErrs([Min(5)]), ...)
 
-As you can see the value 4 passes the ``int`` type check but fails to pass the ``Min(5)`` predicate.
+As you can see the value ``4`` passes the ``int`` type check but fails to pass the ``Min(5)`` predicate.
 
 Because we know that predicates don't change the type or value of their inputs, we can
 sequence an arbitrary number of them together, and validate them all.
