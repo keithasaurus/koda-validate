@@ -55,11 +55,11 @@ could do so like this:
     from koda_validate import *
 
 
-    @dataclass  # using a dataclass so we don't need to write an __init__ method
-    class SimpleFloatValidator2(Validator[float]):
-        predicate: Optional[Predicate[float, Serializable]] = None
+    class SimpleFloatValidatorWithPredicate(Validator[float]):
+        def __init__(self, predicate: Optional[Predicate[float]] = None) -> None:
+            self.predicate = predicate
 
-        def __call__(self, val: Any) -> ValidationResult[float, Serializable]:
+        def __call__(self, val: Any) -> ValidationResult[float]:
             if isinstance(val, float):
                 if self.predicate(val):
                     return Valid(val)

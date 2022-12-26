@@ -1,11 +1,14 @@
 Type Checking
 =============
-Koda Validate is meant to aid developers by working well with type hints. It is tested against `mypy
+Koda Validate is meant to aid developers by leveraging type hints. It is tested against `mypy
 <http://mypy-lang.org/>`_ 0.990+.
 
-While Koda Validate does work with other type checkers, the safest path for continual compatibility
-would be to use an up-to-date version of mypy. (Whether or not you are using a specific type
-checker with Koda Validate, the functionality will remain the same, as type hints have no runtime effects in Python.)
+.. note::
+
+    While Koda Validate does work with other type checkers, the safest path for continual compatibility
+    would be to use an up-to-date version of mypy. (Whether or not you are using a specific type
+    checker with Koda Validate, the functionality will remain the same, as type hints have no runtime effects in Python.)
+
 If you happen to run into a problem with type checking, there a few common workarounds:
 
 **type: ignore**

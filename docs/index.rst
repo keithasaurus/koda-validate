@@ -111,6 +111,15 @@ Writing your own
    setup/installation
    setup/type-checking
 
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Working with Koda Validate
+
+   working_with/api
+   working_with/results
+
+
 .. toctree::
    :maxdepth: 3
    :caption: Philosophy
@@ -123,11 +132,3 @@ Writing your own
    philosophy/extension
    philosophy/metadata
    philosophy/async
-
-
-.. toctree::
-   :maxdepth: 3
-   :caption: Working with Koda Validate
-
-   working_with/api
-   working_with/results

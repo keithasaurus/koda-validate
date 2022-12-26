@@ -1,17 +1,17 @@
 Async
 =====
 Koda Validate aims to allow any kind of validation, including validation that requires IO.
-Because of that, Koda Validate supports use of ``asyncio``. Async validation in Koda
+For IO Koda Validate supports, and encourages, the use of ``asyncio``. Async validation in Koda
 Validate is designed with several ergonomics goals:
 
-- requiring minimal changes from synchronous validation
-- making async explicit and obvious
-- alerting the user in illegal states
+- minimal changes should be required when switching from synchronous to asynchronous validation
+- usage of asyncio should be explicit and obvious
+- the user should be alerted when illegal states are encountered
 
 Minimal Changes
 ---------------
 
-All built-in ``Validator``\s in Koda Validate allow for async validation. So, for instance,
+All built-in ``Validator``\s in Koda Validate allow for async validation. So
 you can call the same validator in both contexts.
 
 .. code-block:: python
@@ -29,12 +29,15 @@ you can call the same validator in both contexts.
     # > Valid("a string")
 
 
-The one exception to this is that async-only validation can only be called in an async
-context (see Alerting below).
+
+.. note::
+
+    Synchronous validation logic can be called in both synchronous and asynchronous contexts, but async-only
+    validation can only be called in an async context -- see Alerting below.
 
 
-Explicit and Obvious
---------------------
+Making Async Explicit and Obvious
+---------------------------------
 It should be difficult to accidentally define or invoke async validation. In places where
 ``asyncio`` is supported in Koda Validate, there is always "async" in the naming. Some examples:
 
@@ -45,19 +48,23 @@ It should be difficult to accidentally define or invoke async validation. In pla
 
 
 
-Alerting
---------
+Alerting on Illegal States
+--------------------------
 While ``Validator``\s can be defined to work in both sync and async contexts, once a
 ``Validator`` is initialized, Koda Validate will raise an exception if the both of the
 following are true:
 
-- it is initialized with async-only child validation (e.g. defining ``predicates_sync`` or ``validate_object_async`` on applicable ``Validator``\s)
-- it is invoked in a synchronous context
+1. it is initialized with async-only validation (e.g. defining ``predicates_sync`` or ``validate_object_async`` on applicable ``Validator``\s)
+2. it is invoked synchronously -- i.e. ``some_async_validator(123)`` instead of ``await some_async_validator.validate_async(123)``
 
 
-When called in a sync context, Koda Validate does not implicitly skip async-only
-validation, and it does not make an attempt to convert async-only validation to
-sync validation.
+The reason Koda Validate alerts in this context is because it does not want to guess at what the intended behavior is. It does
+neither of the following:
+
+- implicitly skip async-only validation
+- try to run async validation synchronously
+
+Here you can see how async-only validators alert:
 
 .. code-block:: python
 
