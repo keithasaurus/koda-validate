@@ -25,25 +25,28 @@ jobs:
       - name: mypy 3.9-
         if: matrix.python-version == 3.9 || matrix.python-version == 3.8
         # exclude examples in CI because some 3.10 features are used
-        run: poetry run mypy . --exclude examples --exclude tests/test_310_plus.py
+        run: poetry run mypy . --exclude examples --exclude tests/test_310_plus.py --exclude tests/test_311_plus.py
       - name: mypy 3.11
         if: matrix.python-version == 3.11
         run: poetry run mypy .
       - name: mypy 3.10
         if: matrix.python-version == 3.10
-        run: poetry run mypy . --ignore tests/test_311_plus.py
+        run: poetry run mypy .  --exclude tests/test_311_plus.py
       - name: run 3.9- tests
         if: matrix.python-version == 3.9 || matrix.python-version == 3.8 || matrix.python-version == 'pypy3.9'
         run: poetry run pytest --ignore tests/test_310_plus.py --ignore tests/test_311_plus.py
-      - name: run 3.10+ tests
-        if: matrix.python-version == 3.10 || matrix.python-version == 3.11
-        run: poetry run pytest
+      - name: run 3.10 tests
+        if: matrix.python-version == 3.10
+        run: poetry run pytest --ignore tests/test_311_plus.py
+      - name: run 3.11 tests
+        if: matrix.python-version == 3.11
+        run: poetry run pytest --ignore tests/test_311_plus.py
       - name: run all examples
         if: matrix.python-version == 3.10
         run: poetry run bash run_all_examples.sh
       - name: linting 3.9-
         if: matrix.python-version == 3.9 || matrix.python-version == 3.8 || matrix.python-version == 'pypy3.9'
-        run: poetry run flake8 --exclude codegen,bench,examples/metadata.py,examples/tour_record_1.py,examples/string_validator.py,tests/test_310_plus.py --ignore E741,W503,F405,F403,F401
+        run: poetry run flake8 --exclude codegen,bench,examples/metadata.py,examples/tour_record_1.py,examples/string_validator.py,tests/test_310_plus.py,tests/test_311_plus.py --ignore E741,W503,F405,F403,F401
       - name: linting 3.10+
         if: matrix.python-version == 3.10 || matrix.python-version == 3.11
         run: poetry run flake8 --exclude codegen --ignore E741,W503,F405,F403,F401
