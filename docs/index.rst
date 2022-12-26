@@ -10,10 +10,8 @@ Koda Validate is a library focused on composable, type-safe data validation. It 
 validators out-of-the-box, but it also encourages users to build their own validators.
 
 
-At a glance
-^^^^^^^^^^^
-
-**Scalars**
+Scalars
+^^^^^^^
 
 .. code-block:: python
 
@@ -30,7 +28,8 @@ At a glance
    # > "a string"
 
 
-**Collections**
+Collections
+^^^^^^^^^^^
 
 .. code-block:: python
 
@@ -42,7 +41,9 @@ At a glance
    # > Valid([1,2,3])
 
 
-**Derived Validators**
+
+Derived Validators
+^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
@@ -53,34 +54,55 @@ At a glance
        name: str
        hobbies: list[str]
 
-   person_validator = TypedDictValidator(Person)
+   validator = TypedDictValidator(Person)
 
-   person_validator({"name": "Bob",
-                     "hobbies": ["eating", "coding", "sleeping"]})
+   validator({"name": "Bob",
+              "hobbies": ["eating", "coding", "sleeping"]})
    # > Valid({'name': 'Bob',
    #          'hobbies': ['eating', 'coding', 'sleeping']})
 
 
-**Refinement**
+Refinement
+^^^^^^^^^^
 
 .. code-block:: python
 
    from koda_validate import *
 
-   s_validator = StringValidator(MinLength(5),
-                                 MaxLength(10),
-                                 StartsWith("a"),
-                                 preprocessors=[lower_case, strip])
+   validator = StringValidator(MinLength(5),
+                               MaxLength(10),
+                               StartsWith("a"))
 
-   s_validator("abc123")
+   validator("abc123")
    # > Valid("abc123")
 
-   s_validator(" ABC123 ")
-   # > Valid("abc123")  # note the preprocessors altered the string
-
-   s_validator("abc")
+   validator("abc")
    # > Invalid(...)  # too short
 
+
+Writing your own
+^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from typing import Any
+   from koda_validate import *
+
+
+   class IntegerValidator(Validator[int]):
+      def __call__(val: Any) -> ValidationResult[int]:
+         if isinstance(val, int):
+            return Valid(val)
+         else:
+            return Invalid(TypeErr(int), val, self)
+
+   validator = IntegerValidator()
+
+   validator(5)
+   # > Valid(5)
+
+   validator("not an integer")
+   # > Invalid(...)
 
 .. toctree::
    :maxdepth: 2
@@ -97,6 +119,7 @@ At a glance
    philosophy/validators
    philosophy/predicates
    philosophy/processors
+   philosophy/errors
    philosophy/extension
    philosophy/metadata
    philosophy/async
@@ -107,3 +130,4 @@ At a glance
    :caption: Working with Koda Validate
 
    working_with/api
+   working_with/results

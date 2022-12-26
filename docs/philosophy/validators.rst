@@ -1,7 +1,8 @@
 Validators
 ==========
 In Koda Validate, ``Validator`` is the fundamental validation building block. It's based on the idea that
-any kind of data validation can be represented by the ``Callable`` signature:
+any kind of data validation can be represented by a ``Callable`` signature like this:
+
 
 .. code-block:: python
 
@@ -16,7 +17,7 @@ In Koda Validate we can abbreviate this with the ``ValidationResult`` type alias
 
     Callable[[Any], ValidationResult[ValidType]]
 
-But, the way we actually represent this in Koda Validate is even simpler:
+The way we actually represent this concept in Koda Validate is even simpler:
 
 .. code-block:: python
 
@@ -27,7 +28,7 @@ But, the way we actually represent this in Koda Validate is even simpler:
 
     There are a few differences between ``Validator[ValidType]`` and ``Callable[[Any], ValidationResult[ValidType]]`` that make them not exactly equivalent:
 
-    - ``Validator``\s are always subclasses of ``Validator``. Using ``class``\es makes it easy to branch on validators based on their class name.
+    - ``Validator``\s are always subclasses of ``Validator``. Using callable ``class``\es (instead of ``function``\s) makes it easy to branch on validators based on their class name.
     - ``Validator``\s have a ``validate_async`` method, which allows them to be used in both sync and async contexts.
 
     In summation, a ``Validator[ValidType]`` can be used in places where ``Callable[[Any], ValidationResult[ValidType]]`` is required, but
