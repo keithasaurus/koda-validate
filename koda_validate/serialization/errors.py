@@ -22,6 +22,7 @@ from koda_validate.errors import (
 )
 from koda_validate.generic import (
     Choices,
+    EndsWith,
     EqualTo,
     ExactItemCount,
     ExactLength,
@@ -32,6 +33,7 @@ from koda_validate.generic import (
     MinItems,
     MinLength,
     MultipleOf,
+    StartsWith,
     UniqueItems,
 )
 from koda_validate.namedtuple import NamedTupleValidator
@@ -99,6 +101,10 @@ def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str
         return f"maximum allowed length is {pred.length}"
     elif isinstance(pred, ExactLength):
         return f"expected length of {pred.length}"
+    elif isinstance(pred, StartsWith):
+        return rf"must start with {repr(pred.prefix)}"
+    elif isinstance(pred, EndsWith):
+        return rf"must end with {repr(pred.suffix)}"
     else:
         raise TypeError(
             f"Unhandled predicate type: {type(pred)}. You may want to write a wrapper "

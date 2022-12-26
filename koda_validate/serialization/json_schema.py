@@ -1,3 +1,4 @@
+import re
 from datetime import date, datetime
 from decimal import Decimal
 from functools import partial
@@ -22,6 +23,7 @@ from koda_validate.dictionary import (
 from koda_validate.float import FloatValidator
 from koda_validate.generic import (
     Choices,
+    EndsWith,
     EqualsValidator,
     EqualTo,
     ExactLength,
@@ -32,6 +34,7 @@ from koda_validate.generic import (
     Min,
     MinItems,
     MinLength,
+    StartsWith,
     UniqueItems,
 )
 from koda_validate.integer import IntValidator
@@ -295,70 +298,74 @@ def map_of_schema(
 
 
 def generate_schema_predicate(
-    validator: Union[Predicate[Any], PredicateAsync[Any]]
+    pred: Union[Predicate[Any], PredicateAsync[Any]]
 ) -> Dict[str, Serializable]:
     # strings
-    if isinstance(validator, EmailPredicate):
+    if isinstance(pred, EmailPredicate):
         return {"format": "email"}
-    elif isinstance(validator, MaxLength):
-        return {"maxLength": validator.length}
-    elif isinstance(validator, MinLength):
-        return {"minLength": validator.length}
-    elif isinstance(validator, ExactLength):
-        return {"minLength": validator.length, "maxLength": validator.length}
-    elif isinstance(validator, Choices):
-        return {"enum": (list(sorted(validator.choices)))}
-    elif isinstance(validator, NotBlank):
+    elif isinstance(pred, MaxLength):
+        return {"maxLength": pred.length}
+    elif isinstance(pred, MinLength):
+        return {"minLength": pred.length}
+    elif isinstance(pred, ExactLength):
+        return {"minLength": pred.length, "maxLength": pred.length}
+    elif isinstance(pred, Choices):
+        return {"enum": (list(sorted(pred.choices)))}
+    elif isinstance(pred, NotBlank):
         return {"pattern": r"^(?!\s*$).+"}
-    elif isinstance(validator, RegexPredicate):
-        return {"pattern": validator.pattern.pattern}
+    elif isinstance(pred, RegexPredicate):
+        return {"pattern": pred.pattern.pattern}
+    elif isinstance(pred, StartsWith):
+        return {"pattern": rf"^{re.escape(pred.prefix)}"}
+    elif isinstance(pred, EndsWith):
+        return {"pattern": rf"{re.escape(pred.suffix)}$"}
     # numbers
-    elif isinstance(validator, Min):
-        min_t = type(validator.minimum)
+    elif isinstance(pred, Min):
+        min_t = type(pred.minimum)
         if min_t is Decimal:
-            min_ = str(validator.minimum)
+            min_ = str(pred.minimum)
         elif min_t is date or min_t is datetime:
-            min_ = validator.minimum.isoformat()
+            min_ = pred.minimum.isoformat()
         else:
-            min_ = validator.minimum
+            min_ = pred.minimum
         # non-standard format min / max
         if min_t in {Decimal, date, datetime}:
             return (
                 {"formatExclusiveMinimum": min_}
-                if validator.exclusive_minimum
+                if pred.exclusive_minimum
                 else {"formatMinimum": min_}
             )
         else:
             return (
                 {"exclusiveMinimum": min_}
-                if validator.exclusive_minimum
+                if pred.exclusive_minimum
                 else {"minimum": min_}
             )
-    elif isinstance(validator, Max):
-        max_t = type(validator.maximum)
+    elif isinstance(pred, Max):
+        max_t = type(pred.maximum)
         if max_t is Decimal:
-            max_ = str(validator.maximum)
+            max_ = str(pred.maximum)
         elif max_t is date or max_t is datetime:
-            max_ = validator.maximum.isoformat()
+            max_ = pred.maximum.isoformat()
         else:
-            max_ = validator.maximum
+            max_ = pred.maximum
 
         # non-standard format min / max
         if max_t in {Decimal, date, datetime}:
             return (
                 {"formatExclusiveMaximum": max_}
-                if validator.exclusive_maximum
+                if pred.exclusive_maximum
                 else {"formatMaximum": max_}
             )
         else:
             return (
                 {"exclusiveMaximum": max_}
-                if validator.exclusive_maximum
+                if pred.exclusive_maximum
                 else {"maximum": max_}
             )
-    elif isinstance(validator, EqualTo):
+    elif isinstance(pred, EqualTo):
         # todo: is there a better way to do this than using enum?
-        match_t = type(validator.match)
+        match_t = type(pred.match)
         if (
             match_t is str
             or match_t is int
@@ -366,35 +373,35 @@ def generate_schema_predicate(
             or match_t is float
             or match_t is bool
         ):
-            choice = validator.match
+            choice = pred.match
         elif match_t is date:
-            choice = validator.match.isoformat()
+            choice = pred.match.isoformat()
         elif match_t is datetime:
-            choice = validator.match.isoformat()
+            choice = pred.match.isoformat()
         elif match_t is Decimal:
-            choice = str(validator.match)
+            choice = str(pred.match)
         elif match_t is UUID:
-            choice = str(validator.match)
+            choice = str(pred.match)
         elif match_t is bytes:
-            choice = validator.match.decode("utf-8")
+            choice = pred.match.decode("utf-8")
         else:
-            raise TypeError(f"got unexpected type: {type(validator.match)}")
+            raise TypeError(f"got unexpected type: {type(pred.match)}")
 
         return {"enum": [choice]}
     # objects
-    elif isinstance(validator, MinKeys):
-        return {"minProperties": validator.size}
-    elif isinstance(validator, MaxKeys):
-        return {"maxProperties": validator.size}
+    elif isinstance(pred, MinKeys):
+        return {"minProperties": pred.size}
+    elif isinstance(pred, MaxKeys):
+        return {"maxProperties": pred.size}
     # arrays
-    elif isinstance(validator, MinItems):
-        return {"minItems": validator.item_count}
-    elif isinstance(validator, MaxItems):
-        return {"maxItems": validator.item_count}
-    elif isinstance(validator, UniqueItems):
+    elif isinstance(pred, MinItems):
+        return {"minItems": pred.item_count}
+    elif isinstance(pred, MaxItems):
+        return {"maxItems": pred.item_count}
+    elif isinstance(pred, UniqueItems):
         return {"uniqueItems": True}
     else:
-        unhandled_type(validator)
+        unhandled_type(pred)
 
 
 def generate_schema_validator(

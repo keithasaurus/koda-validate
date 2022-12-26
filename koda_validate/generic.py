@@ -278,7 +278,7 @@ class StartsWith(Predicate[StrOrBytes]):
 
 @dataclass
 class EndsWith(Predicate[StrOrBytes]):
-    prefix: StrOrBytes
+    suffix: StrOrBytes
 
     def __call__(self, val: StrOrBytes) -> bool:
-        return val.endswith(self.prefix)
+        return val.endswith(self.suffix)

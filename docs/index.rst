@@ -69,16 +69,18 @@ At a glance
 
    s_validator = StringValidator(MinLength(5),
                                  MaxLength(10),
-                                 StartsWith("a"))
+                                 StartsWith("a"),
+                                 preprocessors=[lower_case, strip])
 
-   l_validator(["long string 1", "long string 2"])
-   # > Valid(["long string 1", "long string 2"])
+   s_validator("abc123")
+   # > Valid("abc123")
 
-   l_validator(["long enough", "nope"])
-   # > Invalid(...)  # second string too short
+   s_validator(" ABC123 ")
+   # > Valid("abc123")  # note the preprocessors altered the string
 
-Koda Validate can validate based on explicit definition, or by inspecting typehints. Even when
-validators are derived, Koda Validate allows for user overrides to customize behavior.
+   s_validator("abc")
+   # > Invalid(...)  # too short
+
 
 .. toctree::
    :maxdepth: 2

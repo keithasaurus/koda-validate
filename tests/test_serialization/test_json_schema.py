@@ -54,7 +54,7 @@ from koda_validate.dictionary import (
     RecordValidator,
     is_dict_validator,
 )
-from koda_validate.generic import ExactLength
+from koda_validate.generic import EndsWith, ExactLength, StartsWith
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.serialization.json_schema import to_json_schema, to_named_json_schema
 from koda_validate.string import (
@@ -672,3 +672,17 @@ def test_uuid_validator() -> None:
     validate_schema(expected_schema_datetime)
 
     assert to_json_schema(UUIDValidator()) == expected_schema_datetime
+
+
+def test_starts_with() -> None:
+    assert to_json_schema(StringValidator(StartsWith("bla"))) == {
+        "type": "string",
+        "pattern": "^bla",
+    }
+
+
+def test_ends_with() -> None:
+    assert to_json_schema(StringValidator(EndsWith("bla"))) == {
+        "type": "string",
+        "pattern": "bla$",
+    }

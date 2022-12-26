@@ -36,6 +36,7 @@ from koda_validate.errors import ContainerErr, KeyValErrs
 from koda_validate.float import FloatValidator
 from koda_validate.generic import (
     Choices,
+    EndsWith,
     EqualTo,
     ExactItemCount,
     ExactLength,
@@ -44,6 +45,7 @@ from koda_validate.generic import (
     Min,
     MinItems,
     MultipleOf,
+    StartsWith,
     unique_items,
 )
 from koda_validate.integer import IntValidator
@@ -349,3 +351,13 @@ def test_default_coercion_err() -> None:
     assert to_serializable_errs(invalid) == [
         "could not coerce to int (compatible with float, int)"
     ]
+
+
+def test_startswith() -> None:
+    assert pred_to_err_message(StartsWith("abcd")) == "must start with 'abcd'"
+    assert pred_to_err_message(StartsWith(b"abcd")) == "must start with b'abcd'"
+
+
+def test_endswith() -> None:
+    assert pred_to_err_message(EndsWith("abcd")) == "must end with 'abcd'"
+    assert pred_to_err_message(EndsWith(b"abcd")) == "must end with b'abcd'"
