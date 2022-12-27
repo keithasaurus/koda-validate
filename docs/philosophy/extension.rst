@@ -3,6 +3,9 @@ Extension
 Koda Validate aims to provide enough tools to handle most common validation needs; for the cases it doesn't
 cover, it aims to allow easy extension.
 
+Validators
+----------
+
 Even though there is an existing ``FloatValidator`` in Koda Validate, we'll build our own
 for demonstration purposes.
 
@@ -21,7 +24,7 @@ for demonstration purposes.
 
 Some notes:
 
-- ``Validator`` is subclassed with float specified -- a value of type ``Valid[float]`` must be returned if the data passed in is valid
+- ``Validator`` is subclassed and parameterized by the ``float`` -- a value of type ``Valid[float]`` must be returned if the data passed in is valid
 - ``__call__`` accepts ``Any`` because the type of input may be unknown before submitting to the ``Validator``
 - ``Invalid`` is returned with all relevant validation context for downstream use, namely:
 
@@ -41,10 +44,11 @@ Here's how our ``Validator`` can be used:
     float_validator(5)
     # > Invalid(TypeErr(float), 5, ...)
 
-
-This is all well and good, but we'll probably want to be able to validate against ``float``
-values, such as min, max, or rough equality checks. For this we use ``Predicate``s. For
-example, if we wanted to allow a single ``Predicate`` in our ``SimpleFloatValidator`` we
+Predicates
+----------
+When we want to be able to perform additional refinement against a type, we use
+``Predicate``\s. (In the case of ``float``, we might want to check things like min, max, or rough
+equality.) If we wanted to allow a single ``Predicate`` in our ``SimpleFloatValidator`` we
 could do so like this:
 
 .. code-block:: python

@@ -8,138 +8,10 @@ public instance attributes:
 - ``value``: the value that was being validated
 - ``validator``: a reference to the ``Validator`` where the error occurred
 
-``Invalid`` does not contain any sort of message, nor does it conform to needs of specific serialiation formats.
+``Invalid`` does not contain any sort of message, nor does it attempt to accommodate any specific serialization format.
 Instead, the intent of ``Invalid`` is to provide enough context to produce any kind of derivative data, whether
 human- or machine-readable.
 
-Producing Useful Information
-----------------------------
-In Koda Validate, ``Invalid`` errors typically form into trees. For example, the error type ``KeyErrs``
-contains a dictionary, of which the keys serve as edges and the values as the child nodes:
-
-.. code-block:: python
-
-    Invalid(
-        KeyErrs({
-            "name": Invalid(TypeErr(str), ...),
-            "address": Invalid(
-                KeyErrs({
-                    "city": Invalid(MissingKeyErr(), ...)
-                })
-            )
-        }),
-        ...
-    )
-
-We can process these errors in the same we might process any tree, accumulating information as we visits nodes. The is
-how ``koda_validate.serialization.errors.to_serializable_errs`` works:
-
-.. code-block:: python
-
-    class Person(TypedDict):
-        name: str
-        age: int
-
-    validator = TypedDictValidator(Person)
-
-    result = validator({"age": False})
-
-    assert isinstance(result, Invalid)
-
-    to_serializable_errs(result)
-    # > {'age': ['expected an integer'], 'name': ['key missing']}
-
-Of course, the point of Koda Validate's error design is that we can produce arbitrary output formats, so we'll build
-something a little different. We'll assume we need a "flat" representation of errors. A simple way to do this is just to
-recursively branch on the error types. Here's how we could do that:
-
-.. code-block:: python
-
-    from dataclasses import dataclass
-    from enum import Enum
-    from typing import TypedDict, List, Union, Any, Optional
-
-    from koda_validate import *
-
-
-    class ErrCode(Enum):
-        TYPE_ERR = 0
-        KEY_MISSING = 1
-
-
-    @dataclass
-    class FlatError:
-        location: List[Union[int, str]]
-        err_code: ErrCode
-        extra: Any = None
-
-    def to_flat_errs(
-        invalid: Invalid, location: Optional[List[Union[str, int]]] = None
-    ) -> List[FlatError]:
-        """
-        recursively add errors to a flat list
-        """
-        loc = location or []
-        err_type = invalid.err_type
-
-        if err_type is TypeErr:
-            return [FlatError(loc, ErrCode.TYPE_ERR, err_type.expected_type)]
-
-        elif err_type is MissingKeyErr:
-            return [FlatError(loc, ErrCode.KEY_MISSING)]
-
-        elif err_type is KeyErrs:
-            errs = []
-            for k, inv_v in err_type.keys.items():
-                errs.extend(to_flat_errs(inv_v, loc + [k]))
-            return errs
-
-        elif err_type is IndexErrs:
-            errs = []
-            for i, inv_item in err_type.indexes.items():
-                errs.extend(to_flat_errs(inv_item, loc + [i]))
-            return errs
-
-        else:
-            raise TypeError("unhandled type")
-
-
-.. note::
-
-    The only thing we really checked in the above was the ``err_type``, but we could have also branched on
-    the ``invalid.value`` or ``invalid.validator`` if we wanted to produce richer output.
-
-
-Let's see how this works:
-
-.. code-block:: python
-
-    class Person(TypedDict):
-        name: str
-        age: int
-
-    validator = ListValidator(TypedDictValidator(Person))
-
-    root_error_result = validator({})
-
-    assert isinstance(root_error_result, Invalid)
-
-    assert to_flat_errs(root_error_result) == [
-        FlatError(location=[], err_code=ErrCode.TYPE_ERR, extra=list)
-    ]
-
-    complex_result = validator([None, {}, {"name": "Bob", "age": "not an int"}])
-
-    assert isinstance(complex_result, Invalid)
-
-    assert to_flat_errs(complex_result) == [
-        FlatError(location=[0], err_code=ErrCode.TYPE_ERR, extra=dict),
-        FlatError(location=[1, 'name'], err_code=ErrCode.KEY_MISSING, extra=None),
-        FlatError(location=[1, 'age'], err_code=ErrCode.KEY_MISSING, extra=None),
-        FlatError(location=[2, 'age'], err_code=ErrCode.TYPE_ERR, extra=int)
-    ]
-
-As you can see, it's relatively easy to use to produce practically any kind of structure for any target format.
 
 Error Types
 -----------
@@ -168,3 +40,127 @@ Each of the ``ErrType`` variants represents some distinct use case (have a look 
 is explicitly intended to be subclassed for any need not covered by the core ``ErrType``\s. One example of such a subclass
 is ``koda_validate.serialization.errors.SerializableErr``, but you can feel free to define any custom error as a subclass
 of ``ValidationErrBase`` and type checks should succeed.
+
+
+Converting ``Invalid`` to Other Formats
+------------------------------------------
+In Koda Validate, ``Invalid`` objects are not usually the final form you'll want for errors;
+you'll usually want to convert them to something more useful for your specific
+use case.
+
+It's helpful to understand that ``Invalid`` errors typically form into trees (which mirror
+the structure of the ``Validator`` they come from):
+
+.. code-block:: python
+
+    Invalid(
+        KeyErrs({
+            "name": Invalid(TypeErr(str), ...),
+            "address": Invalid(
+                ## any amount of nesting can be defined
+                KeyErrs({
+                    "city": Invalid(MissingKeyErr(), ...)
+                })
+            )
+        }),
+        ...
+    )
+
+We can process these errors in the same way we might process any tree: by accumulating
+information as we visit all the nodes. For an example, let's assume we need a "flat"
+list of human-readable errors. A simple way to do this is just to recursively
+branch on the error types. Here's how we could do that:
+
+.. code-block:: python
+
+    from dataclasses import dataclass
+    from enum import Enum
+    from typing import TypedDict, List, Union, Any, Optional
+
+    from koda_validate import *
+
+
+    @dataclass
+    class FlatError:
+        location: List[Union[int, str]]
+        message: str
+
+    def to_flat_errs(
+        invalid: Invalid, location: Optional[List[Union[str, int]]] = None
+    ) -> List[FlatError]:
+        """
+        recursively add errors to a flat list
+        """
+        loc = location or []
+        err_type = invalid.err_type
+
+        if isinstance(err_type, TypeErr):
+            return [FlatError(loc, f"expected type {err_type.expected_type}")]
+
+        elif isinstance(err_type, MissingKeyErr):
+            return [FlatError(loc, "missing key!")]
+
+        elif isinstance(err_type, KeyErrs):
+            errs = []
+            for k, inv_v in err_type.keys.items():
+                errs.extend(to_flat_errs(inv_v, loc + [k]))
+            return errs
+
+        elif isinstance(err_type, IndexErrs):
+            errs = []
+            for i, inv_item in err_type.indexes.items():
+                errs.extend(to_flat_errs(inv_item, loc + [i]))
+            return errs
+
+        else:
+            raise TypeError(f"unhandled type {err_type}")
+
+
+.. note::
+
+    The only thing we really checked in the above was the ``err_type``, but we could have also branched on
+    the ``invalid.value`` or ``invalid.validator`` if we wanted to produce richer output.
+
+
+Let's see how this works:
+
+.. code-block:: python
+
+    class Person(TypedDict):
+    name: str
+    age: int
+
+
+    validator = ListValidator(TypedDictValidator(Person))
+
+    simple_result = validator({})
+    assert isinstance(simple_result, Invalid)
+    assert to_flat_errs(simple_result) == [
+        FlatError(location=[], message=f"expected type <class 'list'>")
+    ]
+
+    complex_result = validator([None, {}, {"name": "Bob", "age": "not an int"}])
+    assert isinstance(complex_result, Invalid)
+    assert to_flat_errs(complex_result) == [
+        FlatError(location=[0], message="expected type <class 'dict'>"),
+        FlatError(location=[1, 'name'], message='missing key!'),
+        FlatError(location=[1, 'age'], message='missing key!'),
+        FlatError(location=[2, 'age'], message="expected type <class 'int'>")
+    ]
+
+
+
+One thing that we notably are *not* doing here is adding representation logic to ``Invalid``
+or ``ErrType`` instances; nor are we subclassing those objects and adding methods or data
+there. This is because we don't want to couple our errors with any specific output format.
+Instead the process to compute the final error output is always more-or-less the same:
+just write a function (or use an existing one). There are a few advantages to this approach:
+
+- it's easy to have many different output functions (different languages, formats, etc)
+- it's easy to keep error outputs consistent -- you don't have to jump around from
+  class to class in your codebase.
+
+.. note::
+
+    If you'd like to see a fuller example in the, take a look at the source code for
+    ``koda_validate.serialization.errors.to_serializable_errs``

@@ -17,9 +17,9 @@ Scalars
 
    from koda_validate import *
 
-   str_validator = StringValidator()
+   validator = StringValidator()
 
-   result = str_validator("a string")
+   result = validator("a string")
 
    print(result)
    # > Valid("a string")
