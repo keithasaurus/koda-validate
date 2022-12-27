@@ -51,7 +51,7 @@ validator = ListValidator(TypedDictValidator(Person))
 simple_result = validator({})
 assert isinstance(simple_result, Invalid)
 assert to_flat_errs(simple_result) == [
-    FlatError(location=[], message=f"expected type <class 'list'>")
+    FlatError(location=[], message="expected type <class 'list'>")
 ]
 
 complex_result = validator([None, {}, {"name": "Bob", "age": "not an int"}])
