@@ -6,8 +6,8 @@ cover, it aims to allow easy extension.
 Validators
 ----------
 
-Even though there is an existing ``FloatValidator`` in Koda Validate, we'll build our own
-for demonstration purposes.
+We'll build a simple Validator of ``float`` values to demonstrate how ``Validator``\s
+are built.
 
 .. code-block:: python
 
@@ -16,6 +16,7 @@ for demonstration purposes.
 
 
     class SimpleFloatValidator(Validator[float]):
+        # __call__ allows a class instance to be called like a function
         def __call__(self, val: Any) -> ValidationResult[float]:
             if isinstance(val, float):
                 return Valid(val)
@@ -24,7 +25,7 @@ for demonstration purposes.
 
 Some notes:
 
-- ``Validator`` is subclassed and parameterized by the ``float`` -- a value of type ``Valid[float]`` must be returned if the data passed in is valid
+- ``Validator`` is subclassed and parameterized ``float``. This just means a value of type ``Valid[float]`` must be returned if the data passed in is valid
 - ``__call__`` accepts ``Any`` because the type of input may be unknown before submitting to the ``Validator``
 - ``Invalid`` is returned with all relevant validation context for downstream use, namely:
 
@@ -34,7 +35,7 @@ Some notes:
 
 Here's how our ``Validator`` can be used:
 
-.. code-block::
+.. code-block:: python
 
     float_validator = SimpleFloatValidator()
 
@@ -46,10 +47,34 @@ Here's how our ``Validator`` can be used:
 
 Predicates
 ----------
-When we want to be able to perform additional refinement against a type, we use
-``Predicate``\s. (In the case of ``float``, we might want to check things like min, max, or rough
-equality.) If we wanted to allow a single ``Predicate`` in our ``SimpleFloatValidator`` we
-could do so like this:
+When we want to be able to perform additional refinement against a value, we use
+``Predicate``\s. In the case of ``float``, we might want to check things like min, max, or
+rough equality. We'll make a ``FloatMin`` ``Predicate`` to validate that ``float`` values
+are above some threshold:
+
+.. code-block:: python
+
+    class FloatMin(Predicate[float]):
+        def __init__(self, min: float) -> None:
+            self.min = min
+
+        def __call__(self, val: float) -> bool:
+            return val >= self.min
+
+We can use ``FloatMin`` on its own, but it's not terribly useful.
+
+.. code-block:: python
+
+    min_5 = FloatMin(5.0)
+
+    min_5(5.678)
+    # > True
+
+    min_6(1.23)
+    # > False
+
+Predicates are more useful when we allow them to work with ``Validator``\s. For simplicity,
+we'll allow just one.
 
 .. code-block:: python
 
@@ -59,7 +84,7 @@ could do so like this:
     from koda_validate import *
 
 
-    class SimpleFloatValidatorWithPredicate(Validator[float]):
+    class SimpleFloatValidator(Validator[float]):
         def __init__(self, predicate: Optional[Predicate[float]] = None) -> None:
             self.predicate = predicate
 
@@ -74,5 +99,84 @@ could do so like this:
 
 If ``predicate`` is specified, we'll check it *after* we've verified the type of the value.
 
-``Predicate``\s are meant to validate the *value* of a known type -- as opposed to validating at the type-level (that's what the ``Validator`` does).
-For example, this is how you might write and use a ``Predicate`` to validate a range of values:
+.. code-block:: python
+
+    validator = SimpleFloatValidator(FloatMin(2.5))
+
+    validator(3.14)
+    # > Valid(3.14)
+
+    validator(1.1)
+    # > Invalid(PredicateErrs([FloatMin(2.5)]), 1.1, ...)
+
+We limited the Validator to one ``Predicate`` for simplicity. In Koda Validate, ``Validator``\s
+that accept predicates typically allow of a ``List`` of ``Predicate``s. Because ``Predicate``\s
+cannot alter values, it's safe to have as many as you want (i.e. ``SimpleFloatValidator(FloatMin(3.3), FloatMax(4.4), ...)``).
+
+
+Processors
+----------
+We can also allow for conforming of values using processors. For this example, we'll say we want to
+convert ``float``\s
+
+.. code-block:: python
+
+    class FloatAbs(Processor[float]):
+        def __call__(self, val: float) -> float:
+            return abs(val)
+
+To allow a preprocessor to be  this to our ``Validator``, we can change the code similarly to
+how we did with a predicate.
+
+.. code-block:: python
+
+    class SimpleFloatValidator(Validator[float]):
+        def __init__(self,
+                     predicate: Optional[Predicate[float]] = None,
+                     processor: Optional[Processor[float]] = None) -> None:
+            self.predicate = predicate
+            self.preprocessor = preprocessor
+
+        def __call__(self, val: Any) -> ValidationResult[float]:
+            if isinstance(val, float):
+                if self.processor:
+                    val = self.processor(val)
+
+                if self.predicate(val):
+                    return Valid(val)
+                else:
+                    return Invalid(PredicateErrs([self.predicate]), val, self)
+            else:
+                return Invalid(TypeErr(float), val, self)
+
+
+    validator = SimpleFloatValidator(predicate=FloatMin(2.2),
+                                     processor=FloatAbs())
+
+    validator(-5.5)
+    # > Valid(5.5)
+
+
+Async
+-----
+There are only a few things to do differently if we want to make this ``Validator`` work
+asynchronously:
+
+- implement a ``validate_async`` method on the Validator (which should be very similar to the existing ``__call__`` method)
+- if desired, allow for ``PredicateAsync`` predicates to be passed in
+
+Then when you use the Validator in an async context, you just need to call it like:
+
+.. code-block:: python
+
+    validator = SimpleFloatValidator(...)
+    await validator.validate_async(5.5)
+
+
+It's important to mention that you can build ``Validator``\s, ``Predicate``\s, and
+``Processor``\s to be initialized with any type of attributes you want. The only
+contracts for these kinds of objects are on the ``__call__`` and ``validate_async``
+methods; otherwise you have complete freedom to structure the logic as you see fit.
+
+This discussion has focused on extension only in terms of what we can validate. To learn
+more about how we inspect validators to add new capabilities, check out Metadata.
