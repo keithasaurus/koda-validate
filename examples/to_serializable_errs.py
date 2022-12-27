@@ -1,7 +1,6 @@
-from pprint import pprint
 from typing import TypedDict
 
-from koda_validate import TypedDictValidator, to_serializable_errs
+from koda_validate import Invalid, TypedDictValidator, to_serializable_errs
 
 
 class Person(TypedDict):
@@ -12,6 +11,7 @@ class Person(TypedDict):
 validator = TypedDictValidator(Person)
 
 result = validator({"age": False})
+assert isinstance(result, Invalid)
 
 to_serializable_errs(result)
 # > {'age': ['expected an integer'], 'name': ['key missing']}

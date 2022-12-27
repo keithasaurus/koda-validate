@@ -56,10 +56,8 @@ might build up a list of "flat" errors:
         err_code: ErrCode
         extra: Any = None
 
-
     def to_flat_errs(
-        invalid: Invalid,
-        location: Optional[List[Union[str, int]]] = None
+        invalid: Invalid, location: Optional[List[Union[str, int]]] = None
     ) -> List[FlatError]:
         loc = location or []
         err_type = invalid.err_type
@@ -77,7 +75,8 @@ might build up a list of "flat" errors:
             for i, inv_item in err_type.indexes.items():
                 errs.extend(to_flat_errs(inv_item, loc + [i]))
             return errs
-
+        else:
+            raise TypeError("unhandled type")
 
 Note that the only thing we really checked in the above was the ``err_type``, but we could have also branched on the Validator being used or the value (especially if the value is something we want to use). Let's
 see how our interpreter works:

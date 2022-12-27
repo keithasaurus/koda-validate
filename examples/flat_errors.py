@@ -36,6 +36,8 @@ def to_flat_errs(
         for i, inv_item in err_type.indexes.items():
             errs.extend(to_flat_errs(inv_item, loc + [i]))
         return errs
+    else:
+        raise TypeError("unhandled type")
 
 
 class Person(TypedDict):
