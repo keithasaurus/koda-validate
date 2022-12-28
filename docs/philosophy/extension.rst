@@ -1,12 +1,12 @@
 Extension
 =========
-Koda Validate aims to provide enough tools to handle most common validation needs; for the cases it doesn't
-cover, it aims to allow easy extension.
+Koda Validate aims to provide enough tools to handle most common validation needs; for
+the cases it doesn't cover, it aims to allow easy extension.
 
 Validators
 ----------
 
-We'll build a simple Validator of ``float`` values to demonstrate how ``Validator``\s
+We'll build a simple ``Validator`` for ``float`` values to demonstrate how ``Validator``\s
 are built.
 
 .. code-block:: python
@@ -16,7 +16,7 @@ are built.
 
 
     class SimpleFloatValidator(Validator[float]):
-        # __call__ allows a class instance to be called like a function
+        # `__call__` allows a `SimpleFloatValidator` instance to be called like a function
         def __call__(self, val: Any) -> ValidationResult[float]:
             if isinstance(val, float):
                 return Valid(val)
@@ -25,7 +25,7 @@ are built.
 
 Some notes:
 
-- ``Validator`` is subclassed and parameterized ``float``. This just means a value of type ``Valid[float]`` must be returned if the data passed in is valid
+- ``Validator`` is subclassed and parameterized with ``float``. This just means a value of type ``Valid[float]`` must be returned when valid
 - ``__call__`` accepts ``Any`` because the type of input may be unknown before submitting to the ``Validator``
 - ``Invalid`` is returned with all relevant validation context for downstream use, namely:
 
@@ -47,10 +47,10 @@ Here's how our ``Validator`` can be used:
 
 Predicates
 ----------
-When we want to be able to perform additional refinement against a value, we use
-``Predicate``\s. In the case of ``float``, we might want to check things like min, max, or
-rough equality. We'll make a ``FloatMin`` ``Predicate`` to validate that ``float`` values
-are above some threshold:
+When we want to perform additional refinement against a value, we use ``Predicate``\s. In
+the case of ``float``, we might want to check things like min, max, or fuzzy equality.
+We'll make a ``FloatMin`` ``Predicate`` to validate that ``float`` values are above some
+threshold:
 
 .. code-block:: python
 
@@ -116,8 +116,8 @@ cannot alter values, it's safe to have as many as you want (i.e. ``SimpleFloatVa
 
 Processors
 ----------
-We can also allow for conforming of values using processors. For this example, we'll say we want to
-convert ``float``\s
+We can also conforming values using processors. For this example, we'll say we want to
+convert ``float``\s to their absolute value before we validate it.
 
 .. code-block:: python
 
@@ -125,7 +125,7 @@ convert ``float``\s
         def __call__(self, val: float) -> float:
             return abs(val)
 
-To allow a preprocessor to be  this to our ``Validator``, we can change the code similarly to
+To allow a processor to be this to our ``Validator``, we can change the code similarly to
 how we did with a predicate.
 
 .. code-block:: python
@@ -133,14 +133,14 @@ how we did with a predicate.
     class SimpleFloatValidator(Validator[float]):
         def __init__(self,
                      predicate: Optional[Predicate[float]] = None,
-                     processor: Optional[Processor[float]] = None) -> None:
+                     preprocessor: Optional[Processor[float]] = None) -> None:
             self.predicate = predicate
             self.preprocessor = preprocessor
 
         def __call__(self, val: Any) -> ValidationResult[float]:
             if isinstance(val, float):
-                if self.processor:
-                    val = self.processor(val)
+                if self.preprocessor:
+                    val = self.preprocessor(val)
 
                 if self.predicate(val):
                     return Valid(val)
@@ -151,7 +151,7 @@ how we did with a predicate.
 
 
     validator = SimpleFloatValidator(predicate=FloatMin(2.2),
-                                     processor=FloatAbs())
+                                     preprocessor=FloatAbs())
 
     validator(-5.5)
     # > Valid(5.5)
@@ -173,10 +173,11 @@ Then when you use the Validator in an async context, you just need to call it li
     await validator.validate_async(5.5)
 
 
-It's important to mention that you can build ``Validator``\s, ``Predicate``\s, and
-``Processor``\s to be initialized with any type of attributes you want. The only
-contracts for these kinds of objects are on the ``__call__`` and ``validate_async``
-methods; otherwise you have complete freedom to structure the logic as you see fit.
+.. note::
+    It's important to mention that you can build ``Validator``\s, ``Predicate``\s, and
+    ``Processor``\s to be initialized with any combination of attributes you want. The only
+    contracts for these kinds of objects are on the ``__call__`` and ``validate_async``
+    methods; otherwise you have complete freedom to structure the logic as you see fit.
 
 This discussion has focused on extension only in terms of what we can validate. To learn
 more about how we inspect validators to add new capabilities, check out Metadata.
