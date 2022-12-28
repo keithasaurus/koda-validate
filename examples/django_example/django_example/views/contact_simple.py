@@ -1,9 +1,8 @@
 import json
 from dataclasses import dataclass
-from json import JSONDecodeError
 from typing import Annotated, Optional
 
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -22,10 +21,10 @@ class ContactForm:
 
 @csrf_exempt
 @require_POST
-def contact(request: HttpRequest) -> HttpResponse:
+def contact(request: HttpRequest) -> JsonResponse:
     try:
         posted_json = json.loads(request.body)
-    except JSONDecodeError:
+    except json.JSONDecodeError:
         return JsonResponse({"_root_": "expected json"}, status=400)
     else:
         result = DataclassValidator(ContactForm)(posted_json)
