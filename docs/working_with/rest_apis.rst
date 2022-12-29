@@ -1,14 +1,18 @@
-Flask
-=====
+REST APIs
+=========
 
-Koda Validate is principally aimed exclusively at validation. That is to say, Koda
-Validate is not tightly coupled with specific web frameworks, serialization formats, etc.
-However, Koda Validate does not exist in a vacuum and some thought has put into how to
+Koda Validate is not tightly coupled with specific API types, serialization formats, or web frameworks.
+Nonetheless, Koda Validate does not exist in a vacuum, and some thought has put into how to
 integrate Koda Validate into common API setups.
 
+Here we'll look at the example of a Contact Form that is submitted through a REST endpoint, and
+look at ways to implement this in several web frameworks.
+
+
+Flask
+-----
 Basic
-^^^^^
-This is a basic setup you might start with for an API endpoint for a contact form on a website.
+^^^^^^
 
 .. code-block:: python
 
@@ -115,3 +119,10 @@ Fuller Example with Async
 
     if __name__ == "__main__":
         app.run()
+
+
+Django
+------
+Simple
+^^^^^^
+
