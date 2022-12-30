@@ -17,10 +17,10 @@ Branching on Validity
     result = some_validator("abc123")
 
     if result.is_valid:
-        # mypy understands ``result`` is Valid[str]
+        # mypy understands `result` is Valid[str]
         print(result.val)
     else:
-        # mypy understands ``result`` is Invalid
+        # mypy understands `result` is Invalid
         print(f"Error of type {type(result.err_type)} "
               f"while validating {result.value} "
               f"with validator {result.validator}")
