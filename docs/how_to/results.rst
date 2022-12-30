@@ -60,8 +60,8 @@ produces human-readable errors suitable for JSON / YAML serialization.
         case Invalid() as inv:
             print(to_serializable_errs(inv))
 
-Even if it doesn't fit your ultimate use case, ``to_serializable_errs`` is sometimes useful to use in
-development, simply because the error messages tend to be more readable than the printed representation of
+Even if it doesn't fit your ultimate use case, ``to_serializable_errs`` can be useful in
+development because the error messages tend to be more readable than the printed representation of
 ``Invalid`` instances.
 
 .. note::
