@@ -114,10 +114,10 @@ Writing your own
 
 .. toctree::
    :maxdepth: 3
-   :caption: Working with Koda Validate
+   :caption: How To
 
-   working_with/rest_apis
-   working_with/results
+   how_to/rest_apis
+   how_to/results
 
 
 .. toctree::
