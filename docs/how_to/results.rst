@@ -3,7 +3,7 @@ Validation Results
 
 The result from calling a ``Validator[SomeType]`` of a given type will be ``Union[Valid[SomeType], Invalid]``. This means that
 we need to distinguish between the valid and invalid results to do something useful with the result. Perhaps the
-easiest way is to just branch on ``<some_result>.is_valid``:
+easiest way is to just branch on i``<some_result>.is_valid``:
 
 Branching on Validity
 ---------------------

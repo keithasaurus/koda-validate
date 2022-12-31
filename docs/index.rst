@@ -116,8 +116,9 @@ Writing your own
    :maxdepth: 3
    :caption: How To
 
-   how_to/rest_apis
    how_to/results
+   how_to/rest_apis
+   how_to/async
 
 
 .. toctree::
