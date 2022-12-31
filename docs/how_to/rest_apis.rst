@@ -1,12 +1,12 @@
 REST APIs
 =========
 
-Koda Validate is not tightly coupled with specific API types, serialization formats, or web frameworks.
+Koda Validate is not tightly coupled with specific web frameworks, serialization formats, or kinds of APIs.
 Nonetheless, Koda Validate does not exist in a vacuum, and some thought has put into how to
 integrate Koda Validate into common API setups.
 
-Here we'll look at the example of a Contact Form that is submitted through a REST endpoint, and
-look at ways to implement this in several web frameworks.
+Here we'll explore the example of a Contact Form that is posted to a REST endpoint, and
+see how it could be implemented in several web frameworks.
 
 
 Flask
@@ -51,8 +51,8 @@ Basic
         app.run()
 
 
-Fuller Example with Async
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Fuller Example (with Async)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
@@ -126,3 +126,41 @@ Django
 Simple
 ^^^^^^
 
+.. code-block:: python
+
+    import json
+    from dataclasses import dataclass
+    from typing import Annotated, Optional
+
+    from django.http import HttpRequest, JsonResponse
+    from django.views.decorators.csrf import csrf_exempt
+    from django.views.decorators.http import require_POST
+
+    from koda_validate import *
+
+
+    @dataclass
+    class ContactForm:
+        name: str
+        message: str
+        # Annotated `Validator`s are used if defined -- instead
+        # of Koda Validate's default for the type)
+        email: Annotated[str, StringValidator(EmailPredicate())]
+        subject: Optional[str] = None
+
+
+    @csrf_exempt
+    @require_POST
+    def contact(request: HttpRequest) -> JsonResponse:
+        try:
+            posted_json = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"_root_": "expected json"}, status=400)
+        else:
+            result = DataclassValidator(ContactForm)(posted_json)
+            match result:
+                case Valid(contact_form):
+                    print(contact_form)
+                    return JsonResponse({"success": True})
+                case Invalid() as inv:
+                    return JsonResponse(to_serializable_errs(inv), status=400, safe=False)

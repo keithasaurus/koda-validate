@@ -1,11 +1,11 @@
 Validation Results
 ==================
 
-The result from calling a ``Validator[SomeType]`` of a given type will be ``Union[Valid[SomeType], Invalid]``. This means that
-we need to distinguish between the valid and invalid results to do something useful with the result.
+``Validator[SomeType]`` will return a ``ValidationResult[SomeType]`` (same as ``Union[Valid[SomeType], Invalid]``).
+To do something useful with this result we need to distinguish between the ``Valid`` and ``Invalid`` variants.
 
-Branching on Validity
----------------------
+``if`` Statements
+-----------------
 Perhaps the easiest way is to just branch on ``.is_valid``:
 
 
@@ -26,6 +26,8 @@ Perhaps the easiest way is to just branch on ``.is_valid``:
               f"while validating {result.value} "
               f"with validator {result.validator}")
 
+Pattern Matching
+----------------
 Pattern matching can make this more concise in Python 3.10+:
 
 .. code-block:: python

@@ -1,15 +1,17 @@
 Installation
 ============
-Python 3.8+
+Koda Validate is compatible with Python 3.8+
 
 pip
+---
 
-.. code-block:: console
+.. code-block:: bash
 
     pip install koda-validate
 
 Poetry
+------
 
-.. code-block:: console
+.. code-block:: bash
 
     poetry add koda-validate

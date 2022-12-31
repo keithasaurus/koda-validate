@@ -114,15 +114,14 @@ Writing your own
 
 .. toctree::
    :maxdepth: 3
-   :caption: How To
+   :caption: Examples and Guides
 
-   how_to/results
    how_to/rest_apis
+   how_to/results
    how_to/async
    how_to/performance
    how_to/extension
    how_to/metadata
-   how_to/errors
    how_to/type-checking
 
 
@@ -135,3 +134,5 @@ Writing your own
    philosophy/predicates
    philosophy/processors
    philosophy/async
+   philosophy/errors
+

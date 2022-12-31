@@ -15,11 +15,10 @@ Instead of:
 
     validator("abc")
 
-Example
--------
+Alternating between Sync and Async
+----------------------------------
 
-This is how you could use the same ``StringValidator`` instance in both
-sync and async contexts:
+In many cases, you can use the same ``Validator`` instance in sync and async contexts:
 
 .. code-block:: python
 
@@ -46,7 +45,7 @@ asynchronously:
     from koda_validate import *
 
 
-    class IsActiveUsername(PredicateAsync[str, Serializable]):
+    class IsActiveUsername(PredicateAsync[str]):
         async def validate_async(self, val: str) -> bool:
             # add some latency to pretend we're calling the db
             await asyncio.sleep(.01)
@@ -69,10 +68,10 @@ asynchronously:
 
 
 .. note::
-    ``PredicateAsync``\s are specified in the ``predicates_async`` keyword argument -- separately from ``Predicates``. We do
-    this to be explicit -- we don't want to be confused about whether a validator requires ``asyncio``. (If you try to run this validator in
-    synchronous mode, it will raise an ``AssertionError`` -- instead make sure you call it like
-    ``await username_validator.validate_async("buster")``.)
+    ``PredicateAsync``\s are specified in the ``predicates_async`` keyword argument -- separately from ``Predicate``\s.
+    The call signature is designed this way to be explicit -- we don't want to be confused about whether a validator
+    requires ``asyncio``. If you try to run this validator in synchronous mode, it will raise an ``AssertionError`` -- instead make sure you call it like
+    ``await username_validator.validate_async("buster")``.
 
 Like other validators, you can nest async ``Validator``\s. Again, the only difference is calling the ``.validate_async``
 method of the outer-most validator.
@@ -83,14 +82,15 @@ method of the outer-most validator.
 
     username_list_validator = ListValidator(username_validator)
 
-    assert asyncio.run(username_list_validator.validate_async(["michael", "gob", "lindsay", "buster"])) == Valid([
-      "michael", "gob", "lindsay", "buster"
-    ])
+    users = ["michael", "gob", "lindsay", "buster"]
+    assert asyncio.run(username_list_validator.validate_async(users)) == Valid(users)
 
 You can run async validation on nested lists, dictionaries, tuples, strings, etc. All ``Validator``\s built into to Koda Validate
 understand the ``.validate_async`` method.
 
 .. note::
+    **Concurrency**
+
     Koda Validate makes no assumptions about running async ``Validator``\s or ``PredicateAsync``\s concurrently; it is
     expected that that is handled by the surrounding context. That is to say, async validators will not block when performing IO -- as is normal -- but if you had, say, 10 async
     predicates, they would not be run in parallel by default. This is simply because that is too much of an assumption for this library to make -- we don't
@@ -99,8 +99,8 @@ understand the ``.validate_async`` method.
     or ``Predicate``, implementing whatever concurrency needs you have.
 
 
-Custom Validators
------------------
+Custom Async Validators
+-----------------------
 
 For custom async ``Validator``\s, all you need to do is implement the ``validate_async`` method on a ``Validator`` class. There is no
 separate async-only ``Validator`` class. This is because we might want to re-use synchronous validators in either synchronous
