@@ -120,6 +120,10 @@ Writing your own
    how_to/rest_apis
    how_to/async
    how_to/performance
+   how_to/extension
+   how_to/metadata
+   how_to/errors
+   how_to/type-checking
 
 
 .. toctree::
@@ -130,7 +134,4 @@ Writing your own
    philosophy/validators
    philosophy/predicates
    philosophy/processors
-   philosophy/errors
-   philosophy/extension
-   philosophy/metadata
    philosophy/async
