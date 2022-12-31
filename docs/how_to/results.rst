@@ -2,11 +2,12 @@ Validation Results
 ==================
 
 The result from calling a ``Validator[SomeType]`` of a given type will be ``Union[Valid[SomeType], Invalid]``. This means that
-we need to distinguish between the valid and invalid results to do something useful with the result. Perhaps the
-easiest way is to just branch on i``<some_result>.is_valid``:
+we need to distinguish between the valid and invalid results to do something useful with the result.
 
 Branching on Validity
 ---------------------
+Perhaps the easiest way is to just branch on ``.is_valid``:
+
 
 .. code-block:: python
 
@@ -44,7 +45,7 @@ Pattern matching can make this more concise in Python 3.10+:
 Working with Errors
 -------------------
 ``Invalid`` instances provide machine-readable failure data. In many cases you'll want to transform
-these data in some way. The expectation is that you simply use utility functions to do this. One such function built
+these data in some way. The expectation is that utility functions should do this. One such function built
 into Koda Validate is ``to_serializable_errs``, which takes the raw errors and
 produces human-readable errors suitable for JSON / YAML serialization.
 
@@ -60,7 +61,8 @@ produces human-readable errors suitable for JSON / YAML serialization.
         case Invalid() as inv:
             print(to_serializable_errs(inv))
 
-Even if it doesn't fit your ultimate use case, ``to_serializable_errs`` can be useful in
+
+Even if it doesn't suit your ultimate use case, ``to_serializable_errs`` can be useful in
 development because the error messages tend to be more readable than the printed representation of
 ``Invalid`` instances.
 

@@ -1,28 +1,28 @@
 Performance
 ===========
 
-Koda Validate is not typically slow, but there are some things you can do if you really need to eek out every ounce of
+Koda Validate can be fast, but there are some things you can do if you really need to eek out every ounce of
 performance.
 
-asyncio
--------
+Use asyncio for IO
+------------------
 Use ``asyncio``-based validation wherever you need to do IO during validation. This is not likely to be a common case,
 but it merits mentioning first because:
 
 - switching to async validation in Koda Validate is relatively simple
-- the gains you can get can be orders of magnitude faster in some cases
+- the performance gains can be orders of magnitude in some cases
 
 Initialize ``Validator``\s in Outer Scopes
 ------------------------------------------
 
-Ideally, we want to initialize validators at the module. If that's not possible, we want to try to initialize it in
-the outer-most scope possible level because:
+Ideally, Validators should be initialized at the module level. If that's not possible, we want to try to initialize them
+either lazily (once), or as few times as possible (i.e. not for every validated value) because:
 
-- often there's no need to initialize them for every value being validated
-- many of the ``Validators`` in Koda Validate assume that validators will not be initialized as often as they are called, so they perform optimization
-during initialization
+- often there's no need to initialize them for every value being validated, and initialization is not always cheap
+- many of the ``Validator``\s in Koda Validate are optimized on the assumption they will not be initialized as often as they are used
 
-Slower:
+Slower
+^^^^^^
 
 .. code-block:: python
 
@@ -32,9 +32,11 @@ Slower:
 
 
     def some_request_handler(data: Any) -> ValidationResult[Book]:
+        # the validator is initialized every time this function is called
         return TypedDictValidator(Book)(data)
 
-Faster:
+Faster
+^^^^^^
 
 .. code-block:: python
 
@@ -42,6 +44,7 @@ Faster:
         title: str
         author: str
 
+    # the validator is initialized once
     book_validator = TypedDictValidator(Book)
 
 
