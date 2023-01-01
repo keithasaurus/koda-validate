@@ -164,3 +164,8 @@ Simple
                     return JsonResponse({"success": True})
                 case Invalid() as inv:
                     return JsonResponse(to_serializable_errs(inv), status=400, safe=False)
+
+
+Fuller Example (with Async)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+

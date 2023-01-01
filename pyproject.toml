@@ -31,6 +31,7 @@ furo = "2022.12.7"
 flask = {version = "2.2.2", extras = ["async"]}
 django = "4.1.4"
 django-stubs = "1.13.1"
+pytest-django = "4.5.2"
 
 [tool.mypy]
 exclude = ["build", "bench"]
@@ -66,7 +67,10 @@ addopts ="""
   --cov-report=html
   --cov-branch
   --cov-fail-under=94
+  --ds=examples.django_example.django_example.settings
 """
+# ^^  --ds = "django settings module"
+
 
 [tool.coverage.run]
 omit = [
