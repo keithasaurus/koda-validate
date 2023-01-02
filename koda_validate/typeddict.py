@@ -43,10 +43,12 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
     :param td_cls: A ``TypedDict`` subclass
     :param overrides: a dict whose key define explicit validators
     :param validate_object: is run if all keys have been validated individually. If it
-        returns ``None``, then there were no errors; otherwise it should return ``ErrType``
+        returns ``None``, then there were no errors; otherwise it should return
+        ``ErrType``
     :param validate_object_async: same as ``validate_object``, except that is runs
         asynchronously
-    :param typehint_resolver: define this to override default inferred validators for types
+    :param typehint_resolver: define this to override default inferred validators for
+        types
     :param fail_on_unknown_keys: if True, this will fail if any keys not defined by the
         ``TypedDict`` are found. This will fail before any values are validated.
     :raises TypeError: should raise if non-``TypedDict`` type is passed for ``td_cls``

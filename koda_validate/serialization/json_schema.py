@@ -410,13 +410,13 @@ def generate_schema_validator(
     r"""
     Produces a JSON Schema compatible Serializable from a ``Validator``
 
-    :param to_schema_fn: the function to use for describing the Validator at the next depth -- for nested
-        ``Validator``\s, ``Predicate``\s, and ``PredicateAsync``\s
+    :param to_schema_fn: the function to use for describing the Validator at the next
+        depth -- for nested ``Validator``\s, ``Predicate``\s, and ``PredicateAsync``\s
     :param obj: the ``Validator`` being described
     :return: a JSON Schema compatible Serializable
     :raises AssertionError: only on a misconfiguration with ``OptionalValidator``\s
-    :raises TypeError: if there's no implementation for a given type (this can usually be resolved with wrapper
-        functions)
+    :raises TypeError: if there's no implementation for a given type (this can usually be
+        resolved with wrapper functions)
     """
     # caution, mutation below!
     if isinstance(obj, BoolValidator):
@@ -521,12 +521,15 @@ def to_named_json_schema(
     ref_location: str = "#/components/schemas/",
 ) -> Dict[str, Serializable]:
     """
-    Produces a ``Serializable`` from a ``Validator``, ``Predicate`` or ``PredicateAsync`` that conforms to a
-    valid JSON Schema. The root dict's only key is the schema name, which has the full JSON Schema as its value.
+    Produces a ``Serializable`` from a ``Validator``, ``Predicate`` or ``PredicateAsync``
+    that conforms to a valid JSON Schema. The root dict's only key is the schema name,
+    which has the full JSON Schema as its value.
 
-    :param schema_name: mainly required when recursive objects need to related to themselves
+    :param schema_name: mainly required when recursive objects need to related to
+        themselves
     :param obj: the Validator being described
-    :param ref_location: where the schema name will be found if/when making a recursive reference to it
+    :param ref_location: where the schema name will be found if/when making a recursive
+        reference to it
     :return: a ``Serializable`` compatible with JSON Schema
     """
     return {schema_name: generate_named_schema_base(ref_location, schema_name, obj)}
@@ -534,8 +537,8 @@ def to_named_json_schema(
 
 def to_json_schema(obj: AnyValidatorOrPredicate) -> Dict[str, Serializable]:
     """
-    Produces a ``Serializable`` from a ``Validator``, ``Predicate`` or ``PredicateAsync`` that conforms to a
-    valid JSON Schema.
+    Produces a ``Serializable`` from a ``Validator``, ``Predicate`` or ``PredicateAsync``
+    that conforms to a valid JSON Schema.
 
     :param obj: the Validator being described
     :return: a ``Serializable`` compatible with JSON Schema
