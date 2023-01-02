@@ -13,8 +13,7 @@ app = Flask(__name__)
 class ContactForm:
     name: str
     message: str
-    # Annotated `Validator`s are used if defined -- instead
-    # of Koda Validate's default for the type)
+    # `Annotated` `Validator`s are used if found
     email: Annotated[str, StringValidator(EmailPredicate())]
     subject: Optional[str] = None
 

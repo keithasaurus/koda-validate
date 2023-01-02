@@ -37,16 +37,15 @@ class ContactForm(TypedDict):
 
 contact_validator = TypedDictValidator(ContactForm)
 
-contact_schema = to_json_schema(contact_validator)
-
-
-# if you want to produce an JSON Schema, you can do something like:
-# hook_into_some_schema(contact_schema)
+# if you want to produce a JSON Schema, you can use `to_json_schema()`
+# schema = to_json_schema(contact_validator)
+# hook_into_some_api_definition(schema)
 
 
 async def contact_async(request: HttpRequest) -> HttpResponse:
     if request.method != "POST":
-        return HttpResponse("invalid method", status=405)
+        return HttpResponse("HTTP method not allowed", status=405)
+
     try:
         posted_json = json.loads(request.body)
     except json.JSONDecodeError:

@@ -16,8 +16,8 @@ Basic
 
 .. code-block:: python
 
-    from dataclasses import dataclass
-    from typing import Annotated, Optional, Tuple
+    import asyncio
+    from typing import Annotated, Optional, Tuple, TypedDict
 
     from flask import Flask, jsonify, request
     from flask.typing import ResponseValue
@@ -27,21 +27,50 @@ Basic
     app = Flask(__name__)
 
 
-    @dataclass
-    class ContactForm:
-        name: str
-        message: str
-        # `Annotated` `Validator`s are used if found
+    class Captcha(TypedDict):
+        seed: Annotated[str, StringValidator(ExactLength(16))]
+        response: Annotated[str, StringValidator(MaxLength(16))]
+
+
+    async def validate_captcha(captcha: Captcha) -> Optional[ErrType]:
+        """
+        after we validate that the seed and response on their own,
+        we need to check our database to make sure the response is correct
+        """
+        async def pretend_check_captcha_service(seed: str, response: str) -> bool:
+            await asyncio.sleep(0.01)  # pretend to call
+            return seed == response[::-1]
+
+        if await pretend_check_captcha_service(captcha["seed"], captcha["response"]):
+            # everything's valid
+            return None
+        else:
+            return SerializableErr({"response": "bad captcha response"})
+
+
+    class ContactForm(TypedDict):
         email: Annotated[str, StringValidator(EmailPredicate())]
-        subject: Optional[str] = None
+        message: Annotated[str, StringValidator(MaxLength(500), MinLength(10))]
+        captcha: Annotated[
+            Captcha,
+            # explicitly adding some extra validation
+            TypedDictValidator(Captcha, validate_object_async=validate_captcha)
+        ]
+
+
+    contact_validator = TypedDictValidator(ContactForm)
+
+    # if you want to produce a JSON Schema, you can use `to_json_schema()`
+    # schema = to_json_schema(contact_validator)
+    # hook_into_some_api_definition(schema)
 
 
     @app.route("/contact", methods=["POST"])
-    def contact_api() -> Tuple[ResponseValue, int]:
-        result = DataclassValidator(ContactForm)(request.json)
+    async def contact_api() -> Tuple[ResponseValue, int]:
+        result = await contact_validator.validate_async(request.json)
         match result:
             case Valid(contact_form):
-                print(contact_form)  # do something with the valid data
+                print(contact_form)
                 return {"success": True}, 200
             case Invalid() as inv:
                 return jsonify(to_serializable_errs(inv)), 400
@@ -63,7 +92,6 @@ Fuller Example (with Async)
     from flask.typing import ResponseValue
 
     from koda_validate import *
-    from koda_validate.serialization.json_schema import to_json_schema
 
     app = Flask(__name__)
 
@@ -132,9 +160,7 @@ Simple
     from dataclasses import dataclass
     from typing import Annotated, Optional
 
-    from django.http import HttpRequest, JsonResponse
-    from django.views.decorators.csrf import csrf_exempt
-    from django.views.decorators.http import require_POST
+    from django.http import HttpRequest, JsonResponse, HttpResponse
 
     from koda_validate import *
 
@@ -149,9 +175,10 @@ Simple
         subject: Optional[str] = None
 
 
-    @csrf_exempt
-    @require_POST
-    def contact(request: HttpRequest) -> JsonResponse:
+    def contact(request: HttpRequest) -> HttpResponse:
+        if request.method != "POST":
+            return HttpResponse("HTTP method not allowed", status=405)
+
         try:
             posted_json = json.loads(request.body)
         except json.JSONDecodeError:
@@ -169,3 +196,65 @@ Simple
 Fuller Example (with Async)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. code-block:: python
+
+    import asyncio
+    import json
+    from typing import Annotated, Optional, TypedDict
+
+    from django.http import HttpRequest, HttpResponse, JsonResponse
+
+    from koda_validate import *
+    from koda_validate.serialization.json_schema import to_json_schema
+
+
+    class Captcha(TypedDict):
+        seed: Annotated[str, StringValidator(ExactLength(16))]
+        response: Annotated[str, StringValidator(MaxLength(16))]
+
+
+    async def validate_captcha(captcha: Captcha) -> Optional[ErrType]:
+        """
+        after we validate that the seed and response both conform to the types/shapes we want,
+        we need to check our database to make sure the response is correct
+        """
+        await asyncio.sleep(0.01)  # pretend to ask db
+        if captcha["seed"] != captcha["response"][::-1]:
+            return SerializableErr({"response": "bad captcha response"})
+        else:
+            return None
+
+
+    class ContactForm(TypedDict):
+        email: Annotated[str, StringValidator(EmailPredicate())]
+        message: Annotated[str, StringValidator(MaxLength(500), MinLength(10))]
+        # we only need to explicitly define the TypedDictValidator here because we want
+        # to include additional validation in validate_captcha
+        captcha: Annotated[
+            Captcha, TypedDictValidator(Captcha, validate_object_async=validate_captcha)
+        ]
+
+
+    contact_validator = TypedDictValidator(ContactForm)
+
+    # if you want to produce a JSON Schema, you can use `to_json_schema()`
+    # schema = to_json_schema(contact_validator)
+    # hook_into_some_api_definition(schema)
+
+
+    async def contact_async(request: HttpRequest) -> HttpResponse:
+        if request.method != "POST":
+            return HttpResponse("HTTP method not allowed", status=405)
+
+        try:
+            posted_json = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"__container__": "expected json"}, status=400)
+        else:
+            result = await TypedDictValidator(ContactForm).validate_async(posted_json)
+            match result:
+                case Valid(contact_form):
+                    print(contact_form)
+                    return JsonResponse({"success": True})
+                case Invalid() as inv:
+                    return JsonResponse(to_serializable_errs(inv), status=400, safe=False)

@@ -5,7 +5,6 @@ from flask import Flask, jsonify, request
 from flask.typing import ResponseValue
 
 from koda_validate import *
-from koda_validate.serialization.json_schema import to_json_schema
 
 app = Flask(__name__)
 
@@ -17,31 +16,36 @@ class Captcha(TypedDict):
 
 async def validate_captcha(captcha: Captcha) -> Optional[ErrType]:
     """
-    after we validate that the seed and response both conform to the types/shapes we want,
+    after we validate that the seed and response on their own,
     we need to check our database to make sure the response is correct
     """
-    await asyncio.sleep(0.01)  # pretend to ask db
-    if captcha["seed"] != captcha["response"][::-1]:
-        return SerializableErr({"response": "bad captcha response"})
-    else:
+
+    async def pretend_check_captcha_service(seed: str, response: str) -> bool:
+        await asyncio.sleep(0.01)  # pretend to call
+        return seed == response[::-1]
+
+    if await pretend_check_captcha_service(captcha["seed"], captcha["response"]):
+        # everything's valid
         return None
+    else:
+        return SerializableErr({"response": "bad captcha response"})
 
 
 class ContactForm(TypedDict):
     email: Annotated[str, StringValidator(EmailPredicate())]
     message: Annotated[str, StringValidator(MaxLength(500), MinLength(10))]
-    # we only need to explicitly define the TypedDictValidator here because we want
-    # to include additional validation in validate_captcha
     captcha: Annotated[
-        Captcha, TypedDictValidator(Captcha, validate_object_async=validate_captcha)
+        Captcha,
+        # explicitly adding some extra validation
+        TypedDictValidator(Captcha, validate_object_async=validate_captcha),
     ]
 
 
 contact_validator = TypedDictValidator(ContactForm)
 
-contact_schema = to_json_schema(contact_validator)
-# if you want to produce an JSON Schema, you can do something like:
-# hook_into_some_schema(contact_schema)
+# if you want to produce a JSON Schema, you can use `to_json_schema()`
+# schema = to_json_schema(contact_validator)
+# hook_into_some_api_definition(schema)
 
 
 @app.route("/contact", methods=["POST"])

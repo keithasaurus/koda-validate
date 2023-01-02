@@ -2,9 +2,7 @@ import json
 from dataclasses import dataclass
 from typing import Annotated, Optional
 
-from django.http import HttpRequest, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.http import HttpRequest, HttpResponse, JsonResponse
 
 from koda_validate import *
 
@@ -19,9 +17,10 @@ class ContactForm:
     subject: Optional[str] = None
 
 
-@csrf_exempt
-@require_POST
-def contact(request: HttpRequest) -> JsonResponse:
+def contact(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponse("HTTP method not allowed", status=405)
+
     try:
         posted_json = json.loads(request.body)
     except json.JSONDecodeError:
