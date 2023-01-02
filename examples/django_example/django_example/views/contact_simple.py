@@ -5,6 +5,7 @@ from typing import Annotated, Optional
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
 from koda_validate import *
+from koda_validate.serialization import to_serializable_errs
 
 
 @dataclass

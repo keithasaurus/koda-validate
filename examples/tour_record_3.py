@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from koda_validate import *
+from koda_validate.serialization import SerializableErr
 
 
 @dataclass

@@ -45,7 +45,6 @@ from koda_validate import (
     NoneValidator,
     OptionalValidator,
     RegexPredicate,
-    SerializableErr,
     StringValidator,
     TypeErr,
     UnionErrs,
@@ -67,6 +66,7 @@ from koda_validate.errors import ErrType, KeyValErrs, PredicateErrs, missing_key
 from koda_validate.generic import AlwaysValid
 from koda_validate.maybe import MaybeValidator
 from koda_validate.namedtuple import NamedTupleValidator
+from koda_validate.serialization import SerializableErr
 from koda_validate.set import SetValidator
 from koda_validate.tuple import NTupleValidator, UniformTupleValidator
 from koda_validate.typeddict import TypedDictValidator

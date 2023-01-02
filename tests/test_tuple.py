@@ -20,7 +20,6 @@ from koda_validate import (
     MinLength,
     NTupleValidator,
     PredicateErrs,
-    SerializableErr,
     StringValidator,
     TypeErr,
     UniformTupleValidator,
@@ -29,6 +28,7 @@ from koda_validate import (
 from koda_validate._generics import A
 from koda_validate.base import PredicateAsync
 from koda_validate.errors import ErrType
+from koda_validate.serialization import SerializableErr
 from tests.utils import BasicNoneValidator
 
 

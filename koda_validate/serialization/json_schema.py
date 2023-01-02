@@ -41,7 +41,7 @@ from koda_validate.integer import IntValidator
 from koda_validate.list import ListValidator
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.none import OptionalValidator
-from koda_validate.serialization.errors import Serializable
+from koda_validate.serialization.base import Serializable
 from koda_validate.string import EmailPredicate, NotBlank, RegexPredicate, StringValidator
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import NTupleValidator, UniformTupleValidator
@@ -407,6 +407,17 @@ def generate_schema_predicate(
 def generate_schema_validator(
     to_schema_fn: ValidatorToSchema, obj: Validator[Any]
 ) -> Dict[str, Serializable]:
+    r"""
+    Produces a JSON Schema compatible Serializable from a ``Validator``
+
+    :param to_schema_fn: the function to use for describing the Validator at the next depth -- for nested
+        ``Validator``\s, ``Predicate``\s, and ``PredicateAsync``\s
+    :param obj: the ``Validator`` being described
+    :return: a JSON Schema compatible Serializable
+    :raises AssertionError: only on a misconfiguration with ``OptionalValidator``\s
+    :raises TypeError: if there's no implementation for a given type (this can usually be resolved with wrapper
+        functions)
+    """
     # caution, mutation below!
     if isinstance(obj, BoolValidator):
         return boolean_schema(to_schema_fn, obj)
@@ -465,14 +476,13 @@ def generate_schema_validator(
         return decimal_schema(to_schema_fn, obj)
     elif isinstance(obj, BytesValidator):
         return bytes_schema(to_schema_fn, obj)
+    elif isinstance(obj, Lazy):
+        raise TypeError(
+            "`Lazy` type was not handled -- perhaps you need to use "
+            "`generate_named_schema`?"
+        )
     else:
-        if isinstance(obj, Lazy):
-            raise TypeError(
-                "`Lazy` type was not handled -- perhaps you need to use "
-                "`generate_named_schema`?"
-            )
-        else:
-            unhandled_type(obj)
+        unhandled_type(obj)
 
 
 def generate_schema_base(
@@ -511,10 +521,23 @@ def to_named_json_schema(
     ref_location: str = "#/components/schemas/",
 ) -> Dict[str, Serializable]:
     """
-    A schema_name is required, mainly so recursive objects can relate to themselves.
+    Produces a ``Serializable`` from a ``Validator``, ``Predicate`` or ``PredicateAsync`` that conforms to a
+    valid JSON Schema. The root dict's only key is the schema name, which has the full JSON Schema as its value.
+
+    :param schema_name: mainly required when recursive objects need to related to themselves
+    :param obj: the Validator being described
+    :param ref_location: where the schema name will be found if/when making a recursive reference to it
+    :return: a ``Serializable`` compatible with JSON Schema
     """
     return {schema_name: generate_named_schema_base(ref_location, schema_name, obj)}
 
 
 def to_json_schema(obj: AnyValidatorOrPredicate) -> Dict[str, Serializable]:
+    """
+    Produces a ``Serializable`` from a ``Validator``, ``Predicate`` or ``PredicateAsync`` that conforms to a
+    valid JSON Schema.
+
+    :param obj: the Validator being described
+    :return: a ``Serializable`` compatible with JSON Schema
+    """
     return generate_schema_base(obj)

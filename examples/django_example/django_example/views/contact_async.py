@@ -5,6 +5,7 @@ from typing import Annotated, Optional, TypedDict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
 from koda_validate import *
+from koda_validate.serialization import SerializableErr, to_serializable_errs
 
 
 class Captcha(TypedDict):

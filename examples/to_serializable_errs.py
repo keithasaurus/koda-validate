@@ -1,6 +1,7 @@
 from typing import TypedDict
 
-from koda_validate import Invalid, TypedDictValidator, to_serializable_errs
+from koda_validate import Invalid, TypedDictValidator
+from koda_validate.serialization import to_serializable_errs
 
 
 class Person(TypedDict):

@@ -1,4 +1,5 @@
 from koda_validate import *
+from koda_validate.serialization import to_serializable_errs
 
 validator = StringValidator()
 

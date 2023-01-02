@@ -22,7 +22,6 @@ from koda_validate import (
     NamedTupleValidator,
     NTupleValidator,
     PredicateErrs,
-    SerializableErr,
     SetErrs,
     TypeErr,
     UniformTupleValidator,
@@ -50,7 +49,11 @@ from koda_validate.generic import (
 )
 from koda_validate.integer import IntValidator
 from koda_validate.maybe import MaybeValidator
-from koda_validate.serialization.errors import pred_to_err_message, to_serializable_errs
+from koda_validate.serialization.errors import (
+    SerializableErr,
+    pred_to_err_message,
+    to_serializable_errs,
+)
 from koda_validate.set import SetValidator
 from koda_validate.string import (
     EmailPredicate,

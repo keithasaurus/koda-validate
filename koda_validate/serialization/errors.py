@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Tuple, Type, Union
+from typing import Any, Dict, Type, Union
 
 from koda_validate.base import Predicate, PredicateAsync
 from koda_validate.dataclasses import DataclassValidator
@@ -37,21 +37,11 @@ from koda_validate.generic import (
     UniqueItems,
 )
 from koda_validate.namedtuple import NamedTupleValidator
+from koda_validate.serialization.base import Serializable
 from koda_validate.string import EmailPredicate, NotBlank, RegexPredicate
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.uuid import UUIDValidator
 from koda_validate.valid import Invalid
-
-Serializable = Union[
-    None,
-    int,
-    str,
-    bool,
-    float,
-    List["Serializable"],
-    Tuple["Serializable", ...],
-    Dict[str, "Serializable"],
-]
 
 
 @dataclass

@@ -25,7 +25,6 @@ from koda_validate import (
     PredicateAsync,
     PredicateErrs,
     Processor,
-    SerializableErr,
     StringValidator,
     TypeErr,
     Valid,
@@ -42,6 +41,7 @@ from koda_validate.dictionary import (
     is_dict_validator,
 )
 from koda_validate.errors import ErrType, KeyValErrs, missing_key_err
+from koda_validate.serialization import SerializableErr
 
 
 class PersonLike(Protocol):

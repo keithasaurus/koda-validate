@@ -12,13 +12,13 @@ from koda_validate import (
     KeyErrs,
     MaxLength,
     PredicateErrs,
-    SerializableErr,
     StringValidator,
     TypeErr,
     Valid,
 )
 from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.namedtuple import NamedTupleValidator
+from koda_validate.serialization import SerializableErr
 
 
 class PersonSimple(NamedTuple):

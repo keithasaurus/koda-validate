@@ -69,10 +69,6 @@ __all__ = (
     "OptionalValidator",
     "NoneValidator",
     "none_validator",
-    # serialization.py
-    "Serializable",
-    "SerializableErr",
-    "to_serializable_errs",
     # set.py
     "SetValidator",
     # string.py
@@ -160,11 +156,6 @@ from koda_validate.integer import IntValidator
 from koda_validate.list import ListValidator
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.none import NoneValidator, OptionalValidator, none_validator
-from koda_validate.serialization.errors import (
-    Serializable,
-    SerializableErr,
-    to_serializable_errs,
-)
 from koda_validate.set import SetValidator
 from koda_validate.string import (
     EmailPredicate,

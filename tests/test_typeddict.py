@@ -16,12 +16,12 @@ from koda_validate import (
     ListValidator,
     MaxLength,
     PredicateErrs,
-    SerializableErr,
     StringValidator,
     TypeErr,
     Valid,
 )
 from koda_validate.errors import ErrType, missing_key_err
+from koda_validate.serialization import SerializableErr
 from koda_validate.typeddict import TypedDictValidator
 
 

@@ -1,6 +1,7 @@
 from typing import Any, Dict, Hashable, Optional
 
 from koda_validate import *
+from koda_validate.serialization import SerializableErr
 
 
 def no_dwight_regional_manager(employee: Dict[Hashable, Any]) -> Optional[ErrType]:
