@@ -15,6 +15,10 @@ Including another URLconf
 """
 from django.urls import path
 
+from .views.contact_async import contact_async
 from .views.contact_simple import contact
 
-urlpatterns = [path("contact", contact)]
+urlpatterns = [
+    path("contact", contact),
+    path("contact-async", contact_async),  # type: ignore[arg-type]
+]
