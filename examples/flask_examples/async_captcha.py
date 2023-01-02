@@ -43,10 +43,6 @@ class ContactForm(TypedDict):
 
 contact_validator = TypedDictValidator(ContactForm)
 
-# if you want to produce a JSON Schema, you can use `to_json_schema()`
-# schema = to_json_schema(contact_validator)
-# hook_into_some_api_definition(schema)
-
 
 @app.route("/contact", methods=["POST"])
 async def contact_api() -> Tuple[ResponseValue, int]:
@@ -57,6 +53,11 @@ async def contact_api() -> Tuple[ResponseValue, int]:
             return {"success": True}, 200
         case Invalid() as inv:
             return jsonify(to_serializable_errs(inv)), 400
+
+
+# if you want a JSON Schema from a ``Validator``, there's `to_json_schema()`
+# schema = to_json_schema(contact_validator)
+# hook_into_some_api_definition(schema)
 
 
 if __name__ == "__main__":

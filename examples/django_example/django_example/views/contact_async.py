@@ -5,7 +5,6 @@ from typing import Annotated, Optional, TypedDict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
 from koda_validate import *
-from koda_validate.serialization.json_schema import to_json_schema
 
 
 class Captcha(TypedDict):
@@ -37,10 +36,6 @@ class ContactForm(TypedDict):
 
 contact_validator = TypedDictValidator(ContactForm)
 
-# if you want to produce a JSON Schema, you can use `to_json_schema()`
-# schema = to_json_schema(contact_validator)
-# hook_into_some_api_definition(schema)
-
 
 async def contact_async(request: HttpRequest) -> HttpResponse:
     if request.method != "POST":
@@ -58,3 +53,8 @@ async def contact_async(request: HttpRequest) -> HttpResponse:
                 return JsonResponse({"success": True})
             case Invalid() as inv:
                 return JsonResponse(to_serializable_errs(inv), status=400, safe=False)
+
+
+# if you want a JSON Schema from a ``Validator``, there's `to_json_schema()`
+# schema = to_json_schema(contact_validator)
+# hook_into_some_api_definition(schema)

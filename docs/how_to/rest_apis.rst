@@ -16,8 +16,8 @@ Basic
 
 .. code-block:: python
 
-    import asyncio
-    from typing import Annotated, Optional, Tuple, TypedDict
+    from dataclasses import dataclass
+    from typing import Annotated, Optional, Tuple
 
     from flask import Flask, jsonify, request
     from flask.typing import ResponseValue
@@ -27,50 +27,21 @@ Basic
     app = Flask(__name__)
 
 
-    class Captcha(TypedDict):
-        seed: Annotated[str, StringValidator(ExactLength(16))]
-        response: Annotated[str, StringValidator(MaxLength(16))]
-
-
-    async def validate_captcha(captcha: Captcha) -> Optional[ErrType]:
-        """
-        after we validate that the seed and response on their own,
-        we need to check our database to make sure the response is correct
-        """
-        async def pretend_check_captcha_service(seed: str, response: str) -> bool:
-            await asyncio.sleep(0.01)  # pretend to call
-            return seed == response[::-1]
-
-        if await pretend_check_captcha_service(captcha["seed"], captcha["response"]):
-            # everything's valid
-            return None
-        else:
-            return SerializableErr({"response": "bad captcha response"})
-
-
-    class ContactForm(TypedDict):
+    @dataclass
+    class ContactForm:
+        name: str
+        message: str
+        # `Annotated` `Validator`s are used if found
         email: Annotated[str, StringValidator(EmailPredicate())]
-        message: Annotated[str, StringValidator(MaxLength(500), MinLength(10))]
-        captcha: Annotated[
-            Captcha,
-            # explicitly adding some extra validation
-            TypedDictValidator(Captcha, validate_object_async=validate_captcha)
-        ]
-
-
-    contact_validator = TypedDictValidator(ContactForm)
-
-    # if you want to produce a JSON Schema, you can use `to_json_schema()`
-    # schema = to_json_schema(contact_validator)
-    # hook_into_some_api_definition(schema)
+        subject: Optional[str] = None
 
 
     @app.route("/contact", methods=["POST"])
-    async def contact_api() -> Tuple[ResponseValue, int]:
-        result = await contact_validator.validate_async(request.json)
+    def contact_api() -> Tuple[ResponseValue, int]:
+        result = DataclassValidator(ContactForm)(request.json)
         match result:
             case Valid(contact_form):
-                print(contact_form)
+                print(contact_form)  # do something with the valid data
                 return {"success": True}, 200
             case Invalid() as inv:
                 return jsonify(to_serializable_errs(inv)), 400
@@ -79,6 +50,12 @@ Basic
     if __name__ == "__main__":
         app.run()
 
+
+.. note::
+
+    ``ContactForm`` is a ``dataclass``, and so we use a ``DataclassValidator``. We could have used a
+    ``TypedDict`` and ``TypedDictValidator`` or a ``NamedTuple`` and ``NamedTupleValidator``, and the code would have been
+    essentially the same.
 
 Fuller Example (with Async)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -106,6 +83,7 @@ Fuller Example (with Async)
         after we validate that the seed and response on their own,
         we need to check our database to make sure the response is correct
         """
+
         async def pretend_check_captcha_service(seed: str, response: str) -> bool:
             await asyncio.sleep(0.01)  # pretend to call
             return seed == response[::-1]
@@ -123,15 +101,11 @@ Fuller Example (with Async)
         captcha: Annotated[
             Captcha,
             # explicitly adding some extra validation
-            TypedDictValidator(Captcha, validate_object_async=validate_captcha)
+            TypedDictValidator(Captcha, validate_object_async=validate_captcha),
         ]
 
 
     contact_validator = TypedDictValidator(ContactForm)
-
-    # if you want to produce a JSON Schema, you can use `to_json_schema()`
-    # schema = to_json_schema(contact_validator)
-    # hook_into_some_api_definition(schema)
 
 
     @app.route("/contact", methods=["POST"])
@@ -145,8 +119,14 @@ Fuller Example (with Async)
                 return jsonify(to_serializable_errs(inv)), 400
 
 
+    # if you want a JSON Schema from a ``Validator``, there's `to_json_schema()`
+    # schema = to_json_schema(contact_validator)
+    # hook_into_some_api_definition(schema)
+
+
     if __name__ == "__main__":
         app.run()
+
 
 
 Django
@@ -205,7 +185,6 @@ Fuller Example (with Async)
     from django.http import HttpRequest, HttpResponse, JsonResponse
 
     from koda_validate import *
-    from koda_validate.serialization.json_schema import to_json_schema
 
 
     class Captcha(TypedDict):
@@ -237,10 +216,6 @@ Fuller Example (with Async)
 
     contact_validator = TypedDictValidator(ContactForm)
 
-    # if you want to produce a JSON Schema, you can use `to_json_schema()`
-    # schema = to_json_schema(contact_validator)
-    # hook_into_some_api_definition(schema)
-
 
     async def contact_async(request: HttpRequest) -> HttpResponse:
         if request.method != "POST":
@@ -258,3 +233,8 @@ Fuller Example (with Async)
                     return JsonResponse({"success": True})
                 case Invalid() as inv:
                     return JsonResponse(to_serializable_errs(inv), status=400, safe=False)
+
+
+    # if you want a JSON Schema from a ``Validator``, there's `to_json_schema()`
+    # schema = to_json_schema(contact_validator)
+    # hook_into_some_api_definition(schema)
