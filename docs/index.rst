@@ -136,3 +136,8 @@ Writing your own
    philosophy/async
    philosophy/errors
 
+.. toctree::
+   :maxdepth: 3
+   :caption: API Reference
+
+   api_reference/typeddictvalidator

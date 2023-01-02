@@ -130,6 +130,14 @@ tomli = {version = "*", optional = true, markers = "python_full_version <= \"3.1
 toml = ["tomli"]
 
 [[package]]
+name = "darglint"
+version = "1.8.1"
+description = "A utility for ensuring Google-style docstrings stay up to date with the source code."
+category = "dev"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[[package]]
 name = "distlib"
 version = "0.3.6"
 description = "Distribution utilities"
@@ -736,6 +744,22 @@ lint = ["docutils-stubs", "flake8 (>=3.5.0)", "flake8-bugbear", "flake8-comprehe
 test = ["cython", "html5lib", "pytest (>=4.6)", "typed_ast"]
 
 [[package]]
+name = "sphinx-autodoc-typehints"
+version = "1.19.5"
+description = "Type hints (PEP 484) support for the Sphinx autodoc extension"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+sphinx = ">=5.3"
+
+[package.extras]
+docs = ["furo (>=2022.9.29)", "sphinx (>=5.3)", "sphinx-autodoc-typehints (>=1.19.4)"]
+testing = ["covdefaults (>=2.2)", "coverage (>=6.5)", "diff-cover (>=7.0.1)", "nptyping (>=2.3.1)", "pytest (>=7.2)", "pytest-cov (>=4)", "sphobjinv (>=2.2.2)", "typing-extensions (>=4.4)"]
+type-comment = ["typed-ast (>=1.5.4)"]
+
+[[package]]
 name = "sphinx-basic-ng"
 version = "1.0.0b1"
 description = "A modern skeleton for Sphinx themes."
@@ -962,7 +986,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "4af27af1d9b7e569035a413113d91e920609b0107dce3b5dc525044fd8b39589"
+content-hash = "3013b534ca02f6f88b131af88d9a8b5dd54b1e5c6c77f7dd53b3033b6975493b"
 
 [metadata.files]
 alabaster = [
@@ -1075,6 +1099,10 @@ coverage = [
     {file = "coverage-7.0.1-cp39-cp39-win_amd64.whl", hash = "sha256:d1991f1dd95eba69d2cd7708ff6c2bbd2426160ffc73c2b81f617a053ebcb1a8"},
     {file = "coverage-7.0.1-pp37.pp38.pp39-none-any.whl", hash = "sha256:3dd4ee135e08037f458425b8842d24a95a0961831a33f89685ff86b77d378f89"},
     {file = "coverage-7.0.1.tar.gz", hash = "sha256:a4a574a19eeb67575a5328a5760bbbb737faa685616586a9f9da4281f940109c"},
+]
+darglint = [
+    {file = "darglint-1.8.1-py3-none-any.whl", hash = "sha256:5ae11c259c17b0701618a20c3da343a3eb98b3bc4b5a83d31cdd94f5ebdced8d"},
+    {file = "darglint-1.8.1.tar.gz", hash = "sha256:080d5106df149b199822e7ee7deb9c012b49891538f14a11be681044f0bb20da"},
 ]
 distlib = [
     {file = "distlib-0.3.6-py2.py3-none-any.whl", hash = "sha256:f35c4b692542ca110de7ef0bea44d73981caeb34ca0b9b6b2e6d7790dda8f80e"},
@@ -1434,6 +1462,10 @@ soupsieve = [
 sphinx = [
     {file = "Sphinx-5.3.0.tar.gz", hash = "sha256:51026de0a9ff9fc13c05d74913ad66047e104f56a129ff73e174eb5c3ee794b5"},
     {file = "sphinx-5.3.0-py3-none-any.whl", hash = "sha256:060ca5c9f7ba57a08a1219e547b269fadf125ae25b06b9fa7f66768efb652d6d"},
+]
+sphinx-autodoc-typehints = [
+    {file = "sphinx_autodoc_typehints-1.19.5-py3-none-any.whl", hash = "sha256:ea55b3cc3f485e3a53668bcdd08de78121ab759f9724392fdb5bf3483d786328"},
+    {file = "sphinx_autodoc_typehints-1.19.5.tar.gz", hash = "sha256:38a227378e2bc15c84e29af8cb1d7581182da1107111fd1c88b19b5eb7076205"},
 ]
 sphinx-basic-ng = [
     {file = "sphinx_basic_ng-1.0.0b1-py3-none-any.whl", hash = "sha256:ade597a3029c7865b24ad0eda88318766bcc2f9f4cef60df7e28126fde94db2a"},

@@ -1,8 +1,21 @@
 Validation Results
 ==================
 
-``Validator[SomeType]`` will return a ``ValidationResult[SomeType]`` (same as ``Union[Valid[SomeType], Invalid]``).
-To do something useful with this result we need to distinguish between the ``Valid`` and ``Invalid`` variants.
+``Validator``\s take one generic parameter, which represents the type of that ``Validator``\'s valid data. For example, a ``Validator[int]`` must return an
+``int`` if valid when called:
+
+.. code-block:: python
+
+    validator: Validator[int] = ...
+
+    result = validator(5)
+    assert result.is_valid
+    reveal_type(result.val)  # mypy knows this is an int because of the assertion
+
+
+The full type of result in the above example is ``ValidationResult[int]`` (this can be de-sugared to
+``Union[Valid[int], Invalid]``). As you can see, to do something useful with ``ValidationResult``\s, we need to
+distinguish between the ``Valid`` and ``Invalid`` variants.
 
 ``if`` Statements
 -----------------
@@ -44,12 +57,12 @@ Pattern matching can make this more concise in Python 3.10+:
                   f"while validating {value} "
                   f"with validator {validator_}")
 
-Working with Errors
--------------------
-``Invalid`` instances provide machine-readable failure data. In many cases you'll want to transform
-these data in some way. The expectation is that utility functions should do this. One such function built
-into Koda Validate is ``to_serializable_errs``, which takes the raw errors and
-produces human-readable errors suitable for JSON / YAML serialization.
+Working with ``Invalid``
+------------------------
+``Invalid`` instances provide machine-readable validation failure data. Usually this is not terribly useful on its own.
+In most cases you'll want to transform these data in some way before sending it somewhere else. The expectation is that
+built-in, or custom, utility functions should handle this. One such built-in function is ``to_serializable_errs``. It
+takes an ``Invalid`` instance and produces errors objects suitable for JSON / YAML serialization.
 
 .. code-block:: python
 
@@ -57,14 +70,14 @@ produces human-readable errors suitable for JSON / YAML serialization.
 
     validator = StringValidator()
 
-    match some_validator(123):
-        case Valid(valid_str):
-            print(valid_str)
-        case Invalid() as inv:
-            print(to_serializable_errs(inv))
+    result = validator(123)
+    assert isinstance(result, Invalid)
+
+    print(to_serializable_errs(result))
 
 
-Even if it doesn't suit your ultimate use case, ``to_serializable_errs`` can be useful in
+
+Even if it doesn't suit your ultimate purpose, ``to_serializable_errs`` can be useful in
 development because the error messages tend to be more readable than the printed representation of
 ``Invalid`` instances.
 

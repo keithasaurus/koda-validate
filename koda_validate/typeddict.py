@@ -33,9 +33,22 @@ _TDT = TypeVar("_TDT", bound=Mapping[str, object])
 
 class TypedDictValidator(_ToTupleValidator[_TDT]):
     """
-    This validator _might_ work on non-typed-dict classes (There are challenges
-    in defining a TypedDict-like type). *Please* do not intentionally try to use
-    it for non-TypedDict datatypes.
+
+    .. note::
+
+        This validator _might_ work on non-typed-dict classes (There are challenges
+        in defining a TypedDict-like type). *Please* do not intentionally try to use
+        it for non-TypedDict datatypes.
+
+    :param td_cls: A ``TypedDict`` subclass
+    :param overrides: a dict whose key define explicit validators
+    :param validate_object: is run if all keys have been validated individually. If it returns
+        ``None``, then there were no errors; otherwise it should return ``ErrType``
+    :param validate_object_async: same as ``validate_object``, except that is runs asynchronously
+    :param typehint_resolver: define this to override default inferred validators for types
+    :param fail_on_unknown_keys: if True, this will fail if any keys not defined by the ``TypedDict`` are found.
+        This will fail before any values are validated.
+    :raises TypeError: should raise if non-``TypedDict`` type is passed for ``td_cls``
     """
 
     __match_args__ = ("td_cls", "overrides", "fail_on_unknown_keys")
@@ -55,7 +68,6 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
         fail_on_unknown_keys: bool = False,
     ) -> None:
-
         if not _is_typed_dict_cls(td_cls):
             raise TypeError("must be a TypedDict subclass")
 

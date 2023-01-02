@@ -32,6 +32,8 @@ flask = {version = "2.2.2", extras = ["async"]}
 django = "4.1.4"
 django-stubs = "1.13.1"
 pytest-django = "4.5.2"
+sphinx-autodoc-typehints = "1.19.5"
+darglint = "1.8.1"
 
 [tool.mypy]
 exclude = ["build", "bench"]
