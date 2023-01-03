@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 class Validator(Generic[SuccessT]):
     """
-    Fundamental base class for validation. It's little more than a
+    Base class for all ``Validator``\s. It's little more than a
     ``Callable[[Any], Result[SuccessT, ValidationErr]]``, with two notable differences:
 
     - constructing ``Callable`` ``class``\es allows us to more easily make metadata
@@ -124,6 +124,32 @@ class PredicateAsync(Generic[A]):
 
 
 class Processor(Generic[A]):
+    """
+    Base class for ``Processor``\s: ``Callable``\s that can transform a value of one type
+    to another value of the same type. Useful for things like ``strip``\-ping strings:
+
+    .. testcode:: strip
+
+        from dataclasses import dataclass
+        from koda_validate import Processor
+
+        @dataclass
+        class Strip(Processor[str]):
+            def __call__(self, val: str) -> str:
+                return val.strip()
+
+
+    Usage:
+
+    .. doctest:: strip
+
+        >>> strip = Strip()
+        >>> strip(" abc ")
+        'abc'
+        >>> strip("def")
+        'def'
+    """
+
     @abstractmethod
     def __call__(self, val: A) -> A:  # pragma: no cover
         raise NotImplementedError()  # pragma: no cover

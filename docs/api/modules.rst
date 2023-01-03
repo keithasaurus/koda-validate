@@ -2,6 +2,7 @@ koda_validate
 =============
 
 .. toctree::
-   :maxdepth: 4
+    :maxdepth: 3
 
-   koda_validate
+    koda_validate
+    koda_validate.serialization

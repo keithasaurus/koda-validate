@@ -143,6 +143,7 @@ Usage:
 
    how_to/results
    how_to/rest_apis
+   how_to/dictionaries
    how_to/async
    how_to/performance
    how_to/extension

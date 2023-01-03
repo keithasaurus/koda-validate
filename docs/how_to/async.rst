@@ -1,8 +1,8 @@
 Async
 =====
 
-All the built-in :ref: ``\s in Koda Validate are asyncio-compatible, and there is a simple, consistent way to run
-async validation:
+All the built-in :class:`Validator<koda_validate.base.Validator>`\s in Koda Validate are asyncio-compatible, and there
+is a simple, consistent way to run async validation:
 
 .. code-block:: python
 

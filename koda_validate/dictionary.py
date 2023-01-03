@@ -61,11 +61,6 @@ from koda_validate.valid import Invalid, Valid, ValidationResult
 
 
 class KeyNotRequired(Validator[Maybe[A]]):
-    """
-    For complex type reasons in the KeyValidator definition,
-    this does not subclass Validator (even though it probably should)
-    """
-
     def __init__(self, validator: Validator[A]):
         self.validator = validator
 
@@ -983,20 +978,15 @@ class RecordValidator(_ToTupleValidator[Ret]):
 
 class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
     """
-    This differs from RecordValidator in a few ways:
-    - if valid, it returns a dict; it does not allow another target to be specified
-    - it does not narrow the types of keys / values. It always returns
-    `Dict[Hashable, Any]`
-    - it allows for any number of `KeyValidator`s
+    This class exists for a few reasons:
 
-    This class exists for two reasons:
-    - because the overloads we use to define `RecordValidator` get very slow
-    for type checkers beyond a certain point, sa we have a max number of
-    type-checkable keys
-    - if you don't care about the types in the target object
+    - it can handle an arbitrary amount of keys, of any combination of hashable types
 
-    VALIDATION WILL STILL WORK PROPERLY, but there won't be much type hinting
-    assistance.
+    - it's initialization is very straightforward
+
+    The big caveat is that a valid result is always typed as ``Dict[Any, Any]``, even
+    though the validation will work just as well as with any other :class:`Validator`
+
     """
 
     __match_args__ = (

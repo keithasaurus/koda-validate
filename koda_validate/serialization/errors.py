@@ -47,11 +47,13 @@ from koda_validate.valid import Invalid
 @dataclass
 class SerializableErr(ValidationErrBase):
     """
-    This is for the case where you may simply want to produce a human-readable
-    message.
+    A validation error where you may simply want to produce a human-readable message.
     """
 
     obj: Serializable
+    """
+    The error contents you want to return. 
+    """
 
 
 def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str:

@@ -1,6 +1,6 @@
 Validators
 ==========
-In Koda Validate, :class:`Validator<koda_validate.base.Validator>` is the fundamental validation building block. It's based on the idea that
+In Koda Validate, :class:`Validator<koda_validate.Validator>` is the fundamental validation building block. It's based on the idea that
 any kind of data validation can be represented by a ``Callable`` signature like this:
 
 
