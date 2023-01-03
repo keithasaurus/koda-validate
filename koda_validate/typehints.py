@@ -58,6 +58,12 @@ def get_typehint_validator_base(
     get_hint_next_depth allows a developer to wrap this function but still have it
     use their wrapper recursively (otherwise we might simply recur to this function in
     each depth)
+
+    :param get_hint_next_depth: the ``Callable`` that will determine the ``Validator``
+        resolution at the next depth (usually this is the same at all depths)
+    :param annotations: the type we're using to create a ``Validator``
+    :return: a ``Validator`` that expresses the intent of the ``annotations``
+    :raises TypeError: on types that are not handled
     """
     if annotations is str:
         return StringValidator()

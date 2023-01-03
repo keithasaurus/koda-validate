@@ -16,11 +16,21 @@ class Validator(Generic[SuccessT]):
 
     async def validate_async(self, val: Any) -> "ValidationResult[SuccessT]":
         """
-        make it possible for all validators to be async-compatible
+        this must be implemented for asynchronous validation
+
+        :param val: the value being validated
+        :raises NotImplementedError: if not implemented on subclasses
         """
         raise NotImplementedError()  # pragma: no cover
 
     def __call__(self, val: Any) -> "ValidationResult[SuccessT]":
+        """
+        this must be implemented for synchronous validation
+
+        :param val: the value being validated
+        :raises NotImplementedError: if not implemented on subclasses
+        """
+
         raise NotImplementedError()  # pragma: no cover
 
 
@@ -37,6 +47,12 @@ class Predicate(Generic[A]):
 
     @abstractmethod
     def __call__(self, val: A) -> bool:  # pragma: no cover
+        """
+        This must be implemented on ``Predicate`` subclasses
+
+        :param val: the value being validated
+        :raises NotImplementedError: if not defined in subclass
+        """
         raise NotImplementedError()  # pragma: no cover
 
 
@@ -47,6 +63,12 @@ class PredicateAsync(Generic[A]):
 
     @abstractmethod
     async def validate_async(self, val: A) -> bool:  # pragma: no cover
+        """
+        This must be implemented on ``PredicateAsync`` subclasses
+
+        :param val: the value being validated
+        :return: a bool indicating whether the condition is ``True`` for the value
+        """
         raise NotImplementedError()  # pragma: no cover
 
 
