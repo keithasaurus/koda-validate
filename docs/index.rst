@@ -14,6 +14,8 @@ it does not raise exceptions to express validation failures.
 A wide array of validation tools are provided out-of-the-box, but Koda Validate also attempts
 allows for straightforward extension to suit whatever validation needs you have.
 
+Let's take a look at some quick examples.
+
 Scalars
 ^^^^^^^
 
@@ -33,8 +35,8 @@ Easy enough. Let's see how it works:
    >>> my_first_validator(0)
    Invalid(err_type=TypeErr(expected_type=<class 'str'>), ...)
 
-We can see that we get a result back -- no exceptions thrown -- for both valid and
-invalid data (note that we truncated the representation of the ``Invalid`` instance for brevity.)
+For both valid and invalid cases, we can see that we get a result back -- no exceptions
+thrown (note that we truncated the representation of the ``Invalid`` instance for brevity.)
 More info about errors can be found at :ref:`philosophy/errors:Errors`.
 
 Collections
@@ -57,6 +59,8 @@ Nesting validators works as one might expect.
 Derived Validators
 ^^^^^^^^^^^^^^^^^^
 
+Koda Validate can inspect typehints and build validators automatically.
+
 .. testcode:: derived
 
    from typing import TypedDict
@@ -68,7 +72,7 @@ Derived Validators
 
    validator = TypedDictValidator(Person)
 
-The ``Validator`` has been derived from the type annotations on the ``TypedDict``.
+Usage:
 
 .. doctest:: derived
 
@@ -89,7 +93,7 @@ Refinement
 
    validator("abc123")
 
-Outputs
+Outputs:
 
 .. testoutput::
 
@@ -112,7 +116,7 @@ Writing your own
          else:
             return Invalid(TypeErr(int), val, self)
 
-Let's use it.
+Usage:
 
 .. doctest:: own1
 
@@ -162,3 +166,4 @@ Let's use it.
    :caption: API Reference
 
    api_reference/typeddictvalidator
+   api/modules

@@ -9,9 +9,16 @@ if TYPE_CHECKING:
 
 class Validator(Generic[SuccessT]):
     """
-    Essentially a `Callable[[Any], Result[SuccessT, ValidationErr]]`, but allows us to
-    retain metadata from the validator (instead of hiding inside a closure). For
-    instance, we can later access `5` from something like `MaxLength(5)`.
+    Fundamental base class for validation. It's little more than a
+    ``Callable[[Any], Result[SuccessT, ValidationErr]]``, with two notable differences:
+
+    - constructing ``Callable`` ``class``\es allows us to more easily make metadata
+        from the validator available (as opposed to data being hidden inside a closure)
+    - a ``.validate_async`` method is allowed, meaning a :class:`Validator` can be made
+        to work in both sync and async contexts.
+
+    Depending on your use case, you may want to implement the ``__call__`` method, the
+    ``async_validate`` method, or both.
     """
 
     async def validate_async(self, val: Any) -> "ValidationResult[SuccessT]":
@@ -36,13 +43,34 @@ class Validator(Generic[SuccessT]):
 
 class Predicate(Generic[A]):
     """
-    The important aspect of a `Predicate` is that it is not
-    possible to change the data passed in (it is technically possible to mutate
-    mutable values in the course of json, but that is considered an
-    error in the opinion of this library).
+    A predicate just returns ``True`` or ``False`` for some condition.
 
-    Compatible with Async / but async behavior is _not_ customizable. that's
-    why we have PredicateAsync. Any IO needs should probably go there!
+    :class:`Predicate`\s  can be used during async validation, but
+    :class:`PredicateAsync` should be used for any validation that *requires*
+    ``asyncio``.
+
+    Example :class:`Predicate`:
+
+    .. testcode:: predsubclass
+
+        from koda_validate import Predicate
+
+        class GreaterThan(Predicate[int]):
+            def __init__(self, limit: int) -> None:
+                self.limit = limit
+
+            def __call__(self, val: int) -> bool:
+                return val > self.limit
+
+    Usage
+
+    .. doctest:: predsubclass
+
+        >>> gt = GreaterThan(5)
+        >>> gt(6)
+        True
+        >>> gt(1)
+        False
     """
 
     @abstractmethod
@@ -58,7 +86,30 @@ class Predicate(Generic[A]):
 
 class PredicateAsync(Generic[A]):
     """
-    For async-only validation.
+    The async-only sibling of :class:`Predicate`.
+
+    Example :class:`PredicateAsync`
+
+    .. testcode:: predasyncsubclass
+
+        import asyncio
+        from koda_validate import PredicateAsync
+
+        class UsernameInDB(PredicateAsync[str]):
+            async def validate_async(self, val: str) -> bool:
+                # pretend to call db
+                await asyncio.sleep(.001)
+                # dummy logic for example
+                return len(val) == 3
+
+    Usage
+
+    .. doctest:: predasyncsubclass
+
+        >>> asyncio.run(UsernameInDB().validate_async("abc"))
+        True
+        >>> asyncio.run(UsernameInDB().validate_async("abcdef"))
+        False
     """
 
     @abstractmethod

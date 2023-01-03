@@ -1,7 +1,7 @@
 Validation Results
 ==================
 
-``Validator``\s take one generic parameter, which represents the type of the valid data. For example, a ``Validator[int]`` must return an
+:class:`Validator`\s take one generic parameter, which represents the type of the valid data. For example, a ``Validator[int]`` must return an
 ``int`` if the data it's called with is valid:
 
 .. testsetup:: 1
