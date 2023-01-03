@@ -52,5 +52,7 @@ jobs:
         run: poetry run flake8 --exclude codegen --ignore E741,W503,F405,F403,F401,DAR101,DAR201,DAR401
       - name: darglint
         run: poetry run darglint koda_validate
+      - name: doctests
+        run: cd docs && poetry run make doctest
       - name: benchmarks
         run: poetry run python -m bench.run
