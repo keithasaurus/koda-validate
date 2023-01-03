@@ -1,16 +1,20 @@
 Validation Results
 ==================
 
-``Validator``\s take one generic parameter, which represents the type of that ``Validator``\'s valid data. For example, a ``Validator[int]`` must return an
-``int`` if valid when called:
+``Validator``\s take one generic parameter, which represents the type of the valid data. For example, a ``Validator[int]`` must return an
+``int`` if the data it's called with is valid:
 
-.. code-block:: python
+.. testsetup:: 1
 
-    validator: Validator[int] = ...
+    from koda_validate import *
+
+.. testcode:: 1
+
+    validator: Validator[int] = IntValidator()
 
     result = validator(5)
     assert result.is_valid
-    reveal_type(result.val)  # mypy knows this is an int because of the assertion
+    assert isinstance(result.val, int)  # mypy also knows ``result.val`` is an ``int``
 
 
 The full type of result in the above example is ``ValidationResult[int]`` (this can be de-sugared to
@@ -21,41 +25,63 @@ distinguish between the ``Valid`` and ``Invalid`` variants.
 -----------------
 Perhaps the easiest way is to just branch on ``.is_valid``:
 
+.. testcode:: if-statements
 
-.. code-block:: python
+    from koda_validate import *
 
-    from koda_validate import StringValidator
+    def result_to_str(result: ValidationResult[str]) -> str:
+        if result.is_valid:
+            # mypy understands result is Valid[str]
+            return result.val
+        else:
+            # mypy understands result is Invalid
+            err_type_cls = result.err_type.__class__.__name__
+            return (
+                f"Error of type {err_type_cls}, "
+                f"while validating {result.value} with {result.validator}"
+            )
 
-    validator = StringValidator()
+Let's see how it works
 
-    result = some_validator("abc123")
+.. doctest:: if-statements
 
-    if result.is_valid:
-        # mypy understands `result` is Valid[str]
-        print(result.val)
-    else:
-        # mypy understands `result` is Invalid
-        print(f"Error of type {type(result.err_type)} "
-              f"while validating {result.value} "
-              f"with validator {result.validator}")
+    >>> validator = StringValidator()
+    >>> result_to_str(validator("abc123"))
+    'abc123'
+
+    >>> result_to_str(validator(0))
+    'Error of type TypeErr, while validating 0 with StringValidator()'
+
 
 Pattern Matching
 ----------------
 Pattern matching can make this more concise in Python 3.10+:
 
-.. code-block:: python
+.. testcode:: pattern-matching
 
-    from koda_validate import StringValidator
+    from koda_validate import *
 
-    validator = StringValidator()
+    def result_to_val(result: ValidationResult[str]) -> int | str:
+        match result:
+            case Valid(valid_val):
+                return valid_val
+            case Invalid(err_type, val, validator_):
+                return (
+                    f"Error of type {err_type.__class__.__name__}, "
+                    f"while validating {val} with {validator_}"
+                )
 
-    match some_validator("abc123"):
-        case Valid(valid_str):
-            print(valid_str)
-        case Invalid(err_type, value, validator_):
-            print(f"Error of type {type(err_type)} "
-                  f"while validating {value} "
-                  f"with validator {validator_}")
+Let's try it
+
+.. doctest:: pattern-matching
+
+    >>> validator = IntValidator()
+    >>> result_to_val(validator(123))
+    123
+
+    >>> result_to_val(validator("abc"))
+    'Error of type TypeErr, while validating abc with IntValidator()'
+
 
 Working with ``Invalid``
 ------------------------
@@ -64,9 +90,10 @@ In most cases you'll want to transform these data in some way before sending it 
 built-in, or custom, utility functions should handle this. One such built-in function is ``to_serializable_errs``. It
 takes an ``Invalid`` instance and produces errors objects suitable for JSON / YAML serialization.
 
-.. code-block:: python
+.. testcode:: 3
 
     from koda_validate import *
+    from koda_validate.serialization import to_serializable_errs
 
     validator = StringValidator()
 
@@ -75,9 +102,13 @@ takes an ``Invalid`` instance and produces errors objects suitable for JSON / YA
 
     print(to_serializable_errs(result))
 
+Outputs
 
+.. testoutput:: 3
 
-Even if it doesn't suit your ultimate purpose, ``to_serializable_errs`` can be useful in
+    ['expected a string']
+
+Even if it doesn't suit your ultimate purpose, ``to_serializable_errs`` can be useful during
 development because the error messages tend to be more readable than the printed representation of
 ``Invalid`` instances.
 

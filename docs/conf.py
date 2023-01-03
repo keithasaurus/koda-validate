@@ -15,7 +15,11 @@ release = "3.0.0"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions: List[str] = ["sphinx.ext.autodoc", "sphinx_autodoc_typehints"]
+extensions: List[str] = [
+    "sphinx.ext.autodoc",
+    "sphinx_autodoc_typehints",
+    "sphinx.ext.doctest",
+]
 autodoc_typehints = "none"
 typehints_defaults = "comma"
 

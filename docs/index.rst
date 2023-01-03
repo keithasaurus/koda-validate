@@ -6,14 +6,18 @@
 Koda Validate
 =========================================
 
-Koda Validate is a library focused on composable, type-safe data validation. It supplies a wide array of
-validators out-of-the-box, but it also encourages users to build their own validators.
+Koda Validate aims to make validation flexible, easy-to-maintain, and fast -- in both
+performance and development velocity. It does this with a type-safe and composable
+definition of validation.
+
+A wide array of validators are provided out-of-the-box, but Koda Validate also attempts
+allows for straightforward extension to suit whatever validation needs you have.
 
 
 Scalars
 ^^^^^^^
 
-.. code-block:: python
+.. testcode:: scalars
 
    from koda_validate import *
 
@@ -22,30 +26,37 @@ Scalars
    result = validator("a string")
 
    print(result)
-   # > Valid("a string")
 
-   print(result.val)
-   # > "a string"
+Outputs
+
+.. testoutput:: scalars
+
+   Valid(val='a string')
 
 
 Collections
 ^^^^^^^^^^^
 
-.. code-block:: python
+.. testcode:: collections
 
    from koda_validate import *
 
    list_int_validator = ListValidator(IntValidator())
 
    list_int_validator([1,2,3])
-   # > Valid([1,2,3])
+
+Outputs
+
+.. testoutput::
+
+   Valid(val=[1,2,3])
 
 
 
 Derived Validators
 ^^^^^^^^^^^^^^^^^^
 
-.. code-block:: python
+.. testcode:: derived
 
    from typing import TypedDict
    from koda_validate import *
@@ -56,16 +67,22 @@ Derived Validators
 
    validator = TypedDictValidator(Person)
 
-   validator({"name": "Bob",
-              "hobbies": ["eating", "coding", "sleeping"]})
-   # > Valid({'name': 'Bob',
-   #          'hobbies': ['eating', 'coding', 'sleeping']})
+   result = validator({"name": "Bob",
+                       "hobbies": ["eating", "coding", "sleeping"]})
+
+   print(result)
+
+Outputs
+
+.. testoutput:: derived
+
+   Valid(val={'name': 'Bob', 'hobbies': ['eating', 'coding', 'sleeping']})
 
 
 Refinement
 ^^^^^^^^^^
 
-.. code-block:: python
+.. testcode:: refinement
 
    from koda_validate import *
 
@@ -74,35 +91,41 @@ Refinement
                                StartsWith("a"))
 
    validator("abc123")
-   # > Valid("abc123")
 
-   validator("abc")
-   # > Invalid(...)  # too short
+Outputs
+
+.. testoutput::
+
+   Valid(val="abc123")
 
 
 Writing your own
 ^^^^^^^^^^^^^^^^
 
-.. code-block:: python
+.. testcode:: own1
 
    from typing import Any
    from koda_validate import *
 
 
    class IntegerValidator(Validator[int]):
-      def __call__(val: Any) -> ValidationResult[int]:
+      def __call__(self, val: Any) -> ValidationResult[int]:
          if isinstance(val, int):
             return Valid(val)
          else:
             return Invalid(TypeErr(int), val, self)
 
-   validator = IntegerValidator()
+Let's use it.
 
-   validator(5)
-   # > Valid(5)
+.. doctest:: own1
 
-   validator("not an integer")
-   # > Invalid(...)
+   >>> validator = IntegerValidator()
+   >>> validator(5)
+   Valid(val=5)
+
+   >>> invalid_result = validator("not an integer")
+   >>> invalid_result.err_type
+   TypeErr(expected_type=<class 'int'>)
 
 .. toctree::
    :maxdepth: 2
@@ -116,8 +139,9 @@ Writing your own
    :maxdepth: 3
    :caption: Examples and Guides
 
-   how_to/rest_apis
+
    how_to/results
+   how_to/rest_apis
    how_to/async
    how_to/performance
    how_to/extension

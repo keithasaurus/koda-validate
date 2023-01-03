@@ -1,9 +1,9 @@
 REST APIs
 =========
 
-Koda Validate is not tightly coupled with specific web frameworks, serialization formats, or kinds of APIs.
-Nonetheless, Koda Validate does not exist in a vacuum, and some thought has put into how to
-integrate Koda Validate into common API setups.
+Koda Validate is not tightly coupled with specific web frameworks, serialization formats,
+or types of APIs. Nonetheless, Koda Validate does not exist in a vacuum, and some thought
+has put into how to integrate into common API setups.
 
 Here we'll explore the example of a Contact Form that is posted to a REST endpoint, and
 see how it could be implemented in several web frameworks.
@@ -53,7 +53,7 @@ Basic
 
 .. note::
 
-    ``ContactForm`` is a ``dataclass``, and so we use a ``DataclassValidator``. We could have used a
+    In the example above, ``ContactForm`` is a ``dataclass``, so we use a ``DataclassValidator``. We could have used a
     ``TypedDict`` and ``TypedDictValidator`` or a ``NamedTuple`` and ``NamedTupleValidator``, and the code would have been
     essentially the same.
 
