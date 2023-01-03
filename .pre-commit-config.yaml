@@ -9,7 +9,9 @@ repos:
     hooks:
       - id: isort
         name: isort (python)
-  - repo: https://github.com/bwhmather/ssort
-    rev: v0.11.6
-    hooks:
-      - id: ssort
+# disabled (for now?) because it messes with docstring placement -- this breaks instance
+#   variable documentation on classes
+#  - repo: https://github.com/bwhmather/ssort
+#    rev: v0.11.6
+#    hooks:
+#      - id: ssort
