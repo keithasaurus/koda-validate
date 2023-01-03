@@ -19,7 +19,11 @@ extensions: List[str] = [
     "sphinx.ext.autodoc",
     "sphinx_autodoc_typehints",
     "sphinx.ext.doctest",
+    "sphinx.ext.autosectionlabel",
 ]
+
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
 autodoc_typehints = "none"
 typehints_defaults = "comma"
 

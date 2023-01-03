@@ -6,13 +6,13 @@
 Koda Validate
 =========================================
 
-Koda Validate aims to make validation flexible, easy-to-maintain, and fast -- in both
+Koda Validate aims to make validation flexible, easy-to-maintain, and fast -- fast in both
 performance and development velocity. It does this with a type-safe and composable
-definition of validation.
+definition of validation, which treats validation as a normal part of control flow -- i.e.
+it does not raise exceptions to express validation failures.
 
-A wide array of validators are provided out-of-the-box, but Koda Validate also attempts
+A wide array of validation tools are provided out-of-the-box, but Koda Validate also attempts
 allows for straightforward extension to suit whatever validation needs you have.
-
 
 Scalars
 ^^^^^^^
@@ -21,18 +21,21 @@ Scalars
 
    from koda_validate import *
 
-   validator = StringValidator()
+   my_first_validator = StringValidator()
 
-   result = validator("a string")
+Easy enough. Let's see how it works:
 
-   print(result)
+.. doctest:: scalars
 
-Outputs
-
-.. testoutput:: scalars
-
+   >>> my_first_validator("a string")
    Valid(val='a string')
 
+   >>> my_first_validator(0)
+   Invalid(err_type=TypeErr(expected_type=<class 'str'>), ...)
+
+We can see that we get a result back -- no exceptions thrown -- for both valid and
+invalid data (note that we truncated the representation of the ``Invalid`` instance for brevity.)
+More info about errors can be found at :ref:`philosophy/errors:Errors`.
 
 Collections
 ^^^^^^^^^^^
@@ -43,14 +46,12 @@ Collections
 
    list_int_validator = ListValidator(IntValidator())
 
-   list_int_validator([1,2,3])
+Nesting validators works as one might expect.
 
-Outputs
+.. doctest:: collections
 
-.. testoutput::
-
-   Valid(val=[1,2,3])
-
+   >>> list_int_validator([1,2,3])
+   Valid(val=[1, 2, 3])
 
 
 Derived Validators
@@ -67,15 +68,11 @@ Derived Validators
 
    validator = TypedDictValidator(Person)
 
-   result = validator({"name": "Bob",
-                       "hobbies": ["eating", "coding", "sleeping"]})
+The ``Validator`` has been derived from the type annotations on the ``TypedDict``.
 
-   print(result)
+.. doctest:: derived
 
-Outputs
-
-.. testoutput:: derived
-
+   >>> validator({"name": "Bob", "hobbies": ["eating", "coding", "sleeping"]})
    Valid(val={'name': 'Bob', 'hobbies': ['eating', 'coding', 'sleeping']})
 
 
