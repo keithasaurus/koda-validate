@@ -50,5 +50,7 @@ jobs:
       - name: linting 3.10+
         if: matrix.python-version == 3.10 || matrix.python-version == 3.11
         run: poetry run flake8 --exclude codegen --ignore E741,W503,F405,F403,F401
+      - name: darglint
+        run: poetry run darglint koda_validate
       - name: benchmarks
         run: poetry run python -m bench.run

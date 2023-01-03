@@ -27,6 +27,11 @@ class NTupleValidator(_ToTupleValidator[A]):
         """
         You probably don't want to be using __init__ directly. For type-hinting reasons,
         it's recommended to use either `.typed(...)` or `.untyped(...)`
+
+        :param fields: the validators that correspond with the respective indexes in the
+            tuple
+        :param validate_object: if all the slots of the tuple are valid, this can be used
+            to validate among all the fields.
         """
 
         self.fields = fields

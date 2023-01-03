@@ -17,9 +17,7 @@ class NoneValidator(_ToTupleValidator[None]):
     _instance: ClassVar[Optional["NoneValidator"]] = None
 
     def __new__(cls) -> "NoneValidator":
-        """
-        Make a singleton
-        """
+        # make a singleton
         if cls._instance is None:
             cls._instance = super(NoneValidator, cls).__new__(cls)
         return cls._instance

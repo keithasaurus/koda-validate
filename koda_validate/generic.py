@@ -26,11 +26,10 @@ class Lazy(Validator[Ret]):
         recurrent: bool = True,
     ) -> None:
         """
-        Args:
-            validator: the validator we actually want to use
-            recurrent: whether this is being used in a recursive way. This
-                is useful, so we can avoid infinite loops when traversing
-                over validators (i.e. for openapi generation)
+        :param validator: the validator we actually want to use
+        :param recurrent: whether this is being used in a recursive way. This
+            is useful, so we can avoid infinite loops when traversing
+            over validators (i.e. for openapi generation)
         """
         self.validator = validator
         self.recurrent = recurrent
@@ -168,9 +167,7 @@ class AlwaysValid(_ToTupleValidator[Any]):
     _instance: ClassVar[Optional["AlwaysValid"]] = None
 
     def __new__(cls) -> "AlwaysValid":
-        """
-        Make a singleton
-        """
+        # make a singleton
         if cls._instance is None:
             cls._instance = super(AlwaysValid, cls).__new__(cls)
         return cls._instance

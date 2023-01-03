@@ -31,9 +31,7 @@ class NotBlank(Predicate[str]):
     _instance: ClassVar[Optional["NotBlank"]] = None
 
     def __new__(cls) -> "NotBlank":
-        """
-        Make a singleton
-        """
+        # make a singleton
         if cls._instance is None:
             cls._instance = super(NotBlank, cls).__new__(cls)
         return cls._instance

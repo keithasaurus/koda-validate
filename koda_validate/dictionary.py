@@ -235,9 +235,7 @@ class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
     _instance: ClassVar[Optional["IsDictValidator"]] = None
 
     def __new__(cls) -> "IsDictValidator":
-        """
-        Make a singleton
-        """
+        # make a singleton
         if cls._instance is None:
             cls._instance = super(IsDictValidator, cls).__new__(cls)
         return cls._instance

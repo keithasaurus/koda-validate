@@ -87,9 +87,7 @@ class MissingKeyErr:
     _instance: ClassVar[Optional["MissingKeyErr"]] = None
 
     def __new__(cls) -> "MissingKeyErr":
-        """
-        Make a singleton
-        """
+        # make a singleton
         if cls._instance is None:
             cls._instance = super(MissingKeyErr, cls).__new__(cls)
         return cls._instance
