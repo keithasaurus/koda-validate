@@ -12,16 +12,23 @@ tested against mypy 0.990+.
 pip
 ---
 
-.. code-block:: bash
+.. code-block::
 
     pip install mypy
 
 Poetry
 ------
 
-Because mypy doesn't do anything at runtime, it's common to only install it for specific non-production groups.
+.. code-block::
 
-.. code-block:: bash
+    poetry add mypy
+
+Dependency Group
+^^^^^^^^^^^^^^^^
+Because mypy doesn't do anything at runtime, it's common to only install it for specific
+non-production groups, such as "test" or "dev":
+
+.. code-block::
 
     poetry add mypy --group test
 

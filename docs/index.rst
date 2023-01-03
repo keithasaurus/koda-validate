@@ -150,6 +150,13 @@ Usage:
    how_to/metadata
    how_to/type-checking
 
+.. toctree::
+   :maxdepth: 3
+   :caption: API Reference
+
+   api/koda_validate
+   api/koda_validate.serialization
+
 
 .. toctree::
    :maxdepth: 3
@@ -161,10 +168,3 @@ Usage:
    philosophy/processors
    philosophy/async
    philosophy/errors
-
-.. toctree::
-   :maxdepth: 3
-   :caption: API Reference
-
-   api_reference/typeddictvalidator
-   api/modules
