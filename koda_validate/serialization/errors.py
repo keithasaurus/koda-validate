@@ -52,7 +52,7 @@ class SerializableErr(ValidationErrBase):
 
     obj: Serializable
     """
-    The error contents you want to return. 
+    The error contents you want to return.
     """
 
 

@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 class Validator(Generic[SuccessT]):
-    """
+    r"""
     Base class for all ``Validator``\s. It's little more than a
     ``Callable[[Any], Result[SuccessT, ValidationErr]]``, with two notable differences:
 
@@ -42,7 +42,7 @@ class Validator(Generic[SuccessT]):
 
 
 class Predicate(Generic[A]):
-    """
+    r"""
     A predicate just returns ``True`` or ``False`` for some condition.
 
     :class:`Predicate`\s  can be used during async validation, but
@@ -124,7 +124,7 @@ class PredicateAsync(Generic[A]):
 
 
 class Processor(Generic[A]):
-    """
+    r"""
     Base class for ``Processor``\s: ``Callable``\s that can transform a value of one type
     to another value of the same type. Useful for things like ``strip``\-ping strings:
 

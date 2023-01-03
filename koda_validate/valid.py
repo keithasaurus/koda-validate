@@ -16,13 +16,13 @@ class Valid(Generic[A]):
 
     val: A
     """
-    The value that has succeeded validation 
+    The value that has succeeded validation
     """
 
     is_valid: ClassVar[Literal[True]] = True
     """
-    This is always ``True`` on ``Valid`` instances. It's useful for ``if`` statements, 
-    and mypy understands it. 
+    This is always ``True`` on ``Valid`` instances. It's useful for ``if`` statements,
+    and mypy understands it.
     """
 
 
@@ -30,7 +30,7 @@ class Valid(Generic[A]):
 class Invalid:
     err_type: "ErrType"
     """
-    Any of a number of classes that contain data about the type of error, e.g. 
+    Any of a number of classes that contain data about the type of error, e.g.
     :class:`TypeErr`, :class:`CoercionErr`, :class:`KeyMissingErr`, etc.
     """
 
@@ -46,7 +46,7 @@ class Invalid:
 
     is_valid: ClassVar[Literal[False]] = False
     """
-    This is always ``False`` on :class:`Invalid` instances.  It’s useful for if 
+    This is always ``False`` on :class:`Invalid` instances.  It’s useful for if
     statements, and mypy understands it.
     """
 
