@@ -168,3 +168,10 @@ Usage:
    philosophy/processors
    philosophy/async
    philosophy/errors
+
+
+.. toctree::
+   :maxdepth: 3
+   :caption: FAQ
+
+   faq/pydantic

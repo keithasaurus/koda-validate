@@ -26,6 +26,7 @@ extensions: List[str] = [
 autosectionlabel_prefix_document = True
 autodoc_typehints = "none"
 typehints_defaults = "comma"
+add_module_names = False
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
