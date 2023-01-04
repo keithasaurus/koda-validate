@@ -142,8 +142,8 @@ Usage:
 
 
    how_to/results
-   how_to/rest_apis
    how_to/dictionaries
+   how_to/rest_apis
    how_to/async
    how_to/extension
    how_to/metadata
