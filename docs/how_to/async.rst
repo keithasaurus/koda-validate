@@ -1,6 +1,7 @@
 Async
 =====
 .. module:: koda_validate
+    :noindex:
 
 All the built-in :class:`Validator<koda_validate.base.Validator>`\s in Koda Validate are asyncio-compatible, and there
 is a simple, consistent way to run async validation:

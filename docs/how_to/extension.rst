@@ -4,6 +4,7 @@ Koda Validate aims to provide enough tools to handle most common validation need
 the cases it doesn't cover, it aims to allow easy extension.
 
 .. module:: koda_validate
+    :noindex:
 
 Validators
 ----------

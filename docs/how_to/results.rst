@@ -2,6 +2,7 @@ Validation Results
 ==================
 
 .. module:: koda_validate
+    :noindex:
 
 :class:`Validator<koda_validate.Validator>`\s take one generic parameter, which represents the type of the valid data. For example, a ``Validator[int]`` must return an
 ``int`` if the data it's called with is valid:

@@ -2,6 +2,7 @@ Performance
 ===========
 
 .. module:: koda_validate
+    :noindex:
 
 Koda Validate is reasonably fast (for Python). It tends to be :ref:`significantly faster
 than Pydantic <faq/pydantic:Pydantic Comparison>`, for instance. There are several known
@@ -27,7 +28,13 @@ either lazily (once), or as few times as possible (i.e. not for every validated 
 Slower
 ^^^^^^
 
-.. code-block:: python
+.. testsetup:: slowinit
+
+    from typing import TypedDict, Any
+    from koda_validate import *
+
+
+.. testcode:: slowinit
 
     class Book(TypedDict):
         title: str
@@ -41,7 +48,13 @@ Slower
 Faster
 ^^^^^^
 
-.. code-block:: python
+.. testsetup:: fastinit
+
+    from typing import TypedDict, Any
+    from koda_validate import *
+
+
+.. testcode:: fastinit
 
     class Book(TypedDict):
         title: str
