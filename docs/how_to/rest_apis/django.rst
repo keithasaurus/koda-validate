@@ -1,8 +1,8 @@
 Django
 ======
 
-Simple
-^^^^^^
+Basic
+^^^^^
 
 .. code-block:: python
 
