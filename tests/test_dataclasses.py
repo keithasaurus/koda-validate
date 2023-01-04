@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID, uuid4
 
 import pytest
@@ -9,17 +9,22 @@ import pytest
 from koda_validate import (
     CoercionErr,
     ExtraKeysErr,
+    IntValidator,
     Invalid,
     KeyErrs,
+    Max,
     MaxLength,
+    Min,
     PredicateErrs,
     StringValidator,
     TypeErr,
     Valid,
+    Validator,
 )
 from koda_validate.dataclasses import DataclassValidator
 from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.serialization import SerializableErr
+from koda_validate.typehints import get_typehint_validator, get_typehint_validator_base
 
 
 @dataclass
@@ -590,3 +595,35 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
         )
     else:
         assert False
+
+
+def test_custom_typehint_resolver() -> None:
+    @dataclass
+    class Image:
+        height: int
+        width: int
+        description: Optional[str] = None
+
+    def custom_resolver(annotations: Any) -> Validator[Any]:
+        if annotations is int:
+            return IntValidator(Min(10), Max(1000))
+        else:
+            return get_typehint_validator_base(get_typehint_validator, annotations)
+
+    validator = DataclassValidator(Image, typehint_resolver=custom_resolver)
+
+    assert validator({"height": 50, "width": 100, "description": "wow"}) == Valid(
+        Image(50, 100, "wow")
+    )
+
+    assert validator({"height": 1, "width": 100, "description": "wow"}) == Invalid(
+        KeyErrs(
+            {
+                "height": Invalid(
+                    PredicateErrs([Min(10)]), 1, IntValidator(Min(10), Max(1000))
+                )
+            }
+        ),
+        {"height": 1, "width": 100, "description": "wow"},
+        validator,
+    )
