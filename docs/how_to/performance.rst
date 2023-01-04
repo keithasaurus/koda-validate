@@ -72,3 +72,14 @@ Koda Validate is not compiled. `mypyc <https://mypyc.readthedocs.io/en/latest/>`
 trivially compile parts of the code. It would probably not be incredibly difficult to
 alter the source code in a way that facilitates greater speedups from mypyc. Significant
 speedups are definitely possible.
+
+.. note::
+
+    Compiling Koda Validate is not in any immediate plans, for a few reasons:
+
+    - Koda Validate is already generally faster than competing libraries
+    - Compilation requires a strategy -- especially since Koda Validate allows for extensions, and some kinds of compilation can complicate that
+    - It's easier to add new features -- and to refactor -- without an extra compilation step
+    - CPython itself is getting faster. 3.11 is significantly faster than 3.10. 3.12 is meant to be faster still.
+
+    Depending on how things evolve, this my change.
