@@ -11,7 +11,7 @@ Validators
 We'll build a simple :class:`Validator` for ``float`` values to demonstrate how :class:`Validator`\s
 are built.
 
-.. code-block:: python
+.. testcode:: float1
 
     from typing import Any
     from koda_validate import *
@@ -37,15 +37,13 @@ Some notes:
 
 Here's how our :class:`Validator` can be used:
 
-.. code-block:: python
+.. doctest:: float1
 
-    float_validator = SimpleFloatValidator()
-
-    float_validator(5.5)
-    # > Valid(5.5)
-
-    float_validator(5)
-    # > Invalid(TypeErr(float), 5, ...)
+    >>> float_validator = SimpleFloatValidator()
+    >>> float_validator(5.5)
+    Valid(val=5.5)
+    >>> float_validator(5)
+    Invalid(err_type=TypeErr(expected_type=<class 'float'>), value=5, ...)
 
 Predicates
 ----------
@@ -54,31 +52,33 @@ the case of ``float``, we might want to check things like min, max, or fuzzy equ
 We'll make a ``FloatMin`` :class:`Predicate` to validate that ``float`` values are above some
 threshold:
 
-.. code-block:: python
+.. testcode:: floatpred
 
+    from dataclasses import dataclass
+    from koda_validate import Predicate
+
+
+    @dataclass
     class FloatMin(Predicate[float]):
-        def __init__(self, min: float) -> None:
-            self.min = min
+        min: float
 
         def __call__(self, val: float) -> bool:
             return val >= self.min
 
 We can use ``FloatMin`` on its own, but it's not terribly useful.
 
-.. code-block:: python
+.. doctest:: floatpred
 
-    min_5 = FloatMin(5.0)
-
-    min_5(5.678)
-    # > True
-
-    min_6(1.23)
-    # > False
+    >>> min_5 = FloatMin(5.0)
+    >>> min_5(5.678)
+    True
+    >>> min_5(1.23)
+    False
 
 :class:`Predicate`\s are more useful when we allow them to work with :class:`Validator`\s. For simplicity,
 we'll allow just one.
 
-.. code-block:: python
+.. testcode:: floatpred
 
 
     from dataclasses import dataclass
@@ -101,15 +101,13 @@ we'll allow just one.
 
 In the code above, if :class:`Predicate<koda_validate.Predicate>` is specified, we'll check it *after* we've verified the type of the value.
 
-.. code-block:: python
+.. doctest:: floatpred
 
-    validator = SimpleFloatValidator(FloatMin(2.5))
-
-    validator(3.14)
-    # > Valid(3.14)
-
-    validator(1.1)
-    # > Invalid(PredicateErrs([FloatMin(2.5)]), 1.1, ...)
+    >>> validator = SimpleFloatValidator(FloatMin(2.5))
+    >>> validator(3.14)
+    Valid(val=3.14)
+    >>> validator(1.1)
+    Invalid(err_type=PredicateErrs(predicates=[FloatMin(min=2.5)]), value=1.1, ...)
 
 We limited the Validator to one :class:`Predicate` for simplicity. In Koda Validate, :class:`Validator`\s
 that accept predicates typically allow of a ``List`` of :class:`Predicate`\s. Because :class:`Predicate`\s
@@ -121,7 +119,9 @@ Processors
 We can also conforming values using processors. For this example, we'll say we want to
 convert ``float``\s to their absolute value before we validate it.
 
-.. code-block:: python
+.. testcode:: floatpred
+
+    from koda_validate import *
 
     class FloatAbs(Processor[float]):
         def __call__(self, val: float) -> float:
@@ -130,7 +130,9 @@ convert ``float``\s to their absolute value before we validate it.
 To allow a processor to be this to our :class:`Validator`, we can change the code similarly to
 how we did with a :class:`Predicate`.
 
-.. code-block:: python
+.. testcode:: floatpred
+
+    from typing import Optional, Any
 
     class SimpleFloatValidator(Validator[float]):
         def __init__(self,
@@ -152,11 +154,13 @@ how we did with a :class:`Predicate`.
                 return Invalid(TypeErr(float), val, self)
 
 
-    validator = SimpleFloatValidator(predicate=FloatMin(2.2),
-                                     preprocessor=FloatAbs())
+Usage:
 
-    validator(-5.5)
-    # > Valid(5.5)
+.. doctest:: floatpred
+
+    >>> validator = SimpleFloatValidator(predicate=FloatMin(2.2), preprocessor=FloatAbs())
+    >>> validator(-5.5)
+    Valid(val=5.5)
 
 
 Async

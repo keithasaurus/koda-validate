@@ -83,7 +83,7 @@ asynchronously:
 Like other validators, you can nest async :class:`Validator`\s. Again, the only
 difference is calling the ``.validate_async`` method of the outer-most validator.
 
-.. code-block:: python
+.. testcode:: predasync
 
     # continued from previous example
 
