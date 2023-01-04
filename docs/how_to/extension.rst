@@ -3,10 +3,12 @@ Extension
 Koda Validate aims to provide enough tools to handle most common validation needs; for
 the cases it doesn't cover, it aims to allow easy extension.
 
+.. module:: koda_validate
+
 Validators
 ----------
 
-We'll build a simple ``Validator`` for ``float`` values to demonstrate how ``Validator``\s
+We'll build a simple :class:`Validator` for ``float`` values to demonstrate how :class:`Validator`\s
 are built.
 
 .. code-block:: python
@@ -25,15 +27,15 @@ are built.
 
 Some notes:
 
-- ``Validator`` is subclassed and parameterized with ``float``. This just means a value of type ``Valid[float]`` must be returned when valid
-- ``__call__`` accepts ``Any`` because the type of input may be unknown before submitting to the ``Validator``
-- ``Invalid`` is returned with all relevant validation context for downstream use, namely:
+- :class:`Validator` is subclassed and parameterized with ``float``. This just means a value of type ``Valid[float]`` must be returned when valid
+- ``__call__`` accepts ``Any`` because the type of input may be unknown before submitting to the :class:`Validator`
+- :class:`Invalid` is returned with all relevant validation context for downstream use, namely:
 
   - an error type (``TypeErr(float)``)
   - the value being validated (``val``)
   - a reference to the validator being used (``self``)
 
-Here's how our ``Validator`` can be used:
+Here's how our :class:`Validator` can be used:
 
 .. code-block:: python
 
@@ -47,9 +49,9 @@ Here's how our ``Validator`` can be used:
 
 Predicates
 ----------
-When we want to perform additional refinement against a value, we use ``Predicate``\s. In
+When we want to perform additional refinement against a value, we use :class:`Predicate`\s. In
 the case of ``float``, we might want to check things like min, max, or fuzzy equality.
-We'll make a ``FloatMin`` ``Predicate`` to validate that ``float`` values are above some
+We'll make a ``FloatMin`` :class:`Predicate` to validate that ``float`` values are above some
 threshold:
 
 .. code-block:: python
@@ -73,7 +75,7 @@ We can use ``FloatMin`` on its own, but it's not terribly useful.
     min_6(1.23)
     # > False
 
-Predicates are more useful when we allow them to work with ``Validator``\s. For simplicity,
+:class:`Predicate`\s are more useful when we allow them to work with :class:`Validator`\s. For simplicity,
 we'll allow just one.
 
 .. code-block:: python
@@ -97,7 +99,7 @@ we'll allow just one.
             else:
                 return Invalid(TypeErr(float), val, self)
 
-If ``predicate`` is specified, we'll check it *after* we've verified the type of the value.
+In the code above, if :class:`Predicate<koda_validate.Predicate>` is specified, we'll check it *after* we've verified the type of the value.
 
 .. code-block:: python
 
@@ -109,8 +111,8 @@ If ``predicate`` is specified, we'll check it *after* we've verified the type of
     validator(1.1)
     # > Invalid(PredicateErrs([FloatMin(2.5)]), 1.1, ...)
 
-We limited the Validator to one ``Predicate`` for simplicity. In Koda Validate, ``Validator``\s
-that accept predicates typically allow of a ``List`` of ``Predicate``s. Because ``Predicate``\s
+We limited the Validator to one :class:`Predicate` for simplicity. In Koda Validate, :class:`Validator`\s
+that accept predicates typically allow of a ``List`` of :class:`Predicate`\s. Because :class:`Predicate`\s
 cannot alter values, it's safe to have as many as you want (i.e. ``SimpleFloatValidator(FloatMin(3.3), FloatMax(4.4), ...)``).
 
 
@@ -125,8 +127,8 @@ convert ``float``\s to their absolute value before we validate it.
         def __call__(self, val: float) -> float:
             return abs(val)
 
-To allow a processor to be this to our ``Validator``, we can change the code similarly to
-how we did with a predicate.
+To allow a processor to be this to our :class:`Validator`, we can change the code similarly to
+how we did with a :class:`Predicate`.
 
 .. code-block:: python
 
@@ -159,11 +161,11 @@ how we did with a predicate.
 
 Async
 -----
-There are only a few things to do differently if we want to make this ``Validator`` work
+There are only a few things to do differently if we want to make this :class:`Validator<koda_validate.Validator>` work
 asynchronously:
 
 - implement a ``validate_async`` method on the Validator (which should be very similar to the existing ``__call__`` method)
-- if desired, allow for ``PredicateAsync`` predicates to be passed in
+- if desired, allow for :class:`PredicateAsync<koda_validate.PredicateAsync>` predicates to be passed in
 
 Then when you use the Validator in an async context, you just need to call it like:
 
@@ -174,8 +176,8 @@ Then when you use the Validator in an async context, you just need to call it li
 
 
 .. note::
-    It's important to mention that you can build ``Validator``\s, ``Predicate``\s, and
-    ``Processor``\s to be initialized with any combination of attributes you want. The only
+    It's important to mention that you can build :class:`Validator<koda_validate.Validator>`\s, :class:`Predicate<koda_validate.Predicate>`\s, and
+    :class:`Processor<koda_validate.Processor>`\s to be initialized with any combination of attributes you want. The only
     contracts for these kinds of objects are on the ``__call__`` and ``validate_async``
     methods; otherwise you have complete freedom to structure the logic as you see fit.
 

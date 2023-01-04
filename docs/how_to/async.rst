@@ -1,5 +1,6 @@
 Async
 =====
+.. module:: koda_validate
 
 All the built-in :class:`Validator<koda_validate.base.Validator>`\s in Koda Validate are asyncio-compatible, and there
 is a simple, consistent way to run async validation:
@@ -18,7 +19,7 @@ Instead of:
 Alternating between Sync and Async
 ----------------------------------
 
-In many cases, you can use the same ``Validator`` instance in sync and async contexts:
+In many cases, you can use the same :class:`Validator` instance in sync and async contexts:
 
 .. code-block:: python
 
@@ -34,7 +35,7 @@ In many cases, you can use the same ``Validator`` instance in sync and async con
     # async mode (we're not in an async context, so we can't use `await` here)
     assert asyncio.run(validator.validate_async("async")) == Valid("async")
 
-While this ``StringValidator`` works in async mode,
+While this :class:`StringValidator` works in async mode,
 it isn't yielding any benefit for IO. It would be much more useful if we were doing something like querying a database
 asynchronously:
 
@@ -68,13 +69,15 @@ asynchronously:
 
 
 .. note::
-    ``PredicateAsync``\s are specified in the ``predicates_async`` keyword argument -- separately from ``Predicate``\s.
-    The call signature is designed this way to be explicit -- we don't want to be confused about whether a validator
-    requires ``asyncio``. If you try to run this validator in synchronous mode, it will raise an ``AssertionError`` -- instead make sure you call it like
+    :class:`PredicateAsync`\s are specified in the ``predicates_async`` keyword argument
+    -- separately from :class:`Predicate`\s. The call signature is designed this way to
+    be explicit -- we don't want to be confused about whether a validator requires
+    ``asyncio``. If you try to run this validator in synchronous mode, it will raise an
+    ``AssertionError`` -- instead make sure you call it like
     ``await username_validator.validate_async("buster")``.
 
-Like other validators, you can nest async ``Validator``\s. Again, the only difference is calling the ``.validate_async``
-method of the outer-most validator.
+Like other validators, you can nest async :class:`Validator`\s. Again, the only
+difference is calling the ``.validate_async`` method of the outer-most validator.
 
 .. code-block:: python
 
@@ -85,25 +88,25 @@ method of the outer-most validator.
     users = ["michael", "gob", "lindsay", "buster"]
     assert asyncio.run(username_list_validator.validate_async(users)) == Valid(users)
 
-You can run async validation on nested lists, dictionaries, tuples, strings, etc. All ``Validator``\s built into to Koda Validate
+You can run async validation on nested lists, dictionaries, tuples, strings, etc. All :class:`Validator<koda_validate.Validator>`\s built into to Koda Validate
 understand the ``.validate_async`` method.
 
 .. note::
     **Concurrency**
 
-    Koda Validate makes no assumptions about running async ``Validator``\s or ``PredicateAsync``\s concurrently; it is
+    Koda Validate makes no assumptions about running async :class:`Validator`\s or :class:`PredicateAsync`\s concurrently; it is
     expected that that is handled by the surrounding context. That is to say, async validators will not block when performing IO -- as is normal -- but if you had, say, 10 async
     predicates, they would not be run in parallel by default. This is simply because that is too much of an assumption for this library to make -- we don't
-    want to accidentally send N simultaneous requests to some other service without the intent being explicitly defined. If you'd like to have ``Validator``\s
-    or ``Predicate``s run in parallel _within_ the validation step, all you should need to do is write a simple wrapper class based on either ``Validator``
-    or ``Predicate``, implementing whatever concurrency needs you have.
+    want to accidentally send N simultaneous requests to some other service without the intent being explicitly defined. If you'd like to have :class:`Validator`\s
+    or :class:`Predicate`\s run in parallel _within_ the validation step, all you should need to do is write a simple wrapper class based on either :class:`Validator`
+    or :class:`Predicate`, implementing whatever concurrency needs you have.
 
 
 Custom Async Validators
 -----------------------
 
-For custom async ``Validator``\s, all you need to do is implement the ``validate_async`` method on a ``Validator`` class. There is no
-separate async-only ``Validator`` class. This is because we might want to re-use synchronous validators in either synchronous
+For custom async :class:`Validator`\s, all you need to do is implement the ``validate_async`` method on a :class:`Validator` class. There is no
+separate async-only :class:`Validator` class. This is because we might want to re-use synchronous validators in either synchronous
 or asynchronous contexts. Here's an example of making a ``SimpleFloatValidator`` async-compatible:
 
 .. code-block:: python
@@ -115,14 +118,14 @@ or asynchronous contexts. Here's an example of making a ``SimpleFloatValidator``
 
 
     class SimpleFloatValidator(Validator[float]):
-        def __call__(self, val: Any) -> ValidationResult[float, Serializable]:
+        def __call__(self, val: Any) -> ValidationResult[float]:
             if isinstance(val, float):
                 return Valid(val)
             else:
-                return Invalid(,
+                return Invalid(TypeErr(float), val, self)
 
         # this validator doesn't do any IO, so we can just use the `__call__` method
-        async def validate_async(self, val: Any) -> ValidationResult[float, Serializable]:
+        async def validate_async(self, val: Any) -> ValidationResult[float]:
             return self(val)
 
 
@@ -135,7 +138,7 @@ or asynchronous contexts. Here's an example of making a ``SimpleFloatValidator``
     assert asyncio.run(float_validator.validate_async(5)) == Invalid(,
 
 
-If your ``Validator`` only makes sense in an async context, then you probably don't need to implement the ``__call__`` method.
+If your :class:`Validator` only makes sense in an async context, then you probably don't need to implement the ``__call__`` method.
 Instead, you'd just implement the ``.validate_async`` method and make sure that validator is always called by ``await``-ing
 the ``.validate_async`` method. A ``NotImplementedError`` will be raised if you try to use the ``__call__`` method on an
-async-only ``Validator``.
+async-only :class:`Validator`.

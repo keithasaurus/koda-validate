@@ -1,6 +1,8 @@
 Performance
 ===========
 
+.. module:: koda_validate
+
 Koda Validate can be fast, but there are some things you can do if you really need to eek out every ounce of
 performance.
 
@@ -12,14 +14,14 @@ but it merits mentioning first because:
 - switching to async validation in Koda Validate is relatively simple
 - the performance gains can be orders of magnitude in some cases
 
-Initialize ``Validator``\s in Outer Scopes
-------------------------------------------
+Initialize :class:`Validator<koda_validate.Validator>`\s in Outer Scopes
+------------------------------------------------------------------------
 
-Ideally, Validators should be initialized at the module level. If that's not possible, we want to try to initialize them
+Ideally, :class:`Validator`\s should be initialized at the module level. If that's not possible, we want to try to initialize them
 either lazily (once), or as few times as possible (i.e. not for every validated value) because:
 
 - often there's no need to initialize them for every value being validated, and initialization is not always cheap
-- many of the ``Validator``\s in Koda Validate are optimized on the assumption they will not be initialized as often as they are used
+- many of the :class:`Validator`\s in Koda Validate are optimized on the assumption they will be initialized less often than they'll be called
 
 Slower
 ^^^^^^

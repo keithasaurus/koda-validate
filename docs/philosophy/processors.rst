@@ -1,6 +1,6 @@
 Processors
 ==========
-``Processor``\s allow us to take a value of a given type and transform it into another value of that type. ``Processor``\s are most useful
+:class:`Processor<koda_validate.Processor>`\s allow us to take a value of a given type and transform it into another value of that type. :class:`Processor<koda_validate.Processor>`\s are most useful
 *after* type validation, but *before* predicates are checked. They tend to be more common on strings than any other type. Perhaps the
 most obvious use cases would be trimming whitespace or adjusting the case of a string:
 
@@ -16,6 +16,6 @@ most obvious use cases would be trimming whitespace or adjusting the case of a s
     assert max_length_3_validator(" hmm ") == Valid("HMM")
 
 We see that the ``preprocessors`` stripped the whitespace from ``" hmm "`` and then transformed it to upper-case *before*
-the resulting value was checked against the ``MaxLength(3)`` ``Predicate``.
+the resulting value was checked against the ``MaxLength(3)`` :class:`Predicate<koda_validate.Predicate>`.
 
 Processors are very simple to write -- see [Extension](#extension) for more details.

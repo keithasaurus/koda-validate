@@ -6,7 +6,7 @@ public instance attributes:
 
 - ``err_type``: the specific kind of error
 - ``value``: the value that was being validated
-- ``validator``: a reference to the ``Validator`` where the error occurred
+- :class:`Validator<koda_validate.Validator>`: a reference to the :class:`Validator<koda_validate.Validator>` where the error occurred
 
 ``Invalid`` does not contain any sort of message, nor does it attempt to accommodate any specific serialization format.
 Instead, the intent of ``Invalid`` is to provide enough context to produce any kind of derivative data, whether
@@ -15,7 +15,7 @@ human- or machine-readable.
 
 Error Types
 -----------
-The ``err_type`` attribute of an ``Invalid`` instance corresponds to a specific type: ``ErrType``. ``ErrType`` is a
+The ``err_type`` attribute of an ``Invalid`` instance corresponds to a specific type: :class:`ErrType<koda_validate.ErrType>`. :class:`ErrType<koda_validate.ErrType>` is a
 ``Union`` type that looks like this:
 
 .. code-block:: python
@@ -36,8 +36,8 @@ The ``err_type`` attribute of an ``Invalid`` instance corresponds to a specific 
     ]
 
 
-Each of the ``ErrType`` variants represents some distinct use case (have a look over them!), with one exception: ``ValidationErrBase``. ``ValidationErrBase``
-is explicitly intended to be subclassed for any need not covered by the core ``ErrType``\s. One example of such a subclass
+Each of the :class:`ErrType<koda_validate.ErrType>` variants represents some distinct use case (have a look over them!), with one exception: ``ValidationErrBase``. ``ValidationErrBase``
+is explicitly intended to be subclassed for any need not covered by the core :class:`ErrType<koda_validate.ErrType>`\s. One example of such a subclass
 is ``koda_validate.serialization.errors.SerializableErr``, but you can feel free to define any custom error as a subclass
 of ``ValidationErrBase`` and type checks should succeed.
 
@@ -49,7 +49,7 @@ you'll usually want to convert them to something more useful for your specific
 use case.
 
 It's helpful to understand that ``Invalid`` errors typically form into trees (which mirror
-the structure of the ``Validator`` they come from):
+the structure of the :class:`Validator<koda_validate.Validator>` they come from):
 
 .. code-block:: python
 
@@ -151,7 +151,7 @@ Let's see how this works:
 
 
 One thing that we notably are *not* doing here is adding representation logic to ``Invalid``
-or ``ErrType`` instances; nor are we subclassing those objects and adding methods or data
+or :class:`ErrType<koda_validate.ErrType>` instances; nor are we subclassing those objects and adding methods or data
 there. This is because we don't want to couple our errors with any specific output format.
 Instead the process to compute the final error output is always more-or-less the same:
 just write a function (or use an existing one). There are a few advantages to this approach:

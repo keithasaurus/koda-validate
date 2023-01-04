@@ -5,3 +5,6 @@ koda\_validate
     :members:
     :undoc-members:
     :special-members: __call__
+
+.. autodata:: ValidationResult
+

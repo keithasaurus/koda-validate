@@ -1,7 +1,9 @@
 Validation Results
 ==================
 
-:class:`Validator`\s take one generic parameter, which represents the type of the valid data. For example, a ``Validator[int]`` must return an
+.. module:: koda_validate
+
+:class:`Validator<koda_validate.Validator>`\s take one generic parameter, which represents the type of the valid data. For example, a ``Validator[int]`` must return an
 ``int`` if the data it's called with is valid:
 
 .. testsetup:: 1
@@ -16,10 +18,9 @@ Validation Results
     assert result.is_valid
     assert isinstance(result.val, int)  # mypy also knows ``result.val`` is an ``int``
 
-
-The full type of result in the above example is ``ValidationResult[int]`` (this can be de-sugared to
-``Union[Valid[int], Invalid]``). As you can see, to do something useful with ``ValidationResult``\s, we need to
-distinguish between the ``Valid`` and ``Invalid`` variants.
+The full type of ``result`` in the above example is ``ValidationResult[int]`` (this can be de-sugared to
+``Union[Valid[int], Invalid]``). As you can see, to do something useful with :data:`ValidationResult`\s, we need to
+distinguish between the :class:`Valid` and :class:`Invalid` variants.
 
 ``if`` Statements
 -----------------
@@ -85,10 +86,10 @@ Let's try it
 
 Working with ``Invalid``
 ------------------------
-``Invalid`` instances provide machine-readable validation failure data. Usually this is not terribly useful on its own.
+:class:`Invalid` instances provide machine-readable validation failure data. Usually this is not terribly useful on its own.
 In most cases you'll want to transform these data in some way before sending it somewhere else. The expectation is that
-built-in, or custom, utility functions should handle this. One such built-in function is ``to_serializable_errs``. It
-takes an ``Invalid`` instance and produces errors objects suitable for JSON / YAML serialization.
+built-in, or custom, utility functions should handle this. One such built-in function is :data:`to_serializable_errs<koda_validate.serialization.to_serializable_errs>`. It
+takes an :class:`Invalid` instance and produces errors objects suitable for JSON / YAML serialization.
 
 .. testcode:: 3
 
@@ -108,13 +109,13 @@ Outputs
 
     ['expected a string']
 
-Even if it doesn't suit your ultimate purpose, ``to_serializable_errs`` can be useful during
+Even if it doesn't suit your ultimate purpose, :data:`to_serializable_errs<koda_validate.serializable.to_serializable_errs>` can be useful during
 development because the error messages tend to be more readable than the printed representation of
-``Invalid`` instances.
+:class:`Invalid` instances.
 
 .. note::
-    ``to_serializable_errs`` is only meant to be a basic effort at a general English-language serializable
+    :data:`to_serializable_errs<koda_validate.serializable.to_serializable_errs>` is only meant to be a basic effort at a general English-language serializable
     utility function. It may be convenient to work with, but please do not feel that you are in any way
     limited to its functionality. Koda Validate's intention is that users should be able to build whatever
-    error objects they need by consuming the ``Invalid`` data.
+    error objects they need by consuming the :class:`Invalid` data.
 

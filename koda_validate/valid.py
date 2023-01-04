@@ -28,6 +28,11 @@ class Valid(Generic[A]):
 
 @dataclass
 class Invalid:
+    """
+    Represents validation failure. Contains relevant failure data so use case-specific
+    error objects (or other data) can be produced.
+    """
+
     err_type: "ErrType"
     """
     Any of a number of classes that contain data about the type of error, e.g.
@@ -46,7 +51,7 @@ class Invalid:
 
     is_valid: ClassVar[Literal[False]] = False
     """
-    This is always ``False`` on :class:`Invalid` instances.  It’s useful for if
+    This is always ``False`` on :class:`Invalid` instances.  It’s useful for ``if``
     statements, and mypy understands it.
     """
 

@@ -9,7 +9,7 @@ In Python type hints, predicates can be expressed like this:
 
     PredicateFunc = Callable[[A], bool]
 
-Koda Validate has a ``Predicate`` class based on this concept. In Koda Validate, ``Predicate``\s are used to *enrich* ``validator``\s
+Koda Validate has a :class:`Predicate<koda_validate.Predicate>` class based on this concept. In Koda Validate, :class:`Predicate<koda_validate.Predicate>`\s are used to *enrich* :class:`Validator<koda_validate.Validator>`\s
 by performing additional validation *after* the data has been verified to be of a specific type or shape.
 
 .. code-block:: python
@@ -44,8 +44,8 @@ sequence an arbitrary number of them together, and validate them all.
     int_validator(23)
     # > Invalid(PredicateErrs([Max(20), MultipleOf(4)]), ...)
 
-Here ``int_validator`` has 3 ``Predicate``\s, but we could have as many as we want. Note
-that ``Predicate``\s for which a value is invalid are returned within a ``PredicateErrs`` instance. We are only able
-to return all the failing ``Predicate``\s because we know that each `Predicate` will not be able to change the value.
+Here ``int_validator`` has 3 :class:`Predicate<koda_validate.Predicate>`\s, but we could have as many as we want. Note
+that :class:`Predicate<koda_validate.Predicate>`\s for which a value is invalid are returned within a ``PredicateErrs`` instance. We are only able
+to return all the failing :class:`Predicate<koda_validate.Predicate>`\s because we know that each `Predicate` will not be able to change the value.
 
-``Predicate``\s are easy to write -- take a look at [Extension](#extension) for more details.
+:class:`Predicate<koda_validate.Predicate>`\s are easy to write -- take a look at [Extension](#extension) for more details.

@@ -53,9 +53,11 @@ Basic
 
 .. note::
 
-    In the example above, ``ContactForm`` is a ``dataclass``, so we use a ``DataclassValidator``. We could have used a
-    ``TypedDict`` and ``TypedDictValidator`` or a ``NamedTuple`` and ``NamedTupleValidator``, and the code would have been
-    essentially the same.
+    In the example above, ``ContactForm`` is a ``dataclass``, so we use a
+    :class:`DataclassValidator<koda_validate.DataclassValidator>`. We could have used a
+    ``TypedDict`` and :class:`TypedDictValidator<koda_validate.TypedDictValidator>`, or a
+    ``NamedTuple`` and :class:`NamedTupleValidator<koda_validate.NamedTupleValidator>`,
+    and the code would have been essentially the same.
 
 Fuller Example (with Async)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -119,7 +121,7 @@ Fuller Example (with Async)
                 return jsonify(to_serializable_errs(inv)), 400
 
 
-    # if you want a JSON Schema from a ``Validator``, there's `to_json_schema()`
+    # if you want a JSON Schema from a :class:`Validator<koda_validate.Validator>`, there's `to_json_schema()`
     # schema = to_json_schema(contact_validator)
     # hook_into_some_api_definition(schema)
 
@@ -235,6 +237,6 @@ Fuller Example (with Async)
                     return JsonResponse(to_serializable_errs(inv), status=400, safe=False)
 
 
-    # if you want a JSON Schema from a ``Validator``, there's `to_json_schema()`
+    # if you want a JSON Schema from a :class:`Validator<koda_validate.Validator>`, there's `to_json_schema()`
     # schema = to_json_schema(contact_validator)
     # hook_into_some_api_definition(schema)

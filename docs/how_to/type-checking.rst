@@ -2,7 +2,7 @@ Typehint Troubleshooting
 ========================
 
 If you happen to run into a problem with type checking Koda Validate, take a minute read through the documentation to
-make sure there really is a problem -- some ``Validator``\s require specific ``.typed`` methods to be called for proper
+make sure there really is a problem -- some :class:`Validator<koda_validate.Validator>`\s require specific ``.typed`` methods to be called for proper
 type inference at initialization.
 
 If you run into a *bug*, there a few common workarounds to be aware of:

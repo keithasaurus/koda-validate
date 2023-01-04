@@ -6,3 +6,6 @@ koda\_validate.serialization
    :members:
    :undoc-members:
    :show-inheritance:
+
+
+.. autodata:: Serializable

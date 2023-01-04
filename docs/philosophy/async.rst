@@ -11,7 +11,7 @@ Validate is designed with several ergonomics goals:
 Minimal Changes
 ---------------
 
-All built-in ``Validator``\s in Koda Validate allow for async validation. So
+All built-in :class:`Validator<koda_validate.Validator>`\s in Koda Validate allow for async validation. So
 you can call the same validator in both contexts.
 
 .. code-block:: python
@@ -42,7 +42,7 @@ It should be difficult to accidentally define or invoke async validation. In pla
 ``asyncio`` is supported in Koda Validate, there is always "async" in the naming. Some examples:
 
 - ``some_validator.validate_async(...)``
-- ``PredicateAsync``
+- :class:`PredicateAsync<koda_validate.PredicateAsync>`
 - ``StringValidator(predicates_async=[...])``
 - ``TypedDictValidator(SomeTypedDict, validate_object_async=some_async_function)``
 
@@ -50,11 +50,11 @@ It should be difficult to accidentally define or invoke async validation. In pla
 
 Alerting on Illegal States
 --------------------------
-While ``Validator``\s can be defined to work in both sync and async contexts, once a
-``Validator`` is initialized, Koda Validate will raise an exception if the both of the
+While :class:`Validator<koda_validate.Validator>`\s can be defined to work in both sync and async contexts, once a
+:class:`Validator<koda_validate.Validator>` is initialized, Koda Validate will raise an exception if the both of the
 following are true:
 
-1. it is initialized with async-only validation (e.g. defining ``predicates_sync`` or ``validate_object_async`` on applicable ``Validator``\s)
+1. it is initialized with async-only validation (e.g. defining ``predicates_sync`` or ``validate_object_async`` on applicable :class:`Validator<koda_validate.Validator>`\s)
 2. it is invoked synchronously -- i.e. ``some_async_validator(123)`` instead of ``await some_async_validator.validate_async(123)``
 
 
