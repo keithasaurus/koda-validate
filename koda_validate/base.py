@@ -9,8 +9,10 @@ if TYPE_CHECKING:
 
 class Validator(Generic[SuccessT]):
     r"""
-    Base class for all ``Validator``\s. It's little more than a
-    ``Callable[[Any], Result[SuccessT, ValidationErr]]``, with two notable differences:
+    Base class for all ``Validator``\s.
+
+    It's little more than a ``Callable[[Any], Result[SuccessT, ValidationErr]]``, with
+    two notable differences:
 
     - constructing ``Callable`` ``class``\es allows us to more easily make metadata
         from the validator available (as opposed to data being hidden inside a closure)
@@ -19,12 +21,25 @@ class Validator(Generic[SuccessT]):
 
     Depending on your use case, you may want to implement the ``__call__`` method, the
     ``async_validate`` method, or both.
+
+    .. note::
+
+        Fundamentally, :class:`Validator`\s need to be able to return valid data that is
+        a different type than what was passed in. The main reason for this is that we
+        need to be able to call a ``Validator`` with data of unknown types. For that
+        reason ``Validator``\s accept ``Any`` as input. This has a few notable
+        implications:
+
+        - we can never assume that the data returned is the same data passed in
+        - coercing and conforming (see :class:`Processor`\s) data is fundamentally legal
+        - some kind of type verification usually needs to happen within a ``Validator``
+        - refinement (see :class:`Predicate`\s) needs to be run *after* type verification
+
+
     """
 
     async def validate_async(self, val: Any) -> "ValidationResult[SuccessT]":
         """
-        this must be implemented for asynchronous validation
-
         :param val: the value being validated
         :raises NotImplementedError: if not implemented on subclasses
         """
@@ -32,8 +47,6 @@ class Validator(Generic[SuccessT]):
 
     def __call__(self, val: Any) -> "ValidationResult[SuccessT]":
         """
-        this must be implemented for synchronous validation
-
         :param val: the value being validated
         :raises NotImplementedError: if not implemented on subclasses
         """
@@ -76,8 +89,6 @@ class Predicate(Generic[A]):
     @abstractmethod
     def __call__(self, val: A) -> bool:  # pragma: no cover
         """
-        This must be implemented on ``Predicate`` subclasses
-
         :param val: the value being validated
         :raises NotImplementedError: if not defined in subclass
         """
@@ -115,8 +126,6 @@ class PredicateAsync(Generic[A]):
     @abstractmethod
     async def validate_async(self, val: A) -> bool:  # pragma: no cover
         """
-        This must be implemented on ``PredicateAsync`` subclasses
-
         :param val: the value being validated
         :return: a bool indicating whether the condition is ``True`` for the value
         """

@@ -15,6 +15,10 @@ from koda_validate.valid import Invalid, ValidationResult
 
 
 class Lazy(Validator[Ret]):
+    """
+    Allows for specification of mutually recursive type definitions.
+    """
+
     __match_args__ = (
         "validator",
         "recurrent",
@@ -57,8 +61,7 @@ ChoiceT = TypeVar("ChoiceT", bound=Hashable)
 @dataclass
 class Choices(Predicate[ChoiceT]):
     """
-    This only exists separately from a more generic form because
-    mypy was having difficulty understanding the narrowed generic types. mypy 0.800
+    A allow to check some ``Hashable`` type against a finite set of values.
     """
 
     choices: Set[ChoiceT]
@@ -126,12 +129,17 @@ ExactMatchT = TypeVar(
 class EqualTo(Predicate[ExactMatchT]):
     match: ExactMatchT
 
-    def __call__(self, val: A) -> bool:
+    def __call__(self, val: ExactMatchT) -> bool:
         return val == self.match
 
 
 @dataclass(init=False)
 class EqualsValidator(_ToTupleValidator[ExactMatchT]):
+    """
+    Check if a value is of the same type as ``match`` *and* check that that
+    value is equivalent.
+    """
+
     match: ExactMatchT
     preprocessors: Optional[List[Processor[ExactMatchT]]] = None
 
@@ -161,28 +169,34 @@ class EqualsValidator(_ToTupleValidator[ExactMatchT]):
             return False, Invalid(TypeErr(match_type), val, self)
 
 
-class AlwaysValid(_ToTupleValidator[Any]):
+class AlwaysValid(_ToTupleValidator[A]):
+    """
+    Whatever value (and type) is submitted for validation will be return as Valid
+    """
+
     __match_args__ = ()
 
-    _instance: ClassVar[Optional["AlwaysValid"]] = None
+    _instance: ClassVar[Optional["AlwaysValid[Any]"]] = None
 
-    def __new__(cls) -> "AlwaysValid":
+    def __new__(cls) -> "AlwaysValid[A]":
         # make a singleton
         if cls._instance is None:
             cls._instance = super(AlwaysValid, cls).__new__(cls)
         return cls._instance
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[A]:
+    def validate_to_tuple(self, val: A) -> ResultTuple[A]:
         return True, val
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[A]:
+    async def validate_to_tuple_async(self, val: A) -> ResultTuple[A]:
         return True, val
 
     def __repr__(self) -> str:
         return "AlwaysValid()"
 
 
-always_valid = AlwaysValid()
+# Any must be the generic param here, but, AlwaysValid() can take on any generic type
+always_valid: AlwaysValid[Any] = AlwaysValid()
+
 ListOrTupleOrSetAny = TypeVar("ListOrTupleOrSetAny", List[Any], Tuple[Any, ...], Set[Any])
 
 
@@ -212,6 +226,10 @@ class ExactItemCount(Predicate[ListOrTupleOrSetAny]):
 
 @dataclass
 class UniqueItems(Predicate[ListOrTupleOrSetAny]):
+    """
+    Works with both hashable and unhashable items.
+    """
+
     def __call__(self, val: ListOrTupleOrSetAny) -> bool:
         hashable_items: Set[Tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables

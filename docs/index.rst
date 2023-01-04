@@ -59,7 +59,7 @@ Nesting validators works as one might expect.
 Derived Validators
 ^^^^^^^^^^^^^^^^^^
 
-Koda Validate can inspect typehints and build validators automatically.
+Koda Validate can inspect typehints and build :class:`Validator<koda_validate.Validator>`\s automatically.
 
 .. testcode:: derived
 
