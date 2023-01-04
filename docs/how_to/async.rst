@@ -21,7 +21,7 @@ Alternating between Sync and Async
 
 In many cases, you can use the same :class:`Validator` instance in sync and async contexts:
 
-.. code-block:: python
+.. testcode:: python
 
     import asyncio
     from koda_validate import *
@@ -40,7 +40,7 @@ it isn't yielding any benefit for IO. It would be much more useful if we were do
 asynchronously:
 
 
-.. code-block:: python
+.. testcode:: predasync
 
     import asyncio
     from koda_validate import *
@@ -55,18 +55,22 @@ asynchronously:
 
 
     username_validator = StringValidator(MinLength(1),
-                                         predicates_async=[IsActiveUsername()])
+                                         predicates_async=[(is_active_username := IsActiveUsername())])
 
     assert asyncio.run(username_validator.validate_async("michael")) == Valid("michael")
 
-    assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(,
+    assert asyncio.run(username_validator.validate_async("tobias")) == Invalid(PredicateErrs([is_active_username]), "tobias", username_validator)
 
     # calling in sync mode raises an AssertionError
     try:
         username_validator("michael")
-    except AssertionError as e:
-        print(e)
+    except AssertionError:
+        print("expected error raised")
 
+.. testoutput:: predasync
+    :hide:
+
+    expected error raised
 
 .. note::
     :class:`PredicateAsync`\s are specified in the ``predicates_async`` keyword argument
@@ -109,7 +113,7 @@ For custom async :class:`Validator`\s, all you need to do is implement the ``val
 separate async-only :class:`Validator` class. This is because we might want to re-use synchronous validators in either synchronous
 or asynchronous contexts. Here's an example of making a ``SimpleFloatValidator`` async-compatible:
 
-.. code-block:: python
+.. testcode:: customasync
 
     import asyncio
     from typing import Any
@@ -135,7 +139,7 @@ or asynchronous contexts. Here's an example of making a ``SimpleFloatValidator``
 
     assert asyncio.run(float_validator.validate_async(test_val)) == Valid(test_val)
 
-    assert asyncio.run(float_validator.validate_async(5)) == Invalid(,
+    assert asyncio.run(float_validator.validate_async(5)) == Invalid(TypeErr(float), 5, float_validator)
 
 
 If your :class:`Validator` only makes sense in an async context, then you probably don't need to implement the ``__call__`` method.
