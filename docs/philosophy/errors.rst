@@ -71,7 +71,7 @@ information as we visit all the nodes. For an example, let's assume we need a "f
 list of human-readable errors. A simple way to do this is just to recursively
 branch on the error types. Here's how we could do that:
 
-.. code-block:: python
+.. testcode:: flaterrs
 
     from dataclasses import dataclass
     from enum import Enum
@@ -124,11 +124,11 @@ branch on the error types. Here's how we could do that:
 
 Let's see how this works:
 
-.. code-block:: python
+.. testcode:: flaterrs
 
     class Person(TypedDict):
-    name: str
-    age: int
+        name: str
+        age: int
 
 
     validator = ListValidator(TypedDictValidator(Person))

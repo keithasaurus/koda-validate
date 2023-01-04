@@ -1,33 +1,39 @@
 Async
 =====
 Koda Validate aims to allow any kind of validation, including validation that requires IO.
-For IO Koda Validate supports, and encourages, the use of ``asyncio``. Async validation in Koda
+For IO, Koda Validate supports, and encourages, the use of ``asyncio``. Async validation in Koda
 Validate is designed with several ergonomics goals:
 
 - minimal changes should be required when switching from synchronous to asynchronous validation
-- usage of asyncio should be explicit and obvious
+- usage of ``asyncio`` should be explicit and obvious
 - the user should be alerted when illegal states are encountered
 
 Minimal Changes
 ---------------
 
-All built-in :class:`Validator<koda_validate.Validator>`\s in Koda Validate allow for async validation. So
-you can call the same validator in both contexts.
+All built-in :class:`Validator<koda_validate.Validator>`\s in Koda Validate allow for async validation, so
+the same :class:`Validator<koda_validate.Validator>` can be called in both contexts.
 
-.. code-block:: python
+.. testcode:: syncandasync
 
+    import asyncio
     from koda_validate import StringValidator
 
     str_validator = StringValidator()
 
-    # sync
-    str_validator("a string")
-    # > Valid("a string")
+Synchronous:
 
-    # async
-    await str_validator.validate_async("a string")
-    # > Valid("a string")
+.. doctest:: syncandasync
 
+    >>> str_validator("a string")
+    Valid(val='a string')
+
+Asynchronous:
+
+.. doctest:: syncandasync
+
+    >>> asyncio.run(str_validator.validate_async("a string"))
+    Valid(val='a string')
 
 
 .. note::
@@ -72,7 +78,6 @@ Here you can see how async-only validators alert:
 
     async_only_str_validator = StringValidator(predicates_async=[SomeAsyncCheck()])
 
-    await async_only_str_validator.validate_async("hmmm")  # runs normally
+    asyncio.run(async_only_str_validator.validate_async("hmmm"))  # runs normally
 
     async_only_str_validator("hmmm")  # raises an AssertionError
-

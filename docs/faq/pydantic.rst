@@ -16,6 +16,3 @@ common questions, and there are a number of noteworthy differences:
 - Koda Validate is pure Python.
 - Koda Validate is intended to empower validator documentation. You can easily produce things like API schemas from :class:`Validator`\s, :class:`Predicate`\s, and :class:`Processor`\s
 - Koda Validate requires no plugins for mypy compatibility.
-- Pydantic has a large, mature ecosystem.** Lots of documentation, lots of searchable info on the web.
-- Pydantic focuses on having a familiar, dataclass-like syntax.
-- Pydantic has a lot of features Koda Validate does not. Plugins, ORM tie-ins, etc. There will probably never be feature parity between the two libraries.
