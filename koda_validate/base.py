@@ -178,8 +178,6 @@ class CacheValidatorBase(Validator[A]):
         Try to get a value from a cache and return ``Maybe[ValidationResult[A]]``
 
         :param val: the value being validated
-        :return: ``nothing`` if there is a cache miss. ``Just[ValidationResult[A]]`` if
-            there is a cache hit
         """
         raise NotImplementedError()
 
@@ -192,8 +190,6 @@ class CacheValidatorBase(Validator[A]):
         return ``Maybe[ValidationResult[A]]``
 
         :param val: the value being validated
-        :return: ``nothing`` if there is a cache miss. ``Just[ValidationResult[A]]`` if
-            there is a cache hit
         """
         raise NotImplementedError()
 

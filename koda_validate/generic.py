@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Any, ClassVar, Hashable, List, Optional, Set, Tuple, Type, TypeVar
 from uuid import UUID
 
-from koda import Maybe, Thunk, nothing
+from koda import Thunk
 from koda._generics import A
 
 from koda_validate._generics import Ret

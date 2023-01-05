@@ -70,7 +70,7 @@ def test_cache_validator_sync() -> None:
 
 
 @pytest.mark.asyncio
-async def test_cache_validator_sync() -> None:
+async def test_cache_validator_async() -> None:
     hits: List[Tuple[Any, Any]] = []
 
     @dataclass
