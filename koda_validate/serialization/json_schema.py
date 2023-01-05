@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, List, NoReturn, Type, Union
 from uuid import UUID
 
 from koda_validate import NotBlank, UUIDValidator
-from koda_validate.base import Predicate, PredicateAsync, Validator
+from koda_validate.base import CacheValidatorBase, Predicate, PredicateAsync, Validator
 from koda_validate.boolean import BoolValidator
 from koda_validate.bytes import BytesValidator
 from koda_validate.dataclasses import DataclassValidator
@@ -476,6 +476,8 @@ def generate_schema_validator(
         return decimal_schema(to_schema_fn, obj)
     elif isinstance(obj, BytesValidator):
         return bytes_schema(to_schema_fn, obj)
+    elif isinstance(obj, CacheValidatorBase):
+        return to_schema_fn(obj.validator)
     elif isinstance(obj, Lazy):
         raise TypeError(
             "`Lazy` type was not handled -- perhaps you need to use "

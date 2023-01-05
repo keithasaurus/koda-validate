@@ -26,7 +26,7 @@ generic parameter for the same purpose. So, a ``Validator[int]`` will always ret
 
     ``ValidationResult[int]`` can be de-sugared to ``Union[Valid[int], Invalid]``.
 
-Branching on validity
+Branching on Validity
 ---------------------
 
 As you can see, to do something useful with :data:`ValidationResult`\s, we need to

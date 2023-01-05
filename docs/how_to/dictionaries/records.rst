@@ -4,12 +4,6 @@ RecordValidator
 .. module:: koda_validate
     :noindex:
 
-We use the term "record" to mean a dictionary where keys may have differing value types.
-This is common, for instance, with deserialized JSON ``object``\s. In Python
-code, you may see type annotations like ``Dict[str, Any]`` to represent such types.
-``TypedDict``\s, ``dataclass``\es, and  ``NamedTuple``\s may also be used to express such
-a type. In Koda Validate there are many built-in :class:`Validator`\s to suit these
-purposes.
 
 In many cases :class:`RecordValidator` is more verbose than the :ref:`Derived Validators<how_to/dictionaries/derived:Derived Validators>`, but
 it comes with greater flexibility.
@@ -54,7 +48,44 @@ Output:
 
     John Doe is 30 years old
 
-When validation becomes complex, :class:`RecordValidator` is sometimes the most direct, and concise, option.
+
+:class:`RecordValidator` can handle any kind of ``Hashable`` key. Optional keys are
+handled explicitly with :class:`KeyNotRequired`, which returns ``Maybe`` values.
+
+.. testcode::
+
+    from typing import List
+    from dataclasses import dataclass
+    from koda import Maybe, Just
+    from koda_validate import *
+
+
+    @dataclass
+    class Person:
+        name: str
+        age: Maybe[int]
+        hobbies: List[str]
+
+
+    person_validator = RecordValidator(
+        into=Person,
+        keys=(
+            (1, StringValidator()),
+            (False, KeyNotRequired(IntValidator())),
+            (("abc", 123), ListValidator(StringValidator()))
+        ),
+    )
+
+    assert person_validator({
+        1: "John Doe",
+        False: 30,
+        ("abc", 123): ["reading", "cooking"]
+    }) == Valid(Person(
+        "John Doe",
+        Just(30),
+        ["reading", "cooking"]
+    ))
+
 
 Caveats
 ^^^^^^^

@@ -66,6 +66,7 @@ __all__ = (
     "UpperCase",
     "lower_case",
     "LowerCase",
+    "CacheValidatorBase",
     # integer.py
     "IntValidator",
     # list.py
@@ -100,7 +101,13 @@ __all__ = (
     "ValidationResult",
 )
 
-from koda_validate.base import Predicate, PredicateAsync, Processor, Validator
+from koda_validate.base import (
+    CacheValidatorBase,
+    Predicate,
+    PredicateAsync,
+    Processor,
+    Validator,
+)
 from koda_validate.boolean import BoolValidator
 from koda_validate.bytes import BytesValidator
 from koda_validate.dataclasses import DataclassValidator

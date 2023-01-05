@@ -18,5 +18,5 @@ don't need to initialize it, you can just load :data:`is_dict_validator`.
     Valid(val={'a': 1, 'b': None})
 
     >>> is_dict_validator(None)
-    Invalid(err_type=TypeErr(expected_type=<class 'dict'>), value=None, validator=IsDictValidator())
+    Invalid(err_type=TypeErr(expected_type=<class 'dict'>), ...)
 

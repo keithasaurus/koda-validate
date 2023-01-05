@@ -9,3 +9,5 @@ koda\_validate
 
 .. autodata:: ValidationResult
 
+.. autodata:: ErrType
+

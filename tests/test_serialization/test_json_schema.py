@@ -46,6 +46,7 @@ from koda_validate import (
     not_blank,
     unique_items,
 )
+from koda_validate.base import CacheValidatorBase
 from koda_validate.dictionary import (
     DictValidatorAny,
     KeyNotRequired,
@@ -682,3 +683,14 @@ def test_ends_with() -> None:
         "type": "string",
         "pattern": "bla$",
     }
+
+
+def test_cache_validator_falls_through_to_internal_validator() -> None:
+    class SomeCacheValidator(CacheValidatorBase[A]):
+        pass
+
+    str_validator = StringValidator(MaxLength(20))
+
+    assert to_json_schema(SomeCacheValidator(str_validator)) == to_json_schema(
+        str_validator
+    )

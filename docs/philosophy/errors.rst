@@ -1,21 +1,24 @@
 Errors
 ======
 
+.. module:: koda_validate
+    :noindex:
+
 In Koda Validate, validation errors are represented by the ``Invalid`` class. ``Invalid`` has three
 public instance attributes:
 
-- ``err_type``: the specific kind of error
+- ``err_type``: the specific kind of error (:data:`ErrType`)
 - ``value``: the value that was being validated
 - :class:`Validator<koda_validate.Validator>`: a reference to the :class:`Validator<koda_validate.Validator>` where the error occurred
 
-``Invalid`` does not contain any sort of message, nor does it attempt to accommodate any specific serialization format.
-Instead, the intent of ``Invalid`` is to provide enough context to produce any kind of derivative data, whether
+:class:`Invalid` does not contain any sort of message, nor does it attempt to accommodate any specific serialization format.
+Instead, the intent of :class:`Invalid` is to provide enough context to produce any kind of derivative data, whether
 human- or machine-readable.
 
 
 Error Types
 -----------
-The ``err_type`` attribute of an ``Invalid`` instance corresponds to a specific type: :class:`ErrType<koda_validate.ErrType>`. :class:`ErrType<koda_validate.ErrType>` is a
+The ``err_type`` attribute of an :class:`Invalid` instance corresponds to a specific type: :class:`ErrType<koda_validate.ErrType>`. :class:`ErrType<koda_validate.ErrType>` is a
 ``Union`` type that looks like this:
 
 .. code-block:: python
@@ -38,18 +41,18 @@ The ``err_type`` attribute of an ``Invalid`` instance corresponds to a specific 
 
 Each of the :class:`ErrType<koda_validate.ErrType>` variants represents some distinct use case (have a look over them!), with one exception: ``ValidationErrBase``. ``ValidationErrBase``
 is explicitly intended to be subclassed for any need not covered by the core :class:`ErrType<koda_validate.ErrType>`\s. One example of such a subclass
-is ``koda_validate.serialization.errors.SerializableErr``, but you can feel free to define any custom error as a subclass
-of ``ValidationErrBase`` and type checks should succeed.
+is :class:`SerializableErr<koda_validate.serialization.errors.SerializableErr>`, but you can feel free to define any custom error as a subclass
+of :class:`ValidationErrBase` and type checks should succeed.
 
 .. _flaterrs-example:
 
 Converting ``Invalid`` to Other Formats
 ---------------------------------------
-In Koda Validate, ``Invalid`` objects are not usually the final form you'll want for errors;
+In Koda Validate, :class:`Invalid` objects are not usually the final form you'll want for errors;
 you'll usually want to convert them to something more useful for your specific
 use case.
 
-It's helpful to understand that ``Invalid`` errors typically form into trees (which mirror
+It's helpful to understand that :class:`Invalid` errors typically form into trees (which mirror
 the structure of the :class:`Validator<koda_validate.Validator>` they come from):
 
 .. code-block:: python
@@ -151,7 +154,7 @@ Let's see how this works:
 
 
 
-One thing that we notably are *not* doing here is adding representation logic to ``Invalid``
+One thing that we notably are *not* doing here is adding representation logic to :class:`Invalid`
 or :class:`ErrType<koda_validate.ErrType>` instances; nor are we subclassing those objects and adding methods or data
 there. This is because we don't want to couple our errors with any specific output format.
 Instead the process to compute the final error output is always more-or-less the same:
@@ -164,4 +167,4 @@ just write a function (or use an existing one). There are a few advantages to th
 .. note::
 
     If you'd like to see a fuller example in the, take a look at the source code for
-    ``koda_validate.serialization.errors.to_serializable_errs``
+    :data:`to_serializable_errs<koda_validate.serialization.to_serializable_errs>`

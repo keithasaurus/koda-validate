@@ -270,16 +270,20 @@ which will run after the individual attributes have been validated:
     def answer_is_valid(obj: QA) -> Optional[ErrType]:
         # really sophisticated logic here!
         if obj.question_id == 100 and obj.answer == "the right answer":
-            # success!
+            # success
             return None
         else:
             return WrongAnswerErr()
 
     validator = DataclassValidator(QA, validate_object=answer_is_valid)
 
-    assert validator({"question_id": 100, "answer": "wrong answer :("}) == Invalid(WrongAnswerErr(), QA(100, 'wrong answer :('), validator)
+    assert validator(
+        {"question_id": 100, "answer": "wrong answer :("}
+    ) == Invalid(WrongAnswerErr(), QA(100, 'wrong answer :('), validator)
 
-    assert validator({"question_id": 100, "answer": "the right answer"}) == Valid(QA(100, 'the right answer'))
+    assert validator(
+        {"question_id": 100, "answer": "the right answer"}
+    ) == Valid(QA(100, 'the right answer'))
 
 
 
