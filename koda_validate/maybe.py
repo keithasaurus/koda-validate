@@ -22,7 +22,7 @@ class MaybeValidator(_ToTupleValidator[Maybe[A]]):
         self._validator_sync = _wrap_sync_validator(self.validator)
         self._validator_async = _wrap_async_validator(self.validator)
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Maybe[A]]:
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[Maybe[A]]:
         if val is nothing:
             return True, nothing
         elif type(val) is Just:
@@ -34,7 +34,7 @@ class MaybeValidator(_ToTupleValidator[Maybe[A]]):
         else:
             return False, Invalid(TypeErr(Maybe[Any]), val, self)  # type: ignore[misc]
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[Maybe[A]]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[Maybe[A]]:
         if val is nothing:
             return True, nothing
         elif type(val) is Just:

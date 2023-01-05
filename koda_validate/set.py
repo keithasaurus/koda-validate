@@ -29,7 +29,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
 
         self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[Set[_ItemT]]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[Set[_ItemT]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -46,7 +46,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
             item_errs: List[Invalid] = []
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
-                    is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501
+                    is_valid, item_result = self.item_validator._validate_to_tuple(item)  # type: ignore # noqa: E501
                 else:
                     _result = self.item_validator(item)
                     is_valid, item_result = (
@@ -65,7 +65,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
         else:
             return False, Invalid(TypeErr(set), val, self)
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Set[_ItemT]]:
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[Set[_ItemT]]:
         if isinstance(val, set):
             predicate_errors: List[
                 Union[Predicate[Set[_ItemT]], PredicateAsync[Set[_ItemT]]]
@@ -90,7 +90,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
                     (
                         is_valid,
                         item_result,
-                    ) = await self.item_validator.validate_to_tuple_async(  # type: ignore  # noqa: E501
+                    ) = await self.item_validator._validate_to_tuple_async(  # type: ignore  # noqa: E501
                         item
                     )
                 else:

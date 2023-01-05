@@ -22,14 +22,14 @@ class NoneValidator(_ToTupleValidator[None]):
             cls._instance = super(NoneValidator, cls).__new__(cls)
         return cls._instance
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[None]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[None]:
         if val is None:
             return True, None
         else:
             return False, Invalid(TypeErr(type(None)), val, self)
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[None]:
-        return self.validate_to_tuple(val)
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[None]:
+        return self._validate_to_tuple(val)
 
     def __repr__(self) -> str:
         return "NoneValidator()"
@@ -49,10 +49,10 @@ class OptionalValidator(_ToTupleValidator[Optional[A]]):
         self.non_none_validator = validator
         self.validators = (none_validator, validator)
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Optional[A]]:
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[Optional[A]]:
         return await _union_validator_async(self, self.validators, val)
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[Optional[A]]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[Optional[A]]:
         return _union_validator(self, self.validators, val)
 
     def __eq__(self, other: Any) -> bool:

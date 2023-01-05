@@ -235,14 +235,14 @@ class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
             cls._instance = super(IsDictValidator, cls).__new__(cls)
         return cls._instance
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[Dict[Any, Any]]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[Dict[Any, Any]]:
         if isinstance(val, dict):
             return True, val
         else:
             return False, Invalid(TypeErr(dict), val, self)
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Dict[Any, Any]]:
-        return self.validate_to_tuple(val)
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[Dict[Any, Any]]:
+        return self._validate_to_tuple(val)
 
     def __repr__(self) -> str:
         return "IsDictValidator()"
@@ -874,7 +874,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(self._key_set)
 
-    def validate_to_tuple(self, data: Any) -> ResultTuple[Ret]:
+    def _validate_to_tuple(self, data: Any) -> ResultTuple[Ret]:
         if self._disallow_synchronous:
             _raise_validate_object_async_in_sync_mode(self.__class__)
         if not isinstance(data, dict):
@@ -909,7 +909,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 return False, Invalid(result, obj, self)
             return True, obj
 
-    async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Ret]:
+    async def _validate_to_tuple_async(self, data: Any) -> ResultTuple[Ret]:
         if not isinstance(data, dict):
             return False, Invalid(TypeErr(dict), data, self)
 
@@ -1040,7 +1040,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
         self._unknown_keys_err = ExtraKeysErr(set(schema.keys()))
 
-    def validate_to_tuple(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
+    def _validate_to_tuple(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
         if self._disallow_synchronous:
             _raise_validate_object_async_in_sync_mode(self.__class__)
 
@@ -1073,7 +1073,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
         return True, success_dict
 
-    async def validate_to_tuple_async(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
+    async def _validate_to_tuple_async(self, data: Any) -> ResultTuple[Dict[Any, Any]]:
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 

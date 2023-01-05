@@ -152,10 +152,10 @@ class EqualsValidator(_ToTupleValidator[ExactMatchT]):
         self.preprocessors = preprocessors
         self.predicate: EqualTo[ExactMatchT] = EqualTo(match)
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[ExactMatchT]:
-        return self.validate_to_tuple(val)
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[ExactMatchT]:
+        return self._validate_to_tuple(val)
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[ExactMatchT]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[ExactMatchT]:
         if (match_type := type(self.match)) == type(val):
             if self.preprocessors:
                 for preprocess in self.preprocessors:
@@ -184,10 +184,10 @@ class AlwaysValid(_ToTupleValidator[A]):
             cls._instance = super(AlwaysValid, cls).__new__(cls)
         return cls._instance
 
-    def validate_to_tuple(self, val: A) -> ResultTuple[A]:
+    def _validate_to_tuple(self, val: A) -> ResultTuple[A]:
         return True, val
 
-    async def validate_to_tuple_async(self, val: A) -> ResultTuple[A]:
+    async def _validate_to_tuple_async(self, val: A) -> ResultTuple[A]:
         return True, val
 
     def __repr__(self) -> str:

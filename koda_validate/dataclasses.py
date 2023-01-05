@@ -105,7 +105,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[_DCT]:
         if self._disallow_synchronous:
             _raise_validate_object_async_in_sync_mode(self.__class__)
 
@@ -151,7 +151,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
             return True, obj
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[_DCT]:
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[_DCT]:
         if isinstance(val, dict):
             data = val
         elif isinstance(val, self.data_cls):

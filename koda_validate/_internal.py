@@ -32,21 +32,21 @@ class _ToTupleValidator(Validator[SuccessT]):
     - ARE GOING TO TEST YOUR CODE EXTENSIVELY
     """
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[SuccessT]:
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
     async def validate_async(self, val: Any) -> ValidationResult[SuccessT]:
-        result = await self.validate_to_tuple_async(val)
+        result = await self._validate_to_tuple_async(val)
         if result[0]:
             return Valid(result[1])
         else:
             return result[1]
 
     def __call__(self, val: Any) -> ValidationResult[SuccessT]:
-        result = self.validate_to_tuple(val)
+        result = self._validate_to_tuple(val)
         if result[0]:
             return Valid(result[1])
         else:
@@ -117,11 +117,11 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
 
         # optimization for simple  validators. can speed up by ~15%
         if not predicates and not predicates_async and not preprocessors:
-            self.validate_to_tuple = _simple_type_validator(  # type: ignore
+            self._validate_to_tuple = _simple_type_validator(  # type: ignore
                 self, self._TYPE, _type_err
             )
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
         if self._disallow_synchronous:
             _async_predicates_warning(self.__class__)
 
@@ -140,7 +140,7 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
                 return True, val
         return False, Invalid(self._type_err, val, self)
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[SuccessT]:
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[SuccessT]:
         if type(val) is self._TYPE:
             if self.preprocessors:
                 for proc in self.preprocessors:
@@ -215,7 +215,7 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
     def coerce_to_type(self, val: Any) -> ResultTuple[SuccessT]:
         raise NotImplementedError()  # pragma: no cover
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[SuccessT]:
         if self._disallow_synchronous:
             _async_predicates_warning(self.__class__)
 
@@ -238,7 +238,7 @@ class _CoercingValidator(_ToTupleValidator[SuccessT]):
                 return True, val_or_type_err
         return False, result[1]
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[SuccessT]:
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[SuccessT]:
         result = self.coerce_to_type(val)
         if result[0]:
             val_or_type_err = result[1]
@@ -293,7 +293,7 @@ def _union_validator(
     errs = []
     for validator in validators:
         if isinstance(validator, _ToTupleValidator):
-            result_tup = validator.validate_to_tuple(val)
+            result_tup = validator._validate_to_tuple(val)
             if result_tup[0]:
                 return True, result_tup[1]
             else:
@@ -313,7 +313,7 @@ async def _union_validator_async(
     errs = []
     for validator in validators:
         if isinstance(validator, _ToTupleValidator):
-            result_tup = await validator.validate_to_tuple_async(val)
+            result_tup = await validator._validate_to_tuple_async(val)
             if result_tup[0]:
                 return True, result_tup[1]
             else:
@@ -329,7 +329,7 @@ async def _union_validator_async(
 
 def _wrap_sync_validator(obj: Validator[A]) -> Callable[[Any], ResultTuple[A]]:
     if isinstance(obj, _ToTupleValidator):
-        return obj.validate_to_tuple
+        return obj._validate_to_tuple
     else:
 
         def inner(v: Any) -> ResultTuple[A]:
@@ -346,7 +346,7 @@ def _wrap_async_validator(
     obj: Validator[A],
 ) -> Callable[[Any], Awaitable[ResultTuple[A]]]:
     if isinstance(obj, _ToTupleValidator):
-        return obj.validate_to_tuple_async
+        return obj._validate_to_tuple_async
     else:
         async_validator = obj.validate_async
 

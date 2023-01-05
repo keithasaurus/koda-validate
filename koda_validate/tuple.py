@@ -232,7 +232,7 @@ class NTupleValidator(_ToTupleValidator[A]):
     ) -> "NTupleValidator[Tuple[Any, ...]]":
         return NTupleValidator(fields=fields, validate_object=validate_object)
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[A]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[A]:
         # we allow list as well because it's common that tuples or tuple-like lists
         # are deserialized to lists
         val_type = type(val)
@@ -265,7 +265,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         else:
             return False, Invalid(CoercionErr({list, tuple}, tuple), val, self)
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[A]:
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[A]:
         val_type = type(val)
         if val_type is tuple or val_type is list:
             if not self._len_predicate(val):
@@ -328,7 +328,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
 
         self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
 
-    def validate_to_tuple(self, val: Any) -> ResultTuple[Tuple[A, ...]]:
+    def _validate_to_tuple(self, val: Any) -> ResultTuple[Tuple[A, ...]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -346,7 +346,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
             index_errors: Dict[int, Invalid] = {}
             for i, item in enumerate(val):
                 if self._item_validator_is_tuple:
-                    is_valid, item_result = self.item_validator.validate_to_tuple(item)  # type: ignore # noqa: E501
+                    is_valid, item_result = self.item_validator._validate_to_tuple(item)  # type: ignore # noqa: E501
                 else:
                     _result = self.item_validator(item)
                     is_valid, item_result = (
@@ -365,7 +365,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
         else:
             return False, Invalid(TypeErr(tuple), val, self)
 
-    async def validate_to_tuple_async(self, val: Any) -> ResultTuple[Tuple[A, ...]]:
+    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[Tuple[A, ...]]:
         if isinstance(val, tuple):
             tuple_errors: List[
                 Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
@@ -388,7 +388,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
                     (
                         is_valid,
                         item_result,
-                    ) = await self.item_validator.validate_to_tuple_async(  # type: ignore # noqa: E501
+                    ) = await self.item_validator._validate_to_tuple_async(  # type: ignore # noqa: E501
                         item
                     )
                 else:
