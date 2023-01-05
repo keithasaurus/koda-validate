@@ -1,9 +1,9 @@
 import re
 from dataclasses import dataclass
-from typing import ClassVar, Optional, Pattern
+from typing import Pattern
 
 from koda_validate._internal import _ExactTypeValidator
-from koda_validate.base import Predicate, Processor
+from koda_validate.base import Predicate
 
 
 class StringValidator(_ExactTypeValidator[str]):
@@ -12,6 +12,17 @@ class StringValidator(_ExactTypeValidator[str]):
 
     If ``predicates_async`` is supplied, the ``__call__`` method should not be
     called -- only ``.validate_async`` should be used.
+
+    Example:
+
+    >>> from koda_validate import *
+    >>> validator = StringValidator(not_blank, MaxLength(100), preprocessors=[strip])
+    >>> validator("")
+    Invalid(err_type=PredicateErrs(predicates=[NotBlank()]), ...)
+    >>> validator(None)
+    Invalid(err_type=TypeErr(expected_type=<class 'str'>), ...)
+    >>> validator(" ok ")
+    Valid(val='ok')
 
     :param predicates: any number of ``Predicate[str]`` instances
     :param predicates_async: any number of ``PredicateAsync[str]`` instances
@@ -36,47 +47,3 @@ class EmailPredicate(Predicate[str]):
 
     def __call__(self, val: str) -> bool:
         return re.match(self.pattern, val) is not None
-
-
-@dataclass
-class NotBlank(Predicate[str]):
-    _instance: ClassVar[Optional["NotBlank"]] = None
-
-    def __new__(cls) -> "NotBlank":
-        # make a singleton
-        if cls._instance is None:
-            cls._instance = super(NotBlank, cls).__new__(cls)
-        return cls._instance
-
-    def __call__(self, val: str) -> bool:
-        return len(val.strip()) != 0
-
-
-not_blank = NotBlank()
-
-
-@dataclass
-class Strip(Processor[str]):
-    def __call__(self, val: str) -> str:
-        return val.strip()
-
-
-strip = Strip()
-
-
-@dataclass
-class UpperCase(Processor[str]):
-    def __call__(self, val: str) -> str:
-        return val.upper()
-
-
-upper_case = UpperCase()
-
-
-@dataclass
-class LowerCase(Processor[str]):
-    def __call__(self, val: str) -> str:
-        return val.lower()
-
-
-lower_case = LowerCase()

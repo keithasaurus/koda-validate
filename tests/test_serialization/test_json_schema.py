@@ -43,6 +43,7 @@ from koda_validate import (
     UniqueItems,
     UUIDValidator,
     Valid,
+    not_blank,
     unique_items,
 )
 from koda_validate.dictionary import (
@@ -57,12 +58,7 @@ from koda_validate.dictionary import (
 from koda_validate.generic import EndsWith, ExactLength, StartsWith
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.serialization.json_schema import to_json_schema, to_named_json_schema
-from koda_validate.string import (
-    EmailPredicate,
-    RegexPredicate,
-    StringValidator,
-    not_blank,
-)
+from koda_validate.string import EmailPredicate, RegexPredicate, StringValidator
 from koda_validate.typeddict import TypedDictValidator
 
 A = TypeVar("A")

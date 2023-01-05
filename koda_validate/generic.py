@@ -297,3 +297,46 @@ class EndsWith(Predicate[StrOrBytes]):
 
     def __call__(self, val: StrOrBytes) -> bool:
         return val.endswith(self.suffix)
+
+
+@dataclass
+class NotBlank(Predicate[StrOrBytes]):
+    _instance: ClassVar[Optional["NotBlank[Any]"]] = None
+
+    def __new__(cls) -> "NotBlank[StrOrBytes]":
+        # make a singleton
+        if cls._instance is None:
+            cls._instance = super(NotBlank, cls).__new__(cls)
+        return cls._instance
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return len(val.strip()) != 0
+
+
+not_blank = NotBlank()
+
+
+@dataclass
+class Strip(Processor[StrOrBytes]):
+    def __call__(self, val: StrOrBytes) -> StrOrBytes:
+        return val.strip()
+
+
+strip = Strip()
+
+
+@dataclass
+class UpperCase(Processor[StrOrBytes]):
+    def __call__(self, val: StrOrBytes) -> StrOrBytes:
+        return val.upper()
+
+
+@dataclass
+class LowerCase(Processor[StrOrBytes]):
+    def __call__(self, val: StrOrBytes) -> StrOrBytes:
+        return val.lower()
+
+
+upper_case = UpperCase()
+
+lower_case = LowerCase()

@@ -27,6 +27,7 @@ from koda_validate import (
     UniformTupleValidator,
     UnionErrs,
     UUIDValidator,
+    not_blank,
 )
 from koda_validate.base import Predicate, PredicateAsync
 from koda_validate.decimal import DecimalValidator
@@ -55,12 +56,7 @@ from koda_validate.serialization.errors import (
     to_serializable_errs,
 )
 from koda_validate.set import SetValidator
-from koda_validate.string import (
-    EmailPredicate,
-    RegexPredicate,
-    StringValidator,
-    not_blank,
-)
+from koda_validate.string import EmailPredicate, RegexPredicate, StringValidator
 from koda_validate.union import UnionValidator
 
 

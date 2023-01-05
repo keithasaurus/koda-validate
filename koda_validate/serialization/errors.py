@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, Type, Union
 
+from koda_validate import NotBlank
 from koda_validate.base import Predicate, PredicateAsync
 from koda_validate.dataclasses import DataclassValidator
 from koda_validate.decimal import DecimalValidator
@@ -38,7 +39,7 @@ from koda_validate.generic import (
 )
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.serialization.base import Serializable
-from koda_validate.string import EmailPredicate, NotBlank, RegexPredicate
+from koda_validate.string import EmailPredicate, RegexPredicate
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.uuid import UUIDValidator
 from koda_validate.valid import Invalid

@@ -59,6 +59,13 @@ __all__ = (
     "ExactLength",
     "StartsWith",
     "EndsWith",
+    "strip",
+    "not_blank",
+    "NotBlank",
+    "upper_case",
+    "UpperCase",
+    "lower_case",
+    "LowerCase",
     # integer.py
     "IntValidator",
     # list.py
@@ -75,11 +82,6 @@ __all__ = (
     "StringValidator",
     "RegexPredicate",
     "EmailPredicate",
-    "NotBlank",
-    "not_blank",
-    "strip",
-    "upper_case",
-    "lower_case",
     # time.py
     "DateValidator",
     "DatetimeValidator",
@@ -140,6 +142,7 @@ from koda_validate.generic import (
     ExactItemCount,
     ExactLength,
     Lazy,
+    LowerCase,
     Max,
     MaxItems,
     MaxLength,
@@ -147,26 +150,23 @@ from koda_validate.generic import (
     MinItems,
     MinLength,
     MultipleOf,
+    NotBlank,
     StartsWith,
     UniqueItems,
+    UpperCase,
     always_valid,
+    lower_case,
+    not_blank,
+    strip,
     unique_items,
+    upper_case,
 )
 from koda_validate.integer import IntValidator
 from koda_validate.list import ListValidator
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.none import NoneValidator, OptionalValidator, none_validator
 from koda_validate.set import SetValidator
-from koda_validate.string import (
-    EmailPredicate,
-    NotBlank,
-    RegexPredicate,
-    StringValidator,
-    lower_case,
-    not_blank,
-    strip,
-    upper_case,
-)
+from koda_validate.string import EmailPredicate, RegexPredicate, StringValidator
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import NTupleValidator, UniformTupleValidator
 from koda_validate.typeddict import TypedDictValidator

@@ -9,21 +9,19 @@ from koda_validate import (
     Invalid,
     MaxLength,
     MinLength,
+    NotBlank,
     PredicateAsync,
     PredicateErrs,
     RegexPredicate,
     TypeErr,
     Valid,
-)
-from koda_validate._generics import A
-from koda_validate.string import (
-    NotBlank,
-    StringValidator,
     lower_case,
     not_blank,
     strip,
     upper_case,
 )
+from koda_validate._generics import A
+from koda_validate.string import StringValidator
 
 
 def test_strip() -> None:

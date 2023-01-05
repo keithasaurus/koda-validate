@@ -5,7 +5,7 @@ from functools import partial
 from typing import Any, Callable, Dict, List, NoReturn, Type, Union
 from uuid import UUID
 
-from koda_validate import UUIDValidator
+from koda_validate import NotBlank, UUIDValidator
 from koda_validate.base import Predicate, PredicateAsync, Validator
 from koda_validate.boolean import BoolValidator
 from koda_validate.bytes import BytesValidator
@@ -42,7 +42,7 @@ from koda_validate.list import ListValidator
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.none import OptionalValidator
 from koda_validate.serialization.base import Serializable
-from koda_validate.string import EmailPredicate, NotBlank, RegexPredicate, StringValidator
+from koda_validate.string import EmailPredicate, RegexPredicate, StringValidator
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import NTupleValidator, UniformTupleValidator
 from koda_validate.typeddict import TypedDictValidator
