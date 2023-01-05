@@ -2,7 +2,7 @@ from koda_validate._internal import _ExactTypeValidator
 
 
 class BytesValidator(_ExactTypeValidator[bytes]):
-    """
+    r"""
     Validate a value is a ``bytes``, and any extra refinement.
 
     If ``predicates_async`` is supplied, the ``__call__`` method should not be

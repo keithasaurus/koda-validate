@@ -7,7 +7,7 @@ from koda_validate.base import Predicate, Processor
 
 
 class StringValidator(_ExactTypeValidator[str]):
-    """
+    r"""
     Validate a value is a ``str``, and any extra refinement.
 
     If ``predicates_async`` is supplied, the ``__call__`` method should not be

@@ -2,7 +2,7 @@ from koda_validate._internal import _ExactTypeValidator
 
 
 class FloatValidator(_ExactTypeValidator[float]):
-    """
+    r"""
     Validate a value is a ``float``, and any extra refinement.
 
     If ``predicates_async`` is supplied, the ``__call__`` method should not be
