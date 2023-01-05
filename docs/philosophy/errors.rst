@@ -41,9 +41,10 @@ is explicitly intended to be subclassed for any need not covered by the core :cl
 is ``koda_validate.serialization.errors.SerializableErr``, but you can feel free to define any custom error as a subclass
 of ``ValidationErrBase`` and type checks should succeed.
 
+.. _flaterrs-example:
 
 Converting ``Invalid`` to Other Formats
-------------------------------------------
+---------------------------------------
 In Koda Validate, ``Invalid`` objects are not usually the final form you'll want for errors;
 you'll usually want to convert them to something more useful for your specific
 use case.
