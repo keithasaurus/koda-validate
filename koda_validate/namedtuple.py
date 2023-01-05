@@ -37,6 +37,51 @@ _NTT = TypeVar("_NTT", bound=NamedTuple)
 
 
 class NamedTupleValidator(_ToTupleValidator[_NTT]):
+    """
+    Takes a `NamedTuple` subclass as an argument and derives a :class:`Validator`. Will
+    validate against an instance of ``self.named_tuple_cls`` *or* a dictionary.
+    Regardless of the input type, the result will be an instance of type
+    ``self.named_tuple_cls``.
+
+    Optional keys are determined by the presence of a default argument.
+
+    Example:
+
+    .. testcode:: dcexample
+
+        from dataclasses import dataclass
+        from typing import List, NamedTuple
+        from koda_validate import *
+
+        class Person(NamedTuple):
+            name: str
+            hobbies: List[str]
+
+        validator = NamedTupleValidator(Person)
+
+    Usage:
+
+    .. doctest:: dcexample
+
+        >>> validator({"name": "Bob", "hobbies": ["eating", "coding", "sleeping"]})
+        Valid(val=Person(name='Bob', hobbies=['eating', 'coding', 'sleeping']))
+
+
+    :param named_tuple_cls: A ``dataclass`` class
+    :param overrides: a dict whose keys define explicit validators
+    :param validate_object: is run if all keys have been validated individually. If it
+        returns ``None``, then there were no errors; otherwise it should return
+        ``ErrType``
+    :param validate_object_async: same as ``validate_object``, except that is runs
+        asynchronously
+    :param typehint_resolver: define this to override default inferred validators for
+        types
+    :param fail_on_unknown_keys: if True, this will fail if any keys not defined by
+        ``self.data_cls`` are found. This will fail before any values are validated.
+    :raises TypeError: should raise if non-``NamedTuple`` type is passed for
+        ``named_tuple_cls``
+    """
+
     __match_args__ = ("named_tuple_cls", "overrides", "fail_on_unknown_keys")
 
     def __init__(

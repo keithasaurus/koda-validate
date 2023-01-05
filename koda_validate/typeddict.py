@@ -33,6 +33,10 @@ _TDT = TypeVar("_TDT", bound=Mapping[str, object])
 
 class TypedDictValidator(_ToTupleValidator[_TDT]):
     """
+    Takes a `TypedDict` subclass as an argument and derives a Validator.
+
+    Optional keys are determined by the ``__optional_keys__`` and ``__required_keys__``
+    attributes.
 
     .. note::
 
@@ -40,8 +44,29 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         in defining a TypedDict-like type). *Please* do not intentionally try to use
         it for non-TypedDict datatypes.
 
+    Example:
+
+    .. testcode:: tdexample
+
+        from typing import List, TypedDict
+        from koda_validate import *
+
+        class Person(TypedDict):
+            name: str
+            hobbies: List[str]
+
+        validator = TypedDictValidator(Person)
+
+    Usage:
+
+    .. doctest:: tdexample
+
+        >>> validator({"name": "Bob", "hobbies": ["eating", "coding", "sleeping"]})
+        Valid(val={'name': 'Bob', 'hobbies': ['eating', 'coding', 'sleeping']})
+
+
     :param td_cls: A ``TypedDict`` subclass
-    :param overrides: a dict whose key define explicit validators
+    :param overrides: a dict whose keys define explicit validators
     :param validate_object: is run if all keys have been validated individually. If it
         returns ``None``, then there were no errors; otherwise it should return
         ``ErrType``

@@ -44,6 +44,50 @@ _DCT = TypeVar("_DCT", bound=DataclassLike)
 
 
 class DataclassValidator(_ToTupleValidator[_DCT]):
+    """
+    Takes a `dataclass` as an argument and derives a Validator. Will validate against
+    an instance of ``self.data_cls`` *or* a dictionary. Regardless of the input type, the
+    result will be an instance of type ``self.data_cls``.
+
+    Optional keys are determined by the presence of a default argument.
+
+    Example:
+
+    .. testcode:: dcexample
+
+        from dataclasses import dataclass
+        from typing import List
+        from koda_validate import *
+
+        @dataclass
+        class Person:
+            name: str
+            hobbies: List[str]
+
+        validator = DataclassValidator(Person)
+
+    Usage:
+
+    .. doctest:: dcexample
+
+        >>> validator({"name": "Bob", "hobbies": ["eating", "coding", "sleeping"]})
+        Valid(val=Person(name='Bob', hobbies=['eating', 'coding', 'sleeping']))
+
+
+    :param data_cls: A ``dataclass`` class
+    :param overrides: a dict whose keys define explicit validators
+    :param validate_object: is run if all keys have been validated individually. If it
+        returns ``None``, then there were no errors; otherwise it should return
+        ``ErrType``
+    :param validate_object_async: same as ``validate_object``, except that is runs
+        asynchronously
+    :param typehint_resolver: define this to override default inferred validators for
+        types
+    :param fail_on_unknown_keys: if True, this will fail if any keys not defined by
+        ``self.data_cls`` are found. This will fail before any values are validated.
+    :raises TypeError: should raise if non-``dataclass`` type is passed for ``data_cls``
+    """
+
     __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys")
 
     def __init__(

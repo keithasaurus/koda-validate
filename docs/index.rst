@@ -77,12 +77,12 @@ Koda Validate can inspect typehints and build :class:`Validator<koda_validate.Va
 
 .. testcode:: derived
 
-   from typing import TypedDict
+   from typing import List, TypedDict
    from koda_validate import *
 
    class Person(TypedDict):
        name: str
-       hobbies: list[str]
+       hobbies: List[str]
 
    validator = TypedDictValidator(Person)
 
