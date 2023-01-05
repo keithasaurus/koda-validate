@@ -5,6 +5,7 @@ from pydantic import BaseModel, ValidationError, conint, constr
 from voluptuous import All, Length, MultipleInvalid, Range, Schema
 
 from koda_validate import (
+    DictValidatorAny,
     IntValidator,
     Max,
     MaxLength,
@@ -29,12 +30,11 @@ simple_str_validator = RecordValidator(
     ),
 )
 
-simple_str_validator_dict_any = RecordValidator(
-    into=SimpleStr,
-    keys=(
-        ("val_1", StringValidator(MinLength(2), MaxLength(5))),
-        ("val_2", IntValidator(Min(1), Max(10))),
-    ),
+simple_str_validator_dict_any = DictValidatorAny(
+    {
+        "val_1": StringValidator(MinLength(2), MaxLength(5)),
+        "val_2": IntValidator(Min(1), Max(10)),
+    }
 )
 
 
