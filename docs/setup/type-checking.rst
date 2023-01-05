@@ -1,8 +1,10 @@
 Type Checking
 =============
-Koda Validate is meant to aid developers by leveraging type hints. It is recommended to
-use the most up-to-date version of `mypy <https://pypi.org/project/mypy/>`_ to take full
-advantage of type hints. Koda Validate can work with other type checkers, but it is
+Koda Validate has been built with typehint compatibility at its core. It is meant to aid
+developers by leveraging type hints.
+
+It is recommended to use the most up-to-date version of `mypy <https://pypi.org/project/mypy/>`_
+to take full advantage of type hints. Koda Validate can work with other type checkers, but it is
 tested against mypy 0.990+.
 
 .. note::

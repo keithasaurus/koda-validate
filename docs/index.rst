@@ -6,15 +6,17 @@
 Koda Validate
 =========================================
 
-Koda Validate aims to make validation flexible, easy-to-maintain, and fast -- fast in both
-performance and development velocity. It does this with a type-safe and composable
-definition of validation, which treats validation as a normal part of control flow -- i.e.
-it does not raise exceptions to express validation failures.
+.. module:: koda_validate
+   :noindex:
 
-A wide array of validation tools are provided out-of-the-box, but Koda Validate also attempts
-allows for straightforward extension to suit whatever validation needs you have.
+- :ref:`type-driven<setup/type-checking:Type Checking>`
+- :ref:`composable<philosophy/validators:Validators>`
+- :ref:`extensible<how_to/extension:Extension>`
+- :ref:`async-compatible<how_to/async:Async>`
 
-Let's take a look at some quick examples.
+Build validators :ref:`automatically<index:Derived Validators>`
+or explicitly. Combine them to build validators of arbitrary complexity.
+
 
 At a Glance
 -----------
@@ -39,8 +41,10 @@ Easy enough. Let's see how it works:
    Invalid(err_type=TypeErr(expected_type=<class 'str'>), ...)
 
 For both valid and invalid cases, we can see that we get a result back -- no exceptions
-thrown (note that we truncated the representation of the ``Invalid`` instance for brevity.)
-More info about errors can be found at :ref:`philosophy/errors:Errors`.
+are thrown (note that we truncated the representation of the :class:`Invalid` instance for brevity).
+
+Working with :class:`Valid` and :class:`Invalid` types is covered more in
+:ref:`how_to/results:Validation Results`.
 
 ----------------
 
@@ -118,8 +122,8 @@ Outputs:
 ----------------
 
 
-Writing your own
-^^^^^^^^^^^^^^^^
+Custom Validators
+^^^^^^^^^^^^^^^^^
 
 .. testcode:: own1
 
@@ -146,13 +150,13 @@ Usage:
    >>> invalid_result.err_type
    TypeErr(expected_type=<class 'int'>)
 
-For more guidance on creating custom :class:`Validator`\s, take a look at:
-
-- :ref:`how_to/extension:Extension`
-- :ref:`philosophy/validators:Validators`
+In Koda Validate, you are encouraged to write your own :class:`Validator`\s for custom
+needs. For more guidance, take a look at :ref:`how_to/extension:Extension`.
 
 -----------------
 
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2

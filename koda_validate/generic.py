@@ -171,7 +171,7 @@ class EqualsValidator(_ToTupleValidator[ExactMatchT]):
 
 class AlwaysValid(_ToTupleValidator[A]):
     """
-    Whatever value (and type) is submitted for validation will be returned as Valid
+    Whatever value is submitted for validation will be returned as valid
     """
 
     __match_args__ = ()

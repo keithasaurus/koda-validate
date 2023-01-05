@@ -7,6 +7,18 @@ from koda_validate.base import Predicate, Processor
 
 
 class StringValidator(_ExactTypeValidator[str]):
+    """
+    Validate a value is a ``str``, and any extra refinement.
+
+    If ``predicates_async`` is supplied, the ``__call__`` method should not be
+    called -- only ``.validate_async`` should be used.
+
+    :param predicates: any number of ``Predicate[str]`` instances
+    :param predicates_async: any number of ``PredicateAsync[str]`` instances
+    :param preprocessors: any number of ``Processor[str]``, which will be run before
+        :class:`Predicate`\s and :class:`PredicateAsync`\s are checked.
+    """
+
     _TYPE = str
 
 

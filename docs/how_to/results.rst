@@ -4,8 +4,11 @@ Validation Results
 .. module:: koda_validate
     :noindex:
 
-:class:`Validator<koda_validate.Validator>`\s take one generic parameter, which represents the type of the valid data. For example, a ``Validator[int]`` must return an
-``int`` if the data it's called with is valid:
+In Koda Validate, :class:`Validator`\s express validation success or failure by returning
+a :data:`ValidationResult`. To be more specific it requires on generic parameter: the
+valid data type. Likewise, :class:`Validator<koda_validate.Validator>`\s take the same
+generic parameter for the same purpose. So, a ``Validator[int]`` will always return a
+``ValidationResult[int]``:
 
 .. testsetup:: 1
 
@@ -19,12 +22,19 @@ Validation Results
     assert result.is_valid
     assert isinstance(result.val, int)  # mypy also knows ``result.val`` is an ``int``
 
-The full type of ``result`` in the above example is ``ValidationResult[int]`` (this can be de-sugared to
-``Union[Valid[int], Invalid]``). As you can see, to do something useful with :data:`ValidationResult`\s, we need to
-distinguish between the :class:`Valid` and :class:`Invalid` variants.
+.. note::
+
+    ``ValidationResult[int]`` can be de-sugared to ``Union[Valid[int], Invalid]``.
+
+Branching on validity
+---------------------
+
+As you can see, to do something useful with :data:`ValidationResult`\s, we need to
+distinguish between the :class:`Valid` and :class:`Invalid` variants, as each
+has different attributes.
 
 ``if`` Statements
------------------
+^^^^^^^^^^^^^^^^^
 Perhaps the easiest way is to just branch on ``.is_valid``:
 
 .. testcode:: if-statements
@@ -56,7 +66,7 @@ Let's see how it works
 
 
 Pattern Matching
-----------------
+^^^^^^^^^^^^^^^^
 Pattern matching can make this more concise in Python 3.10+:
 
 .. testcode:: pattern-matching

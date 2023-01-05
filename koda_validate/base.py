@@ -41,14 +41,12 @@ class Validator(Generic[SuccessT]):
     async def validate_async(self, val: Any) -> "ValidationResult[SuccessT]":
         """
         :param val: the value being validated
-        :raises NotImplementedError: if not implemented on subclasses
         """
         raise NotImplementedError()  # pragma: no cover
 
     def __call__(self, val: Any) -> "ValidationResult[SuccessT]":
         """
         :param val: the value being validated
-        :raises NotImplementedError: if not implemented on subclasses
         """
 
         raise NotImplementedError()  # pragma: no cover
@@ -90,7 +88,6 @@ class Predicate(Generic[A]):
     def __call__(self, val: A) -> bool:  # pragma: no cover
         """
         :param val: the value being validated
-        :raises NotImplementedError: if not defined in subclass
         """
         raise NotImplementedError()  # pragma: no cover
 
