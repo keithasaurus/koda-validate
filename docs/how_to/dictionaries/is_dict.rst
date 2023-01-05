@@ -11,11 +11,12 @@ don't need to initialize it, you can just load :data:`is_dict_validator`.
 
     >>> from koda_validate import is_dict_validator
 
-    >>> is_dict_validator(None)
-    Invalid(TypeErr(dict), ...)
-
     >>> is_dict_validator({})
-    Valid({})
+    Valid(val={})
 
     >>> is_dict_validator({"a": 1, "b": None})
-    Valid({'a': 1, 'b': None})
+    Valid(val={'a': 1, 'b': None})
+
+    >>> is_dict_validator(None)
+    Invalid(err_type=TypeErr(expected_type=<class 'dict'>), value=None, validator=IsDictValidator())
+
