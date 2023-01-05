@@ -1,9 +1,9 @@
 from typing import Any, Hashable, List, Optional, Set, TypeVar, Union
 
 from koda_validate._internal import (
-    ResultTuple,
     _async_predicates_warning,
     _repr_helper,
+    _ResultTuple,
     _ToTupleValidator,
 )
 from koda_validate.base import Predicate, PredicateAsync, Validator
@@ -29,7 +29,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
 
         self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
 
-    def _validate_to_tuple(self, val: Any) -> ResultTuple[Set[_ItemT]]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[Set[_ItemT]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -65,7 +65,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
         else:
             return False, Invalid(TypeErr(set), val, self)
 
-    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[Set[_ItemT]]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[Set[_ItemT]]:
         if isinstance(val, set):
             predicate_errors: List[
                 Union[Predicate[Set[_ItemT]], PredicateAsync[Set[_ItemT]]]

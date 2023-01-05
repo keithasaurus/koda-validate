@@ -3,9 +3,9 @@ from typing import Any, Dict, List, Optional, Union
 from koda._generics import A
 
 from koda_validate._internal import (
-    ResultTuple,
     _async_predicates_warning,
     _repr_helper,
+    _ResultTuple,
     _ToTupleValidator,
     _wrap_async_validator,
     _wrap_sync_validator,
@@ -33,7 +33,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
         self._wrapped_item_validator_sync = _wrap_sync_validator(item_validator)
         self._wrapped_item_validator_async = _wrap_async_validator(item_validator)
 
-    def _validate_to_tuple(self, val: Any) -> ResultTuple[List[A]]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[List[A]]:
         if self._disallow_synchronous:
             _async_predicates_warning(self.__class__)
         if type(val) is list:
@@ -62,7 +62,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
         else:
             return False, Invalid(TypeErr(list), val, self)
 
-    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[List[A]]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[List[A]]:
         if type(val) is list:
             predicate_errors: List[
                 Union[Predicate[List[Any]], PredicateAsync[List[Any]]]

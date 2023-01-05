@@ -1,5 +1,8 @@
 from abc import abstractmethod
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic
+
+from koda import Maybe
 
 from koda_validate._generics import A, SuccessT
 
@@ -159,3 +162,58 @@ class Processor(Generic[A]):
     @abstractmethod
     def __call__(self, val: A) -> A:  # pragma: no cover
         raise NotImplementedError()  # pragma: no cover
+
+
+@dataclass
+class CacheValidatorBase(Validator[A]):
+    """
+    This class should be subclassed to work with whatever caching configuration
+    is desired
+    """
+
+    validator: Validator[A]
+
+    def cache_get_sync(self, val: Any) -> Maybe["ValidationResult[A]"]:
+        """
+        Try to get a value from a cache and return ``Maybe[ValidationResult[A]]``
+
+        :param val: the value being validated
+        :return: ``nothing`` if there is a cache miss. ``Just[ValidationResult[A]]`` if
+            there is a cache hit
+        """
+        raise NotImplementedError()
+
+    def cache_set_sync(self, val: Any, cache_val: "ValidationResult[A]") -> None:
+        raise NotImplementedError()
+
+    async def cache_get_async(self, val: Any) -> Maybe["ValidationResult[A]"]:
+        """
+        Try to get a value from a cache asynchronously and
+        return ``Maybe[ValidationResult[A]]``
+
+        :param val: the value being validated
+        :return: ``nothing`` if there is a cache miss. ``Just[ValidationResult[A]]`` if
+            there is a cache hit
+        """
+        raise NotImplementedError()
+
+    async def cache_set_async(self, val: Any, cache_val: "ValidationResult[A]") -> None:
+        raise NotImplementedError()
+
+    def __call__(self, val: Any) -> "ValidationResult[A]":
+        cache_result = self.cache_get_sync(val)
+        if cache_result.is_just:
+            return cache_result.val
+        else:
+            result = self.validator(val)
+            self.cache_set_sync(val, result)
+            return result
+
+    async def validate_async(self, val: Any) -> "ValidationResult[A]":
+        cache_result = await self.cache_get_async(val)
+        if cache_result.is_just:
+            return cache_result.val
+        else:
+            result = await self.validator.validate_async(val)
+            await self.cache_set_async(val, result)
+            return result

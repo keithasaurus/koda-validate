@@ -2,9 +2,9 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
 from koda_validate._generics import T1, T2, T3, T4, T5, T6, T7, T8, A
 from koda_validate._internal import (
-    ResultTuple,
     _async_predicates_warning,
     _repr_helper,
+    _ResultTuple,
     _ToTupleValidator,
     _wrap_async_validator,
     _wrap_sync_validator,
@@ -232,7 +232,7 @@ class NTupleValidator(_ToTupleValidator[A]):
     ) -> "NTupleValidator[Tuple[Any, ...]]":
         return NTupleValidator(fields=fields, validate_object=validate_object)
 
-    def _validate_to_tuple(self, val: Any) -> ResultTuple[A]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[A]:
         # we allow list as well because it's common that tuples or tuple-like lists
         # are deserialized to lists
         val_type = type(val)
@@ -265,7 +265,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         else:
             return False, Invalid(CoercionErr({list, tuple}, tuple), val, self)
 
-    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[A]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[A]:
         val_type = type(val)
         if val_type is tuple or val_type is list:
             if not self._len_predicate(val):
@@ -328,7 +328,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
 
         self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
 
-    def _validate_to_tuple(self, val: Any) -> ResultTuple[Tuple[A, ...]]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[Tuple[A, ...]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -365,7 +365,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
         else:
             return False, Invalid(TypeErr(tuple), val, self)
 
-    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[Tuple[A, ...]]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[Tuple[A, ...]]:
         if isinstance(val, tuple):
             tuple_errors: List[
                 Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]

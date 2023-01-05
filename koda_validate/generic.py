@@ -4,11 +4,11 @@ from decimal import Decimal
 from typing import Any, ClassVar, Hashable, List, Optional, Set, Tuple, Type, TypeVar
 from uuid import UUID
 
-from koda import Thunk
+from koda import Maybe, Thunk, nothing
 from koda._generics import A
 
 from koda_validate._generics import Ret
-from koda_validate._internal import ResultTuple, _ToTupleValidator
+from koda_validate._internal import _ResultTuple, _ToTupleValidator
 from koda_validate.base import Predicate, Processor, Validator
 from koda_validate.errors import PredicateErrs, TypeErr
 from koda_validate.valid import Invalid, ValidationResult
@@ -152,10 +152,10 @@ class EqualsValidator(_ToTupleValidator[ExactMatchT]):
         self.preprocessors = preprocessors
         self.predicate: EqualTo[ExactMatchT] = EqualTo(match)
 
-    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[ExactMatchT]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[ExactMatchT]:
         return self._validate_to_tuple(val)
 
-    def _validate_to_tuple(self, val: Any) -> ResultTuple[ExactMatchT]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[ExactMatchT]:
         if (match_type := type(self.match)) == type(val):
             if self.preprocessors:
                 for preprocess in self.preprocessors:
@@ -184,10 +184,10 @@ class AlwaysValid(_ToTupleValidator[A]):
             cls._instance = super(AlwaysValid, cls).__new__(cls)
         return cls._instance
 
-    def _validate_to_tuple(self, val: A) -> ResultTuple[A]:
+    def _validate_to_tuple(self, val: A) -> _ResultTuple[A]:
         return True, val
 
-    async def _validate_to_tuple_async(self, val: A) -> ResultTuple[A]:
+    async def _validate_to_tuple_async(self, val: A) -> _ResultTuple[A]:
         return True, val
 
     def __repr__(self) -> str:

@@ -14,10 +14,10 @@ from typing import (
 )
 
 from koda_validate._internal import (
-    ResultTuple,
     _raise_cannot_define_validate_object_and_validate_object_async,
     _raise_validate_object_async_in_sync_mode,
     _repr_helper,
+    _ResultTuple,
     _ToTupleValidator,
     _wrap_async_validator,
     _wrap_sync_validator,
@@ -98,7 +98,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(set(self.schema.keys()))
 
-    def _validate_to_tuple(self, val: Any) -> ResultTuple[_NTT]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[_NTT]:
         if self._disallow_synchronous:
             _raise_validate_object_async_in_sync_mode(self.__class__)
 
@@ -144,7 +144,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
 
             return True, obj
 
-    async def _validate_to_tuple_async(self, val: Any) -> ResultTuple[_NTT]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[_NTT]:
         if isinstance(val, dict):
             data = val
         elif isinstance(val, self.named_tuple_cls):
