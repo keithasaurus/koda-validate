@@ -158,7 +158,7 @@ simple types. There are a few ways to do that.
 
 Annotated
 ^^^^^^^^^
-In Python 3.9+, you can simply use `Annotated` to add a custom :class:`Validator` for a given key.
+In Python 3.9+, you can use ``Annotated`` to add a custom :class:`Validator` for a given key.
 
 .. testcode:: annotated
 

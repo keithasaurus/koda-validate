@@ -124,6 +124,97 @@ Outputs:
 ----------------
 
 
+Nested Validators
+^^^^^^^^^^^^^^^^^
+
+We can build complex nested :class:`Validator`\s with ease.
+
+.. testcode:: nested
+
+   from typing import Annotated, Union, TypedDict, Literal, List
+   from koda_validate import *
+
+
+   class Group(TypedDict):
+       name: str
+       members: List[str]
+
+   class Song(TypedDict):
+       artist: Union[List[str], Group, Literal["unknown"]]
+       title: str
+       duration_seconds: int
+
+   song_validator = TypedDictValidator(Song)
+
+   stonehenge = {
+       "artist": {
+           "name": "Spinal Tap",
+           "members": ["David St. Hubbins", "Nigel Tufnel", "Derek Smalls"]
+       },
+       "title": "Stonehenge",
+       "duration_seconds": 276
+   }
+
+   drinkinstein = {
+       "artist": ["Sylvester Stallone", "Dolly Parton"],
+       "title": "Drinkin' Stein",
+       "duration_seconds": 215
+   }
+
+
+Usage:
+
+.. doctest:: nested
+
+   >>> song_validator(stonehenge)
+   Valid(...)
+
+   >>> song_validator(drinkinstein)
+   Valid(...)
+
+   >>> song_validator({
+   ...     "artist": "unknown",
+   ...     "title": "druids chanting, archival recording number 10",
+   ...     "duration_seconds": 4_000
+   ... })
+   Valid(...)
+
+
+.. note::
+
+   We excluded the :class:`Valid` contents for brevity.
+
+
+
+It's easy to keep nesting validators:
+
+.. testcode:: nested
+
+   # a list of songs
+   songs_validator = ListValidator(song_validator, predicates=[MinItems(2)])
+
+   class Playlist(TypedDict):
+      title: str
+      songs: Annotated[List[Song], songs_validator]
+   
+   playlist_validator = TypedDictValidator(Playlist)
+
+.. note::
+
+   :class:`TypedDictValidator`, :class:`DataclassValidator` and :class:`NamedTupleValidator` will :ref:`use Annotated Validators<how_to/dictionaries/derived:Annotated>` if found.
+
+Usage:
+
+.. doctest:: nested
+
+   >>> playlist_validator({
+   ...    "title": "My Favorite Songs",
+   ...    "songs": [stonehenge, drinkinstein]
+   ... })
+   Valid(...)
+
+---------------------
+
 Custom Validators
 ^^^^^^^^^^^^^^^^^
 
@@ -153,7 +244,7 @@ Usage:
    TypeErr(expected_type=<class 'int'>)
 
 In Koda Validate, you are encouraged to write your own :class:`Validator`\s for custom
-needs. For more guidance, take a look at :ref:`how_to/extension:Extension`.
+needs. For guidance, take a look at :ref:`how_to/extension:Extension`.
 
 -----------------
 
