@@ -16,6 +16,9 @@ allows for straightforward extension to suit whatever validation needs you have.
 
 Let's take a look at some quick examples.
 
+At a Glance
+-----------
+
 Scalars
 ^^^^^^^
 
@@ -39,6 +42,9 @@ For both valid and invalid cases, we can see that we get a result back -- no exc
 thrown (note that we truncated the representation of the ``Invalid`` instance for brevity.)
 More info about errors can be found at :ref:`philosophy/errors:Errors`.
 
+----------------
+
+
 Collections
 ^^^^^^^^^^^
 
@@ -54,6 +60,8 @@ Nesting validators works as one might expect.
 
    >>> list_int_validator([1,2,3])
    Valid(val=[1, 2, 3])
+
+----------------
 
 
 Derived Validators
@@ -79,6 +87,11 @@ Usage:
    >>> validator({"name": "Bob", "hobbies": ["eating", "coding", "sleeping"]})
    Valid(val={'name': 'Bob', 'hobbies': ['eating', 'coding', 'sleeping']})
 
+See :ref:`how_to/dictionaries/derived:Derived Validators` for more.
+
+
+----------------
+
 
 Refinement
 ^^^^^^^^^^
@@ -98,6 +111,11 @@ Outputs:
 .. testoutput::
 
    Valid(val="abc123")
+
+``MinLength(5)`` and ``MaxLength(10)`` are examples of :ref:`philosophy/predicates:Predicates`.
+``StartsWith("a")`` is a :ref:`Processor<philosophy/processors:Processors>`.
+
+----------------
 
 
 Writing your own
@@ -127,6 +145,14 @@ Usage:
    >>> invalid_result = validator("not an integer")
    >>> invalid_result.err_type
    TypeErr(expected_type=<class 'int'>)
+
+For more guidance on creating custom :class:`Validator`\s, take a look at:
+
+- :ref:`how_to/extension:Extension`
+- :ref:`philosophy/validators:Validators`
+
+-----------------
+
 
 .. toctree::
    :maxdepth: 2

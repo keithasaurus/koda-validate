@@ -18,12 +18,10 @@ straightforward paths for:
     take a look at Extension. The simplest way to work around :class:`Validator` quirks in Koda Validate
     is often to write your own.
 
-Agnostic
+Flexible
 --------
 :class:`Validator`\s, :class:`Predicate`\s and :class:`Processor`\s in Koda Validate are not coupled with
 any specific framework, serialization format, or language. Instead Koda Validate aims to make it
 straightforward to contextualize validation outputs and artifacts, by writing *interpreters* that
 consume a :class:`Validator` and produce some output. This effectively makes Koda Validate just as easy to
-work with in any framework, format or langauge.
-
-See :ref:`how_to/metadata:Metadata` for more info.
+work with in any framework, format or langauge. More info is available at :ref:`how_to/metadata:Metadata`.
