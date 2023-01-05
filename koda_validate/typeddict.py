@@ -33,7 +33,7 @@ _TDT = TypeVar("_TDT", bound=Mapping[str, object])
 
 class TypedDictValidator(_ToTupleValidator[_TDT]):
     """
-    Takes a `TypedDict` subclass as an argument and derives a Validator.
+    Takes a ``TypedDict`` subclass as an argument and derives a :class:`Validator`.
 
     Optional keys are determined by the ``__optional_keys__`` and ``__required_keys__``
     attributes.

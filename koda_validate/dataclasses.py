@@ -45,9 +45,9 @@ _DCT = TypeVar("_DCT", bound=DataclassLike)
 
 class DataclassValidator(_ToTupleValidator[_DCT]):
     """
-    Takes a `dataclass` as an argument and derives a Validator. Will validate against
-    an instance of ``self.data_cls`` *or* a dictionary. Regardless of the input type, the
-    result will be an instance of type ``self.data_cls``.
+    Takes a ``dataclass`` as an argument and derives a :class:`Validator`. Will validate
+    against an instance of ``self.data_cls`` *or* a dictionary. Regardless of the input
+    type, the result will be an instance of type ``self.data_cls``.
 
     Optional keys are determined by the presence of a default argument.
 

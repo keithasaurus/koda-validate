@@ -17,10 +17,11 @@ class Validator(Generic[SuccessT]):
     It's little more than a ``Callable[[Any], Result[SuccessT, ValidationErr]]``, with
     two notable differences:
 
-    - constructing ``Callable`` ``class``\es allows us to more easily make metadata
-        from the validator available (as opposed to data being hidden inside a closure)
     - a ``.validate_async`` method is allowed, meaning a :class:`Validator` can be made
         to work in both sync and async contexts.
+    - it's a class constructing ``Callable`` ``class``\es allows us to more easily make
+        metadata from the validator available (as opposed to data being hidden inside a
+        closure)
 
     Depending on your use case, you may want to implement the ``__call__`` method, the
     ``async_validate`` method, or both.

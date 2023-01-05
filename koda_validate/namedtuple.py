@@ -38,7 +38,7 @@ _NTT = TypeVar("_NTT", bound=NamedTuple)
 
 class NamedTupleValidator(_ToTupleValidator[_NTT]):
     """
-    Takes a `NamedTuple` subclass as an argument and derives a :class:`Validator`. Will
+    Takes a ``NamedTuple`` subclass as an argument and derives a :class:`Validator`. Will
     validate against an instance of ``self.named_tuple_cls`` *or* a dictionary.
     Regardless of the input type, the result will be an instance of type
     ``self.named_tuple_cls``.

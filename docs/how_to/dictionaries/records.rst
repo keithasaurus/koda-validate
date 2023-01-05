@@ -6,7 +6,11 @@ RecordValidator
 
 
 In many cases :class:`RecordValidator` is more verbose than the :ref:`Derived Validators<how_to/dictionaries/derived:Derived Validators>`, but
-it comes with greater flexibility.
+it comes with greater flexibility. It can handle any kind of ``Hashable`` key. Optional keys are
+handled explicitly with :class:`KeyNotRequired`, which returns ``Maybe`` values. The ``into`` parameter
+can be any ``Callable`` with the correct type signature -- ``dataclass``\es are convenient, but it could
+just as well be an arbitrary function.
+
 
 
 .. testcode:: recordvalidator
@@ -48,9 +52,7 @@ Output:
 
     John Doe is 30 years old
 
-
-:class:`RecordValidator` can handle any kind of ``Hashable`` key. Optional keys are
-handled explicitly with :class:`KeyNotRequired`, which returns ``Maybe`` values.
+Here's a more complex example of mixing and matching different kinds of keys.
 
 .. testcode::
 
