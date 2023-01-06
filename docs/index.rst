@@ -13,7 +13,6 @@ Koda Validate
 - :ref:`composable<philosophy/validators:Validators>`
 - :ref:`extensible<how_to/extension:Extension>`
 - :ref:`async-compatible<how_to/async:Async>`
-- :ref:`fast<faq/pydantic:Pydantic Comparison>`
 
 
 Build validators :ref:`automatically<index:Derived Validators>`
