@@ -97,7 +97,7 @@ Let's try it
 
 Working with ``Invalid``
 ------------------------
-:class:`Invalid` instances provide machine-readable validation failure data. Usually this is not terribly useful on its own.
+:class:`Invalid` instances provide machine-readable validation failure data.
 In most cases you'll want to transform these data in some way before sending it somewhere else. The expectation is that
 built-in, or custom, utility functions should handle this. One such built-in function is :data:`to_serializable_errs<koda_validate.serialization.to_serializable_errs>`. It
 takes an :class:`Invalid` instance and produces errors objects suitable for JSON / YAML serialization.
@@ -120,12 +120,12 @@ Outputs
 
     ['expected a string']
 
-Even if it doesn't suit your ultimate purpose, :data:`to_serializable_errs<koda_validate.serializable.to_serializable_errs>` can be useful during
+Even if it doesn't suit your ultimate purpose, :data:`to_serializable_errs<koda_validate.serialization.to_serializable_errs>` can be useful during
 development because the error messages tend to be more readable than the printed representation of
 :class:`Invalid` instances.
 
 .. note::
-    :data:`to_serializable_errs<koda_validate.serializable.to_serializable_errs>` is only meant to be a basic effort at a general English-language serializable
+    :data:`to_serializable_errs<koda_validate.serialization.to_serializable_errs>` is only meant to be a basic effort at a general English-language serializable
     utility function. It may be convenient to work with, but please do not feel that you are in any way
     limited to its functionality. Koda Validate's intention is that users should be able to build whatever
     error objects they need by consuming the :class:`Invalid` data.

@@ -9,21 +9,14 @@ Koda Validate
 .. module:: koda_validate
    :noindex:
 
-- :ref:`type-driven<setup/type-checking:Type Checking>`
-- :ref:`composable<philosophy/validators:Validators>`
-- :ref:`extensible<how_to/extension:Extension>`
-- :ref:`async-compatible<how_to/async:Async>`
+Build typesafe validators :ref:`automatically<index:Derived Validators>`
+or explicitly -- or :ref:`write your own<how_to/extension:Extension>`. Combine them to
+build validators of arbitrary complexity. Koda Validate is async-friendly, pure Python, and
+1.5x - 12x faster :ref:`than Pydantic<faq/pydantic:Pydantic Comparison>`.
 
 
-Build validators :ref:`automatically<index:Derived Validators>`
-or explicitly. Combine them to build validators of arbitrary complexity.
-
-
-At a Glance
+Basic Usage
 -----------
-
-Scalars
-^^^^^^^
 
 .. testcode:: scalars
 
@@ -42,7 +35,7 @@ Easy enough. Let's see how it works:
    Invalid(err_type=TypeErr(expected_type=<class 'str'>), ...)
 
 For both valid and invalid cases, we can see that we get a result back -- no exceptions
-are thrown (note that we truncated the representation of the :class:`Invalid` instance for brevity).
+are raised.
 
 Working with :class:`Valid` and :class:`Invalid` types is covered more in
 :ref:`how_to/results:Validation Results`.
@@ -109,16 +102,18 @@ Refinement
                                MaxLength(10),
                                StartsWith("a"))
 
-   validator("abc123")
+   print(validator("abc123"))
 
 Outputs:
 
-.. testoutput::
+.. testoutput:: refinement
 
-   Valid(val="abc123")
+   Valid(val='abc123')
 
-``MinLength(5)`` and ``MaxLength(10)`` are examples of :ref:`philosophy/predicates:Predicates`.
-``StartsWith("a")`` is a :ref:`Processor<philosophy/processors:Processors>`.
+.. note::
+
+   ``MinLength(5)``, ``MaxLength(10)``, and ``StartsWith("a")`` are all of :ref:`philosophy/predicates:Predicates`.
+
 
 ----------------
 

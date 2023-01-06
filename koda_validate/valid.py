@@ -21,8 +21,8 @@ class Valid(Generic[A]):
 
     is_valid: ClassVar[Literal[True]] = True
     """
-    This is always ``True`` on ``Valid`` instances. It's useful for ``if`` statements,
-    and mypy understands it.
+    This is always ``True`` on :class`Valid` instances. It's useful for ``if`` statements.
+    Mypy understands it as a tag for a tagged union.
     """
 
 
@@ -51,8 +51,8 @@ class Invalid:
 
     is_valid: ClassVar[Literal[False]] = False
     """
-    This is always ``False`` on :class:`Invalid` instances.  It’s useful for ``if``
-    statements, and mypy understands it.
+    This is always ``False`` on :class:`Invalid` instances. It’s useful for ``if``
+    statements. Mypy understands it as a tag for a tagged union.
     """
 
 

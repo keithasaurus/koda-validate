@@ -127,7 +127,7 @@ Extra Keys
 ----------
 
 :class:`TypedDictValidator`, :class:`DataclassValidator`, and :class:`NamedTupleValidator`
-can all be made to fail if keys are found that are not in source class's definition.
+can all be made to fail if keys are found that are not in the source class's definition.
 Simply pass ``fail_on_unknown_keys=True`` at initialization.
 
 .. testcode:: extrakeys
@@ -153,7 +153,7 @@ Simply pass ``fail_on_unknown_keys=True`` at initialization.
 
 Customization
 -------------
-It's common to need to customize the logic of these derived :class:`Validator`\s beyond
+It's common to need to customize the logic of derived :class:`Validator`\s beyond
 simple types. There are a few ways to do that.
 
 Annotated
