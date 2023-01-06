@@ -23,7 +23,6 @@
 - `UnionValidator` replaces `OneOf2`, `OneOf3`
 - `NTupleValidator` replaces `Tuple2Validator`, `Tuple2Validator` 
 - New `Valid`/`Invalid` types -- need `koda_validate.to_serializable_errs` to produce serializable errors
-- 
 
 **Performance**
 - Various optimizations in dictionary `Validator`s
@@ -36,6 +35,7 @@
 - Restructure project layout
   - _internal.py
   - move serialization to koda_validate.serialization
+- More benchmarks
 
 2.1.0 (Nov. 9, 2022)
 **Features**
