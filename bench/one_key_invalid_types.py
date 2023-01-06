@@ -3,8 +3,7 @@ from typing import Any, List
 
 from pydantic import BaseModel, ValidationError, constr
 
-from koda_validate import RecordValidator, StringValidator
-from koda_validate.validated import Valid
+from koda_validate import RecordValidator, StringValidator, Valid
 
 
 @dataclass
@@ -20,7 +19,7 @@ def run_kv(objs: Any) -> None:
         if isinstance(result := string_validator(obj), Valid):
             _ = result.val
         else:
-            _ = result.val
+            _ = result.validator
 
 
 class BasicString(BaseModel):

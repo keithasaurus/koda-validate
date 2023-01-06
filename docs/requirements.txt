@@ -1,0 +1,2 @@
+sphinx_autodoc_typehints==1.19.5
+furo==2022.12.7

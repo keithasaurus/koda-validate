@@ -3,7 +3,7 @@ from typing import Any
 from koda_validate import MaxLength, MinLength, Predicate, StringValidator, Validator
 
 
-def describe_validator(validator: Validator[Any, Any, Any] | Predicate[Any, Any]) -> str:
+def describe_validator(validator: Validator[Any] | Predicate[Any]) -> str:
     # use `isinstance(...)` in python <= 3.10
     match validator:
 

@@ -1,12 +1,11 @@
-from koda import First, Second
-
 from koda_validate import *
+from koda_validate.union import UnionValidator
 
-string_or_list_string_validator = OneOf2(
+string_or_list_string_validator = UnionValidator.typed(
     StringValidator(), ListValidator(StringValidator())
 )
 
-assert string_or_list_string_validator("ok") == Valid(First("ok"))
+assert string_or_list_string_validator("ok") == Valid("ok")
 assert string_or_list_string_validator(["list", "of", "strings"]) == Valid(
-    Second(["list", "of", "strings"])
+    ["list", "of", "strings"]
 )

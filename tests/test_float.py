@@ -1,12 +1,13 @@
 import asyncio
+from dataclasses import dataclass
 
 import pytest
 from koda._generics import A
 
-from koda_validate.base import Predicate, PredicateAsync, Processor, Serializable
+from koda_validate import Invalid, PredicateErrs, TypeErr, Valid
+from koda_validate.base import Predicate, PredicateAsync, Processor
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Max, Min
-from koda_validate.validated import Invalid, Valid
 
 
 class Add1Float(Processor[float]):
@@ -15,69 +16,63 @@ class Add1Float(Processor[float]):
 
 
 def test_float() -> None:
-    assert FloatValidator()("a string") == Invalid(["expected a float"])
+    f_v = FloatValidator()
+    assert f_v("a string") == Invalid(TypeErr(float), "a string", f_v)
 
-    assert FloatValidator()(5.5) == Valid(5.5)
+    assert f_v(5.5) == Valid(5.5)
 
-    assert FloatValidator()(4) == Invalid(["expected a float"])
+    assert f_v(4) == Invalid(TypeErr(float), 4, f_v)
 
-    assert FloatValidator(Max(500.0))(503.0) == Invalid(
-        ["maximum allowed value is 500.0"]
-    )
+    f_max_500_v = FloatValidator(Max(500.0))
+    assert f_max_500_v(503.0) == Invalid(PredicateErrs([Max(500.0)]), 503.0, f_max_500_v)
 
     assert FloatValidator(Max(500.0))(3.5) == Valid(3.5)
 
-    assert FloatValidator(Min(5.0))(4.999) == Invalid(["minimum allowed value is 5.0"])
+    f_max_5_v = FloatValidator(Min(5.0))
+    assert f_max_5_v(4.999) == Invalid(PredicateErrs([Min(5.0)]), 4.999, f_max_5_v)
 
     assert FloatValidator(Min(5.0))(5.0) == Valid(5.0)
 
-    class MustHaveAZeroSomewhere(Predicate[float, Serializable]):
-        def is_valid(self, val: float) -> bool:
+    @dataclass
+    class MustHaveAZeroSomewhere(Predicate[float]):
+        def __call__(self, val: float) -> bool:
             for char in str(val):
                 if char == "0":
                     return True
             else:
                 return False
 
-        def err(self, val: float) -> Serializable:
-            return "There should be a zero in the number"
-
-    assert FloatValidator(Min(2.5), Max(4.0), MustHaveAZeroSomewhere())(5.5) == Invalid(
-        ["maximum allowed value is 4.0", "There should be a zero in the number"]
+    f_min_max_v = FloatValidator(Min(2.5), Max(4.0), MustHaveAZeroSomewhere())
+    assert f_min_max_v(5.5) == Invalid(
+        PredicateErrs([Max(4.0), MustHaveAZeroSomewhere()]), 5.5, f_min_max_v
     )
 
-    assert FloatValidator(Min(2.5), preprocessors=[Add1Float()])(1.0) == Invalid(
-        ["minimum allowed value is 2.5"]
-    )
+    f_min_25_v = FloatValidator(Min(2.5), preprocessors=[Add1Float()])
+    assert f_min_25_v(1.0) == Invalid(PredicateErrs([Min(2.5)]), 2.0, f_min_25_v)
 
 
 @pytest.mark.asyncio
 async def test_float_async() -> None:
-    class LessThan4(PredicateAsync[float, Serializable]):
-        async def is_valid_async(self, val: float) -> bool:
+    @dataclass
+    class LessThan4(PredicateAsync[float]):
+        async def validate_async(self, val: float) -> bool:
             await asyncio.sleep(0.001)
             return val < 4.0
 
-        async def err_async(self, val: float) -> Serializable:
-            return "not less than 4!"
-
-    result = await FloatValidator(
-        preprocessors=[Add1Float()], predicates_async=[LessThan4()]
-    ).validate_async(3.5)
-    assert result == Invalid(["not less than 4!"])
+    f_v = FloatValidator(preprocessors=[Add1Float()], predicates_async=[LessThan4()])
+    result = await f_v.validate_async(3.5)
+    assert result == Invalid(PredicateErrs([LessThan4()]), 4.5, f_v)
     assert await FloatValidator(
         preprocessors=[Add1Float()], predicates_async=[LessThan4()]
     ).validate_async(2.5) == Valid(3.5)
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
-    class AsyncWait(PredicateAsync[A, Serializable]):
-        async def is_valid_async(self, val: A) -> bool:
+    @dataclass
+    class AsyncWait(PredicateAsync[A]):
+        async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
-
-        async def err_async(self, val: A) -> Serializable:
-            return "should always succeed??"
 
     float_validator = FloatValidator(predicates_async=[AsyncWait()])
     with pytest.raises(AssertionError):

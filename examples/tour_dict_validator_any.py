@@ -1,18 +1,17 @@
-from typing import Any, Dict, Hashable
+from typing import Any, Dict, Hashable, Optional
 
 from koda_validate import *
+from koda_validate.serialization import SerializableErr
 
 
-def no_dwight_regional_manager(
-    employee: Dict[Hashable, Any]
-) -> Validated[Dict[Hashable, Any], Serializable]:
+def no_dwight_regional_manager(employee: Dict[Hashable, Any]) -> Optional[ErrType]:
     if (
         "schrute" in employee["name"].lower()
         and employee["title"].lower() == "assistant regional manager"
     ):
-        return Invalid("Assistant TO THE Regional Manager!")
+        return SerializableErr("Assistant TO THE Regional Manager!")
     else:
-        return Valid(employee)
+        return None
 
 
 employee_validator = DictValidatorAny(
@@ -33,4 +32,11 @@ assert employee_validator(
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     }
-) == Invalid("Assistant TO THE Regional Manager!")
+) == Invalid(
+    SerializableErr("Assistant TO THE Regional Manager!"),
+    {
+        "title": "Assistant Regional Manager",
+        "name": "Dwight Schrute",
+    },
+    employee_validator,
+)

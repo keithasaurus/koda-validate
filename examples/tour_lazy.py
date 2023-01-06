@@ -7,13 +7,12 @@ from koda_validate import *
 NonEmptyList = Tuple[int, Optional[Any]]
 
 
-def recur_non_empty_list() -> Tuple2Validator[int, Optional[NonEmptyList]]:
+def recur_non_empty_list() -> NTupleValidator[Tuple[int, Optional[NonEmptyList]]]:
     return non_empty_list_validator
 
 
-non_empty_list_validator = Tuple2Validator(
-    IntValidator(),
-    OptionalValidator(Lazy(recur_non_empty_list)),
+non_empty_list_validator = NTupleValidator.typed(
+    fields=(IntValidator(), OptionalValidator(Lazy(recur_non_empty_list)))
 )
 
 assert non_empty_list_validator((1, (1, (2, (3, (5, None)))))) == Valid(

@@ -1,63 +1,65 @@
-from typing import Any, Final, Optional
+from typing import Any, ClassVar, Optional
 
 from koda._generics import A
 
-from koda_validate._internals import _variant_errors
-from koda_validate.base import Serializable, Validator
-from koda_validate.validated import Invalid, Valid, Validated
+from koda_validate._internal import (
+    _ResultTuple,
+    _ToTupleValidator,
+    _union_validator,
+    _union_validator_async,
+)
+from koda_validate.base import Validator
+from koda_validate.errors import TypeErr
+from koda_validate.valid import Invalid
 
-OK_NONE: Final[Valid[None]] = Valid(None)
-OK_NONE_OPTIONAL: Final[Valid[Optional[Any]]] = Valid(None)
+
+class NoneValidator(_ToTupleValidator[None]):
+    _instance: ClassVar[Optional["NoneValidator"]] = None
+
+    def __new__(cls) -> "NoneValidator":
+        # make a singleton
+        if cls._instance is None:
+            cls._instance = super(NoneValidator, cls).__new__(cls)
+        return cls._instance
+
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[None]:
+        if val is None:
+            return True, None
+        else:
+            return False, Invalid(TypeErr(type(None)), val, self)
+
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[None]:
+        return self._validate_to_tuple(val)
+
+    def __repr__(self) -> str:
+        return "NoneValidator()"
 
 
-class OptionalValidator(Validator[Any, Optional[A], Serializable]):
+none_validator = NoneValidator()
+
+
+class OptionalValidator(_ToTupleValidator[Optional[A]]):
     """
     We have a value for a key, but it can be null (None)
     """
 
-    __slots__ = ("validator",)
-    __match_args__ = ("validator",)
+    __match_args__ = ("non_none_validator",)
 
-    def __init__(self, validator: Validator[Any, A, Serializable]) -> None:
-        self.validator = validator
+    def __init__(self, validator: Validator[A]) -> None:
+        self.non_none_validator = validator
+        self.validators = (none_validator, validator)
 
-    def __call__(self, val: Any) -> Validated[Optional[A], Serializable]:
-        if val is None:
-            return OK_NONE_OPTIONAL
-        else:
-            result: Validated[A, Serializable] = self.validator(val)
-            if result.is_valid:
-                return Valid(result.val)
-            else:
-                return result.map_err(
-                    lambda errs: _variant_errors(["must be None"], errs)
-                )
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[Optional[A]]:
+        return await _union_validator_async(self, self.validators, val)
 
-    async def validate_async(self, val: Any) -> Validated[Optional[A], Serializable]:
-        if val is None:
-            return OK_NONE_OPTIONAL
-        else:
-            result: Validated[A, Serializable] = await self.validator.validate_async(val)
-            if result.is_valid:
-                return Valid(result.val)
-            else:
-                return result.map_err(
-                    lambda errs: _variant_errors(["must be None"], errs)
-                )
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[Optional[A]]:
+        return _union_validator(self, self.validators, val)
 
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and other.non_none_validator == self.non_none_validator
+        )
 
-EXPECTED_NONE: Final[Invalid[Serializable]] = Invalid(["expected None"])
-
-
-class NoneValidator(Validator[Any, None, Serializable]):
-    def __call__(self, val: Any) -> Validated[None, Serializable]:
-        if val is None:
-            return OK_NONE
-        else:
-            return EXPECTED_NONE
-
-    async def validate_async(self, val: Any) -> Validated[None, Serializable]:
-        return self(val)
-
-
-none_validator = NoneValidator()
+    def __repr__(self) -> str:
+        return f"OptionalValidator({repr(self.non_none_validator)})"

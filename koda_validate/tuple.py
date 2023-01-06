@@ -1,150 +1,432 @@
-"""
-We should replace Tuple2Validator and Tuple3Validator
-with a generic TupleValidator... (2 and 3 can still use the new one
-under the hood, if needed)
-"""
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
-from typing import Any, Callable, Dict, Final, Optional, Tuple
-
-from koda_validate._cruft import _typed_tuple
-from koda_validate._generics import A, B, C
-from koda_validate._internals import OBJECT_ERRORS_FIELD
-from koda_validate._validate_and_map import validate_and_map
-from koda_validate.base import Serializable, Validator
-from koda_validate.validated import Invalid, Validated
-
-
-def _tuple_to_dict_errors(errs: Tuple[Serializable, ...]) -> Dict[str, Serializable]:
-    return {str(i): err for i, err in enumerate(errs)}
-
-
-EXPECTED_TUPLE_TWO_ERROR: Final[Invalid[Serializable]] = Invalid(
-    {OBJECT_ERRORS_FIELD: ["expected list or tuple of length 2"]}
+from koda_validate._generics import T1, T2, T3, T4, T5, T6, T7, T8, A
+from koda_validate._internal import (
+    _async_predicates_warning,
+    _repr_helper,
+    _ResultTuple,
+    _ToTupleValidator,
+    _wrap_async_validator,
+    _wrap_sync_validator,
 )
+from koda_validate.base import Predicate, PredicateAsync, Validator
+from koda_validate.errors import CoercionErr, ErrType, IndexErrs, PredicateErrs, TypeErr
+from koda_validate.generic import ExactItemCount
+from koda_validate.valid import Invalid
 
-EXPECTED_TUPLE_THREE_ERROR: Final[Invalid[Serializable]] = Invalid(
-    {OBJECT_ERRORS_FIELD: ["expected list or tuple of length 3"]}
-)
 
-
-# todo: auto-generate
-class Tuple2Validator(Validator[Any, Tuple[A, B], Serializable]):
-    required_length: int = 2
-
-    __match_args__ = ("slot1_validator", "slot2_validator", "tuple_validator")
-    __slots__ = __match_args__
+class NTupleValidator(_ToTupleValidator[A]):
+    __match_args__ = ("fields",)
 
     def __init__(
         self,
-        slot1_validator: Validator[Any, A, Serializable],
-        slot2_validator: Validator[Any, B, Serializable],
-        tuple_validator: Optional[
-            Callable[[Tuple[A, B]], Validated[Tuple[A, B], Serializable]]
-        ] = None,
+        *,
+        fields: Tuple[Validator[Any], ...],
+        validate_object: Optional[Callable[[A], Optional[ErrType]]] = None,
     ) -> None:
-        self.slot1_validator = slot1_validator
-        self.slot2_validator = slot2_validator
-        self.tuple_validator = tuple_validator
+        """
+        You probably don't want to be using __init__ directly. For type-hinting reasons,
+        it's recommended to use either `.typed(...)` or `.untyped(...)`
 
-    def __call__(self, data: Any) -> Validated[Tuple[A, B], Serializable]:
-        if isinstance(data, (list, tuple)) and len(data) == self.required_length:
-            result: Validated[Tuple[A, B], Tuple[Serializable, ...]] = validate_and_map(
-                _typed_tuple,
-                self.slot1_validator(data[0]),
-                self.slot2_validator(data[1]),
-            )
+        :param fields: the validators that correspond with the respective indexes in the
+            tuple
+        :param validate_object: if all the slots of the tuple are valid, this can be used
+            to validate among all the fields.
+        """
 
-            if not result.is_valid:
-                return result.map_err(_tuple_to_dict_errors)
-            else:
-                if self.tuple_validator is None:
-                    return result
+        self.fields = fields
+        self.validate_object = validate_object
+        self._len_predicate = ExactItemCount(len(fields))
+        self._wrapped_fields_sync = [_wrap_sync_validator(v) for v in fields]
+        self._wrapped_fields_async = [_wrap_async_validator(v) for v in fields]
+
+    @overload
+    @staticmethod
+    def typed(
+        *,
+        fields: Tuple[Validator[T1]],
+        validate_object: Optional[Callable[[Tuple[T1]], Optional[ErrType]]] = None,
+    ) -> "NTupleValidator[Tuple[T1]]":
+        ...  # pragma: no cover
+
+    @overload
+    @staticmethod
+    def typed(
+        *,
+        fields: Tuple[Validator[T1], Validator[T2]],
+        validate_object: Optional[Callable[[Tuple[T1, T2]], Optional[ErrType]]] = None,
+    ) -> "NTupleValidator[Tuple[T1, T2]]":
+        ...  # pragma: no cover
+
+    @overload
+    @staticmethod
+    def typed(
+        *,
+        fields: Tuple[Validator[T1], Validator[T2], Validator[T3]],
+        validate_object: Optional[
+            Callable[[Tuple[T1, T2, T3]], Optional[ErrType]]
+        ] = None,
+    ) -> "NTupleValidator[Tuple[T1, T2, T3]]":
+        ...  # pragma: no cover
+
+    @overload
+    @staticmethod
+    def typed(
+        *,
+        fields: Tuple[Validator[T1], Validator[T2], Validator[T3], Validator[T4]],
+        validate_object: Optional[
+            Callable[[Tuple[T1, T2, T3, T4]], Optional[ErrType]]
+        ] = None,
+    ) -> "NTupleValidator[Tuple[T1, T2, T3, T4]]":
+        ...  # pragma: no cover
+
+    @overload
+    @staticmethod
+    def typed(
+        *,
+        fields: Tuple[
+            Validator[T1],
+            Validator[T2],
+            Validator[T3],
+            Validator[T4],
+            Validator[T5],
+        ],
+        validate_object: Optional[
+            Callable[[Tuple[T1, T2, T3, T4, T5]], Optional[ErrType]]
+        ] = None,
+    ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5]]":
+        ...  # pragma: no cover
+
+    @overload
+    @staticmethod
+    def typed(
+        *,
+        fields: Tuple[
+            Validator[T1],
+            Validator[T2],
+            Validator[T3],
+            Validator[T4],
+            Validator[T5],
+            Validator[T6],
+        ],
+        validate_object: Optional[
+            Callable[[Tuple[T1, T2, T3, T4, T5, T6]], Optional[ErrType]]
+        ] = None,
+    ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6]]":
+        ...  # pragma: no cover
+
+    @overload
+    @staticmethod
+    def typed(
+        *,
+        fields: Tuple[
+            Validator[T1],
+            Validator[T2],
+            Validator[T3],
+            Validator[T4],
+            Validator[T5],
+            Validator[T6],
+            Validator[T7],
+        ],
+        validate_object: Optional[
+            Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7]], Optional[ErrType]]
+        ] = None,
+    ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6, T7]]":
+        ...  # pragma: no cover
+
+    @overload
+    @staticmethod
+    def typed(
+        *,
+        fields: Tuple[
+            Validator[T1],
+            Validator[T2],
+            Validator[T3],
+            Validator[T4],
+            Validator[T5],
+            Validator[T6],
+            Validator[T7],
+            Validator[T8],
+        ],
+        validate_object: Optional[
+            Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]], Optional[ErrType]]
+        ] = None,
+    ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]]":
+        ...  # pragma: no cover
+
+    @staticmethod
+    def typed(
+        *,
+        fields: Union[
+            Tuple[Validator[T1]],
+            Tuple[Validator[T1], Validator[T2]],
+            Tuple[Validator[T1], Validator[T2], Validator[T3]],
+            Tuple[
+                Validator[T1],
+                Validator[T2],
+                Validator[T3],
+                Validator[T4],
+            ],
+            Tuple[
+                Validator[T1], Validator[T2], Validator[T3], Validator[T4], Validator[T5]
+            ],
+            Tuple[
+                Validator[T1],
+                Validator[T2],
+                Validator[T3],
+                Validator[T4],
+                Validator[T5],
+                Validator[T6],
+            ],
+            Tuple[
+                Validator[T1],
+                Validator[T2],
+                Validator[T3],
+                Validator[T4],
+                Validator[T5],
+                Validator[T6],
+                Validator[T7],
+            ],
+            Tuple[
+                Validator[T1],
+                Validator[T2],
+                Validator[T3],
+                Validator[T4],
+                Validator[T5],
+                Validator[T6],
+                Validator[T7],
+                Validator[T8],
+            ],
+        ],
+        validate_object: Union[
+            Optional[Callable[[Tuple[T1]], Optional[ErrType]]],
+            Optional[Callable[[Tuple[T1, T2]], Optional[ErrType]]],
+            Optional[Callable[[Tuple[T1, T2, T3]], Optional[ErrType]]],
+            Optional[Callable[[Tuple[T1, T2, T3, T4]], Optional[ErrType]]],
+            Optional[Callable[[Tuple[T1, T2, T3, T4, T5]], Optional[ErrType]]],
+            Optional[Callable[[Tuple[T1, T2, T3, T4, T5, T6]], Optional[ErrType]]],
+            Optional[Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7]], Optional[ErrType]]],
+            Optional[
+                Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]], Optional[ErrType]]
+            ],
+        ] = None,
+    ) -> Union[
+        "NTupleValidator[Tuple[T1]]",
+        "NTupleValidator[Tuple[T1, T2]]",
+        "NTupleValidator[Tuple[T1, T2, T3]]",
+        "NTupleValidator[Tuple[T1, T2, T3, T4]]",
+        "NTupleValidator[Tuple[T1, T2, T3, T4, T5]]",
+        "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6]]",
+        "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6, T7]]",
+        "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]]",
+    ]:
+        return NTupleValidator(
+            fields=fields, validate_object=validate_object
+        )  # type: ignore
+
+    @staticmethod
+    def untyped(
+        *,
+        fields: Tuple[Validator[Any], ...],
+        validate_object: Optional[Callable[[Tuple[Any, ...]], Optional[ErrType]]] = None,
+    ) -> "NTupleValidator[Tuple[Any, ...]]":
+        return NTupleValidator(fields=fields, validate_object=validate_object)
+
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[A]:
+        # we allow list as well because it's common that tuples or tuple-like lists
+        # are deserialized to lists
+        val_type = type(val)
+        if val_type is tuple or val_type is list:
+            if not self._len_predicate(val):
+                return False, Invalid(PredicateErrs([self._len_predicate]), val, self)
+            errs: Dict[int, Invalid] = {}
+            vals = []
+            for i, (validator, tuple_val) in enumerate(
+                zip(self._wrapped_fields_sync, val)
+            ):
+                succeeded, new_val = validator(tuple_val)
+                if succeeded:
+                    vals.append(new_val)
                 else:
-                    return result.flat_map(self.tuple_validator)
-        else:
-            return EXPECTED_TUPLE_TWO_ERROR
+                    errs[i] = new_val
 
-    async def validate_async(self, data: Any) -> Validated[Tuple[A, B], Serializable]:
-        if isinstance(data, (list, tuple)) and len(data) == self.required_length:
-            result: Validated[Tuple[A, B], Tuple[Serializable, ...]] = validate_and_map(
-                _typed_tuple,
-                await self.slot1_validator.validate_async(data[0]),
-                await self.slot2_validator.validate_async(data[1]),
-            )
-
-            if not result.is_valid:
-                return result.map_err(_tuple_to_dict_errors)
+            if errs:
+                return False, Invalid(IndexErrs(errs), val, self)
             else:
-                if self.tuple_validator is None:
-                    return result
+                obj: A = tuple(vals)  # type: ignore
+                if self.validate_object is None:
+                    return True, obj
                 else:
-                    return result.flat_map(self.tuple_validator)
+                    obj_result = self.validate_object(obj)
+                    if obj_result is None:
+                        return True, obj
+                    else:
+                        return False, Invalid(obj_result, obj, self)
         else:
-            return EXPECTED_TUPLE_TWO_ERROR
+            return False, Invalid(CoercionErr({list, tuple}, tuple), val, self)
+
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[A]:
+        val_type = type(val)
+        if val_type is tuple or val_type is list:
+            if not self._len_predicate(val):
+                return False, Invalid(PredicateErrs([self._len_predicate]), val, self)
+            errs: Dict[int, Invalid] = {}
+            vals = []
+            for i, (validator, tuple_val) in enumerate(
+                zip(self._wrapped_fields_async, val)
+            ):
+                succeeded, new_val = await validator(tuple_val)
+                if succeeded:
+                    vals.append(new_val)
+                else:
+                    errs[i] = new_val
+
+            if errs:
+                return False, Invalid(IndexErrs(errs), val, self)
+            else:
+                obj: A = tuple(vals)  # type: ignore
+                if self.validate_object is None:
+                    return True, obj
+                else:
+                    obj_result = self.validate_object(obj)
+                    if obj_result is None:
+                        return True, obj
+                    else:
+                        return False, Invalid(obj_result, obj, self)
+
+        else:
+            return False, Invalid(CoercionErr({list, tuple}, tuple), val, self)
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and self.fields == other.fields
+            and self.validate_object == other.validate_object
+        )
+
+    def __repr__(self) -> str:
+        fields_str = "(" + ", ".join([repr(f) for f in self.fields]) + ")"
+        if self.validate_object is not None:
+            fields_str += f", validate_object={repr(self.validate_object)}"
+
+        return f"{self.__class__.__name__}(fields={fields_str})"
 
 
-class Tuple3Validator(Validator[Any, Tuple[A, B, C], Serializable]):
-    required_length: int = 3
-    __match_args__ = (
-        "slot1_validator",
-        "slot2_validator",
-        "slot3_validator",
-        "tuple_validator",
-    )
-    __slots__ = __match_args__
+class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
+    __match_args__ = ("item_validator", "predicates", "predicates_async")
 
     def __init__(
         self,
-        slot1_validator: Validator[Any, A, Serializable],
-        slot2_validator: Validator[Any, B, Serializable],
-        slot3_validator: Validator[Any, C, Serializable],
-        tuple_validator: Optional[
-            Callable[[Tuple[A, B, C]], Validated[Tuple[A, B, C], Serializable]]
-        ] = None,
+        item_validator: Validator[A],
+        *,
+        predicates: Optional[List[Predicate[Tuple[A, ...]]]] = None,
+        predicates_async: Optional[List[PredicateAsync[Tuple[A, ...]]]] = None,
     ) -> None:
-        self.slot1_validator = slot1_validator
-        self.slot2_validator = slot2_validator
-        self.slot3_validator = slot3_validator
-        self.tuple_validator = tuple_validator
+        self.item_validator = item_validator
+        self.predicates = predicates
+        self.predicates_async = predicates_async
 
-    def __call__(self, data: Any) -> Validated[Tuple[A, B, C], Serializable]:
-        if isinstance(data, (list, tuple)) and len(data) == self.required_length:
-            result: Validated[
-                Tuple[A, B, C], Tuple[Serializable, ...]
-            ] = validate_and_map(
-                _typed_tuple,
-                self.slot1_validator(data[0]),
-                self.slot2_validator(data[1]),
-                self.slot3_validator(data[2]),
-            )
+        self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
 
-            if not result.is_valid:
-                return result.map_err(_tuple_to_dict_errors)
-            else:
-                if self.tuple_validator is None:
-                    return result
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[Tuple[A, ...]]:
+        if self.predicates_async:
+            _async_predicates_warning(self.__class__)
+
+        if isinstance(val, tuple):
+            if self.predicates:
+                tuple_errors: List[
+                    Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
+                ] = [pred for pred in self.predicates if not pred(val)]
+
+                # Not running async validators! They shouldn't be set!
+                if tuple_errors:
+                    return False, Invalid(PredicateErrs(tuple_errors), val, self)
+
+            return_list: List[A] = []
+            index_errors: Dict[int, Invalid] = {}
+            for i, item in enumerate(val):
+                if self._item_validator_is_tuple:
+                    is_valid, item_result = self.item_validator._validate_to_tuple(item)  # type: ignore # noqa: E501
                 else:
-                    return result.flat_map(self.tuple_validator)
-        else:
-            return EXPECTED_TUPLE_THREE_ERROR
+                    _result = self.item_validator(item)
+                    is_valid, item_result = (
+                        (True, _result.val) if _result.is_valid else (False, _result)
+                    )
 
-    async def validate_async(self, data: Any) -> Validated[Tuple[A, B, C], Serializable]:
-        if isinstance(data, (list, tuple)) and len(data) == self.required_length:
-            result: Validated[
-                Tuple[A, B, C], Tuple[Serializable, ...]
-            ] = validate_and_map(
-                _typed_tuple,
-                await self.slot1_validator.validate_async(data[0]),
-                await self.slot2_validator.validate_async(data[1]),
-                await self.slot3_validator.validate_async(data[2]),
-            )
+                if not is_valid:
+                    index_errors[i] = item_result
+                elif not index_errors:
+                    return_list.append(item_result)
 
-            if not result.is_valid:
-                return result.map_err(_tuple_to_dict_errors)
+            if index_errors:
+                return False, Invalid(IndexErrs(index_errors), val, self)
             else:
-                if self.tuple_validator is None:
-                    return result
-                else:
-                    return result.flat_map(self.tuple_validator)
+                return True, tuple(return_list)
         else:
-            return EXPECTED_TUPLE_THREE_ERROR
+            return False, Invalid(TypeErr(tuple), val, self)
+
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[Tuple[A, ...]]:
+        if isinstance(val, tuple):
+            tuple_errors: List[
+                Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
+            ] = []
+            if self.predicates:
+                tuple_errors.extend([pred for pred in self.predicates if not pred(val)])
+            if self.predicates_async:
+                for pred_async in self.predicates_async:
+                    if not await pred_async.validate_async(val):
+                        tuple_errors.append(pred_async)
+
+            # Not running async validators! They shouldn't be set!
+            if tuple_errors:
+                return False, Invalid(PredicateErrs(tuple_errors), val, self)
+
+            return_list: List[A] = []
+            index_errors: Dict[int, Invalid] = {}
+            for i, item in enumerate(val):
+                if self._item_validator_is_tuple:
+                    (
+                        is_valid,
+                        item_result,
+                    ) = await self.item_validator._validate_to_tuple_async(  # type: ignore # noqa: E501
+                        item
+                    )
+                else:
+                    _result = await self.item_validator.validate_async(item)
+                    is_valid, item_result = (
+                        (True, _result.val) if _result.is_valid else (False, _result)
+                    )
+
+                if not is_valid:
+                    index_errors[i] = item_result
+                elif not index_errors:
+                    return_list.append(item_result)
+
+            if index_errors:
+                return False, Invalid(IndexErrs(index_errors), val, self)
+            else:
+                return True, tuple(return_list)
+        else:
+            return False, Invalid(TypeErr(tuple), val, self)
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(other) is type(self)
+            and self.item_validator == other.item_validator
+            and self.predicates == other.predicates
+            and self.predicates_async == other.predicates_async
+        )
+
+    def __repr__(self) -> str:
+        return _repr_helper(
+            self.__class__,
+            [repr(self.item_validator)]
+            + [
+                f"{k}={repr(v)}"
+                for k, v in [
+                    ("predicates", self.predicates),
+                    ("predicates_async", self.predicates_async),
+                ]
+                if v
+            ],
+        )

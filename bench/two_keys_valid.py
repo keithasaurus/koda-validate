@@ -43,4 +43,4 @@ v_schema = Schema(
 
 def run_v(objs: List[Any]) -> None:
     for obj in objs:
-        v_schema
+        v_schema(obj)

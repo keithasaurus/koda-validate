@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from koda_validate import *
+from koda_validate.serialization import SerializableErr
 
 
 @dataclass
@@ -9,14 +11,14 @@ class Employee:
     name: str
 
 
-def no_dwight_regional_manager(employee: Employee) -> Validated[Employee, Serializable]:
+def no_dwight_regional_manager(employee: Employee) -> Optional[ErrType]:
     if (
         "schrute" in employee.name.lower()
         and employee.title.lower() == "assistant regional manager"
     ):
-        return Invalid("Assistant TO THE Regional Manager!")
+        return SerializableErr("Assistant TO THE Regional Manager!")
     else:
-        return Valid(employee)
+        return None
 
 
 employee_validator = RecordValidator(
@@ -36,4 +38,11 @@ assert employee_validator(
         "title": "Assistant Regional Manager",
         "name": "Dwight Schrute",
     }
-) == Invalid("Assistant TO THE Regional Manager!")
+) == Invalid(
+    SerializableErr("Assistant TO THE Regional Manager!"),
+    Employee(
+        "Assistant Regional Manager",
+        "Dwight Schrute",
+    ),
+    employee_validator,
+)

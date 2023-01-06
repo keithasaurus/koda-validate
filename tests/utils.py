@@ -1,15 +1,19 @@
 from typing import Any
 
-from koda_validate.validated import Invalid, Validated
+from koda_validate import Invalid, TypeErr, Valid, ValidationResult, Validator
 
 
-def assert_same_error_type_with_same_message(
-    error_1: Validated[Any, Exception], error_2: Validated[Any, Exception]
-) -> None:
+class BasicNoneValidator(Validator[None]):
     """
-    There may be a better/more concise way to compare exceptions
+    Since most validators are _ToTuplevalidatorUnsafe*, this gives us a
+    way to make sure we are still exercising the normal `Validator` paths
     """
-    assert isinstance(error_1, Invalid)
-    assert isinstance(error_2, Invalid)
-    assert type(error_1.val) == type(error_2.val)  # noqa: E721
-    assert error_1.val.args == error_2.val.args
+
+    async def validate_async(self, val: Any) -> ValidationResult[None]:
+        return self(val)
+
+    def __call__(self, val: Any) -> ValidationResult[None]:
+        if val is None:
+            return Valid(None)
+        else:
+            return Invalid(TypeErr(type(None)), val, self)

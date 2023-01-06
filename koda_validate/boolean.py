@@ -1,60 +1,17 @@
-from typing import Any, Final, List, Optional
-
-from koda_validate._internals import (
-    _async_predicates_warning,
-    _handle_scalar_processors_and_predicates_async,
-)
-from koda_validate.base import (
-    Predicate,
-    PredicateAsync,
-    Processor,
-    Serializable,
-    Validator,
-)
-from koda_validate.validated import Invalid, Valid, Validated
-
-EXPECTED_BOOL_ERR: Final[Invalid[Serializable]] = Invalid(["expected a boolean"])
+from koda_validate._internal import _ExactTypeValidator
 
 
-class BoolValidator(Validator[Any, bool, Serializable]):
-    __match_args__ = ("predicates", "predicates_async", "preprocessors")
-    __slots__ = ("predicates", "predicates_async", "preprocessors")
+class BoolValidator(_ExactTypeValidator[bool]):
+    r"""
+    Validate a value is a ``bool``, and any extra refinement.
 
-    def __init__(
-        self,
-        *predicates: Predicate[bool, Serializable],
-        predicates_async: Optional[List[PredicateAsync[bool, Serializable]]] = None,
-        preprocessors: Optional[List[Processor[bool]]] = None,
-    ) -> None:
-        self.predicates = predicates
-        self.predicates_async = predicates_async
-        self.preprocessors = preprocessors
+    If ``predicates_async`` is supplied, the ``__call__`` method should not be
+    called -- only ``.validate_async`` should be used.
 
-    def __call__(self, val: Any) -> Validated[bool, Serializable]:
-        if self.predicates_async:
-            _async_predicates_warning(self.__class__)
+    :param predicates: any number of ``Predicate[bool]`` instances
+    :param predicates_async: any number of ``PredicateAsync[bool]`` instances
+    :param preprocessors: any number of ``Processor[bool]``, which will be run before
+        :class:`Predicate`\s and :class:`PredicateAsync`\s are checked.
+    """
 
-        if type(val) is bool:
-            if self.preprocessors:
-                for proc in self.preprocessors:
-                    val = proc(val)
-
-            if self.predicates:
-                if errors := [
-                    pred.err(val) for pred in self.predicates if not pred.is_valid(val)
-                ]:
-                    return Invalid(errors)
-                else:
-                    return Valid(val)
-            else:
-                return Valid(val)
-        else:
-            return EXPECTED_BOOL_ERR
-
-    async def validate_async(self, val: Any) -> Validated[bool, Serializable]:
-        if type(val) is bool:
-            return await _handle_scalar_processors_and_predicates_async(
-                val, self.preprocessors, self.predicates, self.predicates_async
-            )
-        else:
-            return EXPECTED_BOOL_ERR
+    _TYPE = bool

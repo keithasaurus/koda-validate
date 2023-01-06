@@ -27,5 +27,5 @@ match person_validator({"full name": "John Doe", "age": 30}):
             case nothing:
                 age_message = "ageless"
         print(f"{person.name} is {age_message}")
-    case Invalid(errs):
+    case Invalid(_, errs):
         print(errs)

@@ -1,22 +1,27 @@
 import asyncio
 import re
+from dataclasses import dataclass
 
 import pytest
 
-from koda_validate import EmailPredicate, PredicateAsync, RegexPredicate, Serializable
-from koda_validate._generics import A
-from koda_validate.string import (
-    BLANK_STRING_MSG,
+from koda_validate import (
+    EmailPredicate,
+    Invalid,
     MaxLength,
     MinLength,
     NotBlank,
-    StringValidator,
+    PredicateAsync,
+    PredicateErrs,
+    RegexPredicate,
+    TypeErr,
+    Valid,
     lower_case,
     not_blank,
     strip,
     upper_case,
 )
-from koda_validate.validated import Invalid, Valid
+from koda_validate._generics import A
+from koda_validate.string import StringValidator
 
 
 def test_strip() -> None:
@@ -33,21 +38,25 @@ def test_lower_case() -> None:
 
 
 def test_string_validator() -> None:
-    assert StringValidator()(False) == Invalid(["expected a string"])
+    s_v = StringValidator()
+    assert s_v(False) == Invalid(TypeErr(str), False, s_v)
 
     assert StringValidator()("abc") == Valid("abc")
 
-    assert StringValidator(MaxLength(3))("something") == Invalid(
-        ["maximum allowed length is 3"]
+    s_min_3_v = StringValidator(MaxLength(3))
+    assert s_min_3_v("something") == Invalid(
+        PredicateErrs([MaxLength(3)]), "something", s_min_3_v
     )
 
     min_len_3_not_blank_validator = StringValidator(MinLength(3), NotBlank())
 
     assert min_len_3_not_blank_validator("") == Invalid(
-        ["minimum allowed length is 3", "cannot be blank"]
+        PredicateErrs([MinLength(3), not_blank]), "", min_len_3_not_blank_validator
     )
 
-    assert min_len_3_not_blank_validator("   ") == Invalid(["cannot be blank"])
+    assert min_len_3_not_blank_validator("   ") == Invalid(
+        PredicateErrs([not_blank]), "   ", min_len_3_not_blank_validator
+    )
 
     assert min_len_3_not_blank_validator("something") == Valid("something")
 
@@ -57,37 +66,38 @@ def test_string_validator() -> None:
 
 
 def test_max_string_length() -> None:
-    assert MaxLength(0)("") == Valid("")
+    assert MaxLength(0)("") is True
 
-    assert MaxLength(5)("abc") == Valid("abc")
+    assert MaxLength(5)("abc") is True
 
-    assert MaxLength(5)("something") == Invalid("maximum allowed length is 5")
+    assert MaxLength(5)("something") is False
 
 
 def test_min_string_length() -> None:
-    assert MinLength(0)("") == Valid("")
+    assert MinLength(0)("") is True
 
-    assert MinLength(3)("abc") == Valid("abc")
+    assert MinLength(3)("abc") is True
 
-    assert MinLength(3)("zz") == Invalid("minimum allowed length is 3")
+    assert MinLength(3)("zz") is False
 
 
 def test_regex_validator() -> None:
-    assert RegexPredicate(re.compile(r".+"))("something") == Valid("something")
-    assert RegexPredicate(re.compile(r".+"))("") == Invalid("must match pattern .+")
+    v = RegexPredicate(re.compile(r".+"))
+    assert v("something") is True
+    assert v("") is False
 
 
 def test_not_blank() -> None:
-    assert NotBlank()("a") == Valid("a")
-    assert NotBlank()("") == Invalid(BLANK_STRING_MSG)
-    assert NotBlank()(" ") == Invalid(BLANK_STRING_MSG)
-    assert NotBlank()("\t") == Invalid(BLANK_STRING_MSG)
-    assert NotBlank()("\n") == Invalid(BLANK_STRING_MSG)
+    assert NotBlank()("a") is True
+    assert NotBlank()("") is False
+    assert NotBlank()(" ") is False
+    assert NotBlank()("\t") is False
+    assert NotBlank()("\n") is False
 
 
 def test_email() -> None:
-    assert EmailPredicate()("notanemail") == Invalid("expected a valid email address")
-    assert EmailPredicate()("a@b.com") == Valid("a@b.com")
+    assert EmailPredicate()("notanemail") is False
+    assert EmailPredicate()("a@b.com") is True
 
 
 @pytest.mark.asyncio
@@ -96,33 +106,77 @@ async def test_validate_fake_db_async() -> None:
 
     hit = []
 
-    class CheckUsername(PredicateAsync[str, Serializable]):
-        async def is_valid_async(self, val: str) -> bool:
+    @dataclass
+    class CheckUsername(PredicateAsync[str]):
+        async def validate_async(self, val: str) -> bool:
             hit.append("ok")
             # fake db call
             await asyncio.sleep(0.001)
             return val == test_valid_username
 
-        async def err_async(self, val: str) -> Serializable:
-            return "not in db!"
-
-    result = await StringValidator(predicates_async=[CheckUsername()]).validate_async(
-        "bad username"
-    )
+    validator = StringValidator(predicates_async=[CheckUsername()])
+    result = await validator.validate_async("bad username")
     assert hit == ["ok"]
-    assert result == Invalid(["not in db!"])
-    assert await StringValidator().validate_async(5) == Invalid(["expected a string"])
+    assert result == Invalid(PredicateErrs([CheckUsername()]), "bad username", validator)
+    s_v = StringValidator()
+    assert await s_v.validate_async(5) == Invalid(TypeErr(str), 5, s_v)
 
 
 def test_sync_call_with_async_predicates_raises_assertion_error() -> None:
-    class AsyncWait(PredicateAsync[A, Serializable]):
-        async def is_valid_async(self, val: A) -> bool:
+    class AsyncWait(PredicateAsync[A]):
+        async def validate_async(self, val: A) -> bool:
             await asyncio.sleep(0.001)
             return True
-
-        async def err_async(self, val: A) -> Serializable:
-            return "should always succeed??"
 
     str_validator = StringValidator(predicates_async=[AsyncWait()])
     with pytest.raises(AssertionError):
         str_validator(5)
+
+
+@dataclass
+class StrAsyncPred(PredicateAsync[str]):
+    async def validate_async(self, val: str) -> bool:
+        return True
+
+
+def test_repr() -> None:
+    s = StringValidator()
+    assert repr(s) == "StringValidator()"
+
+    s_len = StringValidator(MinLength(1), MaxLength(5))
+    assert repr(s_len) == "StringValidator(MinLength(length=1), MaxLength(length=5))"
+
+    s_all = StringValidator(
+        MinLength(1), predicates_async=[StrAsyncPred()], preprocessors=[strip]
+    )
+
+    assert (
+        repr(s_all) == "StringValidator(MinLength(length=1), "
+        "predicates_async=[StrAsyncPred()], preprocessors=[Strip()])"
+    )
+
+
+def test_equivalence() -> None:
+    s_1 = StringValidator()
+    s_2 = StringValidator()
+    assert s_1 == s_2
+
+    s_pred_1 = StringValidator(MaxLength(1))
+    assert s_pred_1 != s_1
+    s_pred_2 = StringValidator(MaxLength(1))
+    assert s_pred_2 == s_pred_1
+
+    s_pred_async_1 = StringValidator(MaxLength(1), predicates_async=[StrAsyncPred()])
+    assert s_pred_async_1 != s_pred_1
+    s_pred_async_2 = StringValidator(MaxLength(1), predicates_async=[StrAsyncPred()])
+    assert s_pred_async_1 == s_pred_async_2
+
+    s_preproc_1 = StringValidator(
+        MaxLength(1), predicates_async=[StrAsyncPred()], preprocessors=[strip]
+    )
+    assert s_preproc_1 != s_pred_async_1
+
+    s_preproc_2 = StringValidator(
+        MaxLength(1), predicates_async=[StrAsyncPred()], preprocessors=[strip]
+    )
+    assert s_preproc_1 == s_preproc_2

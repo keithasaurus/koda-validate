@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 22.10.0
+    rev: 22.12.0
     hooks:
       - id: black
 
@@ -9,3 +9,9 @@ repos:
     hooks:
       - id: isort
         name: isort (python)
+# disabled (for now?) because it messes with docstring placement -- this breaks instance
+#   variable documentation on classes
+#  - repo: https://github.com/bwhmather/ssort
+#    rev: v0.11.6
+#    hooks:
+#      - id: ssort

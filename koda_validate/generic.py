@@ -1,136 +1,111 @@
+from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, List, Optional, Set, TypeVar
+from typing import Any, ClassVar, Hashable, List, Optional, Set, Tuple, Type, TypeVar
 from uuid import UUID
 
 from koda import Thunk
 from koda._generics import A
 
 from koda_validate._generics import Ret
-from koda_validate.base import (
-    Predicate,
-    Processor,
-    Serializable,
-    Validator,
-    _ResultTupleUnsafe,
-    _ToTupleValidatorUnsafe,
-)
-from koda_validate.validated import Invalid, Valid, Validated
-
-EnumT = TypeVar("EnumT", str, int)
+from koda_validate._internal import _ResultTuple, _ToTupleValidator
+from koda_validate.base import Predicate, Processor, Validator
+from koda_validate.errors import PredicateErrs, TypeErr
+from koda_validate.valid import Invalid, ValidationResult
 
 
-class Lazy(Validator[A, Ret, Serializable]):
+class Lazy(Validator[Ret]):
+    """
+    Allows for specification of mutually recursive type definitions.
+    """
+
     __match_args__ = (
-        "validator",
-        "recurrent",
-    )
-    __slots__ = (
         "validator",
         "recurrent",
     )
 
     def __init__(
         self,
-        validator: Thunk[Validator[A, Ret, Serializable]],
+        validator: Thunk[Validator[Ret]],
         recurrent: bool = True,
     ) -> None:
         """
-        Args:
-            validator: the validator we actually want to use
-            recurrent: whether this is being used in a recursive way. This
-                is useful, so we can avoid infinite loops when traversing
-                over validators (i.e. for openapi generation)
+        :param validator: the validator we actually want to use
+        :param recurrent: whether this is being used in a recursive way. This
+            is useful, so we can avoid infinite loops when traversing
+            over validators (i.e. for openapi generation)
         """
         self.validator = validator
         self.recurrent = recurrent
 
-    def __call__(self, data: A) -> Validated[Ret, Serializable]:
-        return self.validator()(data)
-
-    async def validate_async(self, data: A) -> Validated[Ret, Serializable]:
+    async def validate_async(self, data: Any) -> ValidationResult[Ret]:
         return await self.validator().validate_async(data)
 
+    def __call__(self, data: Any) -> ValidationResult[Ret]:
+        return self.validator()(data)
 
-class Choices(Predicate[EnumT, Serializable]):
+    def __eq__(self, other: Any) -> bool:
+        return (
+            type(self) == type(other)
+            and self.validator == other.validator
+            and self.recurrent == other.recurrent
+        )
+
+    def __repr__(self) -> str:
+        return f"Lazy({repr(self.validator)}, recurrent={repr(self.recurrent)})"
+
+
+ChoiceT = TypeVar("ChoiceT", bound=Hashable)
+
+
+@dataclass
+class Choices(Predicate[ChoiceT]):
     """
-    This only exists separately from a more generic form because
-    mypy was having difficulty understanding the narrowed generic types. mypy 0.800
+    A allow to check some ``Hashable`` type against a finite set of values.
     """
 
-    __slots__ = ("choices", "_err")
-    __match_args__ = ("choices",)
+    choices: Set[ChoiceT]
 
-    def __init__(self, choices: Set[EnumT]) -> None:
-        self.choices: Set[EnumT] = choices
-        self._err = f"expected one of {sorted(self.choices)}"
-
-    def is_valid(self, val: EnumT) -> bool:
+    def __call__(self, val: ChoiceT) -> bool:
         return val in self.choices
 
-    def err(self, val: EnumT) -> Serializable:
-        return self._err
+
+MinMaxT = TypeVar("MinMaxT", int, float, Decimal, date, datetime)
 
 
-Num = TypeVar("Num", int, float, Decimal)
+@dataclass
+class Min(Predicate[MinMaxT]):
+    minimum: MinMaxT
+    exclusive_minimum: bool = False
 
-
-class Min(Predicate[Num, Serializable]):
-    __slots__ = (
-        "minimum",
-        "exclusive_minimum",
-        "_err",
-    )
-    __match_args__ = ("minimum", "exclusive_minimum")
-
-    def __init__(self, minimum: Num, exclusive_minimum: bool = False) -> None:
-        self.minimum: Num = minimum
-        self.exclusive_minimum = exclusive_minimum
-        exclusive = " (exclusive)" if self.exclusive_minimum else ""
-        self._err = f"minimum allowed value{exclusive} is {self.minimum}"
-
-    def is_valid(self, val: Num) -> bool:
+    def __call__(self, val: MinMaxT) -> bool:
         if self.exclusive_minimum:
             return val > self.minimum
         else:
             return val >= self.minimum
 
-    def err(self, val: Num) -> str:
-        return self._err
 
+@dataclass
+class Max(Predicate[MinMaxT]):
+    maximum: MinMaxT
+    exclusive_maximum: bool = False
 
-class Max(Predicate[Num, Serializable]):
-    __slots__ = ("maximum", "exclusive_maximum", "_err")
-    __match_args__ = ("maximum", "exclusive_maximum")
-
-    def __init__(self, maximum: Num, exclusive_maximum: bool = False) -> None:
-        self.maximum: Num = maximum
-        self.exclusive_maximum = exclusive_maximum
-        exclusive = " (exclusive)" if self.exclusive_maximum else ""
-        self._err = f"maximum allowed value{exclusive} is {self.maximum}"
-
-    def is_valid(self, val: Num) -> bool:
+    def __call__(self, val: MinMaxT) -> bool:
         if self.exclusive_maximum:
             return val < self.maximum
         else:
             return val <= self.maximum
 
-    def err(self, val: Num) -> str:
-        return self._err
+
+Num = TypeVar("Num", int, float, Decimal)
 
 
-class MultipleOf(Predicate[Num, Serializable]):
-    __slots__ = ("factor",)
-    __match_args__ = ("factor",)
+@dataclass
+class MultipleOf(Predicate[Num]):
+    factor: Num
 
-    def __init__(self, factor: Num) -> None:
-        self.factor: Num = factor
-
-    def is_valid(self, val: Num) -> bool:
+    def __call__(self, val: Num) -> bool:
         return val % self.factor == 0
-
-    def err(self, val: Num) -> str:
-        return f"expected multiple of {self.factor}"
 
 
 # todo: expand types?
@@ -139,6 +114,7 @@ class MultipleOf(Predicate[Num, Serializable]):
 ExactMatchT = TypeVar(
     "ExactMatchT",
     bool,
+    bytes,
     int,
     Decimal,
     str,
@@ -149,47 +125,218 @@ ExactMatchT = TypeVar(
 )
 
 
-class ExactValidator(Validator[Any, ExactMatchT, Serializable]):
-    __slots__ = ("match", "preprocessors")
-    __match_args__ = ("match", "preprocessors")
+@dataclass
+class EqualTo(Predicate[ExactMatchT]):
+    match: ExactMatchT
+
+    def __call__(self, val: ExactMatchT) -> bool:
+        return val == self.match
+
+
+@dataclass(init=False)
+class EqualsValidator(_ToTupleValidator[ExactMatchT]):
+    """
+    Check if a value is of the same type as ``match`` *and* check that that
+    value is equivalent.
+    """
+
+    match: ExactMatchT
+    preprocessors: Optional[List[Processor[ExactMatchT]]] = None
 
     def __init__(
         self,
         match: ExactMatchT,
         preprocessors: Optional[List[Processor[ExactMatchT]]] = None,
     ) -> None:
-        self.match: ExactMatchT = match
-        self.preprocessors: Optional[List[Processor[ExactMatchT]]] = preprocessors
+        self.match = match
+        self.preprocessors = preprocessors
+        self.predicate: EqualTo[ExactMatchT] = EqualTo(match)
 
-    def __call__(self, val: Any) -> Validated[ExactMatchT, Serializable]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[ExactMatchT]:
+        return self._validate_to_tuple(val)
+
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[ExactMatchT]:
         if (match_type := type(self.match)) == type(val):
             if self.preprocessors:
                 for preprocess in self.preprocessors:
                     val = preprocess(val)
 
-            if self.match == val:
-                return Valid(val)
-
-        # ok, we've failed
-        if isinstance(self.match, str):
-            value_str = f'"{self.match}"'
+            if self.predicate(val):
+                return True, val
+            else:
+                return False, Invalid(PredicateErrs([self.predicate]), val, self)
         else:
-            value_str = str(self.match)
-
-        return Invalid([f"expected exactly {value_str} ({match_type.__name__})"])
-
-    async def validate_async(self, val: Any) -> Validated[ExactMatchT, Serializable]:
-        return self(val)
+            return False, Invalid(TypeErr(match_type), val, self)
 
 
-class AlwaysValid(_ToTupleValidatorUnsafe[A, A, Serializable]):
+class AlwaysValid(_ToTupleValidator[A]):
+    """
+    Whatever value is submitted for validation will be returned as valid
+    """
+
     __match_args__ = ()
 
-    def validate_to_tuple(self, val: A) -> _ResultTupleUnsafe:
+    _instance: ClassVar[Optional["AlwaysValid[Any]"]] = None
+
+    def __new__(cls) -> "AlwaysValid[A]":
+        # make a singleton
+        if cls._instance is None:
+            cls._instance = super(AlwaysValid, cls).__new__(cls)
+        return cls._instance
+
+    def _validate_to_tuple(self, val: A) -> _ResultTuple[A]:
         return True, val
 
-    async def validate_to_tuple_async(self, val: A) -> _ResultTupleUnsafe:
+    async def _validate_to_tuple_async(self, val: A) -> _ResultTuple[A]:
         return True, val
 
+    def __repr__(self) -> str:
+        return "AlwaysValid()"
 
-always_valid: _ToTupleValidatorUnsafe[Any, Any, Serializable] = AlwaysValid()
+
+# Any must be the generic param here, but, AlwaysValid() can take on any generic type
+always_valid: AlwaysValid[Any] = AlwaysValid()
+
+ListOrTupleOrSetAny = TypeVar("ListOrTupleOrSetAny", List[Any], Tuple[Any, ...], Set[Any])
+
+
+@dataclass
+class MinItems(Predicate[ListOrTupleOrSetAny]):
+    item_count: int
+
+    def __call__(self, val: ListOrTupleOrSetAny) -> bool:
+        return len(val) >= self.item_count
+
+
+@dataclass
+class MaxItems(Predicate[ListOrTupleOrSetAny]):
+    item_count: int
+
+    def __call__(self, val: ListOrTupleOrSetAny) -> bool:
+        return len(val) <= self.item_count
+
+
+@dataclass
+class ExactItemCount(Predicate[ListOrTupleOrSetAny]):
+    item_count: int
+
+    def __call__(self, val: ListOrTupleOrSetAny) -> bool:
+        return len(val) == self.item_count
+
+
+@dataclass
+class UniqueItems(Predicate[ListOrTupleOrSetAny]):
+    """
+    Works with both hashable and unhashable items.
+    """
+
+    def __call__(self, val: ListOrTupleOrSetAny) -> bool:
+        hashable_items: Set[Tuple[Type[Any], Any]] = set()
+        # slower lookups for unhashables
+        unhashable_items: List[Tuple[Type[Any], Any]] = []
+        for item in val:
+            # needed to tell difference between things like
+            # ints and bools
+            typed_lookup = (type(item), item)
+            try:
+                if typed_lookup in hashable_items:
+                    return False
+                else:
+                    hashable_items.add(typed_lookup)
+            except TypeError:  # not hashable!
+                if typed_lookup in unhashable_items:
+                    return False
+                else:
+                    unhashable_items.append(typed_lookup)
+        else:
+            return True
+
+
+# mypy has a problem with this for Tuple[Any, ...]
+# for some types, you might need to use UniqueItems()
+unique_items = UniqueItems()
+
+StrOrBytes = TypeVar("StrOrBytes", str, bytes)
+
+
+@dataclass
+class MaxLength(Predicate[StrOrBytes]):
+    length: int
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return len(val) <= self.length
+
+
+@dataclass
+class MinLength(Predicate[StrOrBytes]):
+    length: int
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return len(val) >= self.length
+
+
+@dataclass
+class ExactLength(Predicate[StrOrBytes]):
+    length: int
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return len(val) == self.length
+
+
+@dataclass
+class StartsWith(Predicate[StrOrBytes]):
+    prefix: StrOrBytes
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return val.startswith(self.prefix)
+
+
+@dataclass
+class EndsWith(Predicate[StrOrBytes]):
+    suffix: StrOrBytes
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return val.endswith(self.suffix)
+
+
+@dataclass
+class NotBlank(Predicate[StrOrBytes]):
+    _instance: ClassVar[Optional["NotBlank[Any]"]] = None
+
+    def __new__(cls) -> "NotBlank[StrOrBytes]":
+        # make a singleton
+        if cls._instance is None:
+            cls._instance = super(NotBlank, cls).__new__(cls)
+        return cls._instance
+
+    def __call__(self, val: StrOrBytes) -> bool:
+        return len(val.strip()) != 0
+
+
+not_blank = NotBlank()
+
+
+@dataclass
+class Strip(Processor[StrOrBytes]):
+    def __call__(self, val: StrOrBytes) -> StrOrBytes:
+        return val.strip()
+
+
+strip = Strip()
+
+
+@dataclass
+class UpperCase(Processor[StrOrBytes]):
+    def __call__(self, val: StrOrBytes) -> StrOrBytes:
+        return val.upper()
+
+
+@dataclass
+class LowerCase(Processor[StrOrBytes]):
+    def __call__(self, val: StrOrBytes) -> StrOrBytes:
+        return val.lower()
+
+
+upper_case = UpperCase()
+
+lower_case = LowerCase()

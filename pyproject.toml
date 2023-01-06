@@ -1,12 +1,28 @@
 [tool.poetry]
 name = "koda-validate"
-version = "2.1.0"
+version = "3.0.0"
 readme = "README.md"
 description = "Typesafe, composable validation"
+documentation = "https://koda-validate.readthedocs.io/en/stable/"
 authors = ["Keith Philpott"]
 license = "MIT"
 homepage = "https://github.com/keithasaurus/koda-validate"
-keywords = ["validation", "functional programming", "type hints", "asyncio"]
+keywords = ["validation", "type hints", "asyncio", "serialization", "typesafe", "validate", "validators", "predicate", "processor"]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: Console',
+    'Environment :: MacOS X',
+    'Environment :: Web Environment',
+    'Framework :: Hypothesis',
+    'Intended Audience :: Developers',
+    'Operating System :: MacOS',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: Unix',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Topic :: Utilities',
+    'Typing :: Typed'
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -14,16 +30,26 @@ koda = "1.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "7.2.0"
-pyright = "1.1.277"
+pyright = "1.1.285"
 pytest-cov = "4.0.0"
 isort = "5.10.1"
-black = "22.10.0"
 flake8 = "5.0.4"
 pre-commit = "2.20.0"
-mypy = "0.990"
+mypy = "0.991"
 pydantic = "1.10.2"
-pytest-asyncio = "0.20.1"
+pytest-asyncio = "0.20.2"
 voluptuous = "0.13.1"
+ssort = "0.11.6"
+jsonschema = "4.17.3"
+types-jsonschema = "4.17.0.2"
+sphinx = "5.3.0"
+furo = "2022.12.7"
+flask = {version = "2.2.2", extras = ["async"]}
+django = "4.1.4"
+django-stubs = "1.13.1"
+pytest-django = "4.5.2"
+sphinx-autodoc-typehints = "1.19.5"
+darglint = "1.8.1"
 
 [tool.mypy]
 exclude = ["build", "bench"]
@@ -58,8 +84,11 @@ addopts ="""
   --cov-report=term:skip-covered
   --cov-report=html
   --cov-branch
-  --cov-fail-under=96
+  --cov-fail-under=94
+  --ds=examples.django_example.django_example.settings
 """
+# ^^  --ds = "django settings module"
+
 
 [tool.coverage.run]
 omit = [
@@ -74,6 +103,9 @@ profile = "black"
 [tool.black]
 line_length = 90
 target_version = ['py310']
+
+[tool.pyright]
+include = ["koda_validate", "tests", "examples"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

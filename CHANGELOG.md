@@ -1,3 +1,42 @@
+3.0.0 (Jan. 5, 2023)
+**Features**
+- Derived Validators: `TypedDictValidator`, `DataclassValidator`, `NamedTupleValidator`
+- `UnionValidator` replaces `OneOf2`, `OneOf3`
+- `NTupleValidator` replaces `Tuple2Validator`, `Tuple2Validator`
+- `UniformTupleValidator`
+- `SetValidator`
+- `BytesValidator`
+- New `Valid`/`Invalid` types
+- `MaybeValidator`
+- `CacheValidatorBase`
+- Errors decoupled from Serialization
+- Fewer Generic Arguments needed for `Validator`s, `Predicate`s and `PrediateAsync`s
+- `koda_validate.serialization.to_json_schema`
+
+**Removals**
+- `OneOf2`
+- `OneOf3`
+- `Tuple2Validator`
+- `Tuple3Validator`
+
+**Breaking Changes**
+- `UnionValidator` replaces `OneOf2`, `OneOf3`
+- `NTupleValidator` replaces `Tuple2Validator`, `Tuple2Validator` 
+- New `Valid`/`Invalid` types -- need `koda_validate.to_serializable_errs` to produce serializable errors
+
+**Performance**
+- Various optimizations in dictionary `Validator`s
+- Optimizations in scalar validators (StringValidator, IntValidator, etc.) for common use cases
+- Overall speedups of around 30% for common validation cases
+- More benchmarks
+
+**Maintenance**
+- New Docs Site
+- Restructure project layout
+  - _internal.py
+  - move serialization to koda_validate.serialization
+- More benchmarks
+
 2.1.0 (Nov. 9, 2022)
 **Features**
 - `UUIDValidator`
