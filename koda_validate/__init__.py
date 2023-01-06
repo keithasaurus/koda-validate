@@ -1,3 +1,7 @@
+import importlib.metadata
+
+__version__ = importlib.metadata.version("koda_validate")
+
 __all__ = (
     # base.py
     "Validator",

@@ -8,7 +8,7 @@ from typing import List
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Koda Validate"
-copyright = "2022, Keith Philpott"
+copyright = "2023, Keith Philpott"
 author = "Keith Philpott"
 release = "3.0.0"
 
