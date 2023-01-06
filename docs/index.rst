@@ -252,7 +252,7 @@ Contents
 
 .. toctree::
    :maxdepth: 2
-   :caption: Setup
+   :caption: Getting Started
 
    setup/installation
    setup/type-checking

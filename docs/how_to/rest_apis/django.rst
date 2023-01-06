@@ -10,9 +10,10 @@ Basic
     from dataclasses import dataclass
     from typing import Annotated, Optional
 
-    from django.http import HttpRequest, JsonResponse, HttpResponse
+    from django.http import HttpRequest, HttpResponse, JsonResponse
 
     from koda_validate import *
+    from koda_validate.serialization import to_serializable_errs
 
 
     @dataclass
@@ -55,6 +56,7 @@ Fuller Example (with Async)
     from django.http import HttpRequest, HttpResponse, JsonResponse
 
     from koda_validate import *
+    from koda_validate.serialization import SerializableErr, to_serializable_errs
 
 
     class Captcha(TypedDict):
@@ -105,6 +107,6 @@ Fuller Example (with Async)
                     return JsonResponse(to_serializable_errs(inv), status=400, safe=False)
 
 
-    # if you want a JSON Schema from a :class:`Validator<koda_validate.Validator>`, there's `to_json_schema()`
+    # if you want a JSON Schema from a ``Validator``, there's `to_json_schema()`
     # schema = to_json_schema(contact_validator)
     # hook_into_some_api_definition(schema)
