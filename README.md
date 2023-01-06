@@ -4,7 +4,7 @@ Build typesafe validators automatically or explicitly -- or write your own. Comb
 build validators of arbitrary complexity. Koda Validate is async-friendly, pure Python, and
 1.5x - 12x faster than Pydantic.
 
-Docs: [https://koda-validate.readthedocs.io/en/latest/](https://koda-validate.readthedocs.io/en/latest/)
+Docs: [https://koda-validate.readthedocs.io/en/stable/](https://koda-validate.readthedocs.io/en/stable/)
 
 ```python
 
@@ -26,7 +26,7 @@ person_validator = TypedDictValidator(Person)
 
 ```
 
-There's much, much more... Check out the [Docs](https://koda-validate.readthedocs.io/en/latest/).
+There's much, much more... Check out the [Docs](https://koda-validate.readthedocs.io/en/stable/).
 
 
 ## Something's Missing Or Wrong 
