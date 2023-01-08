@@ -7,14 +7,18 @@ from typing import (
     Literal,
     NoReturn,
     Optional,
+    Set,
     Tuple,
     Type,
     Union,
 )
 
+from _decimal import Decimal
+from koda import Result
+
 from koda_validate._generics import A, SuccessT
 from koda_validate.base import Predicate, PredicateAsync, Processor, Validator
-from koda_validate.errors import PredicateErrs, TypeErr, UnionErrs
+from koda_validate.errors import CoercionErr, PredicateErrs, TypeErr, UnionErrs
 from koda_validate.valid import Invalid, Valid, ValidationResult
 
 _ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], Invalid]]
@@ -54,7 +58,7 @@ class _ToTupleValidator(Validator[SuccessT]):
 
 
 def _simple_type_validator(
-    instance: "_ExactTypeValidator[A]", type_: Type[A], type_err: TypeErr
+    instance: "_ToTupleScalarValidator[A]", type_: Type[A], type_err: TypeErr
 ) -> Callable[[Any], _ResultTuple[A]]:
     def inner(val: Any) -> _ResultTuple[A]:
         if type(val) is type_:
@@ -84,7 +88,7 @@ def _repr_helper(cls: Type[Any], arg_strs: List[str]) -> str:
     return f"{cls.__name__}({', '.join(arg_strs)})"
 
 
-class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
+class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
     """
     This `Validator` subclass exists primarily for code cleanliness and standardization.
     It allows us to have very simple Scalar validators.
@@ -107,6 +111,7 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
         *predicates: Predicate[SuccessT],
         predicates_async: Optional[List[PredicateAsync[SuccessT]]] = None,
         preprocessors: Optional[List[Processor[SuccessT]]] = None,
+        coerce_to_type: Optional[Callable[[Any], Result[Decimal, Set[Type[Any]]]]] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
@@ -114,9 +119,15 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
         _type_err = TypeErr(self._TYPE)
         self._type_err = _type_err
         self._disallow_synchronous = bool(predicates_async)
+        self.coerce_to_type = coerce_to_type
 
         # optimization for simple  validators. can speed up by ~15%
-        if not predicates and not predicates_async and not preprocessors:
+        if (
+            not predicates
+            and not predicates_async
+            and not preprocessors
+            and not coerce_to_type
+        ):
             self._validate_to_tuple = _simple_type_validator(  # type: ignore
                 self, self._TYPE, _type_err
             )
@@ -125,44 +136,59 @@ class _ExactTypeValidator(_ToTupleValidator[SuccessT]):
         if self._disallow_synchronous:
             _async_predicates_warning(self.__class__)
 
-        if type(val) is self._TYPE:
-            if self.preprocessors:
-                for proc in self.preprocessors:
-                    val = proc(val)
+        if self.coerce_to_type:
+            result = self.coerce_to_type(val)
+            if not result.is_ok:
+                return False, Invalid(CoercionErr(result.val, self._TYPE), val, self)
+            # val is now SuccessT
+            val = result.val
+        elif type(val) is not self._TYPE:
+            return False, Invalid(self._type_err, val, self)
 
-            if self.predicates:
-                errors: List[Any] = [pred for pred in self.predicates if not pred(val)]
-                if errors:
-                    return False, Invalid(PredicateErrs(errors), val, self)
-                else:
-                    return True, val
-            else:
-                return True, val
-        return False, Invalid(self._type_err, val, self)
+        if self.preprocessors:
+            for proc in self.preprocessors:
+                val = proc(val)
 
-    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[SuccessT]:
-        if type(val) is self._TYPE:
-            if self.preprocessors:
-                for proc in self.preprocessors:
-                    val = proc(val)
-
-            errors: List[Union[Predicate[SuccessT], PredicateAsync[SuccessT]]] = [
-                pred for pred in self.predicates if not pred(val)
-            ]
-
-            if self.predicates_async:
-                errors.extend(
-                    [
-                        pred
-                        for pred in self.predicates_async
-                        if not await pred.validate_async(val)
-                    ]
-                )
+        if self.predicates:
+            errors: List[Any] = [pred for pred in self.predicates if not pred(val)]
             if errors:
                 return False, Invalid(PredicateErrs(errors), val, self)
             else:
                 return True, val
-        return False, Invalid(self._type_err, val, self)
+        else:
+            return True, val
+
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[SuccessT]:
+        if self.coerce_to_type:
+            result = self.coerce_to_type(val)
+            if not result.is_ok:
+                return False, Invalid(CoercionErr(result.val, self._TYPE), val, self)
+            # val is now SuccessT
+            val = result.val
+
+        elif type(val) is not self._TYPE:
+            return False, Invalid(self._type_err, val, self)
+
+        if self.preprocessors:
+            for proc in self.preprocessors:
+                val = proc(val)
+
+        errors: List[Union[Predicate[SuccessT], PredicateAsync[SuccessT]]] = [
+            pred for pred in self.predicates if not pred(val)
+        ]
+
+        if self.predicates_async:
+            errors.extend(
+                [
+                    pred
+                    for pred in self.predicates_async
+                    if not await pred.validate_async(val)
+                ]
+            )
+        if errors:
+            return False, Invalid(PredicateErrs(errors), val, self)
+        else:
+            return True, val
 
     def __eq__(self, other: Any) -> bool:
         return (

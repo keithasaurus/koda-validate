@@ -5,6 +5,8 @@ from koda_validate._internal import _CoercingValidator, _ResultTuple
 from koda_validate.errors import CoercionErr
 from koda_validate.valid import Invalid
 
+# class CoerceDate(Coercer[Date])
+
 
 class DateValidator(_CoercingValidator[date]):
     def coerce_to_type(self, val: Any) -> _ResultTuple[date]:

@@ -1,7 +1,7 @@
-from koda_validate._internal import _ExactTypeValidator
+from koda_validate._internal import _ToTupleScalarValidator
 
 
-class BoolValidator(_ExactTypeValidator[bool]):
+class BoolValidator(_ToTupleScalarValidator[bool]):
     r"""
     Validate a value is a ``bool``, and any extra refinement.
 

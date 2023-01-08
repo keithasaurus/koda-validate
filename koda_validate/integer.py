@@ -1,7 +1,7 @@
-from koda_validate._internal import _ExactTypeValidator
+from koda_validate._internal import _ToTupleScalarValidator
 
 
-class IntValidator(_ExactTypeValidator[int]):
+class IntValidator(_ToTupleScalarValidator[int]):
     r"""
     Validate a value is a ``int``, and any extra refinement.
 
