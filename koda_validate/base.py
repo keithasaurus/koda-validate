@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Set, Type
+from typing import TYPE_CHECKING, Any, Generic
 
 from koda import Maybe
 

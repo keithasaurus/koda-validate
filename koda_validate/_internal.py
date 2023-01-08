@@ -111,7 +111,9 @@ class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
         *predicates: Predicate[SuccessT],
         predicates_async: Optional[List[PredicateAsync[SuccessT]]] = None,
         preprocessors: Optional[List[Processor[SuccessT]]] = None,
-        coerce_to_type: Optional[Callable[[Any], Result[Decimal, Set[Type[Any]]]]] = None,
+        coerce_to_type: Optional[
+            Callable[[Any], Result[SuccessT, Set[Type[Any]]]]
+        ] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
@@ -189,106 +191,6 @@ class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
             return False, Invalid(PredicateErrs(errors), val, self)
         else:
             return True, val
-
-    def __eq__(self, other: Any) -> bool:
-        return (
-            type(other) is type(self)
-            and self.predicates == other.predicates
-            and self.predicates_async == other.predicates_async
-            and self.preprocessors == other.preprocessors
-        )
-
-    def __repr__(self) -> str:
-        return _repr_helper(
-            self.__class__,
-            ([] if not self.predicates else [repr(p) for p in self.predicates])
-            + [
-                f"{k}={repr(v)}"
-                for k, v in [
-                    ("predicates_async", self.predicates_async),
-                    ("preprocessors", self.preprocessors),
-                ]
-                if v
-            ],
-        )
-
-
-class _CoercingValidator(_ToTupleValidator[SuccessT]):
-    """
-    This `Validator` subclass exists primarily for code cleanliness and standardization.
-    It allows us to have very simple Scalar validators.
-
-    This class may go away!
-
-    DO NOT USE THIS UNLESS YOU:
-    - ARE OK WITH THIS DISAPPEARING IN A FUTURE RELEASE
-    - ARE GOING TO TEST YOUR CODE EXTENSIVELY
-    """
-
-    __match_args__ = ("predicates", "predicates_async", "preprocessors")
-
-    def __init__(
-        self,
-        *predicates: Predicate[SuccessT],
-        predicates_async: Optional[List[PredicateAsync[SuccessT]]] = None,
-        preprocessors: Optional[List[Processor[SuccessT]]] = None,
-    ) -> None:
-        self.predicates = predicates
-        self.predicates_async = predicates_async
-        self.preprocessors = preprocessors
-        self._disallow_synchronous = bool(self.predicates_async)
-
-    def coerce_to_type(self, val: Any) -> _ResultTuple[SuccessT]:
-        raise NotImplementedError()  # pragma: no cover
-
-    def _validate_to_tuple(self, val: Any) -> _ResultTuple[SuccessT]:
-        if self._disallow_synchronous:
-            _async_predicates_warning(self.__class__)
-
-        result = self.coerce_to_type(val)
-        if result[0]:
-            val_or_type_err = result[1]
-            if self.preprocessors:
-                for proc in self.preprocessors:
-                    val_or_type_err = proc(val_or_type_err)
-
-            if self.predicates:
-                errors: List[Any] = [
-                    pred for pred in self.predicates if not pred(val_or_type_err)
-                ]
-                if errors:
-                    return False, Invalid(PredicateErrs(errors), val_or_type_err, self)
-                else:
-                    return True, val_or_type_err
-            else:
-                return True, val_or_type_err
-        return False, result[1]
-
-    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[SuccessT]:
-        result = self.coerce_to_type(val)
-        if result[0]:
-            val_or_type_err = result[1]
-            if self.preprocessors:
-                for proc in self.preprocessors:
-                    val_or_type_err = proc(val_or_type_err)
-
-            errors: List[Union[Predicate[SuccessT], PredicateAsync[SuccessT]]] = [
-                pred for pred in self.predicates if not pred(val_or_type_err)
-            ]
-
-            if self.predicates_async:
-                errors.extend(
-                    [
-                        pred
-                        for pred in self.predicates_async
-                        if not await pred.validate_async(val_or_type_err)
-                    ]
-                )
-            if errors:
-                return False, Invalid(PredicateErrs(errors), val_or_type_err, self)
-            else:
-                return True, val_or_type_err
-        return False, result[1]
 
     def __eq__(self, other: Any) -> bool:
         return (
