@@ -119,7 +119,7 @@ class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
         _type_err = TypeErr(self._TYPE)
         self._type_err = _type_err
         self._disallow_synchronous = bool(predicates_async)
-        self.coerce_to_type = coerce
+        self.coerce = coerce
 
         # optimization for simple  validators. can speed up by ~15%
         if not predicates and not predicates_async and not preprocessors and not coerce:
@@ -131,16 +131,17 @@ class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
         if self._disallow_synchronous:
             _async_predicates_warning(self.__class__)
 
-        if self.coerce_to_type:
-            result = self.coerce_to_type(val)
+        if self.coerce:
+            result = self.coerce(val)
             if not result.is_just:
                 return False, Invalid(
-                    CoercionErr(self.coerce_to_type.compatible_types, self._TYPE),
+                    CoercionErr(self.coerce.compatible_types, self._TYPE),
                     val,
                     self,
                 )
-            # val is now SuccessT
-            val = result.val
+            else:
+                # val is now SuccessT
+                val = result.val
         elif type(val) is not self._TYPE:
             return False, Invalid(self._type_err, val, self)
 
@@ -158,16 +159,17 @@ class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
             return True, val
 
     async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[SuccessT]:
-        if self.coerce_to_type:
-            result = self.coerce_to_type(val)
+        if self.coerce:
+            result = self.coerce(val)
             if not result.is_just:
                 return False, Invalid(
-                    CoercionErr(self.coerce_to_type.compatible_types, self._TYPE),
+                    CoercionErr(self.coerce.compatible_types, self._TYPE),
                     val,
                     self,
                 )
-            # val is now SuccessT
-            val = result.val
+            else:
+                # val is now SuccessT
+                val = result.val
 
         elif type(val) is not self._TYPE:
             return False, Invalid(self._type_err, val, self)

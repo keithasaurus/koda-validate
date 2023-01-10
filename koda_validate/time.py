@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Any, Callable, List, Optional, Set, Type
 
-from koda import Err, Just, Maybe, Ok, Result, nothing
+from koda import Just, Maybe, Result, nothing
 
 from koda_validate import Predicate, PredicateAsync, Processor
 from koda_validate._internal import _ToTupleScalarValidator
@@ -39,27 +39,15 @@ class DateValidator(_ToTupleScalarValidator[date]):
         )
 
 
-def coerce_datetime(val: Any) -> Result[datetime, Set[Type[Any]]]:
-    if type(val) is datetime:
-        return Ok(val)
-    else:
-        try:
-            # note isoparse from dateutil is more flexible if we want
-            # to add the dependency at some point
-            return Ok(datetime.fromisoformat(val))
-        except (ValueError, TypeError):
-            return Err({str, datetime})
+class CoerceDatetime(Coercer[datetime]):
+    compatible_types = {str, datetime}
 
-
-class CoerceDatetime(Coercer[date]):
-    compatible_types = {str, date}
-
-    def __call__(self, val: Any) -> Maybe[date]:
-        if type(val) is date:
+    def __call__(self, val: Any) -> Maybe[datetime]:
+        if type(val) is datetime:
             return Just(val)
         else:
             try:
-                return Just(date.fromisoformat(val))
+                return Just(datetime.fromisoformat(val))
             except (ValueError, TypeError):
                 return nothing
 
@@ -72,9 +60,7 @@ class DatetimeValidator(_ToTupleScalarValidator[datetime]):
         *predicates: Predicate[datetime],
         predicates_async: Optional[List[PredicateAsync[datetime]]] = None,
         preprocessors: Optional[List[Processor[datetime]]] = None,
-        coerce: Optional[
-            Callable[[Any], Result[datetime, Set[Type[Any]]]]
-        ] = coerce_datetime,
+        coerce: Optional[Coercer[datetime]] = CoerceDatetime(),
     ) -> None:
         super().__init__(
             *predicates,
