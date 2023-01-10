@@ -28,13 +28,11 @@ class UUIDValidator(_ToTupleScalarValidator[UUID]):
         *predicates: Predicate[UUID],
         predicates_async: Optional[List[PredicateAsync[UUID]]] = None,
         preprocessors: Optional[List[Processor[UUID]]] = None,
-        coerce_to_type: Optional[
-            Callable[[Any], Result[UUID, Set[Type[Any]]]]
-        ] = coerce_to_uuid,
+        coerce: Optional[Callable[[Any], Result[UUID, Set[Type[Any]]]]] = coerce_to_uuid,
     ) -> None:
         super().__init__(
             *predicates,
             predicates_async=predicates_async,
             preprocessors=preprocessors,
-            coerce_to_type=coerce_to_type,
+            coerce=coerce,
         )

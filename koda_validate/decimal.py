@@ -28,7 +28,7 @@ class DecimalValidator(_ToTupleScalarValidator[Decimal]):
         *predicates: Predicate[Decimal],
         predicates_async: Optional[List[PredicateAsync[Decimal]]] = None,
         preprocessors: Optional[List[Processor[Decimal]]] = None,
-        coerce_to_type: Optional[
+        coerce: Optional[
             Callable[[Any], Result[Decimal, Set[Type[Any]]]]
         ] = coerce_decimal,
     ) -> None:
@@ -36,5 +36,5 @@ class DecimalValidator(_ToTupleScalarValidator[Decimal]):
             *predicates,
             predicates_async=predicates_async,
             preprocessors=preprocessors,
-            coerce_to_type=coerce_to_type,
+            coerce=coerce,
         )

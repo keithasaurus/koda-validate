@@ -179,4 +179,7 @@ def get_typehint_validator_base(
 
 
 def get_typehint_validator(annotations: Any) -> Validator[Any]:
+    """
+    The "default" way to convert typehints to `Validator`
+    """
     return get_typehint_validator_base(get_typehint_validator, annotations)

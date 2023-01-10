@@ -25,15 +25,13 @@ class DateValidator(_ToTupleScalarValidator[date]):
         *predicates: Predicate[date],
         predicates_async: Optional[List[PredicateAsync[date]]] = None,
         preprocessors: Optional[List[Processor[date]]] = None,
-        coerce_to_type: Optional[
-            Callable[[Any], Result[date, Set[Type[Any]]]]
-        ] = coerce_date,
+        coerce: Optional[Callable[[Any], Result[date, Set[Type[Any]]]]] = coerce_date,
     ) -> None:
         super().__init__(
             *predicates,
             predicates_async=predicates_async,
             preprocessors=preprocessors,
-            coerce_to_type=coerce_to_type,
+            coerce=coerce,
         )
 
 
@@ -57,7 +55,7 @@ class DatetimeValidator(_ToTupleScalarValidator[datetime]):
         *predicates: Predicate[datetime],
         predicates_async: Optional[List[PredicateAsync[datetime]]] = None,
         preprocessors: Optional[List[Processor[datetime]]] = None,
-        coerce_to_type: Optional[
+        coerce: Optional[
             Callable[[Any], Result[datetime, Set[Type[Any]]]]
         ] = coerce_datetime,
     ) -> None:
@@ -65,5 +63,5 @@ class DatetimeValidator(_ToTupleScalarValidator[datetime]):
             *predicates,
             predicates_async=predicates_async,
             preprocessors=preprocessors,
-            coerce_to_type=coerce_to_type,
+            coerce=coerce,
         )

@@ -111,9 +111,7 @@ class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
         *predicates: Predicate[SuccessT],
         predicates_async: Optional[List[PredicateAsync[SuccessT]]] = None,
         preprocessors: Optional[List[Processor[SuccessT]]] = None,
-        coerce_to_type: Optional[
-            Callable[[Any], Result[SuccessT, Set[Type[Any]]]]
-        ] = None,
+        coerce: Optional[Callable[[Any], Result[SuccessT, Set[Type[Any]]]]] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
@@ -121,15 +119,10 @@ class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
         _type_err = TypeErr(self._TYPE)
         self._type_err = _type_err
         self._disallow_synchronous = bool(predicates_async)
-        self.coerce_to_type = coerce_to_type
+        self.coerce_to_type = coerce
 
         # optimization for simple  validators. can speed up by ~15%
-        if (
-            not predicates
-            and not predicates_async
-            and not preprocessors
-            and not coerce_to_type
-        ):
+        if not predicates and not predicates_async and not preprocessors and not coerce:
             self._validate_to_tuple = _simple_type_validator(  # type: ignore
                 self, self._TYPE, _type_err
             )
