@@ -1,13 +1,9 @@
 import functools
 import inspect
 import typing as t
-from datetime import date, datetime
-from uuid import UUID
-
-from _decimal import Decimal
 
 from koda_validate import *
-from koda_validate.typehints import get_typehint_validator, get_typehint_validator_base
+from koda_validate.typehints import get_typehint_validator
 
 _BaseDecoratedFunc = t.Callable[..., t.Any]
 DecoratedFunc = t.TypeVar("DecoratedFunc", bound=_BaseDecoratedFunc)
@@ -30,6 +26,13 @@ def validate_signature(
         else:
             schema[key] = typehint_resolver(param.annotation)
 
+    if not ignore_return and sig.return_annotation != sig.empty:
+        return_validator: t.Optional[Validator[t.Any]] = typehint_resolver(
+            sig.return_annotation
+        )
+    else:
+        return_validator = None
+
     @functools.wraps(func)
     def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
         errs: t.Dict[str, Invalid] = {}
@@ -43,8 +46,14 @@ def validate_signature(
 
         if errs:
             raise InvalidArgs(errs)
+        elif return_validator:
+            result = func(*args, **kwargs)
+            if (ret_result := return_validator(result)).is_valid:
+                return result
+            else:
+                raise InvalidArgs({"_RETURN_VALUE_": ret_result})
         else:
-            return t.cast(DecoratedFunc, func(*args, **kwargs))
+            return func(*args, **kwargs)
 
     return wrapper
 
@@ -66,8 +75,12 @@ def get_arg_fail_message(invalid: Invalid, depth=0, prefix="") -> str:
     return ret
 
 
+def get_args_fail_msg(errs: dict[str, Invalid]) -> str:
+    messages = [f"{k}: {get_arg_fail_message(v)}" for k, v in errs.items()]
+    return "\n" + "\n".join(messages)
+
+
 class InvalidArgs(Exception):
     def __init__(self, errs: dict[str, Invalid]) -> None:
-        messages = [f"{k}: {get_arg_fail_message(v)}" for k, v in errs.items()]
-        super().__init__("\n" + "\n".join(messages))
+        super().__init__(get_args_fail_msg(errs))
         self.errs = errs

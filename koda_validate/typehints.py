@@ -1,3 +1,4 @@
+import inspect
 import sys
 from dataclasses import is_dataclass
 from datetime import date, datetime
@@ -5,6 +6,7 @@ from decimal import Decimal
 
 from koda import Just, Nothing
 
+from .is_type import TypeValidator
 from .maybe import MaybeValidator
 
 if sys.version_info >= (3, 9):
@@ -116,19 +118,19 @@ def get_typehint_validator_base(
         if (origin is list or origin is List) and len(args) == 1:
             item_validator = get_hint_next_depth(args[0])
             return ListValidator(item_validator)
-        if (origin is set or origin is Set) and len(args) == 1:
+        elif (origin is set or origin is Set) and len(args) == 1:
             item_validator = get_hint_next_depth(args[0])
             return SetValidator(item_validator)
-        if (origin is dict or origin is Dict) and len(args) == 2:
+        elif (origin is dict or origin is Dict) and len(args) == 2:
             return MapValidator(
                 key=get_hint_next_depth(args[0]), value=get_hint_next_depth(args[1])
             )
-        if origin is Union or (sys.version_info >= (3, 10) and origin is UnionType):
+        elif origin is Union or (sys.version_info >= (3, 10) and origin is UnionType):
             if len(args) == 2 and args[1] is Nothing and get_origin(args[0]) is Just:
                 return MaybeValidator(get_hint_next_depth(get_args(args[0])[0]))
             else:
                 return UnionValidator(*[get_hint_next_depth(arg) for arg in args])
-        if origin is tuple or origin is Tuple:
+        elif origin is tuple or origin is Tuple:
             if len(args) == 2 and args[1] is Ellipsis:
                 return UniformTupleValidator(get_hint_next_depth(args[0]))
             else:
@@ -136,7 +138,7 @@ def get_typehint_validator_base(
                     fields=tuple(get_hint_next_depth(a) for a in args)
                 )
 
-        if origin is Literal:
+        elif origin is Literal:
             # The common case is that literals will be of the same type. For those
             # cases, we return the relevant type validator (if we have it).
             if len(args) == 0:
@@ -162,11 +164,13 @@ def get_typehint_validator_base(
             # or we haven't defined an explicit validator to use
             return UnionValidator(*[EqualsValidator(a) for a in args])
 
-        if sys.version_info >= (3, 11) and (origin is NotRequired or origin is Required):
+        elif sys.version_info >= (3, 11) and (
+            origin is NotRequired or origin is Required
+        ):
             return get_typehint_validator(args[0])
 
         # not validating with annotations at this point
-        if sys.version_info >= (3, 9) and origin is Annotated:
+        elif sys.version_info >= (3, 9) and origin is Annotated:
             if len(args) == 1:
                 return get_typehint_validator(args[0])
             else:
@@ -174,8 +178,11 @@ def get_typehint_validator_base(
                 for x in args:
                     if isinstance(x, Validator):
                         return x
-
-        raise TypeError(f"Got unhandled annotation: {repr(annotations)}.")
+        elif inspect.isclass(annotations):
+            # fall back to an explicit type checker
+            return TypeValidator(annotations)
+        else:
+            raise TypeError(f"Got unhandled annotation: {repr(annotations)}.")
 
 
 def get_typehint_validator(annotations: Any) -> Validator[Any]:
