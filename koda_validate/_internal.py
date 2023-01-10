@@ -17,7 +17,7 @@ from _decimal import Decimal
 from koda import Result
 
 from koda_validate._generics import A, SuccessT
-from koda_validate.base import Predicate, PredicateAsync, Processor, Validator
+from koda_validate.base import Coercer, Predicate, PredicateAsync, Processor, Validator
 from koda_validate.errors import CoercionErr, PredicateErrs, TypeErr, UnionErrs
 from koda_validate.valid import Invalid, Valid, ValidationResult
 
@@ -111,7 +111,7 @@ class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
         *predicates: Predicate[SuccessT],
         predicates_async: Optional[List[PredicateAsync[SuccessT]]] = None,
         preprocessors: Optional[List[Processor[SuccessT]]] = None,
-        coerce: Optional[Callable[[Any], Result[SuccessT, Set[Type[Any]]]]] = None,
+        coerce: Optional[Coercer[SuccessT]] = None,
     ) -> None:
         self.predicates = predicates
         self.predicates_async = predicates_async
@@ -133,8 +133,12 @@ class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
 
         if self.coerce_to_type:
             result = self.coerce_to_type(val)
-            if not result.is_ok:
-                return False, Invalid(CoercionErr(result.val, self._TYPE), val, self)
+            if not result.is_just:
+                return False, Invalid(
+                    CoercionErr(self.coerce_to_type.compatible_types, self._TYPE),
+                    val,
+                    self,
+                )
             # val is now SuccessT
             val = result.val
         elif type(val) is not self._TYPE:
@@ -156,8 +160,12 @@ class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
     async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[SuccessT]:
         if self.coerce_to_type:
             result = self.coerce_to_type(val)
-            if not result.is_ok:
-                return False, Invalid(CoercionErr(result.val, self._TYPE), val, self)
+            if not result.is_just:
+                return False, Invalid(
+                    CoercionErr(self.coerce_to_type.compatible_types, self._TYPE),
+                    val,
+                    self,
+                )
             # val is now SuccessT
             val = result.val
 

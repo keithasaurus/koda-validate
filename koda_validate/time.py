@@ -1,20 +1,24 @@
 from datetime import date, datetime
 from typing import Any, Callable, List, Optional, Set, Type
 
-from koda import Err, Ok, Result
+from koda import Err, Just, Maybe, Ok, Result, nothing
 
 from koda_validate import Predicate, PredicateAsync, Processor
 from koda_validate._internal import _ToTupleScalarValidator
+from koda_validate.base import Coercer
 
 
-def coerce_date(val: Any) -> Result[date, Set[Type[Any]]]:
-    if type(val) is date:
-        return Ok(val)
-    else:
-        try:
-            return Ok(date.fromisoformat(val))
-        except (ValueError, TypeError):
-            return Err({str, date})
+class CoerceDate(Coercer[date]):
+    compatible_types = {str, date}
+
+    def __call__(self, val: Any) -> Maybe[date]:
+        if type(val) is date:
+            return Just(val)
+        else:
+            try:
+                return Just(date.fromisoformat(val))
+            except (ValueError, TypeError):
+                return nothing
 
 
 class DateValidator(_ToTupleScalarValidator[date]):
@@ -25,7 +29,7 @@ class DateValidator(_ToTupleScalarValidator[date]):
         *predicates: Predicate[date],
         predicates_async: Optional[List[PredicateAsync[date]]] = None,
         preprocessors: Optional[List[Processor[date]]] = None,
-        coerce: Optional[Callable[[Any], Result[date, Set[Type[Any]]]]] = coerce_date,
+        coerce: Optional[Coercer[date]] = CoerceDate(),
     ) -> None:
         super().__init__(
             *predicates,
@@ -45,6 +49,19 @@ def coerce_datetime(val: Any) -> Result[datetime, Set[Type[Any]]]:
             return Ok(datetime.fromisoformat(val))
         except (ValueError, TypeError):
             return Err({str, datetime})
+
+
+class CoerceDatetime(Coercer[date]):
+    compatible_types = {str, date}
+
+    def __call__(self, val: Any) -> Maybe[date]:
+        if type(val) is date:
+            return Just(val)
+        else:
+            try:
+                return Just(date.fromisoformat(val))
+            except (ValueError, TypeError):
+                return nothing
 
 
 class DatetimeValidator(_ToTupleScalarValidator[datetime]):
