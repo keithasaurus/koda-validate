@@ -1,7 +1,7 @@
-from koda_validate._internal import _ToTupleScalarValidator
+from koda_validate._internal import _ToTupleStandardValidator
 
 
-class BytesValidator(_ToTupleScalarValidator[bytes]):
+class BytesValidator(_ToTupleStandardValidator[bytes]):
     r"""
     Validate a value is a ``bytes``, and any extra refinement.
 

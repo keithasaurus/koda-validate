@@ -4,7 +4,7 @@ from uuid import UUID
 from koda import Err, Just, Maybe, Ok, Result, nothing
 
 from koda_validate import Predicate, PredicateAsync, Processor
-from koda_validate._internal import _ToTupleScalarValidator
+from koda_validate._internal import _ToTupleStandardValidator
 from koda_validate.base import Coercer
 
 
@@ -24,7 +24,7 @@ class CoerceUUID(Coercer[UUID]):
         return nothing
 
 
-class UUIDValidator(_ToTupleScalarValidator[UUID]):
+class UUIDValidator(_ToTupleStandardValidator[UUID]):
     _TYPE = UUID
 
     def __init__(

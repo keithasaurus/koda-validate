@@ -1,7 +1,7 @@
-from koda_validate._internal import _ToTupleScalarValidator
+from koda_validate._internal import _ToTupleStandardValidator
 
 
-class FloatValidator(_ToTupleScalarValidator[float]):
+class FloatValidator(_ToTupleStandardValidator[float]):
     r"""
     Validate a value is a ``float``, and any extra refinement.
 

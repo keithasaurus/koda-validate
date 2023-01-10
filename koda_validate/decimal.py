@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 from koda import Just, Maybe, nothing
 
-from koda_validate._internal import _ToTupleScalarValidator
+from koda_validate._internal import _ToTupleStandardValidator
 from koda_validate.base import Coercer, Predicate, PredicateAsync, Processor
 
 
@@ -23,7 +23,7 @@ class CoerceDecimal(Coercer[Decimal]):
         return nothing
 
 
-class DecimalValidator(_ToTupleScalarValidator[Decimal]):
+class DecimalValidator(_ToTupleStandardValidator[Decimal]):
     _TYPE = Decimal
 
     def __init__(

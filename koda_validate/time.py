@@ -4,7 +4,7 @@ from typing import Any, Callable, List, Optional, Set, Type
 from koda import Just, Maybe, Result, nothing
 
 from koda_validate import Predicate, PredicateAsync, Processor
-from koda_validate._internal import _ToTupleScalarValidator
+from koda_validate._internal import _ToTupleStandardValidator
 from koda_validate.base import Coercer
 
 
@@ -21,7 +21,7 @@ class CoerceDate(Coercer[date]):
                 return nothing
 
 
-class DateValidator(_ToTupleScalarValidator[date]):
+class DateValidator(_ToTupleStandardValidator[date]):
     _TYPE = date
 
     def __init__(
@@ -52,7 +52,7 @@ class CoerceDatetime(Coercer[datetime]):
                 return nothing
 
 
-class DatetimeValidator(_ToTupleScalarValidator[datetime]):
+class DatetimeValidator(_ToTupleStandardValidator[datetime]):
     _TYPE = datetime
 
     def __init__(

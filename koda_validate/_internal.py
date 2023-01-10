@@ -58,7 +58,7 @@ class _ToTupleValidator(Validator[SuccessT]):
 
 
 def _simple_type_validator(
-    instance: "_ToTupleScalarValidator[A]", type_: Type[A], type_err: TypeErr
+    instance: "_ToTupleStandardValidator[A]", type_: Type[A], type_err: TypeErr
 ) -> Callable[[Any], _ResultTuple[A]]:
     def inner(val: Any) -> _ResultTuple[A]:
         if type(val) is type_:
@@ -88,7 +88,7 @@ def _repr_helper(cls: Type[Any], arg_strs: List[str]) -> str:
     return f"{cls.__name__}({', '.join(arg_strs)})"
 
 
-class _ToTupleScalarValidator(_ToTupleValidator[SuccessT]):
+class _ToTupleStandardValidator(_ToTupleValidator[SuccessT]):
     """
     This `Validator` subclass exists primarily for code cleanliness and standardization.
     It allows us to have very simple Scalar validators.
