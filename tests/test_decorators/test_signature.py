@@ -76,5 +76,14 @@ def test_multiple_args_custom_type() -> None:
     assert fn(5, Person("abc", 123)) is None
 
 
-# def test_handles_kwargs() -> None:
-#     def some_func(**kwargs: str) -> str
+def test_handles_kwargs() -> None:
+    @validate_signature
+    def some_func(**kwargs: str) -> str:
+        return "neat"
+
+    assert some_func(x="1") == "neat"
+
+    assert some_func() == "neat"
+
+    with pytest.raises(InvalidArgs):
+        some_func(x=1)

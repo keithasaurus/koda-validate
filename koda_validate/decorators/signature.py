@@ -20,9 +20,16 @@ def _wrap_fn(
     sig = inspect.signature(func)
     schema: dict[str, Validator[Any]] = {}
 
+    kwargs_validator: Optional[Validator[Any]] = None
+
     for key, param in sig.parameters.items():
         if param.annotation != param.empty:
-            schema[key] = typehint_resolver(param.annotation)
+            if param.kind == param.VAR_KEYWORD:
+                schema[key] = MapValidator(
+                    key=StringValidator(), value=typehint_resolver(param.annotation)
+                )
+            else:
+                kwargs_validator = typehint_resolver(param.annotation)
 
     if not ignore_return and sig.return_annotation != sig.empty:
         return_validator: Optional[Validator[Any]] = typehint_resolver(
@@ -39,8 +46,14 @@ def _wrap_fn(
                 errs[key] = result
 
         for kw_key, kw_val in kwargs.items():
-            if kw_key in schema and not (kw_result := schema[kw_key](kw_val)).is_valid:
-                errs[kw_key] = kw_result
+            if kw_key in schema:
+                if not (kw_result := schema[kw_key](kw_val)).is_valid:
+                    errs[kw_key] = kw_result
+            elif (
+                kwargs_validator
+                and not (kwargs_result := kwargs_validator(kw_val)).is_valid
+            ):
+                errs[kw_key] = kwargs_result
 
         if errs:
             raise InvalidArgs(errs)
