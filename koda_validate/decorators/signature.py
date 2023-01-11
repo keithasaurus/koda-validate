@@ -1,6 +1,18 @@
 import functools
 import inspect
-from typing import Any, Callable, Dict, Optional, Set, TypeVar, Union, cast, overload
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 from koda_validate import *
 from koda_validate.typehints import get_typehint_validator
@@ -20,7 +32,7 @@ def _wrap_fn(
     schema: dict[str, Validator[Any]] = {}
 
     kwargs_validator: Optional[Validator[Any]] = None
-    var_args_validator: Optional[Validator[Any]] = None
+    var_args_key_and_validator: Optional[Tuple[str, Validator[Any]]] = None
     positional_args_names: Set[str] = {
         key
         for key, param in sig.parameters.items()
@@ -33,7 +45,7 @@ def _wrap_fn(
             if param.kind == param.VAR_KEYWORD:
                 kwargs_validator = typehint_resolver(param.annotation)
             if param.kind == param.VAR_POSITIONAL:
-                var_args_validator = typehint_resolver(param.annotation)
+                var_args_key_and_validator = key, typehint_resolver(param.annotation)
             else:
                 schema[key] = typehint_resolver(param.annotation)
 
@@ -49,18 +61,26 @@ def _wrap_fn(
     @functools.wraps(func)
     def inner(*args: Any, **kwargs: Any) -> Any:
         errs: Dict[str, Invalid] = {}
+        var_args_errs: List[Tuple[Any, Invalid]] = []
         for i, arg in enumerate(args):
             try:
                 arg_validator = positional_validators[i]
             except IndexError:
-                if (
-                    var_args_validator
-                    and not (var_args_result := var_args_validator(arg)).is_valid
-                ):
-                    errs[f"_VAR_ARGS_{i}"] = var_args_result
+                if var_args_key_and_validator:
+                    var_args_key, var_args_validator = var_args_key_and_validator
+                    if not (var_args_result := var_args_validator(arg)).is_valid:
+                        var_args_errs.append((arg, var_args_result))
+
             else:
                 if not (result := arg_validator(arg)).is_valid:
                     errs[key] = result
+
+        if var_args_errs and var_args_key_and_validator:
+            errs[var_args_key_and_validator[0]] = Invalid(
+                IndexErrs({i: err_ for i, (_, err_) in enumerate(var_args_errs)}),
+                tuple(a for a, _ in var_args_errs),
+                var_args_key_and_validator[1],
+            )
 
         for kw_key, kw_val in kwargs.items():
             if kw_key in schema:

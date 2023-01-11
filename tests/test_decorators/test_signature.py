@@ -86,7 +86,7 @@ def test_handles_kwargs() -> None:
     assert some_func() == "neat"
 
     with pytest.raises(InvalidArgs):
-        some_func(x=1)
+        some_func(x=1)  # type: ignore[arg-ype]
 
 
 def test_handles_var_args() -> None:
@@ -99,4 +99,4 @@ def test_handles_var_args() -> None:
     assert some_func("ok", 1, 2, 3) == "ok, (1, 2, 3)"
 
     with pytest.raises(InvalidArgs):
-        some_func("bad", 1, "hmm")
+        some_func("bad", 1, "hmm")  # type: ignore[arg-type]
