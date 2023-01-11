@@ -49,7 +49,9 @@ def _wrap_fn(
             else:
                 schema[key] = typehint_resolver(param.annotation)
 
-    positional_validators = [v for k, v in schema.items() if k in positional_args_names]
+    positional_validators = [
+        (k, v) for k, v in schema.items() if k in positional_args_names
+    ]
 
     if not ignore_return and sig.return_annotation != sig.empty:
         return_validator: Optional[Validator[Any]] = typehint_resolver(
@@ -64,7 +66,7 @@ def _wrap_fn(
         var_args_errs: List[Tuple[Any, Invalid]] = []
         for i, arg in enumerate(args):
             try:
-                arg_validator = positional_validators[i]
+                key, arg_validator = positional_validators[i]
             except IndexError:
                 if var_args_key_and_validator:
                     var_args_key, var_args_validator = var_args_key_and_validator
@@ -93,13 +95,13 @@ def _wrap_fn(
                 errs[kw_key] = kwargs_result
 
         if errs:
-            raise InvalidArgs(errs)
+            raise InvalidArgsError(errs)
         elif return_validator:
             result = func(*args, **kwargs)
             if (ret_result := return_validator(result)).is_valid:
                 return result
             else:
-                raise InvalidArgs({RETURN_VALUE_KEY: ret_result})
+                raise InvalidReturnError(ret_result)
         else:
             return func(*args, **kwargs)
 
@@ -173,13 +175,13 @@ def get_args_fail_msg(errs: dict[str, Invalid]) -> str:
     return "\n" + "\n".join(messages)
 
 
-class InvalidArgs(Exception):
+class InvalidArgsError(Exception):
     def __init__(self, errs: dict[str, Invalid]) -> None:
         super().__init__(get_args_fail_msg(errs))
         self.errs = errs
 
 
-class InvalidRet(Exception):
+class InvalidReturnError(Exception):
     def __init__(self, err: Invalid):
         super().__init__(get_arg_fail_message(err))
         self.err = err

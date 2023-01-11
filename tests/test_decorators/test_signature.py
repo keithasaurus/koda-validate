@@ -1,8 +1,18 @@
 import pytest
 
-from koda_validate import IntValidator, Invalid, StringValidator, TypeErr
+from koda_validate import (
+    BoolValidator,
+    FloatValidator,
+    IndexErrs,
+    IntValidator,
+    Invalid,
+    StringValidator,
+    TypeErr,
+)
 from koda_validate.decorators.signature import (
-    InvalidArgs,
+    InvalidArgsError,
+    InvalidReturnError,
+    get_arg_fail_message,
     get_args_fail_msg,
     validate_signature,
 )
@@ -22,24 +32,24 @@ def test_one_arg_simple_scalars() -> None:
         return x
 
     assert identity_int(123) == 123
-    with pytest.raises(InvalidArgs) as exc_info:
+    with pytest.raises(InvalidArgsError) as exc_info:
         identity_int("abc")  # type: ignore[arg-type]
 
-        assert str(exc_info) == get_args_fail_msg(
-            {"x": Invalid(TypeErr(int), "abc", IntValidator())}
-        )
+    assert str(exc_info.value) == get_args_fail_msg(
+        {"x": Invalid(TypeErr(int), "abc", IntValidator())}
+    )
 
     @validate_signature
     def identity_str(x: str) -> str:
         return x
 
     assert identity_str("abc") == "abc"
-    with pytest.raises(InvalidArgs) as exc_info:
+    with pytest.raises(InvalidArgsError) as exc_info:
         identity_str(123)  # type: ignore[arg-type]
 
-        assert str(exc_info) == get_args_fail_msg(
-            {"x": Invalid(TypeErr(str), 123, IntValidator())}
-        )
+    assert str(exc_info.value) == get_args_fail_msg(
+        {"x": Invalid(TypeErr(str), 123, IntValidator())}
+    )
 
 
 def test_catches_bad_return_type() -> None:
@@ -47,12 +57,12 @@ def test_catches_bad_return_type() -> None:
     def some_func() -> str:
         return 5  # type: ignore[return-value]
 
-    with pytest.raises(InvalidArgs) as exc_info:
+    with pytest.raises(InvalidReturnError) as exc_info:
         assert some_func()
 
-        assert str(exc_info) == get_args_fail_msg(
-            {"_RETURN_VALUE_": Invalid(TypeErr(str), 5, StringValidator())}
-        )
+    assert str(exc_info.value) == get_arg_fail_message(
+        Invalid(TypeErr(str), 5, StringValidator())
+    )
 
 
 def test_ignores_return_type() -> None:
@@ -85,8 +95,8 @@ def test_handles_kwargs() -> None:
 
     assert some_func() == "neat"
 
-    with pytest.raises(InvalidArgs):
-        some_func(x=1)  # type: ignore[arg-ype]
+    with pytest.raises(InvalidArgsError):
+        some_func(x=1)  # type: ignore[arg-type]
 
 
 def test_handles_var_args() -> None:
@@ -98,5 +108,60 @@ def test_handles_var_args() -> None:
 
     assert some_func("ok", 1, 2, 3) == "ok, (1, 2, 3)"
 
-    with pytest.raises(InvalidArgs):
+    with pytest.raises(InvalidArgsError):
         some_func("bad", 1, "hmm")  # type: ignore[arg-type]
+
+
+def test_succeeds_for_zero_errors_on_all_kinds_of_args() -> None:
+    @validate_signature
+    def some_func(a: int, *b: int, c: float, d: bool = False, **kwargs: int) -> str:
+        return f"{a} {b} {c} {d} {kwargs}"
+
+    assert some_func(1, 2, 3, 4, c=2.2, x=10) == "1 (2, 3, 4) 2.2 False {'x': 10}"
+
+
+def test_fails_for_all_failures() -> None:
+    @validate_signature
+    def some_func(a: int, *b: int, c: float, d: bool = False, **kwargs: int) -> str:
+        return f"{a} {b} {c} {d} {kwargs}"
+
+    with pytest.raises(InvalidArgsError) as exc_info:
+        some_func("b", "c", "d", "e", c="x", d="hmm", x=None)  # type: ignore[arg-type]
+
+    assert exc_info.value.errs == {
+        "a": Invalid(
+            err_type=TypeErr(expected_type=int), value="b", validator=IntValidator()
+        ),
+        "b": Invalid(
+            err_type=IndexErrs(
+                indexes={
+                    0: Invalid(
+                        err_type=TypeErr(expected_type=int),
+                        value="c",
+                        validator=IntValidator(),
+                    ),
+                    1: Invalid(
+                        err_type=TypeErr(expected_type=int),
+                        value="d",
+                        validator=IntValidator(),
+                    ),
+                    2: Invalid(
+                        err_type=TypeErr(expected_type=int),
+                        value="e",
+                        validator=IntValidator(),
+                    ),
+                }
+            ),
+            value=("c", "d", "e"),
+            validator=IntValidator(),
+        ),
+        "c": Invalid(
+            err_type=TypeErr(expected_type=float), value="x", validator=FloatValidator()
+        ),
+        "d": Invalid(
+            err_type=TypeErr(expected_type=bool), value="hmm", validator=BoolValidator()
+        ),
+        "x": Invalid(
+            err_type=TypeErr(expected_type=int), value=None, validator=IntValidator()
+        ),
+    }
