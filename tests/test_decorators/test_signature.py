@@ -10,10 +10,10 @@ from koda_validate.decorators.signature import (
 
 def test_empty_signature_is_fine() -> None:
     @validate_signature
-    def constant():
+    def constant():  # type: ignore
         return 5
 
-    assert constant() == 5
+    assert constant() == 5  # type: ignore[no-untyped-call]
 
 
 def test_one_arg_simple_scalars() -> None:
@@ -23,7 +23,7 @@ def test_one_arg_simple_scalars() -> None:
 
     assert identity_int(123) == 123
     with pytest.raises(InvalidArgs) as exc_info:
-        identity_int("abc")
+        identity_int("abc")  # type: ignore[arg-type]
 
         assert str(exc_info) == get_args_fail_msg(
             {"x": Invalid(TypeErr(int), "abc", IntValidator())}
@@ -35,7 +35,7 @@ def test_one_arg_simple_scalars() -> None:
 
     assert identity_str("abc") == "abc"
     with pytest.raises(InvalidArgs) as exc_info:
-        identity_str(123)
+        identity_str(123)  # type: ignore[arg-type]
 
         assert str(exc_info) == get_args_fail_msg(
             {"x": Invalid(TypeErr(str), 123, IntValidator())}
@@ -45,7 +45,7 @@ def test_one_arg_simple_scalars() -> None:
 def test_catches_bad_return_type() -> None:
     @validate_signature
     def some_func() -> str:
-        return 5
+        return 5  # type: ignore[return-value]
 
     with pytest.raises(InvalidArgs) as exc_info:
         assert some_func()
@@ -53,6 +53,14 @@ def test_catches_bad_return_type() -> None:
         assert str(exc_info) == get_args_fail_msg(
             {"_RETURN_VALUE_": Invalid(TypeErr(str), 5, StringValidator())}
         )
+
+
+def test_ignores_return_type() -> None:
+    @validate_signature(ignore_return=True)
+    def some_func() -> str:
+        return 5  # type: ignore[return-value]
+
+    assert some_func() == 5  # type: ignore[comparison-overlap]
 
 
 def test_multiple_args_custom_type() -> None:

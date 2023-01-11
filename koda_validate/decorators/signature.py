@@ -1,41 +1,39 @@
 import functools
 import inspect
-import typing as t
+from typing import Any, Callable, Dict, Optional, Set, TypeVar, Union, cast, overload
 
 from koda_validate import *
 from koda_validate.typehints import get_typehint_validator
 
-_BaseDecoratedFunc = t.Callable[..., t.Any]
-DecoratedFunc = t.TypeVar("DecoratedFunc", bound=_BaseDecoratedFunc)
+_BaseDecoratedFunc = Callable[..., Any]
+DecoratedFunc = TypeVar("DecoratedFunc", bound=_BaseDecoratedFunc)
+
+RETURN_VALUE_KEY = "_RETURN_VALUE_"
 
 
-def validate_signature(
+def _wrap_fn(
     func: DecoratedFunc,
-    *,
-    ignore_return: bool = False,
-    ignore_args: t.Optional[t.Set[str]] = None,
-    typehint_resolver: t.Callable[[t.Any], Validator[t.Any]] = get_typehint_validator,
+    ignore_return: bool,
+    typehint_resolver: Callable[[Any], Validator[Any]],
 ) -> DecoratedFunc:
 
     sig = inspect.signature(func)
-    schema: dict[str, Validator[t.Any]] = {}
+    schema: dict[str, Validator[Any]] = {}
 
     for key, param in sig.parameters.items():
-        if param.annotation == param.empty:
-            continue
-        else:
+        if param.annotation != param.empty:
             schema[key] = typehint_resolver(param.annotation)
 
     if not ignore_return and sig.return_annotation != sig.empty:
-        return_validator: t.Optional[Validator[t.Any]] = typehint_resolver(
+        return_validator: Optional[Validator[Any]] = typehint_resolver(
             sig.return_annotation
         )
     else:
         return_validator = None
 
     @functools.wraps(func)
-    def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
-        errs: t.Dict[str, Invalid] = {}
+    def inner(*args: Any, **kwargs: Any) -> Any:
+        errs: Dict[str, Invalid] = {}
         for arg, (key, validator) in zip(args, schema.items()):
             if not (result := validator(arg)).is_valid:
                 errs[key] = result
@@ -51,14 +49,59 @@ def validate_signature(
             if (ret_result := return_validator(result)).is_valid:
                 return result
             else:
-                raise InvalidArgs({"_RETURN_VALUE_": ret_result})
+                raise InvalidArgs({RETURN_VALUE_KEY: ret_result})
         else:
             return func(*args, **kwargs)
 
-    return wrapper
+    return cast(DecoratedFunc, inner)
 
 
-def get_arg_fail_message(invalid: Invalid, depth=0, prefix="") -> str:
+@overload
+def validate_signature(
+    func: DecoratedFunc,
+    *,
+    ignore_return: bool = False,
+    ignore_args: Optional[Set[str]] = None,
+    typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+) -> DecoratedFunc:
+    ...
+
+
+@overload
+def validate_signature(
+    func: None = None,
+    *,
+    ignore_return: bool = False,
+    ignore_args: Optional[Set[str]] = None,
+    typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+) -> Callable[[DecoratedFunc], DecoratedFunc]:
+    ...
+
+
+def validate_signature(
+    func: Optional[DecoratedFunc] = None,
+    *,
+    ignore_return: bool = False,
+    ignore_args: Optional[Set[str]] = None,
+    typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+) -> Union[DecoratedFunc, Callable[[DecoratedFunc], DecoratedFunc]]:
+    if func is None:
+
+        def inner(func_inner: DecoratedFunc) -> DecoratedFunc:
+            return _wrap_fn(
+                func_inner,
+                ignore_return=ignore_return,
+                typehint_resolver=typehint_resolver,
+            )
+
+        return inner
+    else:
+        return _wrap_fn(
+            func, ignore_return=ignore_return, typehint_resolver=typehint_resolver
+        )
+
+
+def get_arg_fail_message(invalid: Invalid, depth: int = 0, prefix: str = "") -> str:
     err_type = invalid.err_type
     ret = depth * "    " + prefix
     if isinstance(err_type, TypeErr):

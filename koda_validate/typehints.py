@@ -181,8 +181,8 @@ def get_typehint_validator_base(
         elif inspect.isclass(annotations):
             # fall back to an explicit type checker
             return TypeValidator(annotations)
-        else:
-            raise TypeError(f"Got unhandled annotation: {repr(annotations)}.")
+
+        raise TypeError(f"Got unhandled annotation: {repr(annotations)}.")
 
 
 def get_typehint_validator(annotations: Any) -> Validator[Any]:

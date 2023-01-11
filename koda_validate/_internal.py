@@ -103,7 +103,7 @@ class _ToTupleStandardValidator(_ToTupleValidator[SuccessT]):
     __match_args__ = ("predicates", "predicates_async", "preprocessors")
 
     # SHOULD BE THE SAME AS SuccessT but mypy can't handle that...? v0.991
-    _TYPE: ClassVar[Type[Any]]
+    _TYPE: Type[Any]
     _type_err: TypeErr
 
     def __init__(
