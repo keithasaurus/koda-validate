@@ -87,3 +87,16 @@ def test_handles_kwargs() -> None:
 
     with pytest.raises(InvalidArgs):
         some_func(x=1)
+
+
+def test_handles_var_args() -> None:
+    @validate_signature
+    def some_func(a: str, *b: int) -> str:
+        return f"{a}, {b}"
+
+    assert some_func("empty") == "empty, ()"
+
+    assert some_func("ok", 1, 2, 3) == "ok, (1, 2, 3)"
+
+    with pytest.raises(InvalidArgs):
+        some_func("bad", 1, "hmm")

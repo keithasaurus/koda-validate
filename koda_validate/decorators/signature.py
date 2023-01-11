@@ -16,20 +16,28 @@ def _wrap_fn(
     ignore_return: bool,
     typehint_resolver: Callable[[Any], Validator[Any]],
 ) -> DecoratedFunc:
-
     sig = inspect.signature(func)
     schema: dict[str, Validator[Any]] = {}
 
     kwargs_validator: Optional[Validator[Any]] = None
+    var_args_validator: Optional[Validator[Any]] = None
+    positional_args_names: Set[str] = {
+        key
+        for key, param in sig.parameters.items()
+        if (param.kind == param.POSITIONAL_ONLY)
+        or param.kind == param.POSITIONAL_OR_KEYWORD
+    }
 
     for key, param in sig.parameters.items():
         if param.annotation != param.empty:
             if param.kind == param.VAR_KEYWORD:
-                schema[key] = MapValidator(
-                    key=StringValidator(), value=typehint_resolver(param.annotation)
-                )
-            else:
                 kwargs_validator = typehint_resolver(param.annotation)
+            if param.kind == param.VAR_POSITIONAL:
+                var_args_validator = typehint_resolver(param.annotation)
+            else:
+                schema[key] = typehint_resolver(param.annotation)
+
+    positional_validators = [v for k, v in schema.items() if k in positional_args_names]
 
     if not ignore_return and sig.return_annotation != sig.empty:
         return_validator: Optional[Validator[Any]] = typehint_resolver(
@@ -41,9 +49,18 @@ def _wrap_fn(
     @functools.wraps(func)
     def inner(*args: Any, **kwargs: Any) -> Any:
         errs: Dict[str, Invalid] = {}
-        for arg, (key, validator) in zip(args, schema.items()):
-            if not (result := validator(arg)).is_valid:
-                errs[key] = result
+        for i, arg in enumerate(args):
+            try:
+                arg_validator = positional_validators[i]
+            except IndexError:
+                if (
+                    var_args_validator
+                    and not (var_args_result := var_args_validator(arg)).is_valid
+                ):
+                    errs[f"_VAR_ARGS_{i}"] = var_args_result
+            else:
+                if not (result := arg_validator(arg)).is_valid:
+                    errs[key] = result
 
         for kw_key, kw_val in kwargs.items():
             if kw_key in schema:
@@ -140,3 +157,9 @@ class InvalidArgs(Exception):
     def __init__(self, errs: dict[str, Invalid]) -> None:
         super().__init__(get_args_fail_msg(errs))
         self.errs = errs
+
+
+class InvalidRet(Exception):
+    def __init__(self, err: Invalid):
+        super().__init__(get_arg_fail_message(err))
+        self.err = err
