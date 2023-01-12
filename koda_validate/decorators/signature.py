@@ -218,9 +218,15 @@ def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -
         ret += "MapErr"
         for key, key_val_errs in err_type.keys.items():
             if key_val_errs.key:
-                ret += f"\n{get_arg_fail_message(key_val_errs.key, next_indent, prefix=f'{repr(key)} (key): ')}"
+                next_ = get_arg_fail_message(
+                    key_val_errs.key, next_indent, prefix=f"{repr(key)} (key): "
+                )
+                ret += f"\n{next_}"
             if key_val_errs.val:
-                ret += f"\n{get_arg_fail_message(key_val_errs.val, next_indent, prefix=f'{repr(key)} (val): ')}"
+                next_ = get_arg_fail_message(
+                    key_val_errs.val, next_indent, prefix=f"{repr(key)} (val): "
+                )
+                ret += f"\n{next_}"
 
     return ret
 
