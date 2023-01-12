@@ -1,7 +1,12 @@
 import pytest
+from _decimal import Decimal
+from koda import Just
 
 from koda_validate import (
     BoolValidator,
+    CoercionErr,
+    ContainerErr,
+    DecimalValidator,
     DictValidatorAny,
     FloatValidator,
     IndexErrs,
@@ -11,8 +16,12 @@ from koda_validate import (
     Min,
     MultipleOf,
     PredicateErrs,
+    SetErrs,
+    SetValidator,
     StringValidator,
     TypeErr,
+    UnionErrs,
+    UnionValidator,
 )
 from koda_validate.decorators.signature import (
     INVALID_ARGS_MESSAGE_HEADER,
@@ -22,6 +31,7 @@ from koda_validate.decorators.signature import (
     get_args_fail_msg,
     validate_signature,
 )
+from koda_validate.maybe import MaybeValidator
 
 
 def test_empty_signature_is_fine() -> None:
@@ -236,3 +246,65 @@ def test_error_render_predicate_errors() -> None:
     {repr(MultipleOf(3))}"""
 
     assert result == expected
+
+
+def test_error_render_union_errors() -> None:
+    result = get_arg_fail_message(
+        Invalid(
+            UnionErrs(
+                [
+                    Invalid(TypeErr(str), 5, StringValidator()),
+                    Invalid(TypeErr(float), 5, FloatValidator()),
+                ]
+            ),
+            5,
+            UnionValidator(StringValidator(), FloatValidator()),
+        )
+    )
+
+    expected = """UnionErrs
+    variant 1: expected <class 'str'>
+    variant 2: expected <class 'float'>"""
+
+    assert result == expected
+
+
+def test_error_render_coercion_errors() -> None:
+    result = get_arg_fail_message(
+        Invalid(CoercionErr({int, str, Decimal}, Decimal), 1.2, DecimalValidator())
+    )
+
+    expected = (
+        "expected any of [<class 'decimal.Decimal'>, <class 'int'>, <class 'str'>]"
+        " to coerce to <class 'decimal.Decimal'>"
+    )
+    assert result == expected
+
+
+def test_error_render_container_err() -> None:
+    child_err = Invalid(TypeErr(str), -123, StringValidator())
+    result = get_arg_fail_message(
+        Invalid(ContainerErr(child_err), Just(-123), MaybeValidator(StringValidator()))
+    )
+
+    assert result == get_arg_fail_message(child_err)
+
+
+def test_error_render_set_errs() -> None:
+    set_errors = Invalid(
+        SetErrs(
+            [
+                Invalid(TypeErr(int), 2.2, IntValidator()),
+                Invalid(TypeErr(int), "abc" * 100, IntValidator()),
+            ]
+        ),
+        {1, 2.2, "abc" * 100},
+        SetValidator(IntValidator()),
+    )
+
+    result = get_arg_fail_message(set_errors)
+    truncated = repr("abc" * 100)[:27] + "..."
+    expected = f"""SetErrs
+    expected <class 'int'> :: 2.2
+    expected <class 'int'> :: {truncated}"""
+    assert expected == result

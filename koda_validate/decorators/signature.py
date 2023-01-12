@@ -185,20 +185,36 @@ def get_arg_fail_message(invalid: Invalid, prefix: str = "") -> str:
     elif isinstance(err_type, PredicateErrs):
         ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join([f"{next_prefix}{repr(p)}" for p in err_type.predicates])
+    elif isinstance(err_type, CoercionErr):
+        ret += (
+            f"expected any of "
+            f"{sorted(err_type.compatible_types, key=lambda t: repr(t))} to coerce "
+            f"to {repr(err_type.dest_type)}"
+        )
+    elif isinstance(err_type, ContainerErr):
+        return get_arg_fail_message(err_type.child, prefix)
     elif isinstance(err_type, MissingKeyErr):
         ret += "key missing"
     elif isinstance(err_type, UnionErrs):
         variant_errors = [
-            get_arg_fail_message(variant, f"{next_prefix}variant {i}: ")
+            get_arg_fail_message(variant, f"{next_prefix}variant {i + 1}: ")
             for i, variant in enumerate(err_type.variants)
         ]
-        ret += "\n".join(["Union Errors"] + variant_errors)
+        ret += "\n".join([err_type.__class__.__name__] + variant_errors)
     elif isinstance(err_type, KeyErrs):
         ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join(
             [
                 get_arg_fail_message(inv, f"{next_prefix}{repr(k)}: ")
                 for k, inv in err_type.keys.items()
+            ]
+        )
+    elif isinstance(err_type, SetErrs):
+        ret += f"{err_type.__class__.__name__}\n"
+        ret += "\n".join(
+            [
+                f"{get_arg_fail_message(e, next_prefix)} :: {_trunc_str(repr(e.value), 30)}"
+                for e in err_type.item_errs
             ]
         )
 
