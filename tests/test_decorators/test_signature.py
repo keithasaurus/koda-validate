@@ -2,10 +2,12 @@ import pytest
 
 from koda_validate import (
     BoolValidator,
+    DictValidatorAny,
     FloatValidator,
     IndexErrs,
     IntValidator,
     Invalid,
+    KeyErrs,
     StringValidator,
     TypeErr,
 )
@@ -181,3 +183,36 @@ def test_works_with_methods() -> None:
             return a + b
 
     assert Obj().some_method(1, b=2) == 3
+
+
+def test_error_render_simple_typeerr() -> None:
+    assert (
+        get_arg_fail_message(Invalid(TypeErr(str), 5, StringValidator()))
+        == "expected <class 'str'>; got 5"
+    )
+
+    assert (
+        get_arg_fail_message(
+            Invalid(TypeErr(int), "ok" * 50, IntValidator()), depth=1, prefix="- "
+        )
+        == "    - expected <class 'int'>; got '" + ("ok" * 23) + "..."
+    )
+
+
+def test_dict_errs() -> None:
+    assert (
+        get_arg_fail_message(
+            Invalid(
+                KeyErrs(
+                    {
+                        "abc": Invalid(TypeErr(str), 5, StringValidator()),
+                        "def": Invalid(TypeErr(int), "abc", IntValidator()),
+                    }
+                ),
+                {"abc": 5, "def": "abc"},
+                DictValidatorAny({"abc": StringValidator(), "def": IntValidator()}),
+            )
+        )
+        == """
+    """
+    )

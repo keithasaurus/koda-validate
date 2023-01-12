@@ -20,8 +20,6 @@ from koda_validate.typehints import get_typehint_validator
 _BaseDecoratedFunc = Callable[..., Any]
 DecoratedFunc = TypeVar("DecoratedFunc", bound=_BaseDecoratedFunc)
 
-RETURN_VALUE_KEY = "_RETURN_VALUE_"
-
 
 def _wrap_fn(
     func: DecoratedFunc,
@@ -169,11 +167,20 @@ def validate_signature(
         )
 
 
+def _trunc_str(s: str, max_chars: int = 50) -> str:
+    ellip = "..."
+    ellip_len = len(ellip)
+    if max_chars < ellip_len:
+        raise AssertionError(f"max_chars must be greater than or equal to {ellip_len}")
+
+    return (s[: (max_chars - ellip_len)] + ellip) if len(s) > max_chars else s
+
+
 def get_arg_fail_message(invalid: Invalid, depth: int = 0, prefix: str = "") -> str:
     err_type = invalid.err_type
     ret = depth * "    " + prefix
     if isinstance(err_type, TypeErr):
-        ret += f"expected {err_type.expected_type}; got {type(invalid.value)}"
+        ret += f"expected {err_type.expected_type}; got {_trunc_str(repr(invalid.value))}"
     elif isinstance(err_type, PredicateErrs):
         ret += "failed predicates"
     elif isinstance(err_type, UnionErrs):
@@ -182,6 +189,14 @@ def get_arg_fail_message(invalid: Invalid, depth: int = 0, prefix: str = "") -> 
             for i, variant in enumerate(err_type.variants)
         ]
         ret += "\n".join(["Union Errors"] + variant_errors)
+    elif isinstance(err_type, KeyErrs):
+        ret += "Key Errors\n"
+        ret += "\n".join(
+            [
+                get_arg_fail_message(inv, depth + 1, f"{repr(k)}: ")
+                for k, inv in err_type.keys.items()
+            ]
+        )
 
     return ret
 
