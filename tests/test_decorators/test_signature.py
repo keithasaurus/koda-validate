@@ -3,11 +3,16 @@ import pytest
 from koda_validate import (
     BoolValidator,
     DictValidatorAny,
+    ExtraKeysErr,
     FloatValidator,
     IndexErrs,
     IntValidator,
     Invalid,
     KeyErrs,
+    KeyValErrs,
+    ListValidator,
+    MapErr,
+    MapValidator,
     Min,
     MultipleOf,
     PredicateErrs,
@@ -199,7 +204,7 @@ def test_error_render_simple_typeerr() -> None:
 
     assert (
         get_arg_fail_message(
-            Invalid(TypeErr(int), "ok" * 50, IntValidator()), prefix="    - "
+            Invalid(TypeErr(int), "ok" * 50, IntValidator()), indent="    - "
         )
         == "    - expected <class 'int'>"
     )
@@ -234,5 +239,67 @@ def test_error_render_predicate_errors() -> None:
     expected = f"""PredicateErrs
     {repr(Min(5))}
     {repr(MultipleOf(3))}"""
+
+    assert result == expected
+
+
+def test_error_render_extra_keys() -> None:
+    result = get_arg_fail_message(
+        Invalid(
+            ExtraKeysErr({1, 2, "3"}),
+            {"a": 5},
+            DictValidatorAny(
+                {1: StringValidator(), 2: StringValidator(), "3": StringValidator()}
+            ),
+        )
+    )
+    expected = """ExtraKeysErr
+    only expected keys ['3', 1, 2]"""
+
+    assert result == expected
+
+
+def test_error_render_index_errs() -> None:
+    result = get_arg_fail_message(
+        Invalid(
+            IndexErrs(
+                {
+                    1: Invalid(TypeErr(int), False, IntValidator()),
+                    3: Invalid(TypeErr(int), "bad", IntValidator()),
+                }
+            ),
+            [0, False, 4, "bad"],
+            ListValidator(IntValidator()),
+        )
+    )
+    expected = """IndexErrs
+    1: expected <class 'int'>
+    3: expected <class 'int'>"""
+
+    assert result == expected
+
+
+def test_error_render_keyvalerrs_errs() -> None:
+    result = get_arg_fail_message(
+        Invalid(
+            MapErr(
+                {
+                    "a": KeyValErrs(
+                        key=Invalid(TypeErr(int), "a", IntValidator()),
+                        val=Invalid(TypeErr(int), "bad", IntValidator()),
+                    ),
+                    2: KeyValErrs(
+                        val=Invalid(TypeErr(int), False, IntValidator()), key=None
+                    ),
+                }
+            ),
+            {"a": "b", 2: False},
+            MapValidator(key=IntValidator(), value=IntValidator()),
+        )
+    )
+    expected = """MapErr
+    'a' (key): expected <class 'int'>
+    'a' (val): expected <class 'int'>
+    2 (val): expected <class 'int'>"""
 
     assert result == expected

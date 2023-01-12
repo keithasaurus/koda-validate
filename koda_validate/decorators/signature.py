@@ -176,20 +176,20 @@ def _trunc_str(s: str, max_chars: int) -> str:
     return (s[: (max_chars - ellip_len)] + ellip) if len(s) > max_chars else s
 
 
-def get_arg_fail_message(invalid: Invalid, prefix: str = "") -> str:
+def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -> str:
     err_type = invalid.err_type
-    next_prefix = f"    {prefix}"
-    ret = prefix
+    next_indent = f"    {indent}"
+    ret = indent + prefix
     if isinstance(err_type, TypeErr):
         ret += f"expected {err_type.expected_type}"
     elif isinstance(err_type, PredicateErrs):
         ret += f"{err_type.__class__.__name__}\n"
-        ret += "\n".join([f"{next_prefix}{repr(p)}" for p in err_type.predicates])
+        ret += "\n".join([f"{next_indent}{repr(p)}" for p in err_type.predicates])
     elif isinstance(err_type, MissingKeyErr):
         ret += "key missing"
     elif isinstance(err_type, UnionErrs):
         variant_errors = [
-            get_arg_fail_message(variant, f"{next_prefix}variant {i}: ")
+            get_arg_fail_message(variant, f"{next_indent}variant {i}: ")
             for i, variant in enumerate(err_type.variants)
         ]
         ret += "\n".join(["Union Errors"] + variant_errors)
@@ -197,10 +197,30 @@ def get_arg_fail_message(invalid: Invalid, prefix: str = "") -> str:
         ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join(
             [
-                get_arg_fail_message(inv, f"{next_prefix}{repr(k)}: ")
+                get_arg_fail_message(inv, f"{next_indent}{repr(k)}: ")
                 for k, inv in err_type.keys.items()
             ]
         )
+    elif isinstance(err_type, ExtraKeysErr):
+        ret += f"{err_type.__class__.__name__}\n"
+        ret += (
+            f"{next_indent}only expected keys {sorted(err_type.expected_keys, key=repr)}"
+        )
+    elif isinstance(err_type, IndexErrs):
+        ret += f"{err_type.__class__.__name__}\n"
+        ret += "\n".join(
+            [
+                get_arg_fail_message(inv, next_indent, prefix=f"{idx}: ")
+                for idx, inv in err_type.indexes.items()
+            ]
+        )
+    elif isinstance(err_type, MapErr):
+        ret += "MapErr"
+        for key, key_val_errs in err_type.keys.items():
+            if key_val_errs.key:
+                ret += f"\n{get_arg_fail_message(key_val_errs.key, next_indent, prefix=f'{repr(key)} (key): ')}"
+            if key_val_errs.val:
+                ret += f"\n{get_arg_fail_message(key_val_errs.val, next_indent, prefix=f'{repr(key)} (val): ')}"
 
     return ret
 
