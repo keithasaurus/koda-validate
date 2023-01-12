@@ -27,7 +27,7 @@ def _wrap_fn(
     typehint_resolver: Callable[[Any], Validator[Any]],
 ) -> DecoratedFunc:
     sig = inspect.signature(func)
-    schema: dict[str, Validator[Any]] = {}
+    schema: Dict[str, Validator[Any]] = {}
 
     kwargs_validator: Optional[Validator[Any]] = None
     var_args_key_and_validator: Optional[Tuple[str, Validator[Any]]] = None
@@ -205,7 +205,7 @@ def get_arg_fail_message(invalid: Invalid, prefix: str = "") -> str:
     return ret
 
 
-def get_args_fail_msg(errs: dict[str, Invalid]) -> str:
+def get_args_fail_msg(errs: Dict[str, Invalid]) -> str:
     messages = [
         f"{k}={_trunc_str(repr(v.value), 60)}\n{get_arg_fail_message(v, '    ')}"
         for k, v in errs.items()
@@ -217,7 +217,7 @@ INVALID_ARGS_MESSAGE_HEADER = "\nInvalid Argument Values\n----------------------
 
 
 class InvalidArgsError(Exception):
-    def __init__(self, errs: dict[str, Invalid]) -> None:
+    def __init__(self, errs: Dict[str, Invalid]) -> None:
         super().__init__(INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(errs))
         self.errs = errs
 
