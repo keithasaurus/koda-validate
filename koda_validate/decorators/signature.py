@@ -167,7 +167,7 @@ def validate_signature(
         )
 
 
-def _trunc_str(s: str, max_chars: int = 50) -> str:
+def _trunc_str(s: str, max_chars: int) -> str:
     ellip = "..."
     ellip_len = len(ellip)
     if max_chars < ellip_len:
@@ -176,24 +176,28 @@ def _trunc_str(s: str, max_chars: int = 50) -> str:
     return (s[: (max_chars - ellip_len)] + ellip) if len(s) > max_chars else s
 
 
-def get_arg_fail_message(invalid: Invalid, depth: int = 0, prefix: str = "") -> str:
+def get_arg_fail_message(invalid: Invalid, prefix: str = "") -> str:
     err_type = invalid.err_type
-    ret = depth * "    " + prefix
+    next_prefix = f"    {prefix}"
+    ret = prefix
     if isinstance(err_type, TypeErr):
-        ret += f"expected {err_type.expected_type}; got {_trunc_str(repr(invalid.value))}"
+        ret += f"expected {err_type.expected_type}"
     elif isinstance(err_type, PredicateErrs):
-        ret += "failed predicates"
+        ret += f"{err_type.__class__.__name__}\n"
+        ret += "\n".join([f"{next_prefix}{repr(p)}" for p in err_type.predicates])
+    elif isinstance(err_type, MissingKeyErr):
+        ret += "key missing"
     elif isinstance(err_type, UnionErrs):
         variant_errors = [
-            get_arg_fail_message(variant, depth + 1, f"variant {i}: ")
+            get_arg_fail_message(variant, f"{next_prefix}variant {i}: ")
             for i, variant in enumerate(err_type.variants)
         ]
         ret += "\n".join(["Union Errors"] + variant_errors)
     elif isinstance(err_type, KeyErrs):
-        ret += "Key Errors\n"
+        ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join(
             [
-                get_arg_fail_message(inv, depth + 1, f"{repr(k)}: ")
+                get_arg_fail_message(inv, f"{next_prefix}{repr(k)}: ")
                 for k, inv in err_type.keys.items()
             ]
         )
@@ -202,13 +206,19 @@ def get_arg_fail_message(invalid: Invalid, depth: int = 0, prefix: str = "") -> 
 
 
 def get_args_fail_msg(errs: dict[str, Invalid]) -> str:
-    messages = [f"{k}: {get_arg_fail_message(v)}" for k, v in errs.items()]
-    return "\n" + "\n".join(messages)
+    messages = [
+        f"{k}={_trunc_str(repr(v.value), 60)}\n{get_arg_fail_message(v, '    ')}"
+        for k, v in errs.items()
+    ]
+    return "\n".join(messages)
+
+
+INVALID_ARGS_MESSAGE_HEADER = "\nInvalid Argument Values\n-----------------------\n"
 
 
 class InvalidArgsError(Exception):
     def __init__(self, errs: dict[str, Invalid]) -> None:
-        super().__init__(get_args_fail_msg(errs))
+        super().__init__(INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(errs))
         self.errs = errs
 
 

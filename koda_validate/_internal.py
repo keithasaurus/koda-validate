@@ -2,19 +2,14 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    ClassVar,
     List,
     Literal,
     NoReturn,
     Optional,
-    Set,
     Tuple,
     Type,
     Union,
 )
-
-from _decimal import Decimal
-from koda import Result
 
 from koda_validate._generics import A, SuccessT
 from koda_validate.base import Coercer, Predicate, PredicateAsync, Processor, Validator

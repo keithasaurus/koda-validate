@@ -8,10 +8,14 @@ from koda_validate import (
     IntValidator,
     Invalid,
     KeyErrs,
+    Min,
+    MultipleOf,
+    PredicateErrs,
     StringValidator,
     TypeErr,
 )
 from koda_validate.decorators.signature import (
+    INVALID_ARGS_MESSAGE_HEADER,
     InvalidArgsError,
     InvalidReturnError,
     get_arg_fail_message,
@@ -37,9 +41,11 @@ def test_one_arg_simple_scalars() -> None:
     with pytest.raises(InvalidArgsError) as exc_info:
         identity_int("abc")  # type: ignore[arg-type]
 
-    assert str(exc_info.value) == get_args_fail_msg(
+    result = str(exc_info.value)
+    expected = INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(
         {"x": Invalid(TypeErr(int), "abc", IntValidator())}
     )
+    assert result == expected
 
     @validate_signature
     def identity_str(x: str) -> str:
@@ -49,7 +55,7 @@ def test_one_arg_simple_scalars() -> None:
     with pytest.raises(InvalidArgsError) as exc_info:
         identity_str(123)  # type: ignore[arg-type]
 
-    assert str(exc_info.value) == get_args_fail_msg(
+    assert str(exc_info.value) == INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(
         {"x": Invalid(TypeErr(str), 123, IntValidator())}
     )
 
@@ -132,7 +138,7 @@ def test_fails_for_all_failures() -> None:
         return f"{a} {b} {c} {d} {kwargs}"
 
     with pytest.raises(InvalidArgsError) as exc_info:
-        some_func("zz", "b", "c", "d", "e", c="x", d="hmm", x=None)  # type: ignore[arg-type]
+        some_func("zz", "b", "c", "d", "e", c="x", d="hmm", x=None)  # type: ignore[arg-type]  # noqa: E501
 
     assert exc_info.value.errs == {
         "aa": Invalid(
@@ -188,31 +194,45 @@ def test_works_with_methods() -> None:
 def test_error_render_simple_typeerr() -> None:
     assert (
         get_arg_fail_message(Invalid(TypeErr(str), 5, StringValidator()))
-        == "expected <class 'str'>; got 5"
+        == "expected <class 'str'>"
     )
 
     assert (
         get_arg_fail_message(
-            Invalid(TypeErr(int), "ok" * 50, IntValidator()), depth=1, prefix="- "
+            Invalid(TypeErr(int), "ok" * 50, IntValidator()), prefix="    - "
         )
-        == "    - expected <class 'int'>; got '" + ("ok" * 23) + "..."
+        == "    - expected <class 'int'>"
     )
 
 
-def test_dict_errs() -> None:
-    assert (
-        get_arg_fail_message(
-            Invalid(
-                KeyErrs(
-                    {
-                        "abc": Invalid(TypeErr(str), 5, StringValidator()),
-                        "def": Invalid(TypeErr(int), "abc", IntValidator()),
-                    }
-                ),
-                {"abc": 5, "def": "abc"},
-                DictValidatorAny({"abc": StringValidator(), "def": IntValidator()}),
-            )
+def test_error_render_dict_errs() -> None:
+    result = get_arg_fail_message(
+        Invalid(
+            KeyErrs(
+                {
+                    "abc": Invalid(TypeErr(str), 5, StringValidator()),
+                    "def": Invalid(TypeErr(int), "abc", IntValidator()),
+                }
+            ),
+            {"abc": 5, "def": "abc"},
+            DictValidatorAny({"abc": StringValidator(), "def": IntValidator()}),
         )
-        == """
-    """
     )
+    expected = """KeyErrs
+    'abc': expected <class 'str'>
+    'def': expected <class 'int'>"""
+    assert result == expected
+
+
+def test_error_render_predicate_errors() -> None:
+    result = get_arg_fail_message(
+        Invalid(
+            PredicateErrs([Min(5), MultipleOf(3)]), 4, IntValidator(Min(5), MultipleOf(3))
+        )
+    )
+
+    expected = f"""PredicateErrs
+    {repr(Min(5))}
+    {repr(MultipleOf(3))}"""
+
+    assert result == expected

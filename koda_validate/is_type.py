@@ -1,7 +1,7 @@
 from typing import List, Optional, Type
 
 from koda_validate import Predicate, PredicateAsync, Processor
-from koda_validate._generics import A, SuccessT
+from koda_validate._generics import SuccessT
 from koda_validate._internal import _ToTupleStandardValidator
 from koda_validate.base import Coercer
 
