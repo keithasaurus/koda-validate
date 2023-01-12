@@ -33,25 +33,37 @@ def _wrap_fn(
 
     kwargs_validator: Optional[Validator[Any]] = None
     var_args_key_and_validator: Optional[Tuple[str, Validator[Any]]] = None
-    positional_args_names: Set[str] = {
-        key
-        for key, param in sig.parameters.items()
-        if (param.kind == param.POSITIONAL_ONLY)
-        or param.kind == param.POSITIONAL_OR_KEYWORD
-    }
+    positional_args_names: Set[str] = set()
 
+    positional_validators: List[Optional[Tuple[str, Validator[Any]]]] = []
     for key, param in sig.parameters.items():
-        if param.annotation != param.empty:
-            if param.kind == param.VAR_KEYWORD:
-                kwargs_validator = typehint_resolver(param.annotation)
-            if param.kind == param.VAR_POSITIONAL:
-                var_args_key_and_validator = key, typehint_resolver(param.annotation)
+        # if param.annotation != param.empty:
+        if param.kind == param.POSITIONAL_ONLY:
+            positional_args_names.add(key)
+            if param.annotation == param.empty:
+                positional_validators.append(None)
             else:
+                positional_validators.append((key, typehint_resolver(param.annotation)))
+        if param.kind == param.POSITIONAL_OR_KEYWORD:
+            positional_args_names.add(key)
+            if param.annotation == param.empty:
+                positional_validators.append(None)
+            else:
+                validator = typehint_resolver(param.annotation)
+                positional_validators.append((key, validator))
+                schema[key] = validator
+        if param.kind == param.VAR_POSITIONAL:
+            if param.annotation != param.empty:
+                var_args_key_and_validator = key, typehint_resolver(param.annotation)
+        if param.kind == param.KEYWORD_ONLY:
+            if param.annotation != param.empty:
                 schema[key] = typehint_resolver(param.annotation)
 
-    positional_validators = [
-        (k, v) for k, v in schema.items() if k in positional_args_names
-    ]
+        if param.kind == param.VAR_KEYWORD:
+            if param.annotation != param.empty:
+                kwargs_validator = typehint_resolver(param.annotation)
+            else:
+                schema[key] = typehint_resolver(param.annotation)
 
     if not ignore_return and sig.return_annotation != sig.empty:
         return_validator: Optional[Validator[Any]] = typehint_resolver(
@@ -65,17 +77,21 @@ def _wrap_fn(
         errs: Dict[str, Invalid] = {}
         var_args_errs: List[Tuple[Any, Invalid]] = []
         for i, arg in enumerate(args):
-            try:
-                key, arg_validator = positional_validators[i]
-            except IndexError:
+            if len(positional_validators) >= i + 1:
+                arg_details = positional_validators[i]
+                if arg_details is None:
+                    # not an annotated argument
+                    continue
+                else:
+                    key, arg_validator = arg_details
+                    if not (result := arg_validator(arg)).is_valid:
+                        errs[key] = result
+
+            else:
                 if var_args_key_and_validator:
                     var_args_key, var_args_validator = var_args_key_and_validator
                     if not (var_args_result := var_args_validator(arg)).is_valid:
                         var_args_errs.append((arg, var_args_result))
-
-            else:
-                if not (result := arg_validator(arg)).is_valid:
-                    errs[key] = result
 
         if var_args_errs and var_args_key_and_validator:
             errs[var_args_key_and_validator[0]] = Invalid(

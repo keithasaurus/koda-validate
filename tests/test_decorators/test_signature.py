@@ -114,21 +114,28 @@ def test_handles_var_args() -> None:
 
 def test_succeeds_for_zero_errors_on_all_kinds_of_args() -> None:
     @validate_signature
-    def some_func(a: int, *b: int, c: float, d: bool = False, **kwargs: int) -> str:
-        return f"{a} {b} {c} {d} {kwargs}"
+    def some_func(
+        aa: int, /, a: int, *b: int, c: float, d: bool = False, **kwargs: int
+    ) -> str:
+        return f"{aa} {a} {b} {c} {d} {kwargs}"
 
-    assert some_func(1, 2, 3, 4, c=2.2, x=10) == "1 (2, 3, 4) 2.2 False {'x': 10}"
+    assert some_func(0, 1, 2, 3, 4, c=2.2, x=10) == "0 1 (2, 3, 4) 2.2 False {'x': 10}"
 
 
 def test_fails_for_all_failures() -> None:
     @validate_signature
-    def some_func(a: int, *b: int, c: float, d: bool = False, **kwargs: int) -> str:
+    def some_func(
+        aa: int, /, a: int, *b: int, c: float, d: bool = False, **kwargs: int
+    ) -> str:
         return f"{a} {b} {c} {d} {kwargs}"
 
     with pytest.raises(InvalidArgsError) as exc_info:
-        some_func("b", "c", "d", "e", c="x", d="hmm", x=None)  # type: ignore[arg-type]
+        some_func("zz", "b", "c", "d", "e", c="x", d="hmm", x=None)  # type: ignore[arg-type]
 
     assert exc_info.value.errs == {
+        "aa": Invalid(
+            err_type=TypeErr(expected_type=int), value="zz", validator=IntValidator()
+        ),
         "a": Invalid(
             err_type=TypeErr(expected_type=int), value="b", validator=IntValidator()
         ),
@@ -165,3 +172,12 @@ def test_fails_for_all_failures() -> None:
             err_type=TypeErr(expected_type=int), value=None, validator=IntValidator()
         ),
     }
+
+
+def test_works_with_methods() -> None:
+    class Obj:
+        @validate_signature
+        def some_method(self, a: int, *, b: int) -> int:
+            return a + b
+
+    assert Obj().some_method(1, b=2) == 3
