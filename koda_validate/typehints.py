@@ -54,7 +54,7 @@ from .uuid import UUIDValidator
 # todo: evolve into general-purpose type-hint driven validator
 # will probably need significant changes
 def get_typehint_validator_base(
-    get_hint_next_depth: Callable[[Any], Validator[Any]], annotations: Any
+    get_hint_next_depth: Callable[[Any], Validator[Any]], annotation: Any
 ) -> Validator[Any]:
     """
     get_hint_next_depth allows a developer to wrap this function but still have it
@@ -63,58 +63,58 @@ def get_typehint_validator_base(
 
     :param get_hint_next_depth: the ``Callable`` that will determine the ``Validator``
         resolution at the next depth (usually this is the same at all depths)
-    :param annotations: the type we're using to create a ``Validator``
+    :param annotation: the type we're using to create a ``Validator``
     :return: a ``Validator`` that expresses the intent of the ``annotations``
     :raises TypeError: on types that are not handled
     """
-    if annotations is str:
+    if annotation is str:
         return StringValidator()
-    elif annotations is int:
+    elif annotation is int:
         return IntValidator()
-    elif annotations is float:
+    elif annotation is float:
         return FloatValidator()
-    elif annotations is None or annotations is type(None):  # noqa: E721
+    elif annotation is None or annotation is type(None):  # noqa: E721
         return NoneValidator()
-    elif annotations is UUID:
+    elif annotation is UUID:
         return UUIDValidator()
-    elif annotations is date:
+    elif annotation is date:
         return DateValidator()
-    elif annotations is datetime:
+    elif annotation is datetime:
         return DatetimeValidator()
-    elif annotations is bool:
+    elif annotation is bool:
         return BoolValidator()
-    elif annotations is Decimal:
+    elif annotation is Decimal:
         return DecimalValidator()
-    elif annotations is bytes:
+    elif annotation is bytes:
         return BytesValidator()
-    elif annotations is Any:
+    elif annotation is Any:
         return always_valid
-    elif annotations is List or annotations is list:
+    elif annotation is List or annotation is list:
         return ListValidator(always_valid)
-    elif annotations is Set or annotations is set:
+    elif annotation is Set or annotation is set:
         return SetValidator(always_valid)
-    elif annotations is Tuple or annotations is tuple:
+    elif annotation is Tuple or annotation is tuple:
         return UniformTupleValidator(always_valid)
-    elif annotations is Dict or annotations is dict:
+    elif annotation is Dict or annotation is dict:
         return MapValidator(key=always_valid, value=always_valid)
-    elif is_dataclass(annotations):
+    elif is_dataclass(annotation):
         from .dataclasses import DataclassValidator
 
-        return DataclassValidator(annotations)
+        return DataclassValidator(annotation)
     elif (
-        (bases := getattr(annotations, "__bases__", None))
+        (bases := getattr(annotation, "__bases__", None))
         and bases == (tuple,)
-        and hasattr(annotations, "_fields")
+        and hasattr(annotation, "_fields")
     ):
         from .namedtuple import NamedTupleValidator
 
-        return NamedTupleValidator(annotations)
-    elif _is_typed_dict_cls(annotations):
+        return NamedTupleValidator(annotation)
+    elif _is_typed_dict_cls(annotation):
         from .typeddict import TypedDictValidator
 
-        return TypedDictValidator(annotations)
+        return TypedDictValidator(annotation)
     else:
-        origin, args = get_origin(annotations), get_args(annotations)
+        origin, args = get_origin(annotation), get_args(annotation)
         if (origin is list or origin is List) and len(args) == 1:
             item_validator = get_hint_next_depth(args[0])
             return ListValidator(item_validator)
@@ -178,15 +178,18 @@ def get_typehint_validator_base(
                 for x in args:
                     if isinstance(x, Validator):
                         return x
-        elif inspect.isclass(annotations):
+        elif inspect.isclass(annotation):
             # fall back to an explicit type checker
-            return TypeValidator(annotations)
+            return TypeValidator(annotation)
 
-        raise TypeError(f"Got unhandled annotation: {repr(annotations)}.")
+        raise TypeError(f"Got unhandled annotation: {repr(annotation)}.")
 
 
-def get_typehint_validator(annotations: Any) -> Validator[Any]:
+def get_typehint_validator(annotation: Any) -> Validator[Any]:
     """
     The "default" way to convert typehints to `Validator`
+
+    :param annotation: Any valid python annotation.
+    :returns: a validator if it finds a match
     """
-    return get_typehint_validator_base(get_typehint_validator, annotations)
+    return get_typehint_validator_base(get_typehint_validator, annotation)
