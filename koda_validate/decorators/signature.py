@@ -203,19 +203,27 @@ def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -
     elif isinstance(err_type, PredicateErrs):
         ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join([f"{next_indent}{repr(p)}" for p in err_type.predicates])
+    elif isinstance(err_type, CoercionErr):
+        ret += (
+            f"expected any of "
+            f"{sorted(err_type.compatible_types, key=lambda t: repr(t))} to coerce "
+            f"to {repr(err_type.dest_type)}"
+        )
+    elif isinstance(err_type, ContainerErr):
+        return get_arg_fail_message(err_type.child, prefix)
     elif isinstance(err_type, MissingKeyErr):
         ret += "key missing"
     elif isinstance(err_type, UnionErrs):
         variant_errors = [
-            get_arg_fail_message(variant, f"{next_indent}variant {i}: ")
+            get_arg_fail_message(variant, next_indent, prefix=f"variant {i + 1}: ")
             for i, variant in enumerate(err_type.variants)
         ]
-        ret += "\n".join(["Union Errors"] + variant_errors)
+        ret += "\n".join([err_type.__class__.__name__] + variant_errors)
     elif isinstance(err_type, KeyErrs):
         ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join(
             [
-                get_arg_fail_message(inv, f"{next_indent}{repr(k)}: ")
+                get_arg_fail_message(inv, indent=next_indent, prefix=f"{repr(k)}: ")
                 for k, inv in err_type.keys.items()
             ]
         )
@@ -245,6 +253,14 @@ def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -
                     key_val_errs.val, next_indent, prefix=f"{repr(key)} (val): "
                 )
                 ret += f"\n{next_}"
+    elif isinstance(err_type, SetErrs):
+        ret += f"{err_type.__class__.__name__}\n"
+        ret += "\n".join(
+            [
+                f"{get_arg_fail_message(e, next_indent)} :: {_trunc_str(repr(e.value), 30)}"  # noqa: E501
+                for e in err_type.item_errs
+            ]
+        )
 
     return ret
 
