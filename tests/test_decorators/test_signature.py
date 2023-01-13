@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pytest
 
 from koda_validate import (
@@ -303,3 +305,35 @@ def test_error_render_keyvalerrs_errs() -> None:
     2 (val): expected <class 'int'>"""
 
     assert result == expected
+
+
+def test_ignore_args() -> None:
+    @validate_signature(ignore_args={"b", "c", "d", "e", "f", "kwargs"})
+    def fn(
+        checked: str,
+        b: int,
+        /,
+        c: float,
+        *d: int,
+        e: bool = False,
+        f: Optional[str] = None,
+        **kwargs: int,
+    ) -> str:
+        return f"{checked} {b} {c} {d} {e} {f} {kwargs}"
+
+    assert (
+        fn(
+            "ok", "bi1", "bf1", "bi2", "bi3", "bb1", e=3, f="badbad", kw_other="xyz"  # type: ignore[arg-type]  # noqa: E501
+        )
+        == "ok bi1 bf1 ('bi2', 'bi3', 'bb1') 3 badbad {'kw_other': 'xyz'}"
+    )
+
+
+def test_ignore_non_defined_kwarg() -> None:
+    @validate_signature(ignore_args={"extra_arg"})
+    def fn(
+        **kwargs: int,
+    ) -> str:
+        return str(kwargs["extra_arg"])
+
+    assert fn(extra_arg="extra_arg_val") == "extra_arg_val"  # type: ignore[arg-type]

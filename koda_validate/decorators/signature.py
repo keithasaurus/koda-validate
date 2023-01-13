@@ -18,50 +18,59 @@ from koda_validate import *
 from koda_validate.typehints import get_typehint_validator
 
 _BaseDecoratedFunc = Callable[..., Any]
-DecoratedFunc = TypeVar("DecoratedFunc", bound=_BaseDecoratedFunc)
+_DecoratedFunc = TypeVar("_DecoratedFunc", bound=_BaseDecoratedFunc)
 
 
 def _wrap_fn(
-    func: DecoratedFunc,
+    func: _DecoratedFunc,
     ignore_return: bool,
+    ignore_args: Set[str],
     typehint_resolver: Callable[[Any], Validator[Any]],
-) -> DecoratedFunc:
+) -> _DecoratedFunc:
     sig = inspect.signature(func)
-    schema: Dict[str, Validator[Any]] = {}
+    # This is optional because we need to keep track of all
+    # the argument names. For arguments that either a) don't have
+    # an annotation, or b) are being ignore, we keep the value as None
+    # If we simply didn't store the keys of arguments we're ignoring, we
+    # wouldn't be able to tell the difference between a **kwargs key and a
+    # defined argument name
+    schema: Dict[str, Optional[Validator[Any]]] = {}
 
     kwargs_validator: Optional[Validator[Any]] = None
     var_args_key_and_validator: Optional[Tuple[str, Validator[Any]]] = None
     positional_args_names: Set[str] = set()
-
     positional_validators: List[Optional[Tuple[str, Validator[Any]]]] = []
+
+    # create arg schema
     for key, param in sig.parameters.items():
-        # if param.annotation != param.empty:
         if param.kind == param.POSITIONAL_ONLY:
             positional_args_names.add(key)
-            if param.annotation == param.empty:
+            if param.annotation == param.empty or key in ignore_args:
                 positional_validators.append(None)
             else:
                 positional_validators.append((key, typehint_resolver(param.annotation)))
-        if param.kind == param.POSITIONAL_OR_KEYWORD:
+
+            schema[key] = None
+        elif param.kind == param.POSITIONAL_OR_KEYWORD:
             positional_args_names.add(key)
-            if param.annotation == param.empty:
+            if param.annotation == param.empty or key in ignore_args:
                 positional_validators.append(None)
+                schema[key] = None
             else:
                 validator = typehint_resolver(param.annotation)
                 positional_validators.append((key, validator))
                 schema[key] = validator
-        if param.kind == param.VAR_POSITIONAL:
-            if param.annotation != param.empty:
+        elif param.kind == param.VAR_POSITIONAL:
+            if param.annotation != param.empty and key not in ignore_args:
                 var_args_key_and_validator = key, typehint_resolver(param.annotation)
-        if param.kind == param.KEYWORD_ONLY:
-            if param.annotation != param.empty:
+        elif param.kind == param.KEYWORD_ONLY:
+            if param.annotation != param.empty and key not in ignore_args:
                 schema[key] = typehint_resolver(param.annotation)
-
-        if param.kind == param.VAR_KEYWORD:
-            if param.annotation != param.empty:
-                kwargs_validator = typehint_resolver(param.annotation)
             else:
-                schema[key] = typehint_resolver(param.annotation)
+                schema[key] = None
+        elif param.kind == param.VAR_KEYWORD:
+            if param.annotation != param.empty and key not in ignore_args:
+                kwargs_validator = typehint_resolver(param.annotation)
 
     if not ignore_return and sig.return_annotation != sig.empty:
         return_validator: Optional[Validator[Any]] = typehint_resolver(
@@ -69,6 +78,9 @@ def _wrap_fn(
         )
     else:
         return_validator = None
+
+    # we can allow keys only sent in **kwargs to be ignored as well
+    ignored_extra_kwargs = ignore_args.difference(schema)
 
     @functools.wraps(func)
     def inner(*args: Any, **kwargs: Any) -> Any:
@@ -100,10 +112,12 @@ def _wrap_fn(
 
         for kw_key, kw_val in kwargs.items():
             if kw_key in schema:
-                if not (kw_result := schema[kw_key](kw_val)).is_valid:
-                    errs[kw_key] = kw_result
+                if schema_validator := schema[kw_key]:
+                    if not (kw_result := schema_validator(kw_val)).is_valid:
+                        errs[kw_key] = kw_result
             elif (
                 kwargs_validator
+                and kw_key not in ignored_extra_kwargs
                 and not (kwargs_result := kwargs_validator(kw_val)).is_valid
             ):
                 errs[kw_key] = kwargs_result
@@ -119,17 +133,17 @@ def _wrap_fn(
         else:
             return func(*args, **kwargs)
 
-    return cast(DecoratedFunc, inner)
+    return cast(_DecoratedFunc, inner)
 
 
 @overload
 def validate_signature(
-    func: DecoratedFunc,
+    func: _DecoratedFunc,
     *,
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
     typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
-) -> DecoratedFunc:
+) -> _DecoratedFunc:
     ...
 
 
@@ -140,30 +154,34 @@ def validate_signature(
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
     typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
-) -> Callable[[DecoratedFunc], DecoratedFunc]:
+) -> Callable[[_DecoratedFunc], _DecoratedFunc]:
     ...
 
 
 def validate_signature(
-    func: Optional[DecoratedFunc] = None,
+    func: Optional[_DecoratedFunc] = None,
     *,
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
     typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
-) -> Union[DecoratedFunc, Callable[[DecoratedFunc], DecoratedFunc]]:
+) -> Union[_DecoratedFunc, Callable[[_DecoratedFunc], _DecoratedFunc]]:
     if func is None:
 
-        def inner(func_inner: DecoratedFunc) -> DecoratedFunc:
+        def inner(func_inner: _DecoratedFunc) -> _DecoratedFunc:
             return _wrap_fn(
                 func_inner,
                 ignore_return=ignore_return,
+                ignore_args=ignore_args or set(),
                 typehint_resolver=typehint_resolver,
             )
 
         return inner
     else:
         return _wrap_fn(
-            func, ignore_return=ignore_return, typehint_resolver=typehint_resolver
+            func,
+            ignore_return=ignore_return,
+            ignore_args=ignore_args or set(),
+            typehint_resolver=typehint_resolver,
         )
 
 
