@@ -434,6 +434,21 @@ def test_annotated() -> None:
         something("ab")
 
 
+def test_overrides() -> None:
+    @validate_signature(overrides={"a": StringValidator(MinLength(2))})
+    def something(
+        a: str,
+    ) -> str:
+        # the function signature here can be regarded as somewhat of a mistake
+        # because the return minlength should be 1, since we remove one character. It just
+        # serves to allow us to test both the argument and return validators.
+        return a[:-1]
+
+    assert something("abc") == "ab"
+    with pytest.raises(InvalidArgsError):
+        something("")
+
+
 def test_typehint_resolver() -> None:
     def custom_resolver(annotation: Any) -> Validator[Any]:
         if annotation is str:
@@ -652,3 +667,19 @@ async def test_obj_works() -> None:
     f = validate_signature(Obj())
 
     assert await f(1, b=2) == 3
+
+
+def test_works_on_init() -> None:
+    class Obj:
+        @validate_signature
+        def __init__(self, a: str, b: int) -> None:
+            self.a = a
+            self.b = b
+
+    # doesn't raise
+    obj = Obj("ok", 123)
+    assert obj.a == "ok"
+    assert obj.b == 123
+
+    with pytest.raises(InvalidArgsError):
+        Obj(123, "ok")  # type: ignore[arg-type]

@@ -21,11 +21,25 @@ _BaseDecoratedFunc = Callable[..., Any]
 _DecoratedFunc = TypeVar("_DecoratedFunc", bound=_BaseDecoratedFunc)
 
 
+def _get_validator(
+    overrides: Dict[str, Validator[Any]],
+    typehint_resolver: Callable[[Any], Validator[Any]],
+    param_name: str,
+    annotation: Any,
+) -> Validator[Any]:
+    return (
+        overrides[param_name]
+        if param_name in overrides
+        else typehint_resolver(annotation)
+    )
+
+
 def _wrap_fn(
     func: _DecoratedFunc,
     ignore_return: bool,
     ignore_args: Set[str],
     typehint_resolver: Callable[[Any], Validator[Any]],
+    overrides: Dict[str, Validator[Any]],
 ) -> _DecoratedFunc:
     sig = inspect.signature(func)
     # This value is Optional because we need to keep track of all
@@ -40,37 +54,43 @@ def _wrap_fn(
     var_args_key_and_validator: Optional[Tuple[str, Validator[Any]]] = None
     positional_args_names: Set[str] = set()
     positional_validators: List[Optional[Tuple[str, Validator[Any]]]] = []
+    _get_validator_partial = functools.partial(
+        _get_validator, overrides, typehint_resolver
+    )
 
     # create arg schema
     for key, param in sig.parameters.items():
+        annotation = param.annotation
         if param.kind == param.POSITIONAL_ONLY:
             positional_args_names.add(key)
-            if param.annotation == param.empty or key in ignore_args:
+            if annotation == param.empty or key in ignore_args:
                 positional_validators.append(None)
             else:
-                positional_validators.append((key, typehint_resolver(param.annotation)))
+                positional_validators.append(
+                    (key, _get_validator_partial(key, annotation))
+                )
 
             schema[key] = None
         elif param.kind == param.POSITIONAL_OR_KEYWORD:
             positional_args_names.add(key)
-            if param.annotation == param.empty or key in ignore_args:
+            if annotation == param.empty or key in ignore_args:
                 positional_validators.append(None)
                 schema[key] = None
             else:
-                validator = typehint_resolver(param.annotation)
+                validator = _get_validator_partial(key, annotation)
                 positional_validators.append((key, validator))
                 schema[key] = validator
         elif param.kind == param.VAR_POSITIONAL:
-            if param.annotation != param.empty and key not in ignore_args:
-                var_args_key_and_validator = key, typehint_resolver(param.annotation)
+            if annotation != param.empty and key not in ignore_args:
+                var_args_key_and_validator = key, _get_validator_partial(key, annotation)
         elif param.kind == param.KEYWORD_ONLY:
-            if param.annotation != param.empty and key not in ignore_args:
-                schema[key] = typehint_resolver(param.annotation)
+            if annotation != param.empty and key not in ignore_args:
+                schema[key] = _get_validator_partial(key, annotation)
             else:
                 schema[key] = None
         elif param.kind == param.VAR_KEYWORD:
-            if param.annotation != param.empty and key not in ignore_args:
-                kwargs_validator = typehint_resolver(param.annotation)
+            if annotation != param.empty and key not in ignore_args:
+                kwargs_validator = _get_validator_partial(key, annotation)
 
     if not ignore_return and sig.return_annotation != sig.empty:
         return_validator: Optional[Validator[Any]] = typehint_resolver(
@@ -211,6 +231,7 @@ def validate_signature(
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
     typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+    overrides: Optional[Dict[str, Validator[Any]]] = None,
 ) -> _DecoratedFunc:
     ...
 
@@ -222,6 +243,7 @@ def validate_signature(
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
     typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+    overrides: Optional[Dict[str, Validator[Any]]] = None,
 ) -> Callable[[_DecoratedFunc], _DecoratedFunc]:
     ...
 
@@ -232,25 +254,24 @@ def validate_signature(
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
     typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+    overrides: Optional[Dict[str, Validator[Any]]] = None,
 ) -> Union[_DecoratedFunc, Callable[[_DecoratedFunc], _DecoratedFunc]]:
+    _wrap_fn_partial = functools.partial(
+        _wrap_fn,
+        ignore_return=ignore_return,
+        ignore_args=ignore_args or set(),
+        typehint_resolver=typehint_resolver,
+        overrides=overrides or {},
+    )
+
     if func is None:
 
         def inner(func_inner: _DecoratedFunc) -> _DecoratedFunc:
-            return _wrap_fn(
-                func_inner,
-                ignore_return=ignore_return,
-                ignore_args=ignore_args or set(),
-                typehint_resolver=typehint_resolver,
-            )
+            return _wrap_fn_partial(func_inner)
 
         return inner
     else:
-        return _wrap_fn(
-            func,
-            ignore_return=ignore_return,
-            ignore_args=ignore_args or set(),
-            typehint_resolver=typehint_resolver,
-        )
+        return _wrap_fn_partial(func)
 
 
 def _trunc_str(s: str, max_chars: int) -> str:
