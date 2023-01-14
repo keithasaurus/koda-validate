@@ -28,7 +28,7 @@ def _wrap_fn(
     typehint_resolver: Callable[[Any], Validator[Any]],
 ) -> _DecoratedFunc:
     sig = inspect.signature(func)
-    # This is optional because we need to keep track of all
+    # This value is Optional because we need to keep track of all
     # the argument names. For arguments that either a) don't have
     # an annotation, or b) are being ignore, we keep the value as None
     # If we simply didn't store the keys of arguments we're ignoring, we
