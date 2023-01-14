@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 
 import pytest
 from _decimal import Decimal
@@ -20,6 +20,7 @@ from koda_validate import (
     ListValidator,
     MapErr,
     MapValidator,
+    MaxLength,
     Min,
     MinLength,
     MultipleOf,
@@ -30,6 +31,7 @@ from koda_validate import (
     TypeErr,
     UnionErrs,
     UnionValidator,
+    Validator,
 )
 from koda_validate.decorators.signature import (
     INVALID_ARGS_MESSAGE_HEADER,
@@ -40,6 +42,7 @@ from koda_validate.decorators.signature import (
     validate_signature,
 )
 from koda_validate.maybe import MaybeValidator
+from koda_validate.typehints import get_typehint_validator
 
 
 def test_empty_signature_is_fine() -> None:
@@ -428,3 +431,23 @@ def test_annotated() -> None:
 
     with pytest.raises(InvalidReturnError):
         something("ab")
+
+
+def test_typehint_resolver() -> None:
+    def custom_resolver(annotation: Any) -> Validator[Any]:
+        if annotation is str:
+            return StringValidator(MaxLength(2))
+        else:
+            return get_typehint_validator(annotation)
+
+    @validate_signature(typehint_resolver=custom_resolver)
+    def some_func(a: str, b: int) -> str:
+        return str(b**2)
+
+    assert some_func("aa", 2) == "4"
+
+    with pytest.raises(InvalidArgsError):
+        some_func(a="abc", b=2)
+
+    with pytest.raises(InvalidReturnError):
+        some_func("aa", 11)
