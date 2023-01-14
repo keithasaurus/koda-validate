@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Annotated, Optional
 
 import pytest
 from _decimal import Decimal
@@ -21,6 +21,7 @@ from koda_validate import (
     MapErr,
     MapValidator,
     Min,
+    MinLength,
     MultipleOf,
     PredicateErrs,
     SetErrs,
@@ -409,3 +410,21 @@ def test_error_render_set_errs() -> None:
     expected <class 'int'> :: 2.2
     expected <class 'int'> :: {truncated}"""
     assert expected == result
+
+
+def test_annotated() -> None:
+    @validate_signature
+    def something(
+        a: Annotated[str, StringValidator(MinLength(2))]
+    ) -> Annotated[str, StringValidator(MinLength(2))]:
+        # the function signature here can be regarded as somewhat of a mistake
+        # because the return minlength should be 1, since we remove one character. It just
+        # serves to allow us to test both the argument and return validators.
+        return a[:-1]
+
+    assert something("abc") == "ab"
+    with pytest.raises(InvalidArgsError):
+        something("")
+
+    with pytest.raises(InvalidReturnError):
+        something("ab")
