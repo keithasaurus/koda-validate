@@ -48,7 +48,7 @@ from koda_validate.typehints import get_typehint_validator
 
 def test_empty_signature_is_fine() -> None:
     @validate_signature
-    def constant():  # type: ignore
+    def constant():  # type: ignore[no-untyped-def]
         return 5
 
     assert constant() == 5  # type: ignore[no-untyped-call]
@@ -462,3 +462,91 @@ Invalid Return Value
 --------------------
 {get_arg_fail_message(inv)}"""
     )
+
+
+@pytest.mark.asyncio
+async def test_empty_signature_is_fine_async() -> None:
+    @validate_signature
+    async def constant():  # type: ignore[no-untyped-def]
+        return 5
+
+    assert await constant() == 5  # type: ignore[no-untyped-call]
+
+
+@pytest.mark.asyncio
+async def test_one_arg_simple_scalars_async() -> None:
+    @validate_signature
+    async def identity_int(x: int) -> int:
+        return x
+
+    assert await identity_int(123) == 123
+    with pytest.raises(InvalidArgsError) as exc_info:
+        await identity_int("abc")  # type: ignore[arg-type]
+
+    result = str(exc_info.value)
+    expected = INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(
+        {"x": Invalid(TypeErr(int), "abc", IntValidator())}
+    )
+    assert result == expected
+
+    @validate_signature
+    async def identity_str(x: str) -> str:
+        return x
+
+    assert await identity_str("abc") == "abc"
+    with pytest.raises(InvalidArgsError) as exc_info:
+        await identity_str(123)  # type: ignore[arg-type]
+
+    assert str(exc_info.value) == INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(
+        {"x": Invalid(TypeErr(str), 123, IntValidator())}
+    )
+
+
+def test_catches_bad_return_type() -> None:
+    @validate_signature
+    def some_func() -> str:
+        return 5  # type: ignore[return-value]
+
+    with pytest.raises(InvalidReturnError) as exc_info:
+        assert some_func()
+
+    assert str(exc_info.value) == INVALID_RETURN_MESSAGE_HEADER + get_arg_fail_message(
+        Invalid(TypeErr(str), 5, StringValidator())
+    )
+
+
+@pytest.mark.asyncio
+async def test_ignores_return_type_async() -> None:
+    @validate_signature(ignore_return=True)
+    async def some_func() -> str:
+        return 5  # type: ignore[return-value]
+
+    assert await some_func() == 5  # type: ignore[comparison-overlap]
+
+
+@pytest.mark.asyncio
+async def test_multiple_args_custom_type_async() -> None:
+    class Person:
+        def __init__(self, name: str, age: int) -> None:
+            self.name = name
+            self.age = age
+
+    @validate_signature
+    async def fn(a: int, b: Person) -> None:
+        return None
+
+    assert await fn(5, Person("abc", 123)) is None
+
+
+@pytest.mark.asyncio
+async def test_handles_kwargs_async() -> None:
+    @validate_signature
+    async def some_func(**kwargs: str) -> str:
+        return "neat"
+
+    assert await some_func(x="1") == "neat"
+
+    assert await some_func() == "neat"
+
+    with pytest.raises(InvalidArgsError):
+        await some_func(x=1)  # type: ignore[arg-type]
