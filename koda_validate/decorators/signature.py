@@ -82,7 +82,9 @@ def _wrap_fn(
     # we can allow keys only sent in **kwargs to be ignored as well
     ignored_extra_kwargs = ignore_args.difference(schema)
 
-    if inspect.iscoroutinefunction(func):
+    if inspect.iscoroutinefunction(func) or inspect.iscoroutinefunction(
+        getattr(func, "__call__", None)
+    ):
 
         async def inner_async(*args: Any, **kwargs: Any) -> Any:
             errs: Dict[str, Invalid] = {}
