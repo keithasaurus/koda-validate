@@ -35,6 +35,7 @@ from koda_validate import (
 )
 from koda_validate.decorators.signature import (
     INVALID_ARGS_MESSAGE_HEADER,
+    INVALID_RETURN_MESSAGE_HEADER,
     InvalidArgsError,
     InvalidReturnError,
     get_arg_fail_message,
@@ -89,7 +90,7 @@ def test_catches_bad_return_type() -> None:
     with pytest.raises(InvalidReturnError) as exc_info:
         assert some_func()
 
-    assert str(exc_info.value) == get_arg_fail_message(
+    assert str(exc_info.value) == INVALID_RETURN_MESSAGE_HEADER + get_arg_fail_message(
         Invalid(TypeErr(str), 5, StringValidator())
     )
 
@@ -451,3 +452,13 @@ def test_typehint_resolver() -> None:
 
     with pytest.raises(InvalidReturnError):
         some_func("aa", 11)
+
+
+def test_error_message_format() -> None:
+    assert (
+        str(InvalidReturnError(inv := Invalid(TypeErr(str), 5, StringValidator())))
+        == f"""
+Invalid Return Value
+--------------------
+{get_arg_fail_message(inv)}"""
+    )

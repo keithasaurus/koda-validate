@@ -223,7 +223,7 @@ def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -
         ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join(
             [
-                get_arg_fail_message(inv, indent=next_indent, prefix=f"{repr(k)}: ")
+                get_arg_fail_message(inv, next_indent, prefix=f"{repr(k)}: ")
                 for k, inv in err_type.keys.items()
             ]
         )
@@ -274,6 +274,7 @@ def get_args_fail_msg(errs: Dict[str, Invalid]) -> str:
 
 
 INVALID_ARGS_MESSAGE_HEADER = "\nInvalid Argument Values\n-----------------------\n"
+INVALID_RETURN_MESSAGE_HEADER = "\nInvalid Return Value\n--------------------\n"
 
 
 class InvalidArgsError(Exception):
@@ -284,5 +285,5 @@ class InvalidArgsError(Exception):
 
 class InvalidReturnError(Exception):
     def __init__(self, err: Invalid):
-        super().__init__(get_arg_fail_message(err))
+        super().__init__(INVALID_RETURN_MESSAGE_HEADER + get_arg_fail_message(err))
         self.err = err
