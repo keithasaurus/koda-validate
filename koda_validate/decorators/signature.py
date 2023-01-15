@@ -5,6 +5,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Optional,
     Set,
     Tuple,
@@ -20,9 +21,15 @@ from koda_validate.typehints import get_typehint_validator
 _BaseDecoratedFunc = Callable[..., Any]
 _DecoratedFunc = TypeVar("_DecoratedFunc", bound=_BaseDecoratedFunc)
 
+# for overrides - just to avoid parameter name conflicts
+ReturnOverrideKey = Tuple[Literal["return_key"]]
+RETURN_OVERRIDE_KEY: ReturnOverrideKey = ("return_key",)
+
+OverridesDict = Dict[Union[str, ReturnOverrideKey], Validator[Any]]
+
 
 def _get_validator(
-    overrides: Dict[str, Validator[Any]],
+    overrides: OverridesDict,
     typehint_resolver: Callable[[Any], Validator[Any]],
     param_name: str,
     annotation: Any,
@@ -39,7 +46,7 @@ def _wrap_fn(
     ignore_return: bool,
     ignore_args: Set[str],
     typehint_resolver: Callable[[Any], Validator[Any]],
-    overrides: Dict[str, Validator[Any]],
+    overrides: OverridesDict,
 ) -> _DecoratedFunc:
     sig = inspect.signature(func)
     # This value is Optional because we need to keep track of all
@@ -93,8 +100,8 @@ def _wrap_fn(
                 kwargs_validator = _get_validator_partial(key, annotation)
 
     if not ignore_return and sig.return_annotation != sig.empty:
-        return_validator: Optional[Validator[Any]] = typehint_resolver(
-            sig.return_annotation
+        return_validator: Optional[Validator[Any]] = _get_validator_partial(
+            RETURN_OVERRIDE_KEY, sig.return_annotation
         )
     else:
         return_validator = None
@@ -231,7 +238,7 @@ def validate_signature(
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
     typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
-    overrides: Optional[Dict[str, Validator[Any]]] = None,
+    overrides: Optional[OverridesDict] = None,
 ) -> _DecoratedFunc:
     ...
 
@@ -243,7 +250,7 @@ def validate_signature(
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
     typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
-    overrides: Optional[Dict[str, Validator[Any]]] = None,
+    overrides: Optional[OverridesDict] = None,
 ) -> Callable[[_DecoratedFunc], _DecoratedFunc]:
     ...
 
@@ -254,7 +261,7 @@ def validate_signature(
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
     typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
-    overrides: Optional[Dict[str, Validator[Any]]] = None,
+    overrides: Optional[OverridesDict] = None,
 ) -> Union[_DecoratedFunc, Callable[[_DecoratedFunc], _DecoratedFunc]]:
     _wrap_fn_partial = functools.partial(
         _wrap_fn,

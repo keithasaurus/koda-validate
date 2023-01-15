@@ -36,6 +36,7 @@ from koda_validate import (
 from koda_validate.decorators.signature import (
     INVALID_ARGS_MESSAGE_HEADER,
     INVALID_RETURN_MESSAGE_HEADER,
+    RETURN_OVERRIDE_KEY,
     InvalidArgsError,
     InvalidReturnError,
     get_arg_fail_message,
@@ -435,7 +436,12 @@ def test_annotated() -> None:
 
 
 def test_overrides() -> None:
-    @validate_signature(overrides={"a": StringValidator(MinLength(2))})
+    @validate_signature(
+        overrides={
+            "a": StringValidator(MinLength(2)),
+            RETURN_OVERRIDE_KEY: StringValidator(MinLength(2)),
+        }
+    )
     def something(
         a: str,
     ) -> str:
@@ -447,6 +453,9 @@ def test_overrides() -> None:
     assert something("abc") == "ab"
     with pytest.raises(InvalidArgsError):
         something("")
+
+    with pytest.raises(InvalidReturnError):
+        something("ab")
 
 
 def test_typehint_resolver() -> None:
