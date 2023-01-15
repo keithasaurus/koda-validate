@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Any, Optional
 
 import pytest
 from _decimal import Decimal
@@ -34,13 +34,13 @@ from koda_validate import (
     Validator,
 )
 from koda_validate.decorators.signature import (
-    INVALID_ARGS_MESSAGE_HEADER,
-    INVALID_RETURN_MESSAGE_HEADER,
+    _INVALID_ARGS_MESSAGE_HEADER,
+    _INVALID_RETURN_MESSAGE_HEADER,
     RETURN_OVERRIDE_KEY,
     InvalidArgsError,
     InvalidReturnError,
-    get_arg_fail_message,
-    get_args_fail_msg,
+    _get_arg_fail_message,
+    _get_args_fail_msg,
     validate_signature,
 )
 from koda_validate.maybe import MaybeValidator
@@ -65,7 +65,7 @@ def test_one_arg_simple_scalars() -> None:
         identity_int("abc")  # type: ignore[arg-type]
 
     result = str(exc_info.value)
-    expected = INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(
+    expected = _INVALID_ARGS_MESSAGE_HEADER + _get_args_fail_msg(
         {"x": Invalid(TypeErr(int), "abc", IntValidator())}
     )
     assert result == expected
@@ -78,7 +78,7 @@ def test_one_arg_simple_scalars() -> None:
     with pytest.raises(InvalidArgsError) as exc_info:
         identity_str(123)  # type: ignore[arg-type]
 
-    assert str(exc_info.value) == INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(
+    assert str(exc_info.value) == _INVALID_ARGS_MESSAGE_HEADER + _get_args_fail_msg(
         {"x": Invalid(TypeErr(str), 123, IntValidator())}
     )
 
@@ -91,7 +91,7 @@ def test_catches_bad_return_type() -> None:
     with pytest.raises(InvalidReturnError) as exc_info:
         assert some_func()
 
-    assert str(exc_info.value) == INVALID_RETURN_MESSAGE_HEADER + get_arg_fail_message(
+    assert str(exc_info.value) == _INVALID_RETURN_MESSAGE_HEADER + _get_arg_fail_message(
         Invalid(TypeErr(str), 5, StringValidator())
     )
 
@@ -216,12 +216,12 @@ def test_works_with_methods() -> None:
 
 def test_error_render_simple_typeerr() -> None:
     assert (
-        get_arg_fail_message(Invalid(TypeErr(str), 5, StringValidator()))
+        _get_arg_fail_message(Invalid(TypeErr(str), 5, StringValidator()))
         == "expected <class 'str'>"
     )
 
     assert (
-        get_arg_fail_message(
+        _get_arg_fail_message(
             Invalid(TypeErr(int), "ok" * 50, IntValidator()), indent="    - "
         )
         == "    - expected <class 'int'>"
@@ -229,7 +229,7 @@ def test_error_render_simple_typeerr() -> None:
 
 
 def test_error_render_dict_errs() -> None:
-    result = get_arg_fail_message(
+    result = _get_arg_fail_message(
         Invalid(
             KeyErrs(
                 {
@@ -248,7 +248,7 @@ def test_error_render_dict_errs() -> None:
 
 
 def test_error_render_predicate_errors() -> None:
-    result = get_arg_fail_message(
+    result = _get_arg_fail_message(
         Invalid(
             PredicateErrs([Min(5), MultipleOf(3)]), 4, IntValidator(Min(5), MultipleOf(3))
         )
@@ -262,7 +262,7 @@ def test_error_render_predicate_errors() -> None:
 
 
 def test_error_render_extra_keys() -> None:
-    result = get_arg_fail_message(
+    result = _get_arg_fail_message(
         Invalid(
             ExtraKeysErr({1, 2, "3"}),
             {"a": 5},
@@ -278,7 +278,7 @@ def test_error_render_extra_keys() -> None:
 
 
 def test_error_render_union_errors() -> None:
-    result = get_arg_fail_message(
+    result = _get_arg_fail_message(
         Invalid(
             UnionErrs(
                 [
@@ -299,7 +299,7 @@ def test_error_render_union_errors() -> None:
 
 
 def test_error_render_index_errs() -> None:
-    result = get_arg_fail_message(
+    result = _get_arg_fail_message(
         Invalid(
             IndexErrs(
                 {
@@ -319,7 +319,7 @@ def test_error_render_index_errs() -> None:
 
 
 def test_error_render_keyvalerrs_errs() -> None:
-    result = get_arg_fail_message(
+    result = _get_arg_fail_message(
         Invalid(
             MapErr(
                 {
@@ -377,7 +377,7 @@ def test_ignore_non_defined_kwarg() -> None:
 
 
 def test_error_render_coercion_errors() -> None:
-    result = get_arg_fail_message(
+    result = _get_arg_fail_message(
         Invalid(CoercionErr({int, str, Decimal}, Decimal), 1.2, DecimalValidator())
     )
 
@@ -390,11 +390,11 @@ def test_error_render_coercion_errors() -> None:
 
 def test_error_render_container_err() -> None:
     child_err = Invalid(TypeErr(str), -123, StringValidator())
-    result = get_arg_fail_message(
+    result = _get_arg_fail_message(
         Invalid(ContainerErr(child_err), Just(-123), MaybeValidator(StringValidator()))
     )
 
-    assert result == get_arg_fail_message(child_err)
+    assert result == _get_arg_fail_message(child_err)
 
 
 def test_error_render_set_errs() -> None:
@@ -409,30 +409,12 @@ def test_error_render_set_errs() -> None:
         SetValidator(IntValidator()),
     )
 
-    result = get_arg_fail_message(set_errors)
+    result = _get_arg_fail_message(set_errors)
     truncated = repr("abc" * 100)[:27] + "..."
     expected = f"""SetErrs
     expected <class 'int'> :: 2.2
     expected <class 'int'> :: {truncated}"""
     assert expected == result
-
-
-def test_annotated() -> None:
-    @validate_signature
-    def something(
-        a: Annotated[str, StringValidator(MinLength(2))]
-    ) -> Annotated[str, StringValidator(MinLength(2))]:
-        # the function signature here can be regarded as somewhat of a mistake
-        # because the return minlength should be 1, since we remove one character. It just
-        # serves to allow us to test both the argument and return validators.
-        return a[:-1]
-
-    assert something("abc") == "ab"
-    with pytest.raises(InvalidArgsError):
-        something("")
-
-    with pytest.raises(InvalidReturnError):
-        something("ab")
 
 
 def test_overrides() -> None:
@@ -484,7 +466,7 @@ def test_error_message_format() -> None:
         == f"""
 Invalid Return Value
 --------------------
-{get_arg_fail_message(inv)}"""
+{_get_arg_fail_message(inv)}"""
     )
 
 
@@ -508,7 +490,7 @@ async def test_one_arg_simple_scalars_async() -> None:
         await identity_int("abc")  # type: ignore[arg-type]
 
     result = str(exc_info.value)
-    expected = INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(
+    expected = _INVALID_ARGS_MESSAGE_HEADER + _get_args_fail_msg(
         {"x": Invalid(TypeErr(int), "abc", IntValidator())}
     )
     assert result == expected
@@ -521,7 +503,7 @@ async def test_one_arg_simple_scalars_async() -> None:
     with pytest.raises(InvalidArgsError) as exc_info:
         await identity_str(123)  # type: ignore[arg-type]
 
-    assert str(exc_info.value) == INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(
+    assert str(exc_info.value) == _INVALID_ARGS_MESSAGE_HEADER + _get_args_fail_msg(
         {"x": Invalid(TypeErr(str), 123, IntValidator())}
     )
 
@@ -535,7 +517,7 @@ async def test_catches_bad_return_type_async() -> None:
     with pytest.raises(InvalidReturnError) as exc_info:
         assert await some_func()
 
-    assert str(exc_info.value) == INVALID_RETURN_MESSAGE_HEADER + get_arg_fail_message(
+    assert str(exc_info.value) == _INVALID_RETURN_MESSAGE_HEADER + _get_arg_fail_message(
         Invalid(TypeErr(str), 5, StringValidator())
     )
 

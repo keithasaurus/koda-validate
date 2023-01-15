@@ -263,6 +263,22 @@ def validate_signature(
     typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
     overrides: Optional[OverridesDict] = None,
 ) -> Union[_DecoratedFunc, Callable[[_DecoratedFunc], _DecoratedFunc]]:
+    """
+    Validates a function's arguments and / or return value adhere to the respective
+    typehints and / or any custom-specified Validation.Because we want to preserve the
+    type signature of the function when it's wrapped, we raise exceptions to represent
+    failure (as opssoped to returning ValidationResult[ReturnType], which would change
+    the function's type signature).
+
+    :param func: the function being validated
+    :param ignore_return: whether or not to ignore the return annotation
+    :param ignore_args: any arguments that should be ignored
+    :param typehint_resolver: the function responsible for resolving type annotations
+        to `Validator`s
+    :param overrides: explicit `Validator`s for arguments that takes priority over
+        `typehint_resolver` and `Annotated` types
+    :return: the decorated function
+    """
     _wrap_fn_partial = functools.partial(
         _wrap_fn,
         ignore_return=ignore_return,
@@ -290,7 +306,7 @@ def _trunc_str(s: str, max_chars: int) -> str:
     return (s[: (max_chars - ellip_len)] + ellip) if len(s) > max_chars else s
 
 
-def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -> str:
+def _get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -> str:
     err_type = invalid.err_type
     next_indent = f"    {indent}"
     ret = indent + prefix
@@ -306,12 +322,12 @@ def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -
             f"to {repr(err_type.dest_type)}"
         )
     elif isinstance(err_type, ContainerErr):
-        return get_arg_fail_message(err_type.child, prefix)
+        return _get_arg_fail_message(err_type.child, prefix)
     elif isinstance(err_type, MissingKeyErr):
         ret += "key missing"
     elif isinstance(err_type, UnionErrs):
         variant_errors = [
-            get_arg_fail_message(variant, next_indent, prefix=f"variant {i + 1}: ")
+            _get_arg_fail_message(variant, next_indent, prefix=f"variant {i + 1}: ")
             for i, variant in enumerate(err_type.variants)
         ]
         ret += "\n".join([err_type.__class__.__name__] + variant_errors)
@@ -319,7 +335,7 @@ def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -
         ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join(
             [
-                get_arg_fail_message(inv, next_indent, prefix=f"{repr(k)}: ")
+                _get_arg_fail_message(inv, next_indent, prefix=f"{repr(k)}: ")
                 for k, inv in err_type.keys.items()
             ]
         )
@@ -332,7 +348,7 @@ def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -
         ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join(
             [
-                get_arg_fail_message(inv, next_indent, prefix=f"{idx}: ")
+                _get_arg_fail_message(inv, next_indent, prefix=f"{idx}: ")
                 for idx, inv in err_type.indexes.items()
             ]
         )
@@ -340,12 +356,12 @@ def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -
         ret += "MapErr"
         for key, key_val_errs in err_type.keys.items():
             if key_val_errs.key:
-                next_ = get_arg_fail_message(
+                next_ = _get_arg_fail_message(
                     key_val_errs.key, next_indent, prefix=f"{repr(key)} (key): "
                 )
                 ret += f"\n{next_}"
             if key_val_errs.val:
-                next_ = get_arg_fail_message(
+                next_ = _get_arg_fail_message(
                     key_val_errs.val, next_indent, prefix=f"{repr(key)} (val): "
                 )
                 ret += f"\n{next_}"
@@ -353,7 +369,7 @@ def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -
         ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join(
             [
-                f"{get_arg_fail_message(e, next_indent)} :: {_trunc_str(repr(e.value), 30)}"  # noqa: E501
+                f"{_get_arg_fail_message(e, next_indent)} :: {_trunc_str(repr(e.value), 30)}"  # noqa: E501
                 for e in err_type.item_errs
             ]
         )
@@ -361,25 +377,25 @@ def get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") -
     return ret
 
 
-def get_args_fail_msg(errs: Dict[str, Invalid]) -> str:
+def _get_args_fail_msg(errs: Dict[str, Invalid]) -> str:
     messages = [
-        f"{k}={_trunc_str(repr(v.value), 60)}\n{get_arg_fail_message(v, '    ')}"
+        f"{k}={_trunc_str(repr(v.value), 60)}\n{_get_arg_fail_message(v, '    ')}"
         for k, v in errs.items()
     ]
     return "\n".join(messages)
 
 
-INVALID_ARGS_MESSAGE_HEADER = "\nInvalid Argument Values\n-----------------------\n"
-INVALID_RETURN_MESSAGE_HEADER = "\nInvalid Return Value\n--------------------\n"
+_INVALID_ARGS_MESSAGE_HEADER = "\nInvalid Argument Values\n-----------------------\n"
+_INVALID_RETURN_MESSAGE_HEADER = "\nInvalid Return Value\n--------------------\n"
 
 
 class InvalidArgsError(Exception):
     def __init__(self, errs: Dict[str, Invalid]) -> None:
-        super().__init__(INVALID_ARGS_MESSAGE_HEADER + get_args_fail_msg(errs))
+        super().__init__(_INVALID_ARGS_MESSAGE_HEADER + _get_args_fail_msg(errs))
         self.errs = errs
 
 
 class InvalidReturnError(Exception):
     def __init__(self, err: Invalid):
-        super().__init__(INVALID_RETURN_MESSAGE_HEADER + get_arg_fail_message(err))
+        super().__init__(_INVALID_RETURN_MESSAGE_HEADER + _get_arg_fail_message(err))
         self.err = err
