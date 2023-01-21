@@ -1193,7 +1193,10 @@ async def test_validate_dictionary_async() -> None:
 
 
 def test_key_not_required_repr() -> None:
-    assert repr(KeyNotRequired(none_validator)) == "KeyNotRequired(NoneValidator())"
+    assert (
+        repr(KeyNotRequired(none_validator))
+        == "KeyNotRequired(NoneValidator(coerce=None))"
+    )
 
 
 def test_key_not_required_eq() -> None:

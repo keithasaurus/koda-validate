@@ -1,10 +1,11 @@
 import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import List, Optional, TypedDict
+from typing import Any, Dict, List, Optional, Tuple, TypedDict
 from uuid import UUID, uuid4
 
 import pytest
+from koda import Just, Maybe, nothing
 
 from koda_validate import (
     CoercionErr,
@@ -20,6 +21,7 @@ from koda_validate import (
     TypeErr,
     Valid,
 )
+from koda_validate.base import Coercer
 from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.serialization import SerializableErr
 from koda_validate.typeddict import TypedDictValidator
@@ -563,3 +565,42 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
         )
     else:
         assert False
+
+
+def test_coerce() -> None:
+    class TryInitDict(Coercer[Dict[Any, Any]]):
+        compatible_types = {List[Tuple[str, str]]}
+
+        def __call__(self, val: Any) -> Maybe[Dict[Any, Any]]:
+            try:
+                return Just(dict(val))
+            except (ValueError, TypeError):
+                return nothing
+
+    class X(TypedDict):
+        a: str
+
+    validator = TypedDictValidator(X, coerce=TryInitDict())
+    assert validator([("a", "neat")]) == Valid({"a": "neat"})
+
+    assert isinstance(validator([123]), Invalid)
+
+
+@pytest.mark.asyncio
+async def test_coerce_async() -> None:
+    class TryInitDict(Coercer[Dict[Any, Any]]):
+        compatible_types = {List[Tuple[str, str]]}
+
+        def __call__(self, val: Any) -> Maybe[Dict[Any, Any]]:
+            try:
+                return Just(dict(val))
+            except (ValueError, TypeError):
+                return nothing
+
+    class X(TypedDict):
+        a: str
+
+    validator = TypedDictValidator(X, coerce=TryInitDict())
+    assert await validator.validate_async([("a", "neat")]) == Valid({"a": "neat"})
+
+    assert isinstance(await validator.validate_async([123]), Invalid)

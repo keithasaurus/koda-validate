@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any, ClassVar, Optional
 
 from koda_validate._generics import A
@@ -7,21 +8,24 @@ from koda_validate._internal import (
     _union_validator,
     _union_validator_async,
 )
-from koda_validate.base import Validator
-from koda_validate.errors import TypeErr
+from koda_validate.base import Coercer, Validator
+from koda_validate.errors import CoercionErr, TypeErr
 from koda_validate.valid import Invalid
 
 
+@dataclass
 class NoneValidator(_ToTupleValidator[None]):
-    _instance: ClassVar[Optional["NoneValidator"]] = None
-
-    def __new__(cls) -> "NoneValidator":
-        # make a singleton
-        if cls._instance is None:
-            cls._instance = super(NoneValidator, cls).__new__(cls)
-        return cls._instance
+    coerce: Optional[Coercer[None]] = None
 
     def _validate_to_tuple(self, val: Any) -> _ResultTuple[None]:
+        if self.coerce:
+            if self.coerce(val).is_just:
+                return True, None
+            else:
+                return False, Invalid(
+                    CoercionErr(self.coerce.compatible_types, type(None)), val, self
+                )
+
         if val is None:
             return True, None
         else:
@@ -29,9 +33,6 @@ class NoneValidator(_ToTupleValidator[None]):
 
     async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[None]:
         return self._validate_to_tuple(val)
-
-    def __repr__(self) -> str:
-        return "NoneValidator()"
 
 
 none_validator = NoneValidator()

@@ -1,4 +1,7 @@
+from typing import Any
+
 import pytest
+from koda import Just, Maybe, nothing
 
 from koda_validate import (
     IntValidator,
@@ -9,6 +12,7 @@ from koda_validate import (
     UnionErrs,
     Valid,
 )
+from koda_validate.base import Coercer
 from koda_validate.none import NoneValidator, none_validator
 
 
@@ -23,12 +27,49 @@ def test_none() -> None:
 
 
 def test_none_repr() -> None:
-    assert repr(NoneValidator()) == repr(none_validator) == "NoneValidator()"
+    assert repr(NoneValidator()) == repr(none_validator) == "NoneValidator(coerce=None)"
 
 
 def test_none_eq() -> None:
+    class CoerceFalseToNone(Coercer[None]):
+        compatible_types = {bool}
+
+        def __call__(self, val: Any) -> Maybe[None]:
+            if val is False:
+                return Just(None)
+            return nothing
+
     assert NoneValidator() == NoneValidator() == none_validator
-    assert NoneValidator() is NoneValidator() is none_validator
+    assert NoneValidator() != NoneValidator(coerce=CoerceFalseToNone())
+
+
+def test_none_coerce() -> None:
+    class CoerceFalseToNone(Coercer[None]):
+        compatible_types = {bool}
+
+        def __call__(self, val: Any) -> Maybe[None]:
+            if val is False:
+                return Just(None)
+            return nothing
+
+    validator = NoneValidator(coerce=CoerceFalseToNone())
+    assert validator(False) == Valid(None)
+    assert isinstance(validator(None), Invalid)
+
+
+@pytest.mark.asyncio
+async def test_none_coerce_async() -> None:
+    class CoerceFalseToNone(Coercer[None]):
+        compatible_types = {bool}
+
+        def __call__(self, val: Any) -> Maybe[None]:
+            if val is False:
+                return Just(None)
+            return nothing
+
+    validator = NoneValidator(coerce=CoerceFalseToNone())
+    assert await validator.validate_async(False) == Valid(None)
+    assert isinstance(await validator.validate_async(None), Invalid)
 
 
 @pytest.mark.asyncio
