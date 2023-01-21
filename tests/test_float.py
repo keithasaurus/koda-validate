@@ -2,9 +2,9 @@ import asyncio
 from dataclasses import dataclass
 
 import pytest
-from koda._generics import A
 
 from koda_validate import Invalid, PredicateErrs, TypeErr, Valid
+from koda_validate._generics import A
 from koda_validate.base import Predicate, PredicateAsync, Processor
 from koda_validate.float import FloatValidator
 from koda_validate.generic import Max, Min

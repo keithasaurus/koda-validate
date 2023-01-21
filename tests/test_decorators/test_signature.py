@@ -687,7 +687,7 @@ def test_decimal_does_not_coerce_by_default_in_validate_signature() -> None:
         fn(1)  # type: ignore[arg-type]
 
     with pytest.raises(InvalidArgsError):
-        fn("1.0")  # type: ignore[arg=type]
+        fn("1.0")  # type: ignore[arg-type]
 
 
 def test_uuid_does_not_coerce() -> None:
@@ -699,7 +699,7 @@ def test_uuid_does_not_coerce() -> None:
         fn("e024cf82-9623-11ed-bbcb-bf1b0be19baa")  # type: ignore[arg-type]
 
     with pytest.raises(InvalidArgsError):
-        fn("1.0")  # type: ignore[arg=type]
+        fn("1.0")  # type: ignore[arg-type]
 
 
 def test_date_does_not_coerce() -> None:

@@ -2,7 +2,6 @@ import asyncio
 from dataclasses import dataclass
 
 import pytest
-from koda._generics import A
 
 from koda_validate import (
     IntValidator,
@@ -16,6 +15,7 @@ from koda_validate import (
     TypeErr,
     Valid,
 )
+from koda_validate._generics import A
 
 
 class Add1Int(Processor[int]):

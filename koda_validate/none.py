@@ -1,7 +1,6 @@
 from typing import Any, ClassVar, Optional
 
-from koda._generics import A
-
+from koda_validate._generics import A
 from koda_validate._internal import (
     _ResultTuple,
     _ToTupleValidator,

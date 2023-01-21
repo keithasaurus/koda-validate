@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, List
 
 import pytest
-from koda._generics import A
+from koda import Just, Maybe, nothing
 
 from koda_validate import (
     IndexErrs,
@@ -17,6 +17,8 @@ from koda_validate import (
     TypeErr,
     Valid,
 )
+from koda_validate._generics import A
+from koda_validate.base import Coercer
 from koda_validate.float import FloatValidator
 from koda_validate.generic import MaxItems, Min, MinItems
 from koda_validate.list import ListValidator
@@ -197,3 +199,36 @@ def test_list_validator_equivalence() -> None:
         predicates_async=[SomeAsyncListCheck()],
     )
     assert l_pred_async_1 == l_pred_async_2
+
+
+def test_coerce_to_list() -> None:
+    class TupleToList(Coercer[List[Any]]):
+        compatible_types = {tuple}
+
+        def __call__(self, val: Any) -> Maybe[List[Any]]:
+            if type(val) is tuple:
+                return Just(list(val))
+            else:
+                return nothing
+
+    validator = ListValidator(StringValidator(), coerce=TupleToList())
+    assert validator(("ok", "tuple")) == Valid(["ok", "tuple"])
+    assert isinstance(validator(["list", "no", "longer", "accepted"]), Invalid)
+
+
+@pytest.mark.asyncio
+async def test_coerce_to_list_async() -> None:
+    class TupleToList(Coercer[List[Any]]):
+        compatible_types = {tuple}
+
+        def __call__(self, val: Any) -> Maybe[List[Any]]:
+            if type(val) is tuple:
+                return Just(list(val))
+            else:
+                return nothing
+
+    validator = ListValidator(StringValidator(), coerce=TupleToList())
+    assert await validator.validate_async(("ok", "tuple")) == Valid(["ok", "tuple"])
+    assert isinstance(
+        await validator.validate_async(["list", "no", "longer", "accepted"]), Invalid
+    )

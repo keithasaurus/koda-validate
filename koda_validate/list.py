@@ -37,9 +37,12 @@ class ListValidator(_ToTupleValidator[List[A]]):
     def _validate_to_tuple(self, val: Any) -> _ResultTuple[List[A]]:
         if self._disallow_synchronous:
             _async_predicates_warning(self.__class__)
+
         if self.coerce:
             if not (coerced := self.coerce(val)).is_just:
-                return Invalid(CoercionErr(self.coerce.compatible_types, list), val, self)
+                return False, Invalid(
+                    CoercionErr(self.coerce.compatible_types, list), val, self
+                )
             else:
                 coerced_val: List[Any] = coerced.val
 
@@ -74,7 +77,9 @@ class ListValidator(_ToTupleValidator[List[A]]):
     async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[List[A]]:
         if self.coerce:
             if not (coerced := self.coerce(val)).is_just:
-                return Invalid(CoercionErr(self.coerce.compatible_types, list), val, self)
+                return False, Invalid(
+                    CoercionErr(self.coerce.compatible_types, list), val, self
+                )
             else:
                 coerced_val: List[Any] = coerced.val
 

@@ -5,9 +5,8 @@ from typing import Any, ClassVar, Hashable, List, Optional, Set, Tuple, Type, Ty
 from uuid import UUID
 
 from koda import Thunk
-from koda._generics import A
 
-from koda_validate._generics import Ret
+from koda_validate._generics import A, Ret
 from koda_validate._internal import _ResultTuple, _ToTupleValidator
 from koda_validate.base import Predicate, Processor, Validator
 from koda_validate.errors import PredicateErrs, TypeErr
