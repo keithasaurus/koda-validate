@@ -1,4 +1,6 @@
+from datetime import date, datetime
 from typing import Any, Optional
+from uuid import UUID
 
 import pytest
 from _decimal import Decimal
@@ -674,3 +676,45 @@ def test_works_on_init() -> None:
 
     with pytest.raises(InvalidArgsError):
         Obj(123, "ok")  # type: ignore[arg-type]
+
+
+def test_decimal_does_not_coerce_by_default_in_validate_signature() -> None:
+    @validate_signature
+    def fn(d: Decimal) -> Decimal:
+        return d
+
+    with pytest.raises(InvalidArgsError):
+        fn(1)  # type: ignore[arg-type]
+
+    with pytest.raises(InvalidArgsError):
+        fn("1.0")  # type: ignore[arg=type]
+
+
+def test_uuid_does_not_coerce() -> None:
+    @validate_signature
+    def fn(d: UUID) -> UUID:
+        return d
+
+    with pytest.raises(InvalidArgsError):
+        fn("e024cf82-9623-11ed-bbcb-bf1b0be19baa")  # type: ignore[arg-type]
+
+    with pytest.raises(InvalidArgsError):
+        fn("1.0")  # type: ignore[arg=type]
+
+
+def test_date_does_not_coerce() -> None:
+    @validate_signature
+    def fn(d: date) -> date:
+        return d
+
+    with pytest.raises(InvalidArgsError):
+        fn("2023-01-01")  # type: ignore[arg-type]
+
+
+def test_datetime_does_not_coerce() -> None:
+    @validate_signature
+    def fn(d: datetime) -> datetime:
+        return d
+
+    with pytest.raises(InvalidArgsError):
+        fn(datetime.now().isoformat())  # type: ignore[arg-type]

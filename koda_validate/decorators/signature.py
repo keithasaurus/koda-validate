@@ -1,5 +1,6 @@
 import functools
 import inspect
+from datetime import date, datetime
 from typing import (
     Any,
     Callable,
@@ -14,9 +15,12 @@ from typing import (
     cast,
     overload,
 )
+from uuid import UUID
+
+from _decimal import Decimal
 
 from koda_validate import *
-from koda_validate.typehints import get_typehint_validator
+from koda_validate.typehints import get_typehint_validator, get_typehint_validator_base
 
 _BaseDecoratedFunc = Callable[..., Any]
 _DecoratedFunc = TypeVar("_DecoratedFunc", bound=_BaseDecoratedFunc)
@@ -26,6 +30,19 @@ ReturnOverrideKey = Tuple[Literal["return_key"]]
 RETURN_OVERRIDE_KEY: ReturnOverrideKey = ("return_key",)
 
 OverridesDict = Dict[Union[str, ReturnOverrideKey], Validator[Any]]
+
+
+def resolve_signature_typehint(annotation: Any) -> Validator[Any]:
+    if annotation is Decimal:
+        return DecimalValidator(coerce=None)
+    elif annotation is UUID:
+        return UUIDValidator(coerce=None)
+    elif annotation is date:
+        return DateValidator(coerce=None)
+    elif annotation is datetime:
+        return DatetimeValidator(coerce=None)
+    else:
+        return get_typehint_validator_base(resolve_signature_typehint, annotation)
 
 
 def _get_validator(
@@ -237,7 +254,7 @@ def validate_signature(
     *,
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
-    typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+    typehint_resolver: Callable[[Any], Validator[Any]] = resolve_signature_typehint,
     overrides: Optional[OverridesDict] = None,
 ) -> _DecoratedFunc:
     ...
@@ -249,7 +266,7 @@ def validate_signature(
     *,
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
-    typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+    typehint_resolver: Callable[[Any], Validator[Any]] = resolve_signature_typehint,
     overrides: Optional[OverridesDict] = None,
 ) -> Callable[[_DecoratedFunc], _DecoratedFunc]:
     ...
@@ -260,7 +277,7 @@ def validate_signature(
     *,
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
-    typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+    typehint_resolver: Callable[[Any], Validator[Any]] = resolve_signature_typehint,
     overrides: Optional[OverridesDict] = None,
 ) -> Union[_DecoratedFunc, Callable[[_DecoratedFunc], _DecoratedFunc]]:
     """
