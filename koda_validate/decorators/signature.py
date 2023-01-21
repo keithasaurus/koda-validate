@@ -20,7 +20,7 @@ from uuid import UUID
 from _decimal import Decimal
 
 from koda_validate import *
-from koda_validate.typehints import get_typehint_validator, get_typehint_validator_base
+from koda_validate.typehints import get_typehint_validator_base
 
 _BaseDecoratedFunc = Callable[..., Any]
 _DecoratedFunc = TypeVar("_DecoratedFunc", bound=_BaseDecoratedFunc)
