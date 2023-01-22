@@ -22,7 +22,7 @@ from koda_validate import (
     Valid,
     Validator,
 )
-from koda_validate.base import Coercer
+from koda_validate.coerce import Coercer, coercer
 from koda_validate.dataclasses import DataclassValidator
 from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.serialization import SerializableErr
@@ -496,16 +496,14 @@ def test_eq() -> None:
         A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_2_async
     )
 
-    class CoerceCastAsDict(Coercer[Dict[Any, Any]]):
-        def __call__(self, val: Any) -> Maybe[Dict[Any, Any]]:
-            try:
-                return Just(dict(val))
-            except (TypeError, ValueError):
-                return nothing
+    @coercer(List[Tuple[Any, Any]])
+    def dict_coerce(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
 
-    assert DataclassValidator(A, coerce=None) != DataclassValidator(
-        A, coerce=CoerceCastAsDict()
-    )
+    assert DataclassValidator(A, coerce=None) != DataclassValidator(A, coerce=dict_coerce)
 
 
 def test_extra_keys_invalid() -> None:
@@ -643,20 +641,18 @@ def test_custom_typehint_resolver() -> None:
 
 
 def test_coerce() -> None:
-    class TryInitDict(Coercer[Dict[Any, Any]]):
-        compatible_types = {List[Tuple[str, str]]}
-
-        def __call__(self, val: Any) -> Maybe[Dict[Any, Any]]:
-            try:
-                return Just(dict(val))
-            except (ValueError, TypeError):
-                return nothing
+    @coercer(List[Tuple[str, str]])
+    def try_init_dict(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
 
     @dataclass
     class X:
         a: str
 
-    validator = DataclassValidator(X, coerce=TryInitDict())
+    validator = DataclassValidator(X, coerce=try_init_dict)
     assert validator([("a", "neat")]) == Valid(X("neat"))
 
     assert isinstance(validator([123]), Invalid)
@@ -664,20 +660,18 @@ def test_coerce() -> None:
 
 @pytest.mark.asyncio
 async def test_coerce_async() -> None:
-    class TryInitDict(Coercer[Dict[Any, Any]]):
-        compatible_types = {List[Tuple[str, str]]}
-
-        def __call__(self, val: Any) -> Maybe[Dict[Any, Any]]:
-            try:
-                return Just(dict(val))
-            except (ValueError, TypeError):
-                return nothing
+    @coercer(List[Tuple[str, str]])
+    def try_init_dict(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
 
     @dataclass
     class X:
         a: str
 
-    validator = DataclassValidator(X, coerce=TryInitDict())
+    validator = DataclassValidator(X, coerce=try_init_dict)
     assert await validator.validate_async([("a", "neat")]) == Valid(X("neat"))
 
     assert isinstance(await validator.validate_async([123]), Invalid)

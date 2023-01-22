@@ -8,7 +8,8 @@ from koda_validate._internal import (
     _union_validator,
     _union_validator_async,
 )
-from koda_validate.base import Coercer, Validator
+from koda_validate.base import Validator
+from koda_validate.coerce import Coercer
 from koda_validate.errors import CoercionErr, TypeErr
 from koda_validate.valid import Invalid
 

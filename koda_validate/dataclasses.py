@@ -15,6 +15,8 @@ from typing import (
     get_type_hints,
 )
 
+from koda import Just, Maybe, nothing
+
 from koda_validate._internal import (
     _raise_cannot_define_validate_object_and_validate_object_async,
     _raise_validate_object_async_in_sync_mode,
@@ -24,7 +26,8 @@ from koda_validate._internal import (
     _wrap_async_validator,
     _wrap_sync_validator,
 )
-from koda_validate.base import Coercer, Validator
+from koda_validate.base import Validator
+from koda_validate.coerce import Coercer
 from koda_validate.errors import (
     CoercionErr,
     ErrType,
@@ -41,6 +44,18 @@ class DataclassLike(Protocol):
 
 
 _DCT = TypeVar("_DCT", bound=DataclassLike)
+
+
+class DataclassOnly(Coercer[_DCT]):
+    def __init__(self, data_cls: _DCT) -> None:
+        self.data_cls = data_cls
+        self.compatible_types = {data_cls}
+
+    def __call__(self, val: Any) -> Maybe[_DCT]:
+        if type(val) == self.data_cls:
+            return Just(val)
+        else:
+            return nothing
 
 
 class DataclassValidator(_ToTupleValidator[_DCT]):

@@ -55,6 +55,10 @@ def annotation_is_naked_tuple(annotation: Any) -> bool:
     return annotation is Tuple or annotation is tuple
 
 
+def annotation_is_naked_list(annotation: Any) -> bool:
+    return annotation is List or annotation is list
+
+
 # todo: evolve into general-purpose type-hint driven validator
 # will probably need significant changes
 def get_typehint_validator_base(
@@ -93,7 +97,7 @@ def get_typehint_validator_base(
         return BytesValidator()
     elif annotation is Any:
         return always_valid
-    elif annotation is List or annotation is list:
+    elif annotation_is_naked_list(annotation):
         return ListValidator(always_valid)
     elif annotation is Set or annotation is set:
         return SetValidator(always_valid)
@@ -119,7 +123,7 @@ def get_typehint_validator_base(
         return TypedDictValidator(annotation)
     else:
         origin, args = get_origin(annotation), get_args(annotation)
-        if (origin is list or origin is List) and len(args) == 1:
+        if annotation_is_naked_list(origin) and len(args) == 1:
             item_validator = get_hint_next_depth(args[0])
             return ListValidator(item_validator)
         elif (origin is set or origin is Set) and len(args) == 1:

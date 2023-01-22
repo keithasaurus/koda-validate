@@ -1,26 +1,25 @@
 import decimal
-from decimal import Decimal as Decimal
+from decimal import Decimal
 from typing import Any, List, Optional
 
 from koda import Just, Maybe, nothing
 
 from koda_validate._internal import _ToTupleStandardValidator
-from koda_validate.base import Coercer, Predicate, PredicateAsync, Processor
+from koda_validate.base import Predicate, PredicateAsync, Processor
+from koda_validate.coerce import Coercer, coercer
 
 
-class CoerceDecimal(Coercer[Decimal]):
-    compatible_types = {str, int, Decimal}
+@coercer(str, int, Decimal)
+def coerce_decimal(val: Any) -> Maybe[Decimal]:
+    if type(val) is Decimal:
+        return Just(val)
+    elif isinstance(val, (str, int)):
+        try:
+            return Just(Decimal(val))
+        except decimal.InvalidOperation:
+            pass
 
-    def __call__(self, val: Any) -> Maybe[Decimal]:
-        if type(val) is Decimal:
-            return Just(val)
-        elif isinstance(val, (str, int)):
-            try:
-                return Just(Decimal(val))
-            except decimal.InvalidOperation:
-                pass
-
-        return nothing
+    return nothing
 
 
 class DecimalValidator(_ToTupleStandardValidator[Decimal]):
@@ -31,7 +30,7 @@ class DecimalValidator(_ToTupleStandardValidator[Decimal]):
         *predicates: Predicate[Decimal],
         predicates_async: Optional[List[PredicateAsync[Decimal]]] = None,
         preprocessors: Optional[List[Processor[Decimal]]] = None,
-        coerce: Optional[Coercer[Decimal]] = CoerceDecimal(),
+        coerce: Optional[Coercer[Decimal]] = coerce_decimal,
     ) -> None:
         super().__init__(
             *predicates,

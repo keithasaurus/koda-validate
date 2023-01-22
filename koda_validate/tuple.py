@@ -11,25 +11,21 @@ from koda_validate._internal import (
     _wrap_async_validator,
     _wrap_sync_validator,
 )
-from koda_validate.base import Coercer, Predicate, PredicateAsync, Validator
+from koda_validate.base import Predicate, PredicateAsync, Validator
+from koda_validate.coerce import Coercer, coercer
 from koda_validate.errors import CoercionErr, ErrType, IndexErrs, PredicateErrs, TypeErr
 from koda_validate.generic import ExactItemCount
 from koda_validate.valid import Invalid
 
 
-class TupleOrListToTuple(Coercer[Tuple[Any, ...]]):
-    compatible_types = {list, tuple}
-
-    def __call__(self, val: Any) -> Maybe[Tuple[Any, ...]]:
-        if (val_type := type(val)) is tuple:
-            return Just(val)
-        elif val_type is list:
-            return Just(tuple(val))
-        else:
-            return nothing
-
-
-tuple_or_list_to_tuple = TupleOrListToTuple()
+@coercer(list, tuple)
+def tuple_or_list_to_tuple(val: Any) -> Maybe[Tuple[Any, ...]]:
+    if (val_type := type(val)) is tuple:
+        return Just(val)
+    elif val_type is list:
+        return Just(tuple(val))
+    else:
+        return nothing
 
 
 class NTupleValidator(_ToTupleValidator[A]):

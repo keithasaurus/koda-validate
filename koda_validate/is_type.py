@@ -3,7 +3,7 @@ from typing import List, Optional, Type
 from koda_validate import Predicate, PredicateAsync, Processor
 from koda_validate._generics import SuccessT
 from koda_validate._internal import _ToTupleStandardValidator
-from koda_validate.base import Coercer
+from koda_validate.coerce import Coercer
 
 
 class TypeValidator(_ToTupleStandardValidator[SuccessT]):

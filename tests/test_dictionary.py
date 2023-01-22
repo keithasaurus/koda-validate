@@ -32,7 +32,8 @@ from koda_validate import (
     strip,
 )
 from koda_validate._generics import A
-from koda_validate.base import Coercer, Validator
+from koda_validate.base import Validator
+from koda_validate.coerce import Coercer, coercer
 from koda_validate.dictionary import (
     DictValidatorAny,
     IsDictValidator,
@@ -1250,32 +1251,28 @@ def test_map_validator_eq() -> None:
         predicates_async=[AsyncWait()],
     )
 
-    class DictCoerce(Coercer[Dict[Any, Any]]):
-        compatible_types = {List[Tuple[Any, Any]]}
-
-        def __call__(self, val: Any) -> Maybe[Dict[Any, Any]]:
-            try:
-                return Just(dict(val))
-            except (ValueError, TypeError):
-                return nothing
+    @coercer(List[Tuple[Any, Any]])
+    def dict_coerce(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
 
     assert MapValidator(key=StringValidator(), value=IntValidator()) != MapValidator(
-        key=StringValidator(), value=IntValidator(), coerce=DictCoerce()
+        key=StringValidator(), value=IntValidator(), coerce=dict_coerce
     )
 
 
 def test_map_validator_coerce() -> None:
-    class DictCoerce(Coercer[Dict[Any, Any]]):
-        compatible_types = {List[Tuple[Any, Any]]}
-
-        def __call__(self, val: Any) -> Maybe[Dict[Any, Any]]:
-            try:
-                return Just(dict(val))
-            except (ValueError, TypeError):
-                return nothing
+    @coercer(List[Tuple[Any, Any]])
+    def dict_coerce(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
 
     validator = MapValidator(
-        key=StringValidator(), value=IntValidator(), coerce=DictCoerce()
+        key=StringValidator(), value=IntValidator(), coerce=dict_coerce
     )
 
     assert validator([("ok", 5)]) == Valid({"ok": 5})
@@ -1285,17 +1282,15 @@ def test_map_validator_coerce() -> None:
 
 @pytest.mark.asyncio
 async def test_map_validator_coerce_async() -> None:
-    class DictCoerce(Coercer[Dict[Any, Any]]):
-        compatible_types = {List[Tuple[Any, Any]]}
-
-        def __call__(self, val: Any) -> Maybe[Dict[Any, Any]]:
-            try:
-                return Just(dict(val))
-            except (ValueError, TypeError):
-                return nothing
+    @coercer(List[Tuple[Any, Any]])
+    def dict_coerce(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
 
     validator = MapValidator(
-        key=StringValidator(), value=IntValidator(), coerce=DictCoerce()
+        key=StringValidator(), value=IntValidator(), coerce=dict_coerce
     )
 
     assert await validator.validate_async([("ok", 5)]) == Valid({"ok": 5})

@@ -45,7 +45,8 @@ from koda_validate._internal import (
     _wrap_async_validator,
     _wrap_sync_validator,
 )
-from koda_validate.base import Coercer, Predicate, PredicateAsync, Validator
+from koda_validate.base import Predicate, PredicateAsync, Validator
+from koda_validate.coerce import Coercer
 from koda_validate.errors import (
     CoercionErr,
     ErrType,

@@ -1,5 +1,6 @@
 import functools
 import inspect
+from dataclasses import is_dataclass
 from datetime import date, datetime
 from typing import (
     Any,
@@ -21,8 +22,28 @@ from uuid import UUID
 
 from _decimal import Decimal
 
-from koda_validate import *
+from koda_validate._internal import _is_typed_dict_cls
+from koda_validate.base import Validator
+from koda_validate.errors import (
+    CoercionErr,
+    ContainerErr,
+    ExtraKeysErr,
+    IndexErrs,
+    KeyErrs,
+    MapErr,
+    MissingKeyErr,
+    PredicateErrs,
+    SetErrs,
+    TypeErr,
+    UnionErrs,
+)
+from koda_validate.generic import always_valid
+from koda_validate.time import DatetimeValidator, DateValidator
+from koda_validate.tuple import NTupleValidator, UniformTupleValidator
+from koda_validate.typeddict import TypedDictValidator
 from koda_validate.typehints import annotation_is_naked_tuple, get_typehint_validator_base
+from koda_validate.uuid import UUIDValidator
+from koda_validate.valid import Invalid
 
 _BaseDecoratedFunc = Callable[..., Any]
 _DecoratedFunc = TypeVar("_DecoratedFunc", bound=_BaseDecoratedFunc)
@@ -36,7 +57,11 @@ OverridesDict = Dict[Union[str, ReturnOverrideKey], Validator[Any]]
 
 def resolve_signature_typehint(annotation: Any) -> Validator[Any]:
     if annotation is Decimal:
+        from koda_validate.decimal import DecimalValidator
+
         return DecimalValidator(coerce=None)
+    elif _is_typed_dict_cls(annotation):
+        return TypedDictValidator(annotation)
     elif annotation is UUID:
         return UUIDValidator(coerce=None)
     elif annotation is date:
@@ -45,6 +70,10 @@ def resolve_signature_typehint(annotation: Any) -> Validator[Any]:
         return DatetimeValidator(coerce=None)
     elif annotation_is_naked_tuple(annotation):
         return UniformTupleValidator(always_valid, coerce=None)
+    elif is_dataclass(annotation):
+        from koda_validate.dataclasses import DataclassValidator
+
+        return DataclassValidator(annotation)
     else:
         origin, args = get_origin(annotation), get_args(annotation)
         if annotation_is_naked_tuple(origin):

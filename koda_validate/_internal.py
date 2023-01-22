@@ -12,7 +12,8 @@ from typing import (
 )
 
 from koda_validate._generics import A, SuccessT
-from koda_validate.base import Coercer, Predicate, PredicateAsync, Processor, Validator
+from koda_validate.base import Predicate, PredicateAsync, Processor, Validator
+from koda_validate.coerce import Coercer
 from koda_validate.errors import CoercionErr, PredicateErrs, TypeErr, UnionErrs
 from koda_validate.valid import Invalid, Valid, ValidationResult
 

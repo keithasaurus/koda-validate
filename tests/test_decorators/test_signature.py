@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple, TypedDict
 from uuid import UUID
 
 import pytest
@@ -362,7 +363,16 @@ def test_ignore_args() -> None:
 
     assert (
         fn(
-            "ok", "bi1", "bf1", "bi2", "bi3", "bb1", e=3, f="badbad", kw_other="xyz"  # type: ignore[arg-type]  # noqa: E501
+            "ok",
+            "bi1",
+            "bf1",
+            "bi2",
+            "bi3",
+            "bb1",
+            e=3,
+            f="badbad",
+            kw_other="xyz"
+            # type: ignore[arg-type]  # noqa: E501
         )
         == "ok bi1 bf1 ('bi2', 'bi3', 'bb1') 3 badbad {'kw_other': 'xyz'}"
     )
@@ -736,3 +746,52 @@ def test_adorned_tuple_does_not_coerce() -> None:
 
     with pytest.raises(InvalidArgsError):
         fn(["frown"])  # type: ignore[arg-type]
+
+
+def test_naked_list_does_not_coerce() -> None:
+    @validate_signature
+    def fn(d: List) -> List:  # type: ignore[type-arg]
+        return d
+
+    with pytest.raises(InvalidArgsError):
+        fn(("frown",))  # type: ignore[arg-type]
+
+
+def test_adorned_list_does_not_coerce() -> None:
+    @validate_signature
+    def fn(d: List[str]) -> List[str]:
+        return d
+
+    with pytest.raises(InvalidArgsError):
+        fn(("frown",))  # type: ignore[arg-type]
+
+
+def test_typeddict_does_not_coerce() -> None:
+    class ABC(TypedDict):
+        a: str
+        b: int
+        c: float
+
+    @validate_signature
+    def some_func(obj: ABC) -> ABC:
+        return obj
+
+    with pytest.raises(InvalidArgsError):
+        some_func([("a", "hmm"), ("b", 5), ("c", 3.14)])  # type: ignore[arg-type]
+
+
+# def test_dataclass_does_not_coerce() -> None:
+#     @dataclass
+#     class ABC:
+#         a: str
+#         b: int
+#         c: float
+#
+#     @validate_signature
+#     def some_func(obj: ABC) -> ABC:
+#         return obj
+#
+#     with pytest.raises(InvalidArgsError):
+#         some_func({"a": "hmm",
+#                    "b": 5,
+#                    "c": 3.14})

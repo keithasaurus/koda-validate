@@ -5,20 +5,18 @@ from koda import Just, Maybe, nothing
 
 from koda_validate import Predicate, PredicateAsync, Processor
 from koda_validate._internal import _ToTupleStandardValidator
-from koda_validate.base import Coercer
+from koda_validate.coerce import Coercer, coercer
 
 
-class CoerceDate(Coercer[date]):
-    compatible_types = {str, date}
-
-    def __call__(self, val: Any) -> Maybe[date]:
-        if type(val) is date:
-            return Just(val)
-        else:
-            try:
-                return Just(date.fromisoformat(val))
-            except (ValueError, TypeError):
-                return nothing
+@coercer(str, date)
+def coerce_date(val: Any) -> Maybe[date]:
+    if type(val) is date:
+        return Just(val)
+    else:
+        try:
+            return Just(date.fromisoformat(val))
+        except (ValueError, TypeError):
+            return nothing
 
 
 class DateValidator(_ToTupleStandardValidator[date]):
@@ -29,7 +27,7 @@ class DateValidator(_ToTupleStandardValidator[date]):
         *predicates: Predicate[date],
         predicates_async: Optional[List[PredicateAsync[date]]] = None,
         preprocessors: Optional[List[Processor[date]]] = None,
-        coerce: Optional[Coercer[date]] = CoerceDate(),
+        coerce: Optional[Coercer[date]] = coerce_date,
     ) -> None:
         super().__init__(
             *predicates,
@@ -39,17 +37,15 @@ class DateValidator(_ToTupleStandardValidator[date]):
         )
 
 
-class CoerceDatetime(Coercer[datetime]):
-    compatible_types = {str, datetime}
-
-    def __call__(self, val: Any) -> Maybe[datetime]:
-        if type(val) is datetime:
-            return Just(val)
-        else:
-            try:
-                return Just(datetime.fromisoformat(val))
-            except (ValueError, TypeError):
-                return nothing
+@coercer(str, datetime)
+def coerce_datetime(val: Any) -> Maybe[datetime]:
+    if type(val) is datetime:
+        return Just(val)
+    else:
+        try:
+            return Just(datetime.fromisoformat(val))
+        except (ValueError, TypeError):
+            return nothing
 
 
 class DatetimeValidator(_ToTupleStandardValidator[datetime]):
@@ -60,7 +56,7 @@ class DatetimeValidator(_ToTupleStandardValidator[datetime]):
         *predicates: Predicate[datetime],
         predicates_async: Optional[List[PredicateAsync[datetime]]] = None,
         preprocessors: Optional[List[Processor[datetime]]] = None,
-        coerce: Optional[Coercer[datetime]] = CoerceDatetime(),
+        coerce: Optional[Coercer[datetime]] = coerce_datetime,
     ) -> None:
         super().__init__(
             *predicates,

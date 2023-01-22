@@ -282,7 +282,7 @@ def test_repr_n_tuple() -> None:
     v = NTupleValidator.typed(fields=(StringValidator(), IntValidator(Max(5))))
     assert repr(v) == (
         "NTupleValidator(fields=(StringValidator(), IntValidator(Max(maximum=5, "
-        "exclusive_maximum=False))), coerce=TupleOrListToTuple())"
+        f"exclusive_maximum=False))), coerce={repr(v.coerce)})"
     )
 
     def validate_function(t: Tuple[str, int]) -> Optional[ErrType]:
@@ -294,7 +294,7 @@ def test_repr_n_tuple() -> None:
     )
     assert repr(v_2) == (
         "NTupleValidator(fields=(StringValidator(), IntValidator(Max(maximum=5, "
-        f"exclusive_maximum=False))), validate_object={repr(validate_function)}, coerce=TupleOrListToTuple())"
+        f"exclusive_maximum=False))), validate_object={repr(validate_function)}, coerce={repr(v_2.coerce)})"
     )
 
 
@@ -327,14 +327,12 @@ def test_eq() -> None:
 
 def test_tuple_homogenous_repr() -> None:
     s = UniformTupleValidator(StringValidator())
-    assert (
-        repr(s) == "UniformTupleValidator(StringValidator(), coerce=TupleOrListToTuple())"
-    )
+    assert repr(s) == f"UniformTupleValidator(StringValidator(), coerce={repr(s.coerce)})"
 
     s_len = UniformTupleValidator(StringValidator(MinLength(1), MaxLength(5)))
     assert (
         repr(s_len) == "UniformTupleValidator(StringValidator("
-        "MinLength(length=1), MaxLength(length=5)), coerce=TupleOrListToTuple())"
+        f"MinLength(length=1), MaxLength(length=5)), coerce={repr(s_len.coerce)})"
     )
 
     s_all = UniformTupleValidator(
@@ -346,7 +344,7 @@ def test_tuple_homogenous_repr() -> None:
     assert (
         repr(s_all) == "UniformTupleValidator(IntValidator(), "
         "predicates=[MinItems(item_count=5)], "
-        "predicates_async=[SomeAsyncTupleHCheck()], coerce=TupleOrListToTuple())"
+        f"predicates_async=[SomeAsyncTupleHCheck()], coerce={repr(s_all.coerce)})"
     )
 
 

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Set, Type
+from typing import TYPE_CHECKING, Any, Generic
 
 from koda import Maybe
 
@@ -214,11 +214,3 @@ class CacheValidatorBase(Validator[A]):
             result = await self.validator.validate_async(val)
             await self.cache_set_async(val, result)
             return result
-
-
-@dataclass
-class Coercer(Generic[A]):
-    compatible_types: ClassVar[Set[Type[Any]]]
-
-    def __call__(self, val: Any) -> Maybe[A]:
-        raise NotImplementedError()

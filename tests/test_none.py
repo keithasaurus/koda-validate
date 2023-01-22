@@ -12,7 +12,7 @@ from koda_validate import (
     UnionErrs,
     Valid,
 )
-from koda_validate.base import Coercer
+from koda_validate.coerce import coercer
 from koda_validate.none import NoneValidator, none_validator
 
 
@@ -31,43 +31,37 @@ def test_none_repr() -> None:
 
 
 def test_none_eq() -> None:
-    class CoerceFalseToNone(Coercer[None]):
-        compatible_types = {bool}
-
-        def __call__(self, val: Any) -> Maybe[None]:
-            if val is False:
-                return Just(None)
-            return nothing
+    @coercer(bool)
+    def coerce_false_to_none(val: Any) -> Maybe[None]:
+        if val is False:
+            return Just(None)
+        return nothing
 
     assert NoneValidator() == NoneValidator() == none_validator
-    assert NoneValidator() != NoneValidator(coerce=CoerceFalseToNone())
+    assert NoneValidator() != NoneValidator(coerce=coerce_false_to_none)
 
 
 def test_none_coerce() -> None:
-    class CoerceFalseToNone(Coercer[None]):
-        compatible_types = {bool}
+    @coercer(bool)
+    def coerce_false_to_none(val: Any) -> Maybe[None]:
+        if val is False:
+            return Just(None)
+        return nothing
 
-        def __call__(self, val: Any) -> Maybe[None]:
-            if val is False:
-                return Just(None)
-            return nothing
-
-    validator = NoneValidator(coerce=CoerceFalseToNone())
+    validator = NoneValidator(coerce=coerce_false_to_none)
     assert validator(False) == Valid(None)
     assert isinstance(validator(None), Invalid)
 
 
 @pytest.mark.asyncio
 async def test_none_coerce_async() -> None:
-    class CoerceFalseToNone(Coercer[None]):
-        compatible_types = {bool}
+    @coercer(bool)
+    def coerce_false_to_none(val: Any) -> Maybe[None]:
+        if val is False:
+            return Just(None)
+        return nothing
 
-        def __call__(self, val: Any) -> Maybe[None]:
-            if val is False:
-                return Just(None)
-            return nothing
-
-    validator = NoneValidator(coerce=CoerceFalseToNone())
+    validator = NoneValidator(coerce=coerce_false_to_none)
     assert await validator.validate_async(False) == Valid(None)
     assert isinstance(await validator.validate_async(None), Invalid)
 
