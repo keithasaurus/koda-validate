@@ -12,7 +12,6 @@ from typing import (
     Set,
     Type,
     TypeVar,
-    Union,
     get_type_hints,
 )
 
@@ -31,7 +30,6 @@ from koda_validate.errors import (
     ErrType,
     ExtraKeysErr,
     KeyErrs,
-    TypeErr,
     missing_key_err,
 )
 from koda_validate.typehints import get_typehint_validator
