@@ -33,7 +33,7 @@ from koda_validate import (
 )
 from koda_validate._generics import A
 from koda_validate.base import Validator
-from koda_validate.coerce import Coercer, coercer
+from koda_validate.coerce import coercer
 from koda_validate.dictionary import (
     DictValidatorAny,
     IsDictValidator,

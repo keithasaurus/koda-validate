@@ -34,7 +34,6 @@ from koda_validate import (
     TypeErr,
     UnionErrs,
     UnionValidator,
-    Valid,
     Validator,
 )
 from koda_validate.maybe import MaybeValidator

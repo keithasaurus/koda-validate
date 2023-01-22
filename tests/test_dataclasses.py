@@ -22,7 +22,7 @@ from koda_validate import (
     Valid,
     Validator,
 )
-from koda_validate.coerce import Coercer, coercer
+from koda_validate.coerce import coercer
 from koda_validate.dataclasses import DataclassValidator
 from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.serialization import SerializableErr

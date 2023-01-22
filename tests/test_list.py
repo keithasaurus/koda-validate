@@ -18,7 +18,7 @@ from koda_validate import (
     Valid,
 )
 from koda_validate._generics import A
-from koda_validate.coerce import Coercer, coercer
+from koda_validate.coerce import coercer
 from koda_validate.float import FloatValidator
 from koda_validate.generic import MaxItems, Min, MinItems
 from koda_validate.list import ListValidator

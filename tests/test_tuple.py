@@ -294,7 +294,8 @@ def test_repr_n_tuple() -> None:
     )
     assert repr(v_2) == (
         "NTupleValidator(fields=(StringValidator(), IntValidator(Max(maximum=5, "
-        f"exclusive_maximum=False))), validate_object={repr(validate_function)}, coerce={repr(v_2.coerce)})"
+        f"exclusive_maximum=False))), validate_object={repr(validate_function)}, "
+        f"coerce={repr(v_2.coerce)})"
     )
 
 

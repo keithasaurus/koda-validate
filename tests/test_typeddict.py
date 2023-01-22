@@ -21,7 +21,7 @@ from koda_validate import (
     TypeErr,
     Valid,
 )
-from koda_validate.coerce import Coercer, coercer
+from koda_validate.coerce import coercer
 from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.serialization import SerializableErr
 from koda_validate.typeddict import TypedDictValidator
