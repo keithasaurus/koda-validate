@@ -22,7 +22,7 @@ from koda_validate._internal import (
     _wrap_async_validator,
     _wrap_sync_validator,
 )
-from koda_validate.base import Validator
+from koda_validate.base import Coercer, Validator
 from koda_validate.errors import (
     CoercionErr,
     ErrType,
@@ -95,11 +95,13 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         ] = None,
         fail_on_unknown_keys: bool = False,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+        coerce: Optional[Coercer[Dict[Any, Any]]] = None,
     ) -> None:
 
         self.named_tuple_cls = named_tuple_cls
         self.overrides = overrides
         self.fail_on_unknown_keys = fail_on_unknown_keys
+        self.coerce = coerce
 
         if validate_object and validate_object_async:
             _raise_cannot_define_validate_object_and_validate_object_async()
@@ -147,10 +149,18 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         if self._disallow_synchronous:
             _raise_validate_object_async_in_sync_mode(self.__class__)
 
-        if isinstance(val, dict):
-            data = val
-        elif isinstance(val, self.named_tuple_cls):
-            data = val._asdict()
+        if self.coerce:
+            if not (coerced := self.coerce(val)).is_just:
+                return False, Invalid(
+                    CoercionErr(self.coerce.compatible_types, dict), val, self
+                )
+            else:
+                coerced_val: Dict[Any, Any] = coerced.val
+
+        elif type(val) is dict:
+            coerced_val = val
+        elif type(val) is self.named_tuple_cls:
+            coerced_val = val._asdict()
         else:
             return False, Invalid(
                 CoercionErr(
@@ -162,18 +172,18 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             )
 
         if self.fail_on_unknown_keys:
-            for key_ in data:
+            for key_ in coerced_val:
                 if key_ not in self._keys_set:
-                    return False, Invalid(self._unknown_keys_err, data, self)
+                    return False, Invalid(self._unknown_keys_err, coerced_val, self)
 
         success_dict: Dict[Any, Any] = {}
         errs: Dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
-            if key_ not in data:
+            if key_ not in coerced_val:
                 if key_required:
-                    errs[key_] = Invalid(missing_key_err, data, self)
+                    errs[key_] = Invalid(missing_key_err, coerced_val, self)
             else:
-                success, new_val = validator(data[key_])
+                success, new_val = validator(coerced_val[key_])
 
                 if not success:
                     errs[key_] = new_val
@@ -181,7 +191,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
                     success_dict[key_] = new_val
 
         if errs:
-            return False, Invalid(KeyErrs(errs), data, self)
+            return False, Invalid(KeyErrs(errs), coerced_val, self)
         else:
             obj = self.named_tuple_cls(**success_dict)
             if self.validate_object and (result := self.validate_object(obj)):
@@ -190,10 +200,18 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             return True, obj
 
     async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[_NTT]:
-        if isinstance(val, dict):
-            data = val
-        elif isinstance(val, self.named_tuple_cls):
-            data = val._asdict()
+        if self.coerce:
+            if not (coerced := self.coerce(val)).is_just:
+                return False, Invalid(
+                    CoercionErr(self.coerce.compatible_types, dict), val, self
+                )
+            else:
+                coerced_val: Dict[Any, Any] = coerced.val
+
+        elif type(val) is dict:
+            coerced_val = val
+        elif type(val) is self.named_tuple_cls:
+            coerced_val = val._asdict()
         else:
             return False, Invalid(
                 CoercionErr(
@@ -205,18 +223,18 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             )
 
         if self.fail_on_unknown_keys:
-            for key_ in data:
+            for key_ in coerced_val:
                 if key_ not in self._keys_set:
-                    return False, Invalid(self._unknown_keys_err, data, self)
+                    return False, Invalid(self._unknown_keys_err, coerced_val, self)
 
         success_dict: Dict[Any, Any] = {}
         errs: Dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_async:
-            if key_ not in data:
+            if key_ not in coerced_val:
                 if key_required:
-                    errs[key_] = Invalid(missing_key_err, data, self)
+                    errs[key_] = Invalid(missing_key_err, coerced_val, self)
             else:
-                success, new_val = await validator(data[key_])
+                success, new_val = await validator(coerced_val[key_])
 
                 if not success:
                     errs[key_] = new_val
@@ -224,7 +242,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
                     success_dict[key_] = new_val
 
         if errs:
-            return False, Invalid(KeyErrs(errs), data, self)
+            return False, Invalid(KeyErrs(errs), coerced_val, self)
         else:
             obj = self.named_tuple_cls(**success_dict)
             if self.validate_object and (result := self.validate_object(obj)):
@@ -243,6 +261,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
             and other.validate_object_async is self.validate_object_async
             and other.schema == self.schema
             and other.fail_on_unknown_keys == self.fail_on_unknown_keys
+            and other.coerce == self.coerce
         )
 
     def __repr__(self) -> str:
@@ -255,6 +274,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
                     ("overrides", self.overrides),
                     ("validate_object", self.validate_object),
                     ("validate_object_async", self.validate_object_async),
+                    ("coerce", self.coerce),
                     # note that this coincidentally works as we want:
                     # by default we don't fail on extra keys, so we don't
                     # show this in the repr if the default is defined
