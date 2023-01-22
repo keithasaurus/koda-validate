@@ -37,7 +37,8 @@ from koda_validate import (
     Valid,
     Validator,
 )
-from koda_validate.decorators.signature import (
+from koda_validate.maybe import MaybeValidator
+from koda_validate.signature import (
     _INVALID_ARGS_MESSAGE_HEADER,
     _INVALID_RETURN_MESSAGE_HEADER,
     RETURN_OVERRIDE_KEY,
@@ -47,7 +48,6 @@ from koda_validate.decorators.signature import (
     _get_args_fail_msg,
     validate_signature,
 )
-from koda_validate.maybe import MaybeValidator
 from koda_validate.typehints import get_typehint_validator
 
 
