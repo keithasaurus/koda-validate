@@ -46,16 +46,11 @@ class DataclassLike(Protocol):
 _DCT = TypeVar("_DCT", bound=DataclassLike)
 
 
-class DataclassOnly(Coercer[_DCT]):
-    def __init__(self, data_cls: _DCT) -> None:
-        self.data_cls = data_cls
-        self.compatible_types = {data_cls}
+def dataclass_only(data_cls: Type[_DCT]) -> Coercer[_DCT]:
+    def _fn(val: Any) -> Maybe[Any]:
+        return Just(val) if type(val) is data_cls else nothing
 
-    def __call__(self, val: Any) -> Maybe[_DCT]:
-        if type(val) == self.data_cls:
-            return Just(val)
-        else:
-            return nothing
+    return Coercer(_fn, {data_cls})
 
 
 class DataclassValidator(_ToTupleValidator[_DCT]):

@@ -364,15 +364,14 @@ def test_ignore_args() -> None:
     assert (
         fn(
             "ok",
-            "bi1",
-            "bf1",
-            "bi2",
-            "bi3",
-            "bb1",
-            e=3,
+            "bi1",  # type: ignore[arg-type]
+            "bf1",  # type: ignore[arg-type]
+            "bi2",  # type: ignore[arg-type]
+            "bi3",  # type: ignore[arg-type]
+            "bb1",  # type: ignore[arg-type]
+            e=3,  # type: ignore[arg-type]
             f="badbad",
-            kw_other="xyz"
-            # type: ignore[arg-type]  # noqa: E501
+            kw_other="xyz",  # type: ignore[arg-type]
         )
         == "ok bi1 bf1 ('bi2', 'bi3', 'bb1') 3 badbad {'kw_other': 'xyz'}"
     )
