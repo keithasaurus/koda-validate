@@ -12,7 +12,6 @@ from typing import (
     Set,
     Type,
     TypeVar,
-    Union,
     get_type_hints,
 )
 
@@ -31,7 +30,6 @@ from koda_validate.errors import (
     ErrType,
     ExtraKeysErr,
     KeyErrs,
-    TypeErr,
     missing_key_err,
 )
 from koda_validate.typehints import get_typehint_validator
@@ -103,7 +101,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         ] = None,
         fail_on_unknown_keys: bool = False,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
-        coerce: Coercer[Dict[Any, Any]] = None,
+        coerce: Optional[Coercer[Dict[Any, Any]]] = None,
     ) -> None:
         if not is_dataclass(data_cls):
             raise TypeError("Must be a dataclass")
