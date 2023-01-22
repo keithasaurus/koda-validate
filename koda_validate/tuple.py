@@ -46,6 +46,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             tuple
         :param validate_object: if all the slots of the tuple are valid, this can be used
             to validate among all the fields.
+        :param coerce: control if an how values are coerced for this validator
         """
 
         self.fields = fields
