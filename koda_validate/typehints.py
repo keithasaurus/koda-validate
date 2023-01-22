@@ -59,6 +59,14 @@ def annotation_is_naked_list(annotation: Any) -> bool:
     return annotation is List or annotation is list
 
 
+def annotation_is_namedtuple(annotation: Any) -> bool:
+    return bool(
+        (bases := getattr(annotation, "__bases__", None))
+        and bases == (tuple,)
+        and hasattr(annotation, "_fields")
+    )
+
+
 # todo: evolve into general-purpose type-hint driven validator
 # will probably need significant changes
 def get_typehint_validator_base(
@@ -109,11 +117,7 @@ def get_typehint_validator_base(
         from .dataclasses import DataclassValidator
 
         return DataclassValidator(annotation)
-    elif (
-        (bases := getattr(annotation, "__bases__", None))
-        and bases == (tuple,)
-        and hasattr(annotation, "_fields")
-    ):
+    elif annotation_is_namedtuple(annotation):
         from .namedtuple import NamedTupleValidator
 
         return NamedTupleValidator(annotation)

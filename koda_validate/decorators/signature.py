@@ -22,8 +22,10 @@ from uuid import UUID
 
 from _decimal import Decimal
 
+from koda_validate import DataclassValidator, NamedTupleValidator
 from koda_validate._internal import _is_typed_dict_cls
 from koda_validate.base import Validator
+from koda_validate.dataclasses import dataclass_no_coerce
 from koda_validate.errors import (
     CoercionErr,
     ContainerErr,
@@ -38,10 +40,15 @@ from koda_validate.errors import (
     UnionErrs,
 )
 from koda_validate.generic import always_valid
+from koda_validate.namedtuple import namedtuple_no_coerce
 from koda_validate.time import DatetimeValidator, DateValidator
 from koda_validate.tuple import NTupleValidator, UniformTupleValidator
 from koda_validate.typeddict import TypedDictValidator
-from koda_validate.typehints import annotation_is_naked_tuple, get_typehint_validator_base
+from koda_validate.typehints import (
+    annotation_is_naked_tuple,
+    annotation_is_namedtuple,
+    get_typehint_validator_base,
+)
 from koda_validate.uuid import UUIDValidator
 from koda_validate.valid import Invalid
 
@@ -71,9 +78,9 @@ def resolve_signature_typehint(annotation: Any) -> Validator[Any]:
     elif annotation_is_naked_tuple(annotation):
         return UniformTupleValidator(always_valid, coerce=None)
     elif is_dataclass(annotation):
-        from koda_validate.dataclasses import DataclassValidator
-
-        return DataclassValidator(annotation)
+        return DataclassValidator(annotation, coerce=dataclass_no_coerce(annotation))
+    elif annotation_is_namedtuple(annotation):
+        return NamedTupleValidator(annotation, coerce=namedtuple_no_coerce(annotation))
     else:
         origin, args = get_origin(annotation), get_args(annotation)
         if annotation_is_naked_tuple(origin):

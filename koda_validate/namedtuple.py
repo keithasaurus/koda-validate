@@ -13,6 +13,8 @@ from typing import (
     get_type_hints,
 )
 
+from koda import Just, Maybe, nothing
+
 from koda_validate._internal import (
     _raise_cannot_define_validate_object_and_validate_object_async,
     _raise_validate_object_async_in_sync_mode,
@@ -35,6 +37,13 @@ from koda_validate.typehints import get_typehint_validator
 from koda_validate.valid import Invalid
 
 _NTT = TypeVar("_NTT", bound=NamedTuple)
+
+
+def namedtuple_no_coerce(nt_cls: Type[_NTT]) -> Coercer[Dict[Any, Any]]:
+    def _fn(val: Any) -> Maybe[Dict[Any, Any]]:
+        return Just(val._asdict()) if type(val) is nt_cls else nothing
+
+    return Coercer(_fn, {nt_cls})
 
 
 class NamedTupleValidator(_ToTupleValidator[_NTT]):

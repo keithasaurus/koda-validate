@@ -46,9 +46,9 @@ class DataclassLike(Protocol):
 _DCT = TypeVar("_DCT", bound=DataclassLike)
 
 
-def dataclass_only(data_cls: Type[_DCT]) -> Coercer[_DCT]:
-    def _fn(val: Any) -> Maybe[Any]:
-        return Just(val) if type(val) is data_cls else nothing
+def dataclass_no_coerce(data_cls: Type[_DCT]) -> Coercer[Dict[Any, Any]]:
+    def _fn(val: Any) -> Maybe[Dict[Any, Any]]:
+        return Just(val.__dict__) if type(val) is data_cls else nothing
 
     return Coercer(_fn, {data_cls})
 

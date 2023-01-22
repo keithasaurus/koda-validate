@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, List, Optional, Tuple, TypedDict
+from typing import Any, List, NamedTuple, Optional, Tuple, TypedDict
 from uuid import UUID
 
 import pytest
@@ -34,6 +34,7 @@ from koda_validate import (
     TypeErr,
     UnionErrs,
     UnionValidator,
+    Valid,
     Validator,
 )
 from koda_validate.decorators.signature import (
@@ -779,18 +780,34 @@ def test_typeddict_does_not_coerce() -> None:
         some_func([("a", "hmm"), ("b", 5), ("c", 3.14)])  # type: ignore[arg-type]
 
 
-# def test_dataclass_does_not_coerce() -> None:
-#     @dataclass
-#     class ABC:
-#         a: str
-#         b: int
-#         c: float
-#
-#     @validate_signature
-#     def some_func(obj: ABC) -> ABC:
-#         return obj
-#
-#     with pytest.raises(InvalidArgsError):
-#         some_func({"a": "hmm",
-#                    "b": 5,
-#                    "c": 3.14})
+def test_dataclass_does_not_coerce() -> None:
+    @dataclass
+    class ABC:
+        a: str
+        b: int
+        c: float
+
+    @validate_signature
+    def some_func(obj: ABC) -> ABC:
+        return obj
+
+    with pytest.raises(InvalidArgsError):
+        some_func({"a": "hmm", "b": 5, "c": 3.14})  # type: ignore[arg-type]
+
+    assert some_func(ABC("ok", 1, 2.3)) == ABC("ok", 1, 2.3)
+
+
+def test_namedtuple_does_not_coerce() -> None:
+    class ABC(NamedTuple):
+        a: str
+        b: int
+        c: float
+
+    @validate_signature
+    def some_func(obj: ABC) -> ABC:
+        return obj
+
+    with pytest.raises(InvalidArgsError):
+        some_func({"a": "hmm", "b": 5, "c": 3.14})  # type: ignore[arg-type]
+
+    assert some_func(ABC("ok", 1, 2.3)) == ABC("ok", 1, 2.3)
