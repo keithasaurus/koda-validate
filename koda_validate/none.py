@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, ClassVar, Optional
+from typing import Any, Optional
 
 from koda_validate._generics import A
 from koda_validate._internal import (
@@ -43,10 +43,16 @@ class OptionalValidator(_ToTupleValidator[Optional[A]]):
     We have a value for a key, but it can be null (None)
     """
 
-    __match_args__ = ("non_none_validator",)
+    __match_args__ = ("non_none_validator", "none_validator")
 
-    def __init__(self, validator: Validator[A]) -> None:
+    def __init__(
+        self,
+        validator: Validator[A],
+        *,
+        none_validator: Validator[None] = NoneValidator(),
+    ) -> None:
         self.non_none_validator = validator
+        self.none_validator = none_validator
         self.validators = (none_validator, validator)
 
     async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[Optional[A]]:
@@ -59,6 +65,7 @@ class OptionalValidator(_ToTupleValidator[Optional[A]]):
         return (
             type(self) == type(other)
             and other.non_none_validator == self.non_none_validator
+            and other.none_validator == self.none_validator
         )
 
     def __repr__(self) -> str:

@@ -486,6 +486,17 @@ def test_eq() -> None:
         A, overrides={"name": StringValidator()}, validate_object=obj_fn_2
     )
 
+    class CoerceCastAsDict(Coercer[Dict[Any, Any]]):
+        def __call__(self, val: Any) -> Maybe[Dict[Any, Any]]:
+            try:
+                return Just(dict(val))
+            except (TypeError, ValueError):
+                return nothing
+
+    assert TypedDictValidator(A, coerce=None) != TypedDictValidator(
+        A, coerce=CoerceCastAsDict()
+    )
+
 
 def test_total_is_respected() -> None:
     class TD1(TypedDict, total=False):
