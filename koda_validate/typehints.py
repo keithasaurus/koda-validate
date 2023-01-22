@@ -51,6 +51,10 @@ from .union import UnionValidator
 from .uuid import UUIDValidator
 
 
+def annotation_is_naked_tuple(annotation: Any) -> bool:
+    return annotation is Tuple or annotation is tuple
+
+
 # todo: evolve into general-purpose type-hint driven validator
 # will probably need significant changes
 def get_typehint_validator_base(
@@ -93,7 +97,7 @@ def get_typehint_validator_base(
         return ListValidator(always_valid)
     elif annotation is Set or annotation is set:
         return SetValidator(always_valid)
-    elif annotation is Tuple or annotation is tuple:
+    elif annotation_is_naked_tuple(annotation):
         return UniformTupleValidator(always_valid)
     elif annotation is Dict or annotation is dict:
         return MapValidator(key=always_valid, value=always_valid)

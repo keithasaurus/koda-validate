@@ -13,6 +13,8 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    get_args,
+    get_origin,
     overload,
 )
 from uuid import UUID
@@ -20,7 +22,7 @@ from uuid import UUID
 from _decimal import Decimal
 
 from koda_validate import *
-from koda_validate.typehints import get_typehint_validator_base
+from koda_validate.typehints import annotation_is_naked_tuple, get_typehint_validator_base
 
 _BaseDecoratedFunc = Callable[..., Any]
 _DecoratedFunc = TypeVar("_DecoratedFunc", bound=_BaseDecoratedFunc)
@@ -41,8 +43,21 @@ def resolve_signature_typehint(annotation: Any) -> Validator[Any]:
         return DateValidator(coerce=None)
     elif annotation is datetime:
         return DatetimeValidator(coerce=None)
+    elif annotation_is_naked_tuple(annotation):
+        return UniformTupleValidator(always_valid, coerce=None)
     else:
-        return get_typehint_validator_base(resolve_signature_typehint, annotation)
+        origin, args = get_origin(annotation), get_args(annotation)
+        if annotation_is_naked_tuple(origin):
+            if len(args) == 2 and args[1] is Ellipsis:
+                return UniformTupleValidator(
+                    resolve_signature_typehint(args[0]), coerce=None
+                )
+            else:
+                return NTupleValidator.untyped(
+                    fields=tuple(resolve_signature_typehint(a) for a in args), coerce=None
+                )
+
+    return get_typehint_validator_base(resolve_signature_typehint, annotation)
 
 
 def _get_validator(

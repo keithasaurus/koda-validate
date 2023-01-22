@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 from uuid import UUID
 
 import pytest
@@ -718,3 +718,21 @@ def test_datetime_does_not_coerce() -> None:
 
     with pytest.raises(InvalidArgsError):
         fn(datetime.now().isoformat())  # type: ignore[arg-type]
+
+
+def test_naked_tuple_does_not_coerce() -> None:
+    @validate_signature
+    def fn(d: Tuple) -> Tuple:  # type: ignore[type-arg]
+        return d
+
+    with pytest.raises(InvalidArgsError):
+        fn(["frown"])  # type: ignore[arg-type]
+
+
+def test_adorned_tuple_does_not_coerce() -> None:
+    @validate_signature
+    def fn(d: Tuple[str]) -> Tuple[str]:
+        return d
+
+    with pytest.raises(InvalidArgsError):
+        fn(["frown"])  # type: ignore[arg-type]
