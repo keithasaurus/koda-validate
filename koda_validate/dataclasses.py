@@ -90,7 +90,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
     :raises TypeError: should raise if non-``dataclass`` type is passed for ``data_cls``
     """
 
-    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys")
+    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys", "coerce")
 
     def __init__(
         self,

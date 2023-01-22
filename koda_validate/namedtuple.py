@@ -82,7 +82,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         ``named_tuple_cls``
     """
 
-    __match_args__ = ("named_tuple_cls", "overrides", "fail_on_unknown_keys")
+    __match_args__ = ("named_tuple_cls", "overrides", "fail_on_unknown_keys", "coerce")
 
     def __init__(
         self,

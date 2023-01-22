@@ -87,7 +87,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
     :raises TypeError: should raise if non-``TypedDict`` type is passed for ``td_cls``
     """
 
-    __match_args__ = ("td_cls", "overrides", "fail_on_unknown_keys")
+    __match_args__ = ("td_cls", "overrides", "fail_on_unknown_keys", "coerce")
 
     def __init__(
         self,

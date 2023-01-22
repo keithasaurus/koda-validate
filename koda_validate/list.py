@@ -15,7 +15,7 @@ from koda_validate.valid import Invalid
 
 
 class ListValidator(_ToTupleValidator[List[A]]):
-    __match_args__ = ("item_validator", "predicates", "predicates_async")
+    __match_args__ = ("item_validator", "predicates", "predicates_async", "coerce")
 
     def __init__(
         self,
