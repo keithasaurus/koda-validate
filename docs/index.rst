@@ -11,12 +11,14 @@ Koda Validate
 
 Build typesafe validators :ref:`automatically<index:Derived Validators>`
 or explicitly -- or :ref:`write your own<how_to/extension:Extension>`. Combine them to
-build validators of arbitrary complexity. Koda Validate is async-friendly, pure Python, and
-1.5x - 12x faster :ref:`than Pydantic<faq/pydantic:Pydantic Comparison>`.
+for arbitrarily complex validation logic. Koda Validate is async-friendly, pure
+Python, and 1.5x - 12x faster :ref:`than Pydantic<faq/pydantic:Pydantic Comparison>`.
+
+New in 3.1: Runtime Type Checking
 
 
 Basic Usage
------------
+^^^^^^^^^^^
 
 .. testcode:: scalars
 
@@ -283,6 +285,7 @@ Contents
    philosophy/validators
    philosophy/predicates
    philosophy/processors
+   philosophy/coercion
    philosophy/async
    philosophy/errors
 
