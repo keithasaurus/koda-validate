@@ -464,6 +464,10 @@ class InvalidArgsError(Exception):
 
 
 class InvalidReturnError(Exception):
+    """
+    Represents a return value that has failed validation.
+    """
+
     def __init__(self, err: Invalid):
         super().__init__(_INVALID_RETURN_MESSAGE_HEADER + _get_arg_fail_message(err))
         self.err = err

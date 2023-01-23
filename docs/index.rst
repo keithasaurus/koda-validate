@@ -263,6 +263,7 @@ Contents
    how_to/results
    how_to/dictionaries
    how_to/rest_apis
+   how_to/runtime_type_checking
    how_to/async
    how_to/extension
    how_to/metadata
@@ -275,6 +276,7 @@ Contents
 
    api/koda_validate
    api/koda_validate.serialization
+   api/koda_validate.signature
 
 
 .. toctree::
