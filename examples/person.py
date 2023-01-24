@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+from typing import List
 from koda_validate import *
 
 
@@ -29,7 +29,7 @@ people_validator = ListValidator(person_validator)
 @dataclass
 class Group:
     name: str
-    people: list[Person]
+    people: List[Person]
 
 
 group_validator = RecordValidator(
