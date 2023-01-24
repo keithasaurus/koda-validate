@@ -111,8 +111,8 @@ def _get_validator(
 
 def _wrap_fn(
     func: _DecoratedFunc,
-    ignore_return: bool,
     ignore_args: Set[str],
+    ignore_return: bool,
     typehint_resolver: Callable[[Any], Validator[Any]],
     overrides: OverridesDict,
 ) -> _DecoratedFunc:
@@ -303,8 +303,8 @@ def _wrap_fn(
 def validate_signature(
     func: _DecoratedFunc,
     *,
-    ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
+    ignore_return: bool = False,
     typehint_resolver: Callable[[Any], Validator[Any]] = resolve_signature_typehint,
     overrides: Optional[OverridesDict] = None,
 ) -> _DecoratedFunc:
@@ -315,8 +315,8 @@ def validate_signature(
 def validate_signature(
     func: None = None,
     *,
-    ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
+    ignore_return: bool = False,
     typehint_resolver: Callable[[Any], Validator[Any]] = resolve_signature_typehint,
     overrides: Optional[OverridesDict] = None,
 ) -> Callable[[_DecoratedFunc], _DecoratedFunc]:
