@@ -144,7 +144,63 @@ the same thing with ``overrides``. This is equivalent to the ``Annotated`` examp
     def reverse_name(name: str) -> str:
         return name[::-1]
 
+.. note::
 
+    ``RETURN_OVERRIDE_KEY`` is a special key that allows us to override the default
+    :class:`Validator<koda_validate.Validator>` for the return value. It's the only
+    non-string key allowed in ``overrides``.
 
 Async
 -----
+
+Remaining consistent with the rest of Koda Validate :data:`validate_signature` also
+supports ``async`` functions.
+
+.. testcode:: async1
+
+    from koda_validate.signature import *
+
+    @validate_signature
+    async def save_data(version: int, data: dict[str, str]) -> None:
+        # do some async saving logic
+        return None
+
+When used on async functions, the validators assigned by :data:`validate_signature`
+run asynchronously. This means you can have any kind of async validation taking place. For instance,
+if we want to change this code to check an external service to make sure we're using the latest
+version, we could do something like this:
+
+
+.. testcode:: async2
+
+    from typing import Annotated
+    from koda_validate import *
+    from koda_validate.signature import *
+
+    class CheckLatestVersion(PredicateAsync[int]):
+        def validate_async(self, val: int) -> bool:
+            # should be something like
+            # latest_version = await get_latest_version(val)
+
+            # for simplicity, we'll pretend the service returned 5
+            latest_version = 5
+            return val == latest_version
+
+    @validate_signature
+    async def save_data(
+        version: Annotated[int,
+                           IntValidator(predicates_async=[CheckLatestVersion()])],
+        data: dict[str, str]
+    ) -> None:
+        # do some async saving logic
+        return None
+
+Usage:
+
+.. doctest:: async2
+
+    >>> import asyncio
+    >>> asyncio.run(save_data(5, {"name": "Bob Loblaw"}))
+    # returned None
+    >>> asyncio.run(save_data(4, {"name": "Bob Loblaw"}))
+    bad

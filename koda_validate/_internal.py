@@ -183,7 +183,7 @@ class _ToTupleStandardValidator(_ToTupleValidator[SuccessT]):
                 [
                     pred
                     for pred in self.predicates_async
-                    if not await pred.validate_async(val)
+                    if not (await pred.validate_async(val))
                 ]
             )
         if errors:
