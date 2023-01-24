@@ -4,9 +4,9 @@ Runtime Type Checking
 .. module:: koda_validate.signature
     :noindex:
 
-:data:`validate_signature` can be used as a decorator that can to validate function arguments and
-return values at runtime. By default, it will infer the validation logic to use by
-inspecting the typehints.
+Koda Validate supports runtime type-checking via :data:`validate_signature`. :data`validate_signature`
+can be used as a decorator that can to validate function arguments and return values at
+runtime. By default, it will infer the validation logic to use by inspecting the typehints.
 
 .. testcode:: basic
 
@@ -34,8 +34,15 @@ Usage
     y='ints'
         expected <class 'int'>
 
-:data:`validate_signature` will ``raise`` a :data:`InvalidArgsErr` when arguments
-are invalid or :data:`InvalidReturnError` when the returned value is invalid.
+:data:`validate_signature` raises an :class:`InvalidArgsError` when arguments
+are invalid or :class:`InvalidReturnError` when the returned value is invalid.
+
+.. note::
+
+    While the main interface for the developer is usually the formatted output in the traceback,
+    :class:`InvalidArgsError` and :class:`InvalidReturnError` both contain all relevant
+    :class:`Invalid<koda_validate.Invalid>` objects on ``InvalidArgsError.errs`` or
+    ``InvalidReturnError.err``
 
 Customization
 -------------
