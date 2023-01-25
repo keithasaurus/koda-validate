@@ -62,7 +62,7 @@ RETURN_OVERRIDE_KEY: ReturnOverrideKey = ("return_key",)
 OverridesDict = Dict[Union[str, ReturnOverrideKey], Validator[Any]]
 
 
-def resolve_signature_typehint(annotation: Any) -> Validator[Any]:
+def resolve_signature_typehint_default(annotation: Any) -> Validator[Any]:
     if annotation is Decimal:
         from koda_validate.decimal import DecimalValidator
 
@@ -86,14 +86,15 @@ def resolve_signature_typehint(annotation: Any) -> Validator[Any]:
         if annotation_is_naked_tuple(origin):
             if len(args) == 2 and args[1] is Ellipsis:
                 return UniformTupleValidator(
-                    resolve_signature_typehint(args[0]), coerce=None
+                    resolve_signature_typehint_default(args[0]), coerce=None
                 )
             else:
                 return NTupleValidator.untyped(
-                    fields=tuple(resolve_signature_typehint(a) for a in args), coerce=None
+                    fields=tuple(resolve_signature_typehint_default(a) for a in args),
+                    coerce=None,
                 )
 
-    return get_typehint_validator_base(resolve_signature_typehint, annotation)
+    return get_typehint_validator_base(resolve_signature_typehint_default, annotation)
 
 
 def _get_validator(
@@ -305,7 +306,9 @@ def validate_signature(
     *,
     ignore_args: Optional[Set[str]] = None,
     ignore_return: bool = False,
-    typehint_resolver: Callable[[Any], Validator[Any]] = resolve_signature_typehint,
+    typehint_resolver: Callable[
+        [Any], Validator[Any]
+    ] = resolve_signature_typehint_default,  # noqa: E501
     overrides: Optional[OverridesDict] = None,
 ) -> _DecoratedFunc:
     ...
@@ -317,7 +320,9 @@ def validate_signature(
     *,
     ignore_args: Optional[Set[str]] = None,
     ignore_return: bool = False,
-    typehint_resolver: Callable[[Any], Validator[Any]] = resolve_signature_typehint,
+    typehint_resolver: Callable[
+        [Any], Validator[Any]
+    ] = resolve_signature_typehint_default,  # noqa: E501
     overrides: Optional[OverridesDict] = None,
 ) -> Callable[[_DecoratedFunc], _DecoratedFunc]:
     ...
@@ -328,7 +333,9 @@ def validate_signature(
     *,
     ignore_return: bool = False,
     ignore_args: Optional[Set[str]] = None,
-    typehint_resolver: Callable[[Any], Validator[Any]] = resolve_signature_typehint,
+    typehint_resolver: Callable[
+        [Any], Validator[Any]
+    ] = resolve_signature_typehint_default,  # noqa: E501
     overrides: Optional[OverridesDict] = None,
 ) -> Union[_DecoratedFunc, Callable[[_DecoratedFunc], _DecoratedFunc]]:
     """

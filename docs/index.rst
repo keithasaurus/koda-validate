@@ -114,7 +114,7 @@ Outputs:
 
 .. note::
 
-   ``MinLength(5)``, ``MaxLength(10)``, and ``StartsWith("a")`` are all of :ref:`philosophy/predicates:Predicates`.
+   ``MinLength(5)``, ``MaxLength(10)``, and ``StartsWith("a")`` are all :ref:`philosophy/predicates:Predicates`.
 
 
 ----------------
@@ -176,11 +176,6 @@ Usage:
    Valid(...)
 
 
-.. note::
-
-   We excluded the :class:`Valid` contents for brevity.
-
-
 
 It's easy to keep nesting validators:
 
@@ -240,7 +235,9 @@ Usage:
    TypeErr(expected_type=<class 'int'>)
 
 In Koda Validate, you are encouraged to write your own :class:`Validator`\s for custom
-needs. For guidance, take a look at :ref:`how_to/extension:Extension`.
+needs. As long as you obey the typing rules when building custom :class:`Validator`\s,
+you should be able to combine them with built-in :class:`Validator`\s, however you wish.
+For guidance, take a look at :ref:`how_to/extension:Extension`.
 
 -----------------
 

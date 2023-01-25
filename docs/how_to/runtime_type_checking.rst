@@ -4,8 +4,8 @@ Runtime Type Checking
 .. module:: koda_validate.signature
     :noindex:
 
-Koda Validate supports runtime type-checking via :data:`validate_signature`. :data`validate_signature`
-can be used as a decorator that can to validate function arguments and return values at
+Koda Validate supports runtime type-checking via :data:`validate_signature`, a decorator
+that can validate function arguments and return values at
 runtime. By default, it will infer the validation logic to use by inspecting the typehints.
 
 .. testcode:: basic
@@ -43,6 +43,41 @@ are invalid or :class:`InvalidReturnError` when the returned value is invalid.
     :class:`InvalidArgsError` and :class:`InvalidReturnError` both contain all relevant
     :class:`Invalid<koda_validate.Invalid>` objects on ``InvalidArgsError.errs`` or
     ``InvalidReturnError.err``
+
+
+:data:`validate_signature` works on class methods as well, and with many different kinds of arugments.
+
+.. testcode:: object
+
+    from koda_validate.signature import *
+
+    class Obj:
+        @validate_signature
+        def some_method(self, a: int, *, b: int = 5) -> int:
+            return a + b
+
+
+Usage
+
+.. doctest:: object
+
+    >>> Obj().some_method(1, b=2)
+    3
+    >>> Obj().some_method("oops", b=3)
+    Traceback (most recent call last):
+    ...
+    koda_validate.signature.InvalidArgsError:
+    Invalid Argument Values
+    -----------------------
+    a='oops'
+        expected <class 'int'>
+
+.. note::
+
+    If you want to prevent object creation for invalid args, you can simply
+    decorate the ``__init__`` method with :data:`validate_signature`.
+
+
 
 Customization
 -------------
@@ -85,7 +120,8 @@ work for any parameter in a function signature.
 
 Annotated Validators
 ^^^^^^^^^^^^^^^^^^^^
-You can use typing.Annotated to customize how a type signature is validated.
+You can use ``typing.Annotated`` to customize how the arguments and / or return value are
+validated -- using the same kinds of :class:`Validator<koda_validate.Validator>`\s used in data validation.
 
 .. testcode:: annotated
 
@@ -99,12 +135,12 @@ You can use typing.Annotated to customize how a type signature is validated.
     ) -> Annotated[str, StringValidator(MinLength(1), MaxLength(20))]:
         return name[::-1]
 
-Usage
+Let's try it.
 
 
 .. doctest:: annotated
 
-    >>> reverse_name("Jen")
+    >>> reverse_name("Jen")  # a valid name
     'neJ'
 
     >>> reverse_name("")  # too short
@@ -139,7 +175,7 @@ the same thing with ``overrides``. This is equivalent to the ``Annotated`` examp
 
     @validate_signature(overrides={
         "name": StringValidator(MinLength(1), MaxLength(20)),
-        RETURN_OVERRIDE_KEY: StringValidator(MinLength(1), MaxLength(20))}
+        RETURN_OVERRIDE_KEY: StringValidator(MinLength(1), MaxLength(20))
     })
     def reverse_name(name: str) -> str:
         return name[::-1]
@@ -149,6 +185,52 @@ the same thing with ``overrides``. This is equivalent to the ``Annotated`` examp
     ``RETURN_OVERRIDE_KEY`` is a special key that allows us to override the default
     :class:`Validator<koda_validate.Validator>` for the return value. It's the only
     non-string key allowed in ``overrides``.
+
+Typehint Resolution
+-------------------
+
+You can define your own typehint resolution logic by passing a function as the argument
+for ``typehint_resolver``. One situation in which this can be useful is when defining ``NewType``\s.
+
+.. testcode:: resolver
+
+    from typing import NewType
+    from koda_validate import *
+    from koda_validate.signature import *
+
+    Email = NewType('Email', str)
+
+    def custom_resolve_typehint(annotation: Any) -> Validator[Any]:
+        if annotation is Email:
+            return StringValidator(EmailPredicate())
+        else:
+            return resolve_signature_typehint_default(annotation)
+
+    @validate_signature(typehint_resolver=custom_resolve_typehint)
+    def message_someone(email: Email, message: str) -> str:
+        # send the message
+        return f"sent {message} to {email}"
+
+Usage
+
+.. doctest:: resolver
+
+    >>> message_someone(Email("abc@example.com"), "hi!")
+    'sent hi! to abc@example.com'
+
+    >>> message_someone(Email("abc"), "hello!")
+    Traceback (most recent call last):
+    ...
+    koda_validate.signature.InvalidArgsError:
+    Invalid Argument Values
+    -----------------------
+    email='abc'
+        PredicateErrs
+            EmailPredicate(pattern=re.compile('[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+'))
+
+
+Overriding typehint resolution can also be helpful in places where Koda Validate cannot
+fully infer the correct resolver, such as with Generics.
 
 Async
 -----
@@ -178,7 +260,7 @@ version, we could do something like this:
     from koda_validate.signature import *
 
     class CheckLatestVersion(PredicateAsync[int]):
-        def validate_async(self, val: int) -> bool:
+        async def validate_async(self, val: int) -> bool:
             # should be something like
             # latest_version = await get_latest_version(val)
 
@@ -200,7 +282,14 @@ Usage:
 .. doctest:: async2
 
     >>> import asyncio
-    >>> asyncio.run(save_data(5, {"name": "Bob Loblaw"}))
-    # returned None
+    >>> asyncio.run(save_data(5, {"name": "Bob Loblaw"}))  # returns None
     >>> asyncio.run(save_data(4, {"name": "Bob Loblaw"}))
-    bad
+    Traceback (most recent call last):
+    ...
+    koda_validate.signature.InvalidArgsError:
+    Invalid Argument Values
+    -----------------------
+    version=4
+        PredicateErrs
+            <CheckLatestVersion object at 0x1059a2e90>
+

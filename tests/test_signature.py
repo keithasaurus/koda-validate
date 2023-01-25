@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, List, NamedTuple, Optional, Tuple, TypedDict
+from typing import Any, List, NamedTuple, NewType, Optional, Tuple, TypedDict
 from uuid import UUID
 
 import pytest
@@ -13,6 +13,7 @@ from koda_validate import (
     ContainerErr,
     DecimalValidator,
     DictValidatorAny,
+    EmailPredicate,
     ExtraKeysErr,
     FloatValidator,
     IndexErrs,
@@ -45,6 +46,7 @@ from koda_validate.signature import (
     InvalidReturnError,
     _get_arg_fail_message,
     _get_args_fail_msg,
+    resolve_signature_typehint_default,
     validate_signature,
 )
 from koda_validate.typehints import get_typehint_validator
@@ -810,3 +812,25 @@ def test_namedtuple_does_not_coerce() -> None:
         some_func({"a": "hmm", "b": 5, "c": 3.14})  # type: ignore[arg-type]
 
     assert some_func(ABC("ok", 1, 2.3)) == ABC("ok", 1, 2.3)
+
+
+def test_new_type_with_typehint_resolver() -> None:
+    Email = NewType("Email", str)
+
+    def custom_resolve_typehint(annotation: Any) -> Validator[Any]:
+        if annotation is Email:
+            return StringValidator(EmailPredicate())
+        else:
+            return resolve_signature_typehint_default(annotation)
+
+    @validate_signature(typehint_resolver=custom_resolve_typehint)
+    def message_someone(email: Email, message: str) -> str:
+        # send the message
+        return f"sent {message} to {email}"
+
+    assert (
+        message_someone(Email("abc@example.com"), "hi!") == "sent hi! to abc@example.com"
+    )
+
+    with pytest.raises(InvalidArgsError):
+        message_someone(Email("abc"), "hello!")
