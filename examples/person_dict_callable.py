@@ -1,7 +1,8 @@
 from koda_validate import *
+from typing import Tuple
 
 
-def reverse_person_args_tuple(a: str, b: int) -> tuple[int, str]:
+def reverse_person_args_tuple(a: str, b: int) -> Tuple[int, str]:
     return b, a
 
 

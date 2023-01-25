@@ -1,11 +1,11 @@
-from typing import TypedDict
+from typing import TypedDict, List
 
 from koda_validate import TypedDictValidator
 
 
 class Person(TypedDict):
     name: str
-    hobbies: list[str]
+    hobbies: List[str]
 
 
 person_validator = TypedDictValidator(Person)
