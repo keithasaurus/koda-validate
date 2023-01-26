@@ -12,6 +12,7 @@ class BoolValidator(_ToTupleStandardValidator[bool]):
     :param predicates_async: any number of ``PredicateAsync[bool]`` instances
     :param preprocessors: any number of ``Processor[bool]``, which will be run before
         :class:`Predicate`\s and :class:`PredicateAsync`\s are checked.
+    :param coerce: a function that can control coercion
     """
 
     _TYPE = bool

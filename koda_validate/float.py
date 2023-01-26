@@ -12,6 +12,7 @@ class FloatValidator(_ToTupleStandardValidator[float]):
     :param predicates_async: any number of ``PredicateAsync[float]`` instances
     :param preprocessors: any number of ``Processor[float]``, which will be run before
         :class:`Predicate`\s and :class:`PredicateAsync`\s are checked.
+    :param coerce: a function that can control coercion
     """
 
     _TYPE = float

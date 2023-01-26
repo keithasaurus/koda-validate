@@ -88,6 +88,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         types
     :param fail_on_unknown_keys: if True, this will fail if any keys not defined by
         ``self.data_cls`` are found. This will fail before any values are validated.
+    :param coerce: a function that can control coercion
     :raises TypeError: should raise if non-``NamedTuple`` type is passed for
         ``named_tuple_cls``
     """

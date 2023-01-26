@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Set
 
 import pytest
+from koda import Just, Maybe, nothing
 
 from koda_validate import (
     IntValidator,
@@ -16,6 +17,7 @@ from koda_validate import (
     StringValidator,
     TypeErr,
     Valid,
+    coercer,
 )
 from koda_validate.base import PredicateAsync
 from koda_validate.set import SetValidator
@@ -142,3 +144,38 @@ def test_list_validator_equivalence() -> None:
         predicates_async=[AsyncSetPred()],
     )
     assert s_pred_async_1 == s_pred_async_2
+
+
+def test_coerce_to_set() -> None:
+    @coercer(tuple)
+    def tuple_to_set(val: Any) -> Maybe[Set[Any]]:
+        if type(val) is tuple:
+            try:
+                return Just(set(val))
+            except TypeError:
+                return nothing
+        else:
+            return nothing
+
+    validator = SetValidator(StringValidator(), coerce=tuple_to_set)
+    assert validator(("ok", "ok", "tuple")) == Valid({"ok", "tuple"})
+    assert isinstance(validator({"set", "no", "longer", "accepted"}), Invalid)
+
+
+@pytest.mark.asyncio
+async def test_coerce_to_set_async() -> None:
+    @coercer(tuple)
+    def tuple_to_set(val: Any) -> Maybe[Set[Any]]:
+        if type(val) is tuple:
+            try:
+                return Just(set(val))
+            except TypeError:
+                return nothing
+        else:
+            return nothing
+
+    validator = SetValidator(StringValidator(), coerce=tuple_to_set)
+    assert await validator.validate_async(("ok", "ok", "tuple")) == Valid({"ok", "tuple"})
+    assert isinstance(
+        await validator.validate_async({"set", "no", "longer", "accepted"}), Invalid
+    )

@@ -23,6 +23,7 @@ class BytesValidator(_ToTupleStandardValidator[bytes]):
     :param predicates_async: any number of ``PredicateAsync[bytes]`` instances
     :param preprocessors: any number of ``Processor[bytes]``, which will be run before
         :class:`Predicate`\s and :class:`PredicateAsync`\s are checked.
+    :param coerce: a function that can control coercion
     """
 
     _TYPE = bytes
