@@ -14,7 +14,7 @@ class Coercer(Generic[A]):
     """
     compatible_types: Set[Type[Any]]
     """
-    All the types which can potentially be coerced. 
+    All the types which can potentially be coerced.
     """
 
     def __call__(self, val: Any) -> Maybe[A]:
