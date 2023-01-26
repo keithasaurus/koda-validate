@@ -342,14 +342,14 @@ def validate_signature(
     Validates a function's arguments and / or return value adhere to the respective
     typehints and / or any custom-specified Validation.Because we want to preserve the
     type signature of the function when it's wrapped, we raise exceptions to represent
-    failure (as opssoped to returning ValidationResult[ReturnType], which would change
+    failure (as opposed to returning ``ValidationResult[ReturnType]``, which would change
     the function's type signature).
 
     :param func: the function being validated
     :param ignore_return: whether or not to ignore the return annotation
     :param ignore_args: any arguments that should be ignored
     :param typehint_resolver: the function responsible for resolving type annotations
-        to `Validator`s
+        to :class:`koda_validate.Validator`\s
     :param overrides: explicit `Validator`s for arguments that takes priority over
         `typehint_resolver` and `Annotated` types
     :return: the decorated function
@@ -465,6 +465,10 @@ _INVALID_RETURN_MESSAGE_HEADER = "\nInvalid Return Value\n--------------------\n
 
 
 class InvalidArgsError(Exception):
+    """
+    Represents the validation failure of one or more arguments.
+    """
+
     def __init__(self, errs: Dict[str, Invalid]) -> None:
         super().__init__(_INVALID_ARGS_MESSAGE_HEADER + _get_args_fail_msg(errs))
         self.errs = errs

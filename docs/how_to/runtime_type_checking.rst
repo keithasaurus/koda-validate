@@ -74,14 +74,14 @@ Usage
 
 .. note::
 
-    If you want to prevent object creation for invalid args, you can simply
-    decorate the ``__init__`` method with :data:`validate_signature`.
+    You can simply decorate the ``__init__`` method of a class with :data:`validate_signature`
+    if you want to disable object creation for invalid arguments.
 
 
 
 Customization
 -------------
-:data:`validate_signature` is wholly customizable, so it can fit practically any usecase.
+:data:`validate_signature` is wholly customizable, so it can fit practically any use case.
 
 
 Ignoring Arguments and Return Values
@@ -293,3 +293,13 @@ Usage:
         PredicateErrs
             <CheckLatestVersion object at 0x1059a2e90>
 
+
+Caveats
+-------
+
+As with data validation, type inference is limited. If Koda Validate cannot
+infer a specific validator for a type, it will fallback to a class instance check
+-- if the type is a class. The most obvious cases this fails to cover are generics. In these
+cases, it's usually best to provide your own :class:`Validator` through
+:ref:`how_to/runtime_type_checking:Annotated Validators` or
+:ref:`how_to/runtime_type_checking:Overrides`.
