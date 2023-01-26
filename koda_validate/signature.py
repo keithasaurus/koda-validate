@@ -338,7 +338,7 @@ def validate_signature(
     ] = resolve_signature_typehint_default,  # noqa: E501
     overrides: Optional[OverridesDict] = None,
 ) -> Union[_DecoratedFunc, Callable[[_DecoratedFunc], _DecoratedFunc]]:
-    """
+    r"""
     Validates a function's arguments and / or return value adhere to the respective
     typehints and / or any custom-specified Validation.Because we want to preserve the
     type signature of the function when it's wrapped, we raise exceptions to represent
