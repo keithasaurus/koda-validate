@@ -282,8 +282,8 @@ Contents
    philosophy/overview
    philosophy/validators
    philosophy/predicates
-   philosophy/processors
    philosophy/coercion
+   philosophy/processors
    philosophy/async
    philosophy/errors
 

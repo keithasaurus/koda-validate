@@ -4,8 +4,17 @@ Coercion
 .. module:: koda_validate
     :noindex:
 
-Coercion is a fundamental part of validation, and Koda Validate allows users
-to customize how it works. For example, if we want to allow an :class:`IntValidator`
+Coercion is a fundamental part of validation that happens at the start. In Koda Validate
+coercion is expressed through the function signature:
+
+.. testcode:: coercer
+
+    A = TypeVar('A')
+
+    Callable[[Any], Maybe[A]]
+
+Where ``A`` corresponds to the generic parameter of a some ``Validator[A]``. Koda Validate
+allows users to customize how coercion works. For example, to allow an :class:`IntValidator`
 instance to coerce strings into integers, we can simply define a :class:`Coercer` to
 do this.
 
@@ -38,7 +47,11 @@ do this.
     # invalid strings fail
     assert isinstance(validator("abc"), Invalid)
 
-The decorator :data:`coercer` requires the types that are potentially valid. In this example,
+.. note::
+
+    :data:`coercer` is a convenience wrapper for :class:`Coercer`
+
+The decorator :data:`coercer` accepts the types that are potentially valid. In this example,
 all ``int``\s are and some ``str``\s can be coerced, so the two types passed as arguments
 are ``str`` and ``int``. These types are just metadata: they allow us to be able to communicate
 which types can be coerced; they have no effect on validation.
