@@ -7,6 +7,11 @@ Coercion
 Coercion is a fundamental part of validation that happens at the start. In Koda Validate
 coercion is expressed through the function signature:
 
+.. testsetup:: coercer
+
+    from typing import TypeVar, Callable, Any
+    from koda import Maybe
+
 .. testcode:: coercer
 
     A = TypeVar('A')
