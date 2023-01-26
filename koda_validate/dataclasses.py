@@ -15,6 +15,8 @@ from typing import (
     get_type_hints,
 )
 
+from koda import Just, Maybe, nothing
+
 from koda_validate._internal import (
     _raise_cannot_define_validate_object_and_validate_object_async,
     _raise_validate_object_async_in_sync_mode,
@@ -25,6 +27,7 @@ from koda_validate._internal import (
     _wrap_sync_validator,
 )
 from koda_validate.base import Validator
+from koda_validate.coerce import Coercer
 from koda_validate.errors import (
     CoercionErr,
     ErrType,
@@ -41,6 +44,13 @@ class DataclassLike(Protocol):
 
 
 _DCT = TypeVar("_DCT", bound=DataclassLike)
+
+
+def dataclass_no_coerce(data_cls: Type[_DCT]) -> Coercer[Dict[Any, Any]]:
+    def _fn(val: Any) -> Maybe[Dict[Any, Any]]:
+        return Just(val.__dict__) if type(val) is data_cls else nothing
+
+    return Coercer(_fn, {data_cls})
 
 
 class DataclassValidator(_ToTupleValidator[_DCT]):
@@ -85,10 +95,11 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         types
     :param fail_on_unknown_keys: if True, this will fail if any keys not defined by
         ``self.data_cls`` are found. This will fail before any values are validated.
+    :param coerce: a function that can control coercion
     :raises TypeError: should raise if non-``dataclass`` type is passed for ``data_cls``
     """
 
-    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys")
+    __match_args__ = ("data_cls", "overrides", "fail_on_unknown_keys", "coerce")
 
     def __init__(
         self,
@@ -101,12 +112,14 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         ] = None,
         fail_on_unknown_keys: bool = False,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
+        coerce: Optional[Coercer[Dict[Any, Any]]] = None,
     ) -> None:
         if not is_dataclass(data_cls):
             raise TypeError("Must be a dataclass")
         self.data_cls = data_cls
         self.fail_on_unknown_keys = fail_on_unknown_keys
         self.overrides = overrides
+        self.coerce = coerce
         if validate_object and validate_object_async:
             _raise_cannot_define_validate_object_and_validate_object_async()
 
@@ -153,10 +166,18 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         if self._disallow_synchronous:
             _raise_validate_object_async_in_sync_mode(self.__class__)
 
-        if isinstance(val, dict):
-            data = val
-        elif isinstance(val, self.data_cls):
-            data = val.__dict__
+        if self.coerce:
+            if not (coerced := self.coerce(val)).is_just:
+                return False, Invalid(
+                    CoercionErr(self.coerce.compatible_types, dict), val, self
+                )
+            else:
+                coerced_val: Dict[Any, Any] = coerced.val
+
+        elif type(val) is dict:
+            coerced_val = val
+        elif type(val) is self.data_cls:
+            coerced_val = val.__dict__
         else:
             return False, Invalid(
                 CoercionErr(
@@ -168,18 +189,18 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             )
 
         if self.fail_on_unknown_keys:
-            for key_ in data:
+            for key_ in coerced_val:
                 if key_ not in self._keys_set:
-                    return False, Invalid(self._unknown_keys_err, data, self)
+                    return False, Invalid(self._unknown_keys_err, coerced_val, self)
 
         success_dict: Dict[Any, Any] = {}
         errs: Dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
-            if key_ not in data:
+            if key_ not in coerced_val:
                 if key_required:
-                    errs[key_] = Invalid(missing_key_err, data, self)
+                    errs[key_] = Invalid(missing_key_err, coerced_val, self)
             else:
-                success, new_val = validator(data[key_])
+                success, new_val = validator(coerced_val[key_])
 
                 if not success:
                     errs[key_] = new_val
@@ -187,7 +208,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                     success_dict[key_] = new_val
 
         if errs:
-            return False, Invalid(KeyErrs(errs), data, self)
+            return False, Invalid(KeyErrs(errs), coerced_val, self)
         else:
             obj = self.data_cls(**success_dict)
             if self.validate_object and (result := self.validate_object(obj)):
@@ -196,10 +217,19 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             return True, obj
 
     async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[_DCT]:
-        if isinstance(val, dict):
-            data = val
-        elif isinstance(val, self.data_cls):
-            data = val.__dict__
+
+        if self.coerce:
+            if not (coerced := self.coerce(val)).is_just:
+                return False, Invalid(
+                    CoercionErr(self.coerce.compatible_types, dict), val, self
+                )
+            else:
+                coerced_val: Dict[Any, Any] = coerced.val
+
+        elif type(val) is dict:
+            coerced_val = val
+        elif type(val) is self.data_cls:
+            coerced_val = val.__dict__
         else:
             return False, Invalid(
                 CoercionErr(
@@ -211,19 +241,19 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             )
 
         if self.fail_on_unknown_keys:
-            # this seems to be faster than `for key_ in data.keys()`
-            for key_ in data:
+            # this seems to be faster than `for key_ in coerced_val.keys()`
+            for key_ in coerced_val:
                 if key_ not in self._keys_set:
-                    return False, Invalid(self._unknown_keys_err, data, self)
+                    return False, Invalid(self._unknown_keys_err, coerced_val, self)
 
         success_dict: Dict[Any, Any] = {}
         errs: Dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_async:
-            if key_ not in data:
+            if key_ not in coerced_val:
                 if key_required:
-                    errs[key_] = Invalid(missing_key_err, data, self)
+                    errs[key_] = Invalid(missing_key_err, coerced_val, self)
             else:
-                success, new_val = await validator(data[key_])
+                success, new_val = await validator(coerced_val[key_])
 
                 if not success:
                     errs[key_] = new_val
@@ -231,7 +261,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                     success_dict[key_] = new_val
 
         if errs:
-            return False, Invalid(KeyErrs(errs), data, self)
+            return False, Invalid(KeyErrs(errs), coerced_val, self)
         else:
             obj = self.data_cls(**success_dict)
             if self.validate_object and (result := self.validate_object(obj)):
@@ -250,6 +280,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             and other.validate_object_async is self.validate_object_async
             and other.schema == self.schema
             and other.fail_on_unknown_keys == self.fail_on_unknown_keys
+            and other.coerce == self.coerce
         )
 
     def __repr__(self) -> str:
@@ -262,6 +293,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                     ("overrides", self.overrides),
                     ("validate_object", self.validate_object),
                     ("validate_object_async", self.validate_object_async),
+                    ("coerce", self.coerce),
                     # note that this coincidentally works as we want:
                     # by default we don't fail on extra keys, so we don't
                     # show this in the repr if the default is defined

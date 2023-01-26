@@ -15,12 +15,14 @@ Some examples of this exist within Koda Validate:
 
 - :data:`to_json_schema<koda_validate.serialization.to_json_schema>` converts :class:`Validator`\s into JSON Schema objects
 - :data:`to_serializable_errs<koda_validate.serialization.to_serializable_errs>` converts :class:`Invalid` objects in human-readable serializable structures (discussed in :ref:`Errors <flaterrs-example>`)
+- :data:`koda_validate.signature._get_arg_fail_message` converts ``Invalid`` objects to human-readable traceback messages.
 
+Pattern Matching
+----------------
 
-Example
--------
-
-The recommended approach is something like this:
+The recommended approach to branching on validation graphs is to use pattern matching
+against the type of :class:`Validator`. For example, if you wanted to generate a markdown description
+from a :class:`Validator`, you could start with something like this:
 
 .. testcode:: markdown
 
@@ -47,5 +49,6 @@ Outputs:
     list validator
     - string validator
 
-This just generated a very simple output, for a tiny subset of the :class:`Validator`\s,
-but it's easy to use the same approach to produce arbitrary outputs.
+Here we generated a very simple output with code that supports a tiny subset of
+:class:`Validator`\s, but it's easy to expand the same approach to produce arbitrary
+outputs for a wide range of validators.

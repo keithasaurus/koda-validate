@@ -6,7 +6,6 @@ import pytest
 
 from koda_validate import (
     BoolValidator,
-    CoercionErr,
     ExactItemCount,
     FloatValidator,
     IndexErrs,
@@ -37,16 +36,18 @@ def test_tuple3() -> None:
     i_v = IntValidator()
     b_v = BoolValidator()
     n_v = BasicNoneValidator()
-    validator = NTupleValidator.typed(fields=(s_v, i_v, b_v, n_v))
-    assert validator({}) == Invalid(CoercionErr({list, tuple}, tuple), {}, validator)
+    validator = NTupleValidator.typed(fields=(s_v, i_v, b_v, n_v), coerce=None)
+    assert validator({}) == Invalid(TypeErr(tuple), {}, validator)
 
-    assert validator([]) == Invalid(PredicateErrs([ExactItemCount(4)]), [], validator)
+    assert validator(()) == Invalid(PredicateErrs([ExactItemCount(4)]), (), validator)
 
-    assert validator(["a", 1, False, None]) == Valid(("a", 1, False, None))
+    assert validator(["a", 1, False, None]) == Invalid(
+        TypeErr(tuple), ["a", 1, False, None], validator
+    )
 
     assert validator(("a", 1, False, None)) == Valid(("a", 1, False, None))
 
-    assert validator([1, "a", 7.42, 1]) == Invalid(
+    assert validator((1, "a", 7.42, 1)) == Invalid(
         IndexErrs(
             {
                 0: Invalid(TypeErr(str), 1, s_v),
@@ -55,7 +56,7 @@ def test_tuple3() -> None:
                 3: Invalid(TypeErr(type(None)), 1, n_v),
             },
         ),
-        [1, "a", 7.42, 1],
+        (1, "a", 7.42, 1),
         validator,
     )
 
@@ -88,24 +89,22 @@ async def test_tuple3_async() -> None:
     int_v = IntValidator()
     bool_v = BoolValidator()
     none_v = BasicNoneValidator()
-    validator = NTupleValidator.typed(fields=(str_v, int_v, bool_v, none_v))
-    assert await validator.validate_async({}) == Invalid(
-        CoercionErr({list, tuple}, tuple), {}, validator
+    validator = NTupleValidator.typed(fields=(str_v, int_v, bool_v, none_v), coerce=None)
+    assert await validator.validate_async({}) == Invalid(TypeErr(tuple), {}, validator)
+
+    assert await validator.validate_async(()) == Invalid(
+        PredicateErrs([ExactItemCount(4)]), (), validator
     )
 
-    assert await validator.validate_async([]) == Invalid(
-        PredicateErrs([ExactItemCount(4)]), [], validator
-    )
-
-    assert await validator.validate_async(["a", 1, False, None]) == Valid(
-        ("a", 1, False, None)
+    assert await validator.validate_async(["a", 1, False, None]) == Invalid(
+        TypeErr(tuple), ["a", 1, False, None], validator
     )
 
     assert await validator.validate_async(("a", 1, False, None)) == Valid(
         ("a", 1, False, None)
     )
 
-    assert await validator.validate_async([1, "a", 7.42, 1]) == Invalid(
+    assert await validator.validate_async((1, "a", 7.42, 1)) == Invalid(
         IndexErrs(
             {
                 0: Invalid(TypeErr(str), 1, str_v),
@@ -114,7 +113,7 @@ async def test_tuple3_async() -> None:
                 3: Invalid(TypeErr(type(None)), 1, none_v),
             },
         ),
-        [1, "a", 7.42, 1],
+        (1, "a", 7.42, 1),
         validator,
     )
 
@@ -143,7 +142,7 @@ async def test_tuple3_async() -> None:
 
 def test_tuple_homogenous_validator() -> None:
     f_v = FloatValidator()
-    tuple_v = UniformTupleValidator(f_v)
+    tuple_v = UniformTupleValidator(f_v, coerce=None)
     assert tuple_v("a string") == Invalid(TypeErr(tuple), "a string", tuple_v)
 
     assert tuple_v((5.5, "something else")) == Invalid(
@@ -180,7 +179,7 @@ def test_tuple_homogenous_validator() -> None:
 @pytest.mark.asyncio
 async def test_tuple_homogenous_async() -> None:
     float_validator = FloatValidator()
-    validator = UniformTupleValidator(float_validator)
+    validator = UniformTupleValidator(float_validator, coerce=None)
     assert await validator.validate_async("a string") == Invalid(
         TypeErr(tuple), "a string", validator
     )
@@ -283,7 +282,7 @@ def test_repr_n_tuple() -> None:
     v = NTupleValidator.typed(fields=(StringValidator(), IntValidator(Max(5))))
     assert repr(v) == (
         "NTupleValidator(fields=(StringValidator(), IntValidator(Max(maximum=5, "
-        "exclusive_maximum=False))))"
+        f"exclusive_maximum=False))), coerce={repr(v.coerce)})"
     )
 
     def validate_function(t: Tuple[str, int]) -> Optional[ErrType]:
@@ -295,7 +294,8 @@ def test_repr_n_tuple() -> None:
     )
     assert repr(v_2) == (
         "NTupleValidator(fields=(StringValidator(), IntValidator(Max(maximum=5, "
-        f"exclusive_maximum=False))), validate_object={repr(validate_function)})"
+        f"exclusive_maximum=False))), validate_object={repr(validate_function)}, "
+        f"coerce={repr(v_2.coerce)})"
     )
 
 
@@ -328,12 +328,12 @@ def test_eq() -> None:
 
 def test_tuple_homogenous_repr() -> None:
     s = UniformTupleValidator(StringValidator())
-    assert repr(s) == "UniformTupleValidator(StringValidator())"
+    assert repr(s) == f"UniformTupleValidator(StringValidator(), coerce={repr(s.coerce)})"
 
     s_len = UniformTupleValidator(StringValidator(MinLength(1), MaxLength(5)))
     assert (
         repr(s_len) == "UniformTupleValidator(StringValidator("
-        "MinLength(length=1), MaxLength(length=5)))"
+        f"MinLength(length=1), MaxLength(length=5)), coerce={repr(s_len.coerce)})"
     )
 
     s_all = UniformTupleValidator(
@@ -345,7 +345,7 @@ def test_tuple_homogenous_repr() -> None:
     assert (
         repr(s_all) == "UniformTupleValidator(IntValidator(), "
         "predicates=[MinItems(item_count=5)], "
-        "predicates_async=[SomeAsyncTupleHCheck()])"
+        f"predicates_async=[SomeAsyncTupleHCheck()], coerce={repr(s_all.coerce)})"
     )
 
 

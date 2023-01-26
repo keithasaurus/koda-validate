@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal, NamedTuple, Tuple
+from typing import Literal, NamedTuple, Tuple, TypeVar
 
 from koda_validate import (
     AlwaysValid,
@@ -129,7 +129,8 @@ def test_date_handled_properly() -> None:
 
 
 def test_unhandled_message() -> None:
-    for obj in ["just a string", 1, Decimal(5)]:
+    A1 = TypeVar("A1")
+    for obj in ["just a string", 1, Decimal(5), A1]:
         try:
             get_typehint_validator(obj)
         except TypeError as e:

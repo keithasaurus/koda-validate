@@ -1,9 +1,10 @@
 import asyncio
 from decimal import Decimal
-from typing import NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 from uuid import UUID, uuid4
 
 import pytest
+from koda import Just, Maybe, nothing
 
 from koda_validate import (
     CoercionErr,
@@ -16,6 +17,7 @@ from koda_validate import (
     TypeErr,
     Valid,
 )
+from koda_validate.coerce import coercer
 from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.serialization import SerializableErr
@@ -446,6 +448,17 @@ def test_eq() -> None:
         A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_2_async
     )
 
+    @coercer(Dict[Any, Any])
+    def cast_as_dict(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (TypeError, ValueError):
+            return nothing
+
+    assert NamedTupleValidator(A, coerce=None) != NamedTupleValidator(
+        A, coerce=cast_as_dict
+    )
+
 
 def test_extra_keys_invalid() -> None:
     v = NamedTupleValidator(PersonSimple, fail_on_unknown_keys=True)
@@ -546,3 +559,38 @@ async def test_dict_validator_any_with_validate_object_async() -> None:
         )
     else:
         assert False
+
+
+def test_coerce() -> None:
+    @coercer(List[Tuple[str, str]])
+    def try_init_dict(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
+
+    class X(NamedTuple):
+        a: str
+
+    validator = NamedTupleValidator(X, coerce=try_init_dict)
+    assert validator([("a", "neat")]) == Valid(X("neat"))
+
+    assert isinstance(validator([123]), Invalid)
+
+
+@pytest.mark.asyncio
+async def test_coerce_async() -> None:
+    @coercer(List[Tuple[str, str]])
+    def try_init_dict(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
+
+    class X(NamedTuple):
+        a: str
+
+    validator = NamedTupleValidator(X, coerce=try_init_dict)
+    assert await validator.validate_async([("a", "neat")]) == Valid(X("neat"))
+
+    assert isinstance(await validator.validate_async([123]), Invalid)

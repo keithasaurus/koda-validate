@@ -187,4 +187,4 @@ Then when you use the Validator in an async context, you just need to call it li
     methods; otherwise you have complete freedom to structure the logic as you see fit.
 
 This discussion has focused on extension only in terms of what we can validate. To learn
-more about how we inspect validators to add new capabilities, check out Metadata.
+more about how we inspect validators to add new capabilities, check out :ref:`how_to/metadata:Metadata`.

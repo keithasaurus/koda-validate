@@ -1,13 +1,23 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, ClassVar, Hashable, List, Optional, Set, Tuple, Type, TypeVar
+from typing import (
+    Any,
+    ClassVar,
+    Hashable,
+    List,
+    Optional,
+    Set,
+    Sized,
+    Tuple,
+    Type,
+    TypeVar,
+)
 from uuid import UUID
 
 from koda import Thunk
-from koda._generics import A
 
-from koda_validate._generics import Ret
+from koda_validate._generics import A, Ret
 from koda_validate._internal import _ResultTuple, _ToTupleValidator
 from koda_validate.base import Predicate, Processor, Validator
 from koda_validate.errors import PredicateErrs, TypeErr
@@ -217,10 +227,10 @@ class MaxItems(Predicate[ListOrTupleOrSetAny]):
 
 
 @dataclass
-class ExactItemCount(Predicate[ListOrTupleOrSetAny]):
+class ExactItemCount(Predicate[Sized]):
     item_count: int
 
-    def __call__(self, val: ListOrTupleOrSetAny) -> bool:
+    def __call__(self, val: Sized) -> bool:
         return len(val) == self.item_count
 
 

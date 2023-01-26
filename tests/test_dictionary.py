@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Hashable, List, Optional, Protocol
+from typing import Any, Dict, Hashable, List, Optional, Protocol, Tuple
 
 import pytest
 from koda import Just, Maybe, nothing
@@ -33,6 +33,7 @@ from koda_validate import (
 )
 from koda_validate._generics import A
 from koda_validate.base import Validator
+from koda_validate.coerce import coercer
 from koda_validate.dictionary import (
     DictValidatorAny,
     IsDictValidator,
@@ -1193,7 +1194,10 @@ async def test_validate_dictionary_async() -> None:
 
 
 def test_key_not_required_repr() -> None:
-    assert repr(KeyNotRequired(none_validator)) == "KeyNotRequired(NoneValidator())"
+    assert (
+        repr(KeyNotRequired(none_validator))
+        == "KeyNotRequired(NoneValidator(coerce=None))"
+    )
 
 
 def test_key_not_required_eq() -> None:
@@ -1246,6 +1250,52 @@ def test_map_validator_eq() -> None:
         predicates=[MaxKeys(1)],
         predicates_async=[AsyncWait()],
     )
+
+    @coercer(List[Tuple[Any, Any]])
+    def dict_coerce(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
+
+    assert MapValidator(key=StringValidator(), value=IntValidator()) != MapValidator(
+        key=StringValidator(), value=IntValidator(), coerce=dict_coerce
+    )
+
+
+def test_map_validator_coerce() -> None:
+    @coercer(List[Tuple[Any, Any]])
+    def dict_coerce(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
+
+    validator = MapValidator(
+        key=StringValidator(), value=IntValidator(), coerce=dict_coerce
+    )
+
+    assert validator([("ok", 5)]) == Valid({"ok": 5})
+
+    assert isinstance(validator(["bad"]), Invalid)
+
+
+@pytest.mark.asyncio
+async def test_map_validator_coerce_async() -> None:
+    @coercer(List[Tuple[Any, Any]])
+    def dict_coerce(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
+
+    validator = MapValidator(
+        key=StringValidator(), value=IntValidator(), coerce=dict_coerce
+    )
+
+    assert await validator.validate_async([("ok", 5)]) == Valid({"ok": 5})
+
+    assert isinstance(await validator.validate_async(["bad"]), Invalid)
 
 
 def test_is_dict_repr() -> None:

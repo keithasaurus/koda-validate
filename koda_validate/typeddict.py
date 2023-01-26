@@ -24,7 +24,15 @@ from koda_validate._internal import (
     _wrap_sync_validator,
 )
 from koda_validate.base import Validator
-from koda_validate.errors import ErrType, ExtraKeysErr, KeyErrs, TypeErr, missing_key_err
+from koda_validate.coerce import Coercer
+from koda_validate.errors import (
+    CoercionErr,
+    ErrType,
+    ExtraKeysErr,
+    KeyErrs,
+    TypeErr,
+    missing_key_err,
+)
 from koda_validate.typehints import get_typehint_validator
 from koda_validate.valid import Invalid
 
@@ -74,12 +82,13 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         asynchronously
     :param typehint_resolver: define this to override default inferred validators for
         types
+    :param coerce: this can be set to create any kind of custom coercion
     :param fail_on_unknown_keys: if True, this will fail if any keys not defined by the
         ``TypedDict`` are found. This will fail before any values are validated.
     :raises TypeError: should raise if non-``TypedDict`` type is passed for ``td_cls``
     """
 
-    __match_args__ = ("td_cls", "overrides", "fail_on_unknown_keys")
+    __match_args__ = ("td_cls", "overrides", "fail_on_unknown_keys", "coerce")
 
     def __init__(
         self,
@@ -93,6 +102,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                 Awaitable[Optional[ErrType]],
             ]
         ] = None,
+        coerce: Optional[Coercer[Dict[Any, Any]]] = None,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
         fail_on_unknown_keys: bool = False,
     ) -> None:
@@ -102,6 +112,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         self.td_cls = td_cls
         self.overrides = overrides  # for repr
         self.fail_on_unknown_keys = fail_on_unknown_keys
+        self.coerce = coerce
 
         if validate_object is not None and validate_object_async is not None:
             _raise_cannot_define_validate_object_and_validate_object_async()
@@ -149,22 +160,32 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         if self._disallow_synchronous:
             _raise_validate_object_async_in_sync_mode(self.__class__)
 
-        if not type(data) is dict:
+        if self.coerce:
+            if not (coerced := self.coerce(data)).is_just:
+                return False, Invalid(
+                    CoercionErr(self.coerce.compatible_types, dict), data, self
+                )
+            else:
+                coerced_val: Dict[Any, Any] = coerced.val
+
+        elif type(data) is dict:
+            coerced_val = data
+        else:
             return False, Invalid(TypeErr(dict), data, self)
 
         if self.fail_on_unknown_keys:
-            for key_ in data:
+            for key_ in coerced_val:
                 if key_ not in self._keys_set:
-                    return False, Invalid(self._unknown_keys_err, data, self)
+                    return False, Invalid(self._unknown_keys_err, coerced_val, self)
 
         success_dict: Dict[str, object] = {}
         errs: Dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
-            if key_ not in data:
+            if key_ not in coerced_val:
                 if key_required:
-                    errs[key_] = Invalid(missing_key_err, data, self)
+                    errs[key_] = Invalid(missing_key_err, coerced_val, self)
             else:
-                success, new_val = validator(data[key_])
+                success, new_val = validator(coerced_val[key_])
 
                 if not success:
                     errs[key_] = new_val
@@ -172,7 +193,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                     success_dict[key_] = new_val
 
         if errs:
-            return False, Invalid(KeyErrs(errs), data, self)
+            return False, Invalid(KeyErrs(errs), coerced_val, self)
         else:
             if self.validate_object and (
                 result := self.validate_object(cast(_TDT, success_dict))
@@ -181,22 +202,32 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             return True, cast(_TDT, success_dict)
 
     async def _validate_to_tuple_async(self, data: Any) -> _ResultTuple[_TDT]:
-        if not type(data) is dict:
+        if self.coerce:
+            if not (coerced := self.coerce(data)).is_just:
+                return False, Invalid(
+                    CoercionErr(self.coerce.compatible_types, dict), data, self
+                )
+            else:
+                coerced_val: Dict[Any, Any] = coerced.val
+
+        elif type(data) is dict:
+            coerced_val = data
+        else:
             return False, Invalid(TypeErr(dict), data, self)
 
         if self.fail_on_unknown_keys:
-            for key_ in data:
+            for key_ in coerced_val:
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
 
         success_dict: Dict[str, object] = {}
         errs: Dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_async:
-            if key_ not in data:
+            if key_ not in coerced_val:
                 if key_required:
-                    errs[key_] = Invalid(missing_key_err, data, self)
+                    errs[key_] = Invalid(missing_key_err, coerced_val, self)
             else:
-                success, new_val = await validator(data[key_])
+                success, new_val = await validator(coerced_val[key_])
 
                 if not success:
                     errs[key_] = new_val
@@ -204,7 +235,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                     success_dict[key_] = new_val
 
         if errs:
-            return False, Invalid(KeyErrs(errs), data, self)
+            return False, Invalid(KeyErrs(errs), coerced_val, self)
         else:
             if self.validate_object and (
                 result := self.validate_object(cast(_TDT, success_dict))
@@ -222,7 +253,8 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
             and self.schema == other.schema
             and self.validate_object == other.validate_object
             and self.validate_object_async == other.validate_object_async
-            and other.fail_on_unknown_keys == self.fail_on_unknown_keys
+            and self.fail_on_unknown_keys == other.fail_on_unknown_keys
+            and self.coerce == other.coerce
         )
 
     def __repr__(self) -> str:
@@ -235,6 +267,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                     ("overrides", self.overrides),
                     ("validate_object", self.validate_object),
                     ("validate_object_async", self.validate_object_async),
+                    ("coerce", self.coerce),
                     # note that this coincidentally works as we want:
                     # by default we don't fail on extra keys, so we don't
                     # show this in the repr if the default is defined

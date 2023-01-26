@@ -1,7 +1,7 @@
-from koda_validate._internal import _ExactTypeValidator
+from koda_validate._internal import _ToTupleStandardValidator
 
 
-class FloatValidator(_ExactTypeValidator[float]):
+class FloatValidator(_ToTupleStandardValidator[float]):
     r"""
     Validate a value is a ``float``, and any extra refinement.
 
@@ -12,6 +12,7 @@ class FloatValidator(_ExactTypeValidator[float]):
     :param predicates_async: any number of ``PredicateAsync[float]`` instances
     :param preprocessors: any number of ``Processor[float]``, which will be run before
         :class:`Predicate`\s and :class:`PredicateAsync`\s are checked.
+    :param coerce: a function that can control coercion
     """
 
     _TYPE = float

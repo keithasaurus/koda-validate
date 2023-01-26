@@ -10,6 +10,7 @@ Docs: [https://koda-validate.readthedocs.io/en/stable/](https://koda-validate.re
 
 from typing import TypedDict 
 from koda_validate import *
+from koda_validate.signature import *
 
 # Explicit Validators
 string_validator = StringValidator(MinLength(8), MaxLength(20))
@@ -23,6 +24,12 @@ class Person(TypedDict):
     hobbies: list[str] 
 
 person_validator = TypedDictValidator(Person)
+
+
+# Runtime type checking
+@validate_signature
+def add(a: int, b: int) -> int:
+    return a + b
 
 ```
 

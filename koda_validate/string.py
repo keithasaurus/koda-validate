@@ -2,11 +2,11 @@ import re
 from dataclasses import dataclass
 from typing import Pattern
 
-from koda_validate._internal import _ExactTypeValidator
+from koda_validate._internal import _ToTupleStandardValidator
 from koda_validate.base import Predicate
 
 
-class StringValidator(_ExactTypeValidator[str]):
+class StringValidator(_ToTupleStandardValidator[str]):
     r"""
     Validate a value is a ``str``, and any extra refinement.
 

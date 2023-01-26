@@ -46,7 +46,9 @@ from koda_validate._internal import (
     _wrap_sync_validator,
 )
 from koda_validate.base import Predicate, PredicateAsync, Validator
+from koda_validate.coerce import Coercer
 from koda_validate.errors import (
+    CoercionErr,
     ErrType,
     ExtraKeysErr,
     KeyErrs,
@@ -97,6 +99,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
         "value_validator",
         "predicates",
         "predicates_async",
+        "coerce",
     )
 
     def __init__(
@@ -106,98 +109,116 @@ class MapValidator(Validator[Dict[T1, T2]]):
         value: Validator[T2],
         predicates: Optional[List[Predicate[Dict[T1, T2]]]] = None,
         predicates_async: Optional[List[PredicateAsync[Dict[T1, T2]]]] = None,
+        coerce: Optional[Coercer[Dict[Any, Any]]] = None,
     ) -> None:
         self.key_validator = key
         self.value_validator = value
         self.predicates = predicates
         self.predicates_async = predicates_async
+        self.coerce = coerce
 
     async def validate_async(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
-        if isinstance(val, dict):
-            predicate_errors: List[
-                Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
-            ] = []
-            if self.predicates is not None:
-                for predicate in self.predicates:
-                    # Note that the expectation here is that validators will likely
-                    # be doing json like number of keys; they aren't expected
-                    # to be drilling down into specific keys and values. That may be
-                    # an incorrect assumption; if so, some minor refactoring is probably
-                    # necessary.
-                    if not predicate(val):
-                        predicate_errors.append(predicate)
-
-            if self.predicates_async is not None:
-                for pred_async in self.predicates_async:
-                    if not await pred_async.validate_async(val):
-                        predicate_errors.append(pred_async)
-
-            if predicate_errors:
-                return Invalid(PredicateErrs(predicate_errors), val, self)
-
-            return_dict: Dict[T1, T2] = {}
-            errors: Dict[Any, KeyValErrs] = {}
-
-            for key, val_ in val.items():
-                key_result = await self.key_validator.validate_async(key)
-                val_result = await self.value_validator.validate_async(val_)
-
-                if key_result.is_valid and val_result.is_valid:
-                    return_dict[key_result.val] = val_result.val
-                else:
-                    errors[key] = KeyValErrs(
-                        key=None if key_result.is_valid else key_result,
-                        val=None if val_result.is_valid else val_result,
-                    )
-
-            if errors:
-                return Invalid(MapErr(errors), val, self)
+        if self.coerce:
+            if not (coerced := self.coerce(val)).is_just:
+                return Invalid(CoercionErr(self.coerce.compatible_types, dict), val, self)
             else:
-                return Valid(return_dict)
+                coerced_val: Dict[Any, Any] = coerced.val
+
+        elif type(val) is dict:
+            coerced_val = val
         else:
             return Invalid(TypeErr(dict), val, self)
+
+        predicate_errors: List[
+            Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
+        ] = []
+        if self.predicates is not None:
+            for predicate in self.predicates:
+                # Note that the expectation here is that validators will likely
+                # be doing json like number of keys; they aren't expected
+                # to be drilling down into specific keys and values. That may be
+                # an incorrect assumption; if so, some minor refactoring is probably
+                # necessary.
+                if not predicate(coerced_val):
+                    predicate_errors.append(predicate)
+
+        if self.predicates_async is not None:
+            for pred_async in self.predicates_async:
+                if not await pred_async.validate_async(coerced_val):
+                    predicate_errors.append(pred_async)
+
+        if predicate_errors:
+            return Invalid(PredicateErrs(predicate_errors), coerced_val, self)
+
+        return_dict: Dict[T1, T2] = {}
+        errors: Dict[Any, KeyValErrs] = {}
+
+        for key, val_ in coerced_val.items():
+            key_result = await self.key_validator.validate_async(key)
+            val_result = await self.value_validator.validate_async(val_)
+
+            if key_result.is_valid and val_result.is_valid:
+                return_dict[key_result.val] = val_result.val
+            else:
+                errors[key] = KeyValErrs(
+                    key=None if key_result.is_valid else key_result,
+                    val=None if val_result.is_valid else val_result,
+                )
+
+        if errors:
+            return Invalid(MapErr(errors), coerced_val, self)
+        else:
+            return Valid(return_dict)
 
     def __call__(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
-        if isinstance(val, dict):
-            predicate_errors: List[
-                Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
-            ] = []
-            if self.predicates is not None:
-                for predicate in self.predicates:
-                    # Note that the expectation here is that validators will likely
-                    # be doing json like number of keys; they aren't expected
-                    # to be drilling down into specific keys and values. That may be
-                    # an incorrect assumption; if so, some minor refactoring is probably
-                    # necessary.
-                    if not predicate(val):
-                        predicate_errors.append(predicate)
-
-            if predicate_errors:
-                return Invalid(PredicateErrs(predicate_errors), val, self)
-
-            return_dict: Dict[T1, T2] = {}
-            errors: Dict[Any, KeyValErrs] = {}
-            for key, val_ in val.items():
-                key_result = self.key_validator(key)
-                val_result = self.value_validator(val_)
-
-                if key_result.is_valid and val_result.is_valid:
-                    return_dict[key_result.val] = val_result.val
-                else:
-                    errors[key] = KeyValErrs(
-                        key=None if key_result.is_valid else key_result,
-                        val=None if val_result.is_valid else val_result,
-                    )
-
-            if errors:
-                return Invalid(MapErr(errors), val, self)
+        if self.coerce:
+            if not (coerced := self.coerce(val)).is_just:
+                return Invalid(CoercionErr(self.coerce.compatible_types, dict), val, self)
             else:
-                return Valid(return_dict)
+                coerced_val: Dict[Any, Any] = coerced.val
+
+        elif type(val) is dict:
+            coerced_val = val
         else:
             return Invalid(TypeErr(dict), val, self)
+
+        predicate_errors: List[
+            Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
+        ] = []
+        if self.predicates is not None:
+            for predicate in self.predicates:
+                # Note that the expectation here is that validators will likely
+                # be doing json like number of keys; they aren't expected
+                # to be drilling down into specific keys and values. That may be
+                # an incorrect assumption; if so, some minor refactoring is probably
+                # necessary.
+                if not predicate(coerced_val):
+                    predicate_errors.append(predicate)
+
+        if predicate_errors:
+            return Invalid(PredicateErrs(predicate_errors), coerced_val, self)
+
+        return_dict: Dict[T1, T2] = {}
+        errors: Dict[Any, KeyValErrs] = {}
+        for key, val_ in coerced_val.items():
+            key_result = self.key_validator(key)
+            val_result = self.value_validator(val_)
+
+            if key_result.is_valid and val_result.is_valid:
+                return_dict[key_result.val] = val_result.val
+            else:
+                errors[key] = KeyValErrs(
+                    key=None if key_result.is_valid else key_result,
+                    val=None if val_result.is_valid else val_result,
+                )
+
+        if errors:
+            return Invalid(MapErr(errors), coerced_val, self)
+        else:
+            return Valid(return_dict)
 
     def __eq__(self, other: Any) -> bool:
         return (
@@ -206,6 +227,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
             and self.value_validator == other.value_validator
             and self.predicates == other.predicates
             and self.predicates_async == other.predicates_async
+            and self.coerce == other.coerce
         )
 
     def __repr__(self) -> str:
@@ -220,6 +242,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
                 for k, v in [
                     ("predicates", self.predicates),
                     ("predicates_async", self.predicates_async),
+                    ("coerce", self.coerce),
                 ]
                 if v
             ],

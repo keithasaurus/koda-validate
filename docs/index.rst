@@ -11,12 +11,14 @@ Koda Validate
 
 Build typesafe validators :ref:`automatically<index:Derived Validators>`
 or explicitly -- or :ref:`write your own<how_to/extension:Extension>`. Combine them to
-build validators of arbitrary complexity. Koda Validate is async-friendly, pure Python, and
-1.5x - 12x faster :ref:`than Pydantic<faq/pydantic:Pydantic Comparison>`.
+for arbitrarily complex validation logic. Koda Validate is async-friendly, pure
+Python, and 1.5x - 12x faster :ref:`than Pydantic<faq/pydantic:Pydantic Comparison>`.
+
+New in 3.1: :ref:`how_to/runtime_type_checking:Runtime Type Checking`
 
 
 Basic Usage
------------
+^^^^^^^^^^^
 
 .. testcode:: scalars
 
@@ -34,7 +36,7 @@ Easy enough. Let's see how it works:
    >>> my_first_validator(0)
    Invalid(err_type=TypeErr(expected_type=<class 'str'>), ...)
 
-For both valid and invalid cases, we can see that we get a result back -- no exceptions
+For both valid and invalid cases, a value is returned -- no exceptions
 are raised.
 
 Working with :class:`Valid` and :class:`Invalid` types is covered more in
@@ -112,7 +114,7 @@ Outputs:
 
 .. note::
 
-   ``MinLength(5)``, ``MaxLength(10)``, and ``StartsWith("a")`` are all of :ref:`philosophy/predicates:Predicates`.
+   ``MinLength(5)``, ``MaxLength(10)``, and ``StartsWith("a")`` are all :ref:`philosophy/predicates:Predicates`.
 
 
 ----------------
@@ -174,17 +176,11 @@ Usage:
    Valid(...)
 
 
-.. note::
-
-   We excluded the :class:`Valid` contents for brevity.
-
-
 
 It's easy to keep nesting validators:
 
 .. testcode:: nested
 
-   # a list of songs
    songs_validator = ListValidator(song_validator, predicates=[MinItems(2)])
 
    class Playlist(TypedDict):
@@ -238,7 +234,9 @@ Usage:
    TypeErr(expected_type=<class 'int'>)
 
 In Koda Validate, you are encouraged to write your own :class:`Validator`\s for custom
-needs. For guidance, take a look at :ref:`how_to/extension:Extension`.
+needs. As long as you obey the typing rules when building custom :class:`Validator`\s,
+you should be able to combine them with built-in :class:`Validator`\s, however you wish.
+For guidance, take a look at :ref:`how_to/extension:Extension`.
 
 -----------------
 
@@ -261,6 +259,7 @@ Contents
    how_to/results
    how_to/dictionaries
    how_to/rest_apis
+   how_to/runtime_type_checking
    how_to/async
    how_to/extension
    how_to/metadata
@@ -273,6 +272,7 @@ Contents
 
    api/koda_validate
    api/koda_validate.serialization
+   api/koda_validate.signature
 
 
 .. toctree::
@@ -282,6 +282,7 @@ Contents
    philosophy/overview
    philosophy/validators
    philosophy/predicates
+   philosophy/coercion
    philosophy/processors
    philosophy/async
    philosophy/errors

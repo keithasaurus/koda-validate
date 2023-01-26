@@ -1,10 +1,11 @@
 import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
 
 import pytest
+from koda import Just, Maybe, nothing
 
 from koda_validate import (
     CoercionErr,
@@ -21,6 +22,7 @@ from koda_validate import (
     Valid,
     Validator,
 )
+from koda_validate.coerce import coercer
 from koda_validate.dataclasses import DataclassValidator
 from koda_validate.errors import ErrType, missing_key_err
 from koda_validate.serialization import SerializableErr
@@ -494,6 +496,15 @@ def test_eq() -> None:
         A, overrides={"name": StringValidator()}, validate_object_async=obj_fn_2_async
     )
 
+    @coercer(List[Tuple[Any, Any]])
+    def dict_coerce(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
+
+    assert DataclassValidator(A, coerce=None) != DataclassValidator(A, coerce=dict_coerce)
+
 
 def test_extra_keys_invalid() -> None:
     v = DataclassValidator(PersonSimple, fail_on_unknown_keys=True)
@@ -627,3 +638,40 @@ def test_custom_typehint_resolver() -> None:
         {"height": 1, "width": 100, "description": "wow"},
         validator,
     )
+
+
+def test_coerce() -> None:
+    @coercer(List[Tuple[str, str]])
+    def try_init_dict(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
+
+    @dataclass
+    class X:
+        a: str
+
+    validator = DataclassValidator(X, coerce=try_init_dict)
+    assert validator([("a", "neat")]) == Valid(X("neat"))
+
+    assert isinstance(validator([123]), Invalid)
+
+
+@pytest.mark.asyncio
+async def test_coerce_async() -> None:
+    @coercer(List[Tuple[str, str]])
+    def try_init_dict(val: Any) -> Maybe[Dict[Any, Any]]:
+        try:
+            return Just(dict(val))
+        except (ValueError, TypeError):
+            return nothing
+
+    @dataclass
+    class X:
+        a: str
+
+    validator = DataclassValidator(X, coerce=try_init_dict)
+    assert await validator.validate_async([("a", "neat")]) == Valid(X("neat"))
+
+    assert isinstance(await validator.validate_async([123]), Invalid)

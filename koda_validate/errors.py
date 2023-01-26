@@ -159,7 +159,6 @@ ErrType = Union[
     ExtraKeysErr,
     IndexErrs,
     KeyErrs,
-    KeyValErrs,
     MapErr,
     MissingKeyErr,
     PredicateErrs,
