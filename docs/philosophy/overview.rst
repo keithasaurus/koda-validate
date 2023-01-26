@@ -5,9 +5,9 @@ Overview
     :noindex:
 
 At it's core, Koda Validate is little more than a few function signatures (see
-:class:`Validator`\s, :class:`Predicate`\s, and :class:`Processor`\s), which can be
-combined to build validators of arbitrary complexity. This simplicity also provides
-straightforward paths for:
+:ref:`philosophy/validators:Validators`, :ref:`philosophy/predicates:Predicates`, and
+:ref:`philosophy/processors:Processors`), which can be combined to build validators of
+arbitrary complexity. This simplicity also provides straightforward paths for:
 
 - optimization: Koda Validate tends to be fast (for Python)
 - extension: Koda Validate can be extended to Validate essentially anything, even asynchronusly.

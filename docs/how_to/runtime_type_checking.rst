@@ -6,7 +6,7 @@ Runtime Type Checking
 
 Koda Validate supports runtime type-checking via :data:`validate_signature`, a decorator
 that can validate function arguments and return values at
-runtime. By default, it will infer the validation logic to use by inspecting the typehints.
+runtime. By default, it will infer the validation logic from typehints.
 
 .. testcode:: basic
 

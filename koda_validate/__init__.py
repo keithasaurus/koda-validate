@@ -11,6 +11,9 @@ __all__ = (
     # boolean.py
     "BoolValidator",
     # bytes.py
+    # coerce.py
+    "Coercer",
+    "coercer",
     "BytesValidator",
     # dataclasses.py
     "DataclassValidator",
@@ -114,6 +117,7 @@ from koda_validate.base import (
 )
 from koda_validate.boolean import BoolValidator
 from koda_validate.bytes import BytesValidator
+from koda_validate.coerce import Coercer, coercer
 from koda_validate.dataclasses import DataclassValidator
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import (

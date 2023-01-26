@@ -36,7 +36,7 @@ Easy enough. Let's see how it works:
    >>> my_first_validator(0)
    Invalid(err_type=TypeErr(expected_type=<class 'str'>), ...)
 
-For both valid and invalid cases, we can see that we get a result back -- no exceptions
+For both valid and invalid cases, a value is returned -- no exceptions
 are raised.
 
 Working with :class:`Valid` and :class:`Invalid` types is covered more in
@@ -181,7 +181,6 @@ It's easy to keep nesting validators:
 
 .. testcode:: nested
 
-   # a list of songs
    songs_validator = ListValidator(song_validator, predicates=[MinItems(2)])
 
    class Playlist(TypedDict):
