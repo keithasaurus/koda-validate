@@ -3,6 +3,9 @@
 - Runtime type checking via `koda_validate.signature.validate_signature`
 - Coercion customizable via `Coercer` (and helper decorator `coercer`)
 
+**Maintenance**
+- Minor bug fixes in examples/
+
 3.0.0 (Jan. 5, 2023)
 **Features**
 - Derived Validators: `TypedDictValidator`, `DataclassValidator`, `NamedTupleValidator`
