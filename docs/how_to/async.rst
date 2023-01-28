@@ -25,8 +25,7 @@ In many cases, you can use the same :class:`Validator` instance in sync and asyn
 .. testcode:: python
 
     import asyncio
-    from koda_validate import *
-
+    from koda_validate import StringValidator, MaxLength, Valid
 
     validator = StringValidator(MaxLength(10))
 
@@ -44,7 +43,7 @@ asynchronously:
 .. testcode:: predasync
 
     import asyncio
-    from koda_validate import *
+    from koda_validate import PredicateAsync, StringValidator, MinLength, Invalid, Valid, PredicateErrs
 
 
     class IsActiveUsername(PredicateAsync[str]):
@@ -86,6 +85,8 @@ difference is calling the ``.validate_async`` method of the outer-most validator
 
 .. testcode:: predasync
 
+    from koda_validate import ListValidator
+
     # continued from previous example
 
     username_list_validator = ListValidator(username_validator)
@@ -119,7 +120,7 @@ or asynchronous contexts. Here's an example of making a ``SimpleFloatValidator``
     import asyncio
     from typing import Any
 
-    from koda_validate import *
+    from koda_validate import Validator, Invalid, Valid, TypeErr, ValidationResult
 
 
     class SimpleFloatValidator(Validator[float]):

@@ -22,7 +22,7 @@ Basic Usage
 
 .. testcode:: scalars
 
-   from koda_validate import *
+   from koda_validate import StringValidator
 
    my_first_validator = StringValidator()
 
@@ -50,7 +50,7 @@ Collections
 
 .. testcode:: collections
 
-   from koda_validate import *
+   from koda_validate import ListValidator, IntValidator
 
    list_int_validator = ListValidator(IntValidator())
 
@@ -72,7 +72,7 @@ Koda Validate can inspect typehints and build :class:`Validator<koda_validate.Va
 .. testcode:: derived
 
    from typing import List, TypedDict
-   from koda_validate import *
+   from koda_validate import TypedDictValidator
 
    class Person(TypedDict):
        name: str
@@ -98,7 +98,7 @@ Refinement
 
 .. testcode:: refinement
 
-   from koda_validate import *
+   from koda_validate import StringValidator, MinLength, MaxLength, StartsWith
 
    validator = StringValidator(MinLength(5),
                                MaxLength(10),
@@ -128,7 +128,7 @@ We can build complex nested :class:`Validator`\s with ease.
 .. testcode:: nested
 
    from typing import Annotated, Union, TypedDict, Literal, List
-   from koda_validate import *
+   from koda_validate import TypedDictValidator
 
 
    class Group(TypedDict):
@@ -181,6 +181,8 @@ It's easy to keep nesting validators:
 
 .. testcode:: nested
 
+   from koda_validate import ListValidator, MinItems
+
    songs_validator = ListValidator(song_validator, predicates=[MinItems(2)])
 
    class Playlist(TypedDict):
@@ -211,7 +213,7 @@ Custom Validators
 .. testcode:: own1
 
    from typing import Any
-   from koda_validate import *
+   from koda_validate import Validator, ValidationResult, Valid, Invalid, TypeErr
 
 
    class IntegerValidator(Validator[int]):
