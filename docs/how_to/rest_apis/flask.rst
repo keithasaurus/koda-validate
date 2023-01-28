@@ -12,7 +12,7 @@ Basic
     from flask import Flask, jsonify, request
     from flask.typing import ResponseValue
 
-    from koda_validate import *
+    from koda_validate import StringValidator, DataclassValidator, EmailPredicate
     from koda_validate.serialization import to_serializable_errs
 
     app = Flask(__name__)
