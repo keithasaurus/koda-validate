@@ -15,7 +15,7 @@ are built.
 .. testcode:: float1
 
     from typing import Any
-    from koda_validate import *
+    from koda_validate import ValidationResult, Invalid, Valid, Validator, TypeErr
 
 
     class SimpleFloatValidator(Validator[float]):
@@ -84,7 +84,7 @@ we'll allow just one.
 
     from dataclasses import dataclass
     from typing import Any, Optional
-    from koda_validate import *
+    from koda_validate import Validator, Predicate, ValidationResult, PredicateErrs, Valid, Invalid
 
 
     class SimpleFloatValidator(Validator[float]):
@@ -122,7 +122,7 @@ convert ``float``\s to their absolute value before we validate it.
 
 .. testcode:: floatpred
 
-    from koda_validate import *
+    from koda_validate import Processor
 
     class FloatAbs(Processor[float]):
         def __call__(self, val: float) -> float:

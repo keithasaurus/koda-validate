@@ -83,7 +83,8 @@ In this example, we'll use a basic ``dict`` to act as a cache.
     from dataclasses import dataclass, field
     from typing import Dict, Any, TypeVar
     from koda import Maybe, Just, nothing
-    from koda_validate import *
+    from koda_validate import (CacheValidatorBase, ValidationResult, ListValidator,
+                               StringValidator, IntValidator)
 
     A = TypeVar('A')
 

@@ -42,7 +42,7 @@ which return either ``Valid[ValidType]`` or ``Invalid``:
 
 .. testcode:: callable
 
-    from koda_validate import *
+    from koda_validate import IntValidator
 
     int_validator = IntValidator()
 
@@ -61,6 +61,8 @@ Having this simple function signature-based definition for validation is useful,
 validators. Perhaps the simplest example of this is how ``ListValidator`` accepts a validator for the items of the ``list``:
 
 .. testcode:: callable
+
+    from koda_validate import ListValidator, StringValidator
 
     list_str_validator = ListValidator(StringValidator())
 

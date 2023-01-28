@@ -81,7 +81,8 @@ branch on the error types. Here's how we could do that:
     from enum import Enum
     from typing import TypedDict, List, Union, Any, Optional
 
-    from koda_validate import *
+    from koda_validate import (IndexErrs, TypeErr, MissingKeyErr, KeyErrs,
+                               ListValidator, TypedDictValidator, Invalid)
 
 
     @dataclass

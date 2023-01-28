@@ -9,7 +9,7 @@ most obvious use cases would be trimming whitespace or adjusting the case of a s
 
 .. testcode:: python
 
-    from koda_validate import *
+    from koda_validate import StringValidator, MaxLength, strip, upper_case, Valid
 
     max_length_3_validator = StringValidator(
       MaxLength(3),
