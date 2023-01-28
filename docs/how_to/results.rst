@@ -39,7 +39,7 @@ Perhaps the easiest way is to just branch on ``.is_valid``:
 
 .. testcode:: if-statements
 
-    from koda_validate import *
+    from koda_validate import ValidationResult, StringValidator
 
     def result_to_str(result: ValidationResult[str]) -> str:
         if result.is_valid:
@@ -71,7 +71,7 @@ Pattern matching can make this more concise in Python 3.10+:
 
 .. testcode:: pattern-matching
 
-    from koda_validate import *
+    from koda_validate import ValidationResult, Valid, Invalid, IntValidator
 
     def result_to_val(result: ValidationResult[str]) -> int | str:
         match result:
@@ -104,7 +104,7 @@ takes an :class:`Invalid` instance and produces errors objects suitable for JSON
 
 .. testcode:: 3
 
-    from koda_validate import *
+    from koda_validate import StringValidator, Invalid
     from koda_validate.serialization import to_serializable_errs
 
     validator = StringValidator()

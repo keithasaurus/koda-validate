@@ -27,7 +27,8 @@ from a :class:`Validator`, you could start with something like this:
 .. testcode:: markdown
 
     from typing import Union, Any
-    from koda_validate import *
+    from koda_validate import (Validator, Predicate, PredicateAsync,
+                               ListValidator, StringValidator)
 
     def to_markdown_description(obj: Union[Validator[Any],
                                            Predicate[Any],

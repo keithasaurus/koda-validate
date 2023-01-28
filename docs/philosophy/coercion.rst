@@ -25,8 +25,9 @@ do this.
 
 .. testcode:: coerce
 
-    from koda_validate import *
-    from koda.maybe import *
+    from typing import Any
+    from koda_validate import coercer, Valid, Invalid, IntValidator
+    from koda.maybe import Maybe, Just, nothing
 
     @coercer(int, str)
     def allow_coerce_str_to_int(val: Any) -> Maybe[int]:

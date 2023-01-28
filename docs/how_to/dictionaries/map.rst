@@ -8,7 +8,8 @@ For dictionaries with consistent key/value types, you can use :class:`MapValidat
 
 .. testcode:: mapv
 
-    from koda_validate import *
+    from koda_validate import (MapValidator, StringValidator, IntValidator, KeyValErrs, MapErr,
+                               MinKeys, MaxKeys, Valid, Invalid, PredicateErrs, TypeErr)
 
     validator = MapValidator(key=StringValidator(),
                              value=IntValidator(),

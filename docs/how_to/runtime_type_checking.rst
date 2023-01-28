@@ -10,7 +10,7 @@ runtime. By default, it will infer the validation logic from typehints.
 
 .. testcode:: basic
 
-    from koda_validate.signature import *
+    from koda_validate.signature import validate_signature
 
     @validate_signature
     def add(x: int, y: int) -> int:
@@ -109,7 +109,7 @@ work for any parameter in a function signature.
 
     .. testcode:: ignore2
 
-        from koda_validate.signature import *
+        from koda_validate.signature import validate_signature
 
         @validate_signature(ignore_args={"violets"})
         def some_func(**descriptions: str) -> None:
@@ -125,8 +125,8 @@ validated -- using the same kinds of :class:`Validator<koda_validate.Validator>`
 
 .. testcode:: annotated
 
-    from koda_validate import *
-    from koda_validate.signature import *
+    from koda_validate import StringValidator, MinLength, MaxLength
+    from koda_validate.signature import validate_signature
     from typing import Annotated
 
     @validate_signature
@@ -170,8 +170,8 @@ the same thing with ``overrides``. This is equivalent to the ``Annotated`` examp
 
 .. testcode:: overrides
 
-    from koda_validate import *
-    from koda_validate.signature import *
+    from koda_validate import StringValidator, MinLength, MaxLength
+    from koda_validate.signature import validate_signature, RETURN_OVERRIDE_KEY
 
     @validate_signature(overrides={
         "name": StringValidator(MinLength(1), MaxLength(20)),
@@ -194,9 +194,9 @@ for ``typehint_resolver``. One situation in which this can be useful is when def
 
 .. testcode:: resolver
 
-    from typing import NewType
-    from koda_validate import *
-    from koda_validate.signature import *
+    from typing import NewType, Any
+    from koda_validate import Validator, StringValidator, EmailPredicate
+    from koda_validate.signature import validate_signature, resolve_signature_typehint_default
 
     Email = NewType('Email', str)
 

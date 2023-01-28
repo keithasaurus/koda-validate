@@ -74,7 +74,7 @@ Here you can see how async-only validators alert:
 
 .. code-block:: python
 
-    from koda_validate import *
+    from koda_validate import StringValidator
 
     async_only_str_validator = StringValidator(predicates_async=[SomeAsyncCheck()])
 

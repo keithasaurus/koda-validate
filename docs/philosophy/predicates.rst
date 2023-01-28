@@ -18,7 +18,7 @@ by performing additional validation *after* the data has been verified to be of 
 
 .. testcode:: intpred
 
-    from koda_validate import *
+    from koda_validate import IntValidator, Min
 
     int_validator = IntValidator(Min(5))  # `Min` is a `Predicate`
 
@@ -42,7 +42,8 @@ sequence an arbitrary number of :class:`Predicate`\s together, and validate them
 
 .. testcode:: intpred2
 
-    from koda_validate import *
+    from koda_validate import (IntValidator, Min, Max, MultipleOf, Invalid,
+                               Valid, PredicateErrs)
 
     int_validator = IntValidator(Min(5), Max(20), MultipleOf(4))
 

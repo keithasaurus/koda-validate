@@ -17,7 +17,8 @@ just as well be an arbitrary function.
 
     from dataclasses import dataclass
     from koda import Maybe, Just
-    from koda_validate import *
+    from koda_validate import (RecordValidator, StringValidator, not_blank, MaxLength,
+                               Min, Max, IntValidator, KeyNotRequired, Invalid, Valid)
 
 
     @dataclass
@@ -59,7 +60,9 @@ Here's a more complex example of mixing and matching different kinds of keys.
     from typing import List
     from dataclasses import dataclass
     from koda import Maybe, Just
-    from koda_validate import *
+    from koda_validate import (
+        RecordValidator, StringValidator, KeyNotRequired, IntValidator, Valid, ListValidator
+    )
 
 
     @dataclass

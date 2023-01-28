@@ -11,7 +11,7 @@ example of using :class:`TypedDictValidator`:
 .. testcode:: derived1
 
     from typing import Optional, TypedDict
-    from koda_validate import *
+    from koda_validate import TypedDictValidator, Valid
 
     class Image(TypedDict):
         height: int
@@ -30,7 +30,7 @@ Here's an equivalent example with :class:`DataclassValidator`
 
     from typing import Optional
     from dataclasses import dataclass
-    from koda_validate import *
+    from koda_validate import DataclassValidator, Valid
 
     @dataclass
     class Image:
@@ -108,7 +108,7 @@ default is defined.
 .. testcode:: opt1
 
     from typing import NamedTuple
-    from koda_validate import *
+    from koda_validate import NamedTupleValidator, Valid
 
     class SomeType(NamedTuple):
         a: str
@@ -133,7 +133,7 @@ Simply pass ``fail_on_unknown_keys=True`` at initialization.
 .. testcode:: extrakeys
 
     from dataclasses import dataclass
-    from koda_validate import *
+    from koda_validate import DataclassValidator, Valid, Invalid
 
     @dataclass
     class Example:
@@ -164,7 +164,8 @@ In Python 3.9+, you can use ``Annotated`` to add a custom :class:`Validator` for
 
     from dataclasses import dataclass
     from typing import Annotated, Optional
-    from koda_validate import *
+    from koda_validate import (IntValidator, DataclassValidator, PredicateErrs,
+                               Min, Max, Valid, Invalid, KeyErrs)
 
     @dataclass
     class Image:
@@ -199,7 +200,7 @@ you can use ``overrides={<key>: <validator>}``. The following will produce the s
 
     from dataclasses import dataclass
     from typing import Annotated, Optional
-    from koda_validate import *
+    from koda_validate import DataclassValidator, IntValidator, Min, Max
 
     @dataclass
     class Image:
@@ -224,7 +225,7 @@ This example will also produce the same :class:`Validator` as in the :ref:`Annot
 
     from dataclasses import dataclass
     from typing import Any, Optional
-    from koda_validate import *
+    from koda_validate import Validator, IntValidator, Min, Max, DataclassValidator
     from koda_validate.typehints import get_typehint_validator
 
     @dataclass
@@ -256,7 +257,8 @@ which will run after the individual attributes have been validated:
 
     from dataclasses import dataclass
     from typing import Optional
-    from koda_validate import *
+    from koda_validate import (DataclassValidator, Invalid, Valid,
+                               ValidationErrBase, ErrType)
 
     @dataclass
     class QA:
