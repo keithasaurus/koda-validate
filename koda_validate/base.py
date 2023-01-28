@@ -14,7 +14,7 @@ class Validator(Generic[SuccessT]):
     r"""
     Base class for all ``Validator``\s.
 
-    It's little more than a ``Callable[[Any], Result[SuccessT, ValidationErr]]``, with
+    It's little more than a ``Callable[[Any], ValidationResult[SuccessT]]``, with
     two notable differences:
 
     - A ``.validate_async`` method is allowed, meaning a :class:`Validator` can be made
@@ -135,8 +135,15 @@ class PredicateAsync(Generic[A]):
 
 class Processor(Generic[A]):
     r"""
-    Base class for ``Processor``\s: ``Callable``\s that can transform a value of one type
-    to another value of the same type. Useful for things like ``strip``\-ping strings:
+    Base class for ``Processor``\s. These are litle more than
+
+    .. code-block::
+
+        Callable[[A], A]
+
+
+    They transform a value of one type to another value of the same type. The
+    are useful for things like ``strip``\-ping strings:
 
     .. testcode:: strip
 
@@ -158,6 +165,11 @@ class Processor(Generic[A]):
         'abc'
         >>> strip("def")
         'def'
+
+    .. note::
+
+        Because processors are type-aware they are most useful directly after type
+        verification or coercion.
     """
 
     @abstractmethod

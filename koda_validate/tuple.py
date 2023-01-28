@@ -245,6 +245,18 @@ class NTupleValidator(_ToTupleValidator[A]):
         "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6, T7]]",
         "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]]",
     ]:
+        """
+        Can be used for up to 8 typed tuple slots. For more than 8 slots,
+        use ``NTupleValidator.untyped``.
+
+        :param fields: a tuple the validators to be used, whose types will reflect
+            the resulting tuple
+        :param validate_object: a function which can be used to validate the tuple after
+            individual slots have been validated
+        :param coerce: control coercion prior to validation
+        :return: ``NTupleValidator`` with the ``fields`` as defined by the ``fields``
+            parameter
+        """
         return NTupleValidator(
             fields=fields, validate_object=validate_object, coerce=coerce
         )  # type: ignore
@@ -256,6 +268,18 @@ class NTupleValidator(_ToTupleValidator[A]):
         validate_object: Optional[Callable[[Tuple[Any, ...]], Optional[ErrType]]] = None,
         coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[Tuple[Any, ...]]":
+        """
+        Identical to NTupleValidator.typed except that it can be used for an
+        arbitrary number of slots. Does not retain type information.
+
+        :param fields: a tuple the validators to be used, whose types will reflect
+            the resulting tuple
+        :param validate_object: a function which can be used to validate the tuple after
+            individual slots have been validated
+        :param coerce: control coercion prior to validation
+        :return: ``NTupleValidator`` with the ``fields`` as defined by the ``fields``
+            parameter
+        """
         return NTupleValidator(
             fields=fields, validate_object=validate_object, coerce=coerce
         )
