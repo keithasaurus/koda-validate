@@ -1,4 +1,4 @@
-3.1.1 (Jan. 26, 2023)
+3.1.1 (Jan. 28, 2023)
 **Bug Fixes**
 - `UnionValidator.typed`'s `@overloads` specify that arguments should be positional-only
 
