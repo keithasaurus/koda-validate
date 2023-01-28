@@ -1,3 +1,10 @@
+3.1.1 (Jan. 26, 2023)
+**Bug Fixes**
+- `UnionValidator.typed`'s `@overloads` specify that arguments should be positional-only
+
+**Docs**
+- extend docs for `UnionValidator` and `NTupleValidator`
+
 3.1.0 (Jan. 26, 2023)
 **Features**
 - Runtime type checking via `koda_validate.signature.validate_signature`
