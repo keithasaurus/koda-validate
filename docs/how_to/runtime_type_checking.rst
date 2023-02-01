@@ -45,7 +45,7 @@ are invalid or :class:`InvalidReturnError` when the returned value is invalid.
     ``InvalidReturnError.err``
 
 
-:data:`validate_signature` works on class methods as well, and with many different kinds of arugments.
+:data:`validate_signature` works on class methods as well, and with many different kinds of arguments.
 
 .. testcode:: object
 

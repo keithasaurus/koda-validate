@@ -60,7 +60,7 @@ While :class:`Validator<koda_validate.Validator>`\s can be defined to work in bo
 :class:`Validator<koda_validate.Validator>` is initialized, Koda Validate will raise an exception if the both of the
 following are true:
 
-1. it is initialized with async-only validation (e.g. defining ``predicates_sync`` or ``validate_object_async`` on applicable :class:`Validator<koda_validate.Validator>`\s)
+1. it is initialized with async-only validation (e.g. defining ``predicates_async`` or ``validate_object_async`` on applicable :class:`Validator<koda_validate.Validator>`\s)
 2. it is invoked synchronously -- i.e. ``some_async_validator(123)`` instead of ``await some_async_validator.validate_async(123)``
 
 
