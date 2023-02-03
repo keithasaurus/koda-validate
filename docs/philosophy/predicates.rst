@@ -58,4 +58,4 @@ Here ``int_validator`` has 3 :class:`Predicate<koda_validate.Predicate>`\s, but 
 that failing :class:`Predicate<koda_validate.Predicate>`\s are returned within a :class:`PredicateErrs` instance. We are only able
 to return all the failing :class:`Predicate<koda_validate.Predicate>`\s because we know that each :class:`Predicate` will not be able to change the value.
 
-:class:`Predicate<koda_validate.Predicate>`\s are easy to write -- take a look at [Extension](#extension) for more details.
+:class:`Predicate<koda_validate.Predicate>`\s are easy to write -- take a look at :ref:`how_to/extension:Extension` for more details.
