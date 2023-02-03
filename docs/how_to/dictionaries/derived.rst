@@ -5,7 +5,7 @@ Derived Validators
     :noindex:
 
 :class:`TypedDictValidator`, :class:`DataclassValidator`, and :class:`NamedTupleValidator`
-all accept ``dict``\s for validation, and have largely the same API. Here's a quick
+all accept ``dict``\s for validation, and largely share the same API. Here's a quick
 example of using :class:`TypedDictValidator`:
 
 .. testcode:: derived1
@@ -45,9 +45,9 @@ Here's an equivalent example with :class:`DataclassValidator`
     )
 
 .. note::
-    A similar example for :class:`NamedTupleValidator` would be almost identical to the
-    :class:`DataclassValidator` example directly above, and is left as an exercise for
-    the reader.
+    A similar example for :class:`NamedTupleValidator` would be nearly identical to the
+    :class:`DataclassValidator` example directly above. As such, it's left as an exercise
+    for the reader.
 
 Supported Typehints
 -------------------
@@ -92,18 +92,17 @@ extensive, and you can build complex nested validators, even using things like
     assert isinstance(result, Valid)
     assert result.val["title"] == "Peanut Butter and Jelly Sandwich"
 
-If a typehint is not supported, an exception will be thrown. You can handle unhandled typehints
-with custom :ref:`how_to/dictionaries/derived:typehint_resolver` functions.
+If a typehint is not supported, an exception will be thrown. You can handle unhandled
+typehints a with custom :ref:`how_to/dictionaries/derived:typehint_resolver` function.
 
 
 Optional Keys
 -------------
 
-Each of these validators allows certain keys to be absent in a dictionary, but the three
-:class:`Validators`\s don't all share the same API.
-
-:class:`DataclassValidator` and :class:`NamedTupleValidator` allow keys to be missing if a
-default is defined.
+Each of these validators allows for the specification of optional keys, but the three
+:class:`Validator`\s don't all share the same API. For :class:`DataclassValidator` and
+:class:`NamedTupleValidator` keys are understood to be optional if a default value is defined
+for a given attribute.
 
 .. testcode:: opt1
 
@@ -119,7 +118,7 @@ default is defined.
     assert validator({"a": "ok"}) == Valid(SomeType("ok", 10))
 
 
-For :class:`TypedDictValidator`, Koda Validate abides by the contents of the
+For :class:`TypedDictValidator`, Koda Validate simply abides by the contents of the
 ``__optional_keys__`` attribute. Take a look at the `TypedDict docs <https://docs.python.org/3/library/typing.html#typing.TypedDict>`_ for
 information on how to specific optional keys on ``TypedDict``\s.
 
@@ -127,8 +126,8 @@ Extra Keys
 ----------
 
 :class:`TypedDictValidator`, :class:`DataclassValidator`, and :class:`NamedTupleValidator`
-can all be made to fail if keys are found that are not in the source class's definition.
-Simply pass ``fail_on_unknown_keys=True`` at initialization.
+can all be configured to fail if extra keys are found -- simply pass
+``fail_on_unknown_keys=True`` at initialization.
 
 .. testcode:: extrakeys
 
@@ -153,12 +152,13 @@ Simply pass ``fail_on_unknown_keys=True`` at initialization.
 
 Customization
 -------------
-It's common to need to customize the logic of derived :class:`Validator`\s beyond
-simple types. There are a few ways to do that.
+It's common to need custom logic for derived :class:`Validator`\s. There are several ways
+to achieve that.
 
 Annotated
 ^^^^^^^^^
-In Python 3.9+, you can use ``Annotated`` to add a custom :class:`Validator` for a given key.
+In Python 3.9+, you can use `Annotated <https://docs.python.org/3/library/typing.html#typing.Annotated>`_
+to add a custom :class:`Validator` for a given key.
 
 .. testcode:: annotated
 
@@ -192,9 +192,9 @@ In Python 3.9+, you can use ``Annotated`` to add a custom :class:`Validator` for
 
 Overrides
 ^^^^^^^^^
-If you're using Python3.8 or don't want to add ``Annotated`` to your class annotations,
+If you're using Python3.8, or don't want to add ``Annotated`` to your class annotations,
 you can use ``overrides={<key>: <validator>}``. The following will produce the same
-:class:`Validator` as in the :ref:`Annotated example<how_to/dictionaries/derived:Annotated>`.
+:class:`Validator` as in the :ref:`Annotated example<how_to/dictionaries/derived:Annotated>` above.
 
 .. testcode:: overrides
 
@@ -216,10 +216,9 @@ you can use ``overrides={<key>: <validator>}``. The following will produce the s
 typehint_resolver
 ^^^^^^^^^^^^^^^^^
 
-The ``typehint_resolver`` parameter controls how :ref:`how_to/dictionaries/derived:Derived Validators` work
-resolve typehints into :class:`Validator`\s.
-
-This example will also produce the same :class:`Validator` as in the :ref:`Annotated example<how_to/dictionaries/derived:Annotated>`.
+The ``typehint_resolver`` parameter controls how :ref:`how_to/dictionaries/derived:Derived Validators`
+resolve typehints into :class:`Validator`\s. This example will produce the same :class:`Validator` as in
+the :ref:`Annotated example<how_to/dictionaries/derived:Annotated>`.
 
 .. testcode:: typehintresolver
 
@@ -243,7 +242,7 @@ This example will also produce the same :class:`Validator` as in the :ref:`Annot
 
     validator = DataclassValidator(Image, typehint_resolver=custom_resolver)
 
-It will usually make sense to wrap :data:`get_typehint_validator`, as in the example
+It often makes sense to wrap :data:`get_typehint_validator`, as in the example
 above, but it's OK to completely rewrite how this works if it suits you.
 
 
@@ -292,8 +291,8 @@ which will run after the individual attributes have been validated:
 Caveats
 -------
 
-Some notable limitations exist with these derived :class:`Validator`\s:
+Some notable limitations exist with derived dictionary :class:`Validator`\s:
 
 - the keys of the dictionaries must be strings
 - the keys must abide by the relevant attribute name restrictions for the classes
-- generic and custom types will usually require a custom :class:`Validator`
+- generic and custom types will often require a custom :class:`Validator`
