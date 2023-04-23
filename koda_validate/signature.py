@@ -185,6 +185,9 @@ def _wrap_fn(
         async def inner_async(*args: Any, **kwargs: Any) -> Any:
             errs: Dict[str, Invalid] = {}
             var_args_errs: List[Tuple[Any, Invalid]] = []
+            # in case the values get mutated during validation
+            ok_args: List[Any] = list(args)
+            ok_kw_args: Dict[str, Any] = kwargs.copy()
             for i, arg in enumerate(args):
                 if len(positional_validators) >= i + 1:
                     arg_details = positional_validators[i]
@@ -197,6 +200,8 @@ def _wrap_fn(
                             result := await arg_validator.validate_async(arg)
                         ).is_valid:
                             errs[key] = result
+                        else:
+                            ok_args[i] = result.val
 
                 else:
                     if var_args_key_and_validator:
@@ -207,6 +212,8 @@ def _wrap_fn(
                             )
                         ).is_valid:
                             var_args_errs.append((arg, var_args_result))
+                        else:
+                            ok_args[i] = var_args_result.val
 
             if var_args_errs and var_args_key_and_validator:
                 errs[var_args_key_and_validator[0]] = Invalid(
@@ -222,19 +229,20 @@ def _wrap_fn(
                             kw_result := await schema_validator.validate_async(kw_val)
                         ).is_valid:
                             errs[kw_key] = kw_result
-                elif (
-                    kwargs_validator
-                    and kw_key not in ignored_extra_kwargs
-                    and not (
+                        else:
+                            ok_kw_args[kw_key] = kw_result.val
+                elif kwargs_validator and kw_key not in ignored_extra_kwargs:
+                    if not (
                         kwargs_result := await kwargs_validator.validate_async(kw_val)
-                    ).is_valid
-                ):
-                    errs[kw_key] = kwargs_result
+                    ).is_valid:
+                        errs[kw_key] = kwargs_result
+                    else:
+                        ok_kw_args[kw_key] = kwargs_result.val
 
             if errs:
                 raise InvalidArgsError(errs)
             elif return_validator:
-                result = await func(*args, **kwargs)
+                result = await func(*ok_args, **ok_kw_args)
                 if (ret_result := await return_validator.validate_async(result)).is_valid:
                     return result
                 else:
@@ -250,7 +258,7 @@ def _wrap_fn(
         def inner(*args: Any, **kwargs: Any) -> Any:
             errs: Dict[str, Invalid] = {}
             var_args_errs: List[Tuple[Any, Invalid]] = []
-            # in case the values get coerced, we'll need to mutate
+            # in case the values get mutated during validation
             ok_args: List[Any] = list(args)
             ok_kw_args: Dict[str, Any] = kwargs.copy()
             for i, arg in enumerate(args):

@@ -863,26 +863,26 @@ def test_override_coerce_works() -> None:
     assert func2(arg1=5, kwarg1=6) == ("5", "6")
 
 
-#
-# @pytest.mark.asyncio
-# def test_override_coerce_works_async() -> None:
-#     @coercer(int, str)
-#     def allow_int_for_str(val: Any) -> Maybe[str]:
-#         if type(val) is int:
-#             print("ok")
-#             return Just(str(val))
-#         if type(val) is str:
-#             return Just(val)
-#         return nothing
-#
-#     int_to_str_validator = StringValidator(coerce=allow_int_for_str)
-#
-#     @validate_signature(overrides={"arg1": int_to_str_validator,
-#                                    "kwarg1": int_to_str_validator})
-#     async def func2(arg1: str, *, kwarg1: str) -> Tuple[str, str]:
-#         return arg1.capitalize(), kwarg1.capitalize()
-#
-#     assert await func2(5, kwarg1="ok") == ("5", "Ok")
-#     assert await func2("abc", kwarg1="ok") == ("Abc", "Ok")
-#
-#     assert await func2(arg1=5, kwarg1=6) == ("5", "6")
+@pytest.mark.asyncio
+async def test_override_coerce_works_async() -> None:
+    @coercer(int, str)
+    def allow_int_for_str(val: Any) -> Maybe[str]:
+        if type(val) is int:
+            print("ok")
+            return Just(str(val))
+        if type(val) is str:
+            return Just(val)
+        return nothing
+
+    int_to_str_validator = StringValidator(coerce=allow_int_for_str)
+
+    @validate_signature(
+        overrides={"arg1": int_to_str_validator, "kwarg1": int_to_str_validator}
+    )
+    async def func2(arg1: str, *, kwarg1: str) -> Tuple[str, str]:
+        return arg1.capitalize(), kwarg1.capitalize()
+
+    assert await func2(5, kwarg1="ok") == ("5", "Ok")
+    assert await func2("abc", kwarg1="ok") == ("Abc", "Ok")
+
+    assert await func2(arg1=5, kwarg1=6) == ("5", "6")
