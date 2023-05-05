@@ -695,7 +695,7 @@ def test_get_typehint_validator() -> None:
 
 
 def test_get_typehint_validator_tuple_n_any() -> None:
-    t_n_any_validator = get_typehint_validator(tuple[str, int])  # type: ignore
+    t_n_any_validator = get_typehint_validator(tuple[str, int])
     assert isinstance(t_n_any_validator, NTupleValidator)
     assert len(t_n_any_validator.fields) == 2
     assert isinstance(t_n_any_validator.fields[0], StringValidator)

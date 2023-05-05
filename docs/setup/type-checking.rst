@@ -5,7 +5,7 @@ developers by leveraging type hints to increase readability and reliability.
 
 It is recommended to use the most up-to-date version of `mypy <https://pypi.org/project/mypy/>`_
 to take full advantage of type hints. Koda Validate can work with other type checkers, but it is
-tested against mypy 0.990+.
+tested against the most recent stable version of mypy.
 
 .. note::
 

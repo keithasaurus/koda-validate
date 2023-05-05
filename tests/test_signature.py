@@ -5,7 +5,7 @@ from uuid import UUID
 
 import pytest
 from _decimal import Decimal
-from koda import Just
+from koda import Just, Maybe, nothing
 
 from koda_validate import (
     BoolValidator,
@@ -36,6 +36,7 @@ from koda_validate import (
     UnionErrs,
     UnionValidator,
     Validator,
+    coercer,
 )
 from koda_validate.maybe import MaybeValidator
 from koda_validate.signature import (
@@ -166,7 +167,9 @@ def test_fails_for_all_failures() -> None:
         return f"{a} {b} {c} {d} {kwargs}"
 
     with pytest.raises(InvalidArgsError) as exc_info:
-        some_func("zz", "b", "c", "d", "e", c="x", d="hmm", x=None)  # type: ignore[arg-type]  # noqa: E501
+        some_func(
+            "zz", "b", "c", "d", "e", c="x", d="hmm", x=None  # type: ignore[arg-type]  # noqa: E501
+        )
 
     assert exc_info.value.errs == {
         "aa": Invalid(
@@ -363,20 +366,18 @@ def test_ignore_args() -> None:
     ) -> str:
         return f"{checked} {b} {c} {d} {e} {f} {kwargs}"
 
-    assert (
-        fn(
-            "ok",
-            "bi1",  # type: ignore[arg-type]
-            "bf1",  # type: ignore[arg-type]
-            "bi2",  # type: ignore[arg-type]
-            "bi3",  # type: ignore[arg-type]
-            "bb1",  # type: ignore[arg-type]
-            e=3,  # type: ignore[arg-type]
-            f="badbad",
-            kw_other="xyz",  # type: ignore[arg-type]
-        )
-        == "ok bi1 bf1 ('bi2', 'bi3', 'bb1') 3 badbad {'kw_other': 'xyz'}"
+    result = fn(
+        "ok",
+        "bi1",  # type: ignore[arg-type]
+        "bf1",  # type: ignore[arg-type]
+        "bi2",  # type: ignore[arg-type]
+        "bi3",  # type: ignore[arg-type]
+        "bb1",  # type: ignore[arg-type]
+        e=3,  # type: ignore[arg-type]
+        f="badbad",
+        kw_other="xyz",  # type: ignore[arg-type]
     )
+    assert result == "ok bi1 bf1 ('bi2', 'bi3', 'bb1') 3 badbad {'kw_other': 'xyz'}"
 
 
 def test_ignore_non_defined_kwarg() -> None:
@@ -608,7 +609,9 @@ async def test_fails_for_all_failures_async() -> None:
         return f"{a} {b} {c} {d} {kwargs}"
 
     with pytest.raises(InvalidArgsError) as exc_info:
-        await some_func("zz", "b", "c", "d", "e", c="x", d="hmm", x=None)  # type: ignore[arg-type]  # noqa: E501
+        await some_func(
+            "zz", "b", "c", "d", "e", c="x", d="hmm", x=None  # type: ignore[arg-type]  # noqa: E501
+        )
 
     assert exc_info.value.errs == {
         "aa": Invalid(
@@ -834,3 +837,52 @@ def test_new_type_with_typehint_resolver() -> None:
 
     with pytest.raises(InvalidArgsError):
         message_someone(Email("abc"), "hello!")
+
+
+def test_override_coerce_works() -> None:
+    @coercer(int, str)
+    def allow_int_for_str(val: Any) -> Maybe[str]:
+        if type(val) is int:
+            print("ok")
+            return Just(str(val))
+        if type(val) is str:
+            return Just(val)
+        return nothing
+
+    int_to_str_validator = StringValidator(coerce=allow_int_for_str)
+
+    @validate_signature(
+        overrides={"arg1": int_to_str_validator, "kwarg1": int_to_str_validator}
+    )
+    def func2(arg1: str, *, kwarg1: str) -> Tuple[str, str]:
+        return arg1.capitalize(), kwarg1.capitalize()
+
+    assert func2(5, kwarg1="ok") == ("5", "Ok")  # type: ignore[arg-type]
+    assert func2("abc", kwarg1="ok") == ("Abc", "Ok")
+
+    assert func2(arg1=5, kwarg1=6) == ("5", "6")  # type: ignore[arg-type]
+
+
+@pytest.mark.asyncio
+async def test_override_coerce_works_async() -> None:
+    @coercer(int, str)
+    def allow_int_for_str(val: Any) -> Maybe[str]:
+        if type(val) is int:
+            print("ok")
+            return Just(str(val))
+        if type(val) is str:
+            return Just(val)
+        return nothing
+
+    int_to_str_validator = StringValidator(coerce=allow_int_for_str)
+
+    @validate_signature(
+        overrides={"arg1": int_to_str_validator, "kwarg1": int_to_str_validator}
+    )
+    async def func2(arg1: str, *, kwarg1: str) -> Tuple[str, str]:
+        return arg1.capitalize(), kwarg1.capitalize()
+
+    assert await func2(5, kwarg1="ok") == ("5", "Ok")  # type: ignore[arg-type]
+    assert await func2("abc", kwarg1="ok") == ("Abc", "Ok")
+
+    assert await func2(arg1=5, kwarg1=6) == ("5", "6")  # type: ignore[arg-type]
