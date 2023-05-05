@@ -10,7 +10,7 @@ Koda Validate
    :noindex:
 
 Build typesafe validators :ref:`automatically<index:Derived Validators>`
-or explicitly -- or :ref:`write your own<how_to/extension:Extension>`. Combine them to
+or explicitly -- or :ref:`write your own<how_to/extension:Extension>`. Combine them
 for arbitrarily complex validation logic. Koda Validate is async-friendly, pure
 Python, and 1.5x - 12x faster :ref:`than Pydantic<faq/pydantic:Pydantic Comparison>`.
 
