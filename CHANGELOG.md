@@ -1,3 +1,10 @@
+3.1.2 (May 4, 2023)
+**Bug Fixes**
+- [#30](https://github.com/keithasaurus/koda-validate/issues/30) validate_signature ignores validators' coercion and processors
+
+**Maintenance**
+- General updates to dev dependencies
+
 3.1.1 (Jan. 28, 2023)
 **Bug Fixes**
 - `UnionValidator.typed`'s `@overloads` specify that arguments should be positional-only
