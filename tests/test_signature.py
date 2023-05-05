@@ -168,8 +168,8 @@ def test_fails_for_all_failures() -> None:
 
     with pytest.raises(InvalidArgsError) as exc_info:
         some_func(
-            "zz", "b", "c", "d", "e", c="x", d="hmm", x=None
-        )  # type: ignore[arg-type]  # noqa: E501
+            "zz", "b", "c", "d", "e", c="x", d="hmm", x=None  # type: ignore[arg-type]  # noqa: E501
+        )
 
     assert exc_info.value.errs == {
         "aa": Invalid(
@@ -610,8 +610,8 @@ async def test_fails_for_all_failures_async() -> None:
 
     with pytest.raises(InvalidArgsError) as exc_info:
         await some_func(
-            "zz", "b", "c", "d", "e", c="x", d="hmm", x=None
-        )  # type: ignore[arg-type]  # noqa: E501
+            "zz", "b", "c", "d", "e", c="x", d="hmm", x=None  # type: ignore[arg-type]  # noqa: E501
+        )
 
     assert exc_info.value.errs == {
         "aa": Invalid(
@@ -857,10 +857,10 @@ def test_override_coerce_works() -> None:
     def func2(arg1: str, *, kwarg1: str) -> Tuple[str, str]:
         return arg1.capitalize(), kwarg1.capitalize()
 
-    assert func2(5, kwarg1="ok") == ("5", "Ok")
+    assert func2(5, kwarg1="ok") == ("5", "Ok")  # type: ignore[arg-type]
     assert func2("abc", kwarg1="ok") == ("Abc", "Ok")
 
-    assert func2(arg1=5, kwarg1=6) == ("5", "6")
+    assert func2(arg1=5, kwarg1=6) == ("5", "6")  # type: ignore[arg-type]
 
 
 @pytest.mark.asyncio
@@ -882,7 +882,7 @@ async def test_override_coerce_works_async() -> None:
     async def func2(arg1: str, *, kwarg1: str) -> Tuple[str, str]:
         return arg1.capitalize(), kwarg1.capitalize()
 
-    assert await func2(5, kwarg1="ok") == ("5", "Ok")
+    assert await func2(5, kwarg1="ok") == ("5", "Ok")  # type: ignore[arg-type]
     assert await func2("abc", kwarg1="ok") == ("Abc", "Ok")
 
-    assert await func2(arg1=5, kwarg1=6) == ("5", "6")
+    assert await func2(arg1=5, kwarg1=6) == ("5", "6")  # type: ignore[arg-type]

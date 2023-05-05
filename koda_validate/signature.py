@@ -460,7 +460,7 @@ def _get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") 
         ret += f"{err_type.__class__.__name__}\n"
         ret += "\n".join(
             [
-                f"{_get_arg_fail_message(e, next_indent)} :: {_trunc_str(repr(e.value), 30)}"
+                f"{_get_arg_fail_message(e, next_indent)} :: {_trunc_str(repr(e.value), 30)}"  # noqa: E501
                 # noqa: E501
                 for e in err_type.item_errs
             ]
