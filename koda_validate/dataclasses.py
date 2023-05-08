@@ -12,6 +12,7 @@ from typing import (
     Set,
     Type,
     TypeVar,
+    cast,
     get_type_hints,
 )
 
@@ -116,7 +117,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
     ) -> None:
         if not is_dataclass(data_cls):
             raise TypeError("Must be a dataclass")
-        self.data_cls = data_cls
+        self.data_cls = cast(Type[_DCT], data_cls)
         self.fail_on_unknown_keys = fail_on_unknown_keys
         self.overrides = overrides
         self.coerce = coerce
@@ -217,7 +218,6 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             return True, obj
 
     async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[_DCT]:
-
         if self.coerce:
             if not (coerced := self.coerce(val)).is_just:
                 return False, Invalid(
