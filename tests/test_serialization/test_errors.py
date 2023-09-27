@@ -32,7 +32,7 @@ from koda_validate import (
 from koda_validate.base import Predicate, PredicateAsync
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import DictValidatorAny, MapValidator, MaxKeys, MinKeys
-from koda_validate.errors import ContainerErr, KeyValErrs
+from koda_validate.errors import ContainerErr, ErrType, KeyValErrs, ValidationErrBase
 from koda_validate.float import FloatValidator
 from koda_validate.generic import (
     Choices,
@@ -50,6 +50,7 @@ from koda_validate.generic import (
 )
 from koda_validate.integer import IntValidator
 from koda_validate.maybe import MaybeValidator
+from koda_validate.serialization import Serializable
 from koda_validate.serialization.errors import (
     SerializableErr,
     pred_to_err_message,
@@ -360,3 +361,37 @@ def test_startswith() -> None:
 def test_endswith() -> None:
     assert pred_to_err_message(EndsWith("abcd")) == "must end with 'abcd'"
     assert pred_to_err_message(EndsWith(b"abcd")) == "must end with b'abcd'"
+
+
+def test_to_serializable_errors_custom_func() -> None:
+    class CoolCustomErrType(ValidationErrBase):
+        pass
+
+    def custom_serialize(invalid: Invalid) -> Serializable:
+        match invalid.err_type:
+            case CoolCustomErrType():
+                return {"COOL ERROR": invalid.value}
+            case _:
+                return to_serializable_errs(invalid, next_level=custom_serialize)
+
+    s_validator = StringValidator()
+
+    assert custom_serialize(
+        Invalid(err_type=CoolCustomErrType(), value="5", validator=s_validator)
+    ) == {"COOL ERROR": "5"}
+
+    l_validator = ListValidator(s_validator)
+
+    assert custom_serialize(
+        Invalid(
+            err_type=IndexErrs(
+                {
+                    0: Invalid(
+                        err_type=CoolCustomErrType(), value="5", validator=s_validator
+                    )
+                }
+            ),
+            validator=l_validator,
+            value=["5"],
+        )
+    ) == [[0, {"COOL ERROR": "5"}]]
