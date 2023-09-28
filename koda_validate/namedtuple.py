@@ -108,7 +108,6 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
         coerce: Optional[Coercer[Dict[Any, Any]]] = None,
     ) -> None:
-
         self.named_tuple_cls = named_tuple_cls
         self.overrides = overrides
         self.fail_on_unknown_keys = fail_on_unknown_keys
@@ -204,7 +203,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         if errs:
             return False, Invalid(KeyErrs(errs), coerced_val, self)
         else:
-            obj = self.named_tuple_cls(**success_dict)
+            obj = self.named_tuple_cls(**success_dict)  # type: ignore[call-overload]
             if self.validate_object and (result := self.validate_object(obj)):
                 return False, Invalid(result, obj, self)
 
@@ -255,7 +254,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         if errs:
             return False, Invalid(KeyErrs(errs), coerced_val, self)
         else:
-            obj = self.named_tuple_cls(**success_dict)
+            obj = self.named_tuple_cls(**success_dict)  # type: ignore[call-overload]
             if self.validate_object and (result := self.validate_object(obj)):
                 return False, Invalid(result, obj, self)
             elif self.validate_object_async and (
