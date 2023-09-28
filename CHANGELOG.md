@@ -1,3 +1,10 @@
+4.0.0 (Sep 27, 2023)
+**Breaking Changes**
+- `to_serializable_errs` produces different text, removing assumption that validation input was deserialized from json
+
+**Improvements**
+- Allow `to_serializable_errs` to accept callable for next level
+
 3.1.2 (May 4, 2023)
 **Bug Fixes**
 - [#30](https://github.com/keithasaurus/koda-validate/issues/30) validate_signature ignores validators' coercion and processors
