@@ -69,20 +69,20 @@ def test_type_err_str() -> None:
 
 def test_type_err_dict() -> None:
     assert to_serializable_errs(Invalid(TypeErr(dict), 5, DictValidatorAny({}))) == {
-        "__container__": ["expected an object"]
+        "__container__": ["expected a dict"]
     }
 
 
 def test_type_err_list() -> None:
     assert to_serializable_errs(
         Invalid(TypeErr(list), 5, ListValidator(StringValidator()))
-    ) == {"__container__": ["expected an array"]}
+    ) == {"__container__": ["expected a list"]}
 
 
 def test_type_err_tuple() -> None:
     assert to_serializable_errs(
         Invalid(TypeErr(tuple), 5, UniformTupleValidator(StringValidator()))
-    ) == {"__container__": ["expected an array"]}
+    ) == {"__container__": ["expected a list"]}
 
 
 def test_predicate_returns_err_in_list() -> None:
@@ -318,7 +318,7 @@ def test_date_coercion_err() -> None:
 def test_ntuple_coercion_err() -> None:
     result = NTupleValidator.typed(fields=(StringValidator(), IntValidator()))(4)
     assert isinstance(result, Invalid)
-    assert to_serializable_errs(result) == {"__container__": ["expected an array"]}
+    assert to_serializable_errs(result) == {"__container__": ["expected a list"]}
 
 
 def test_dataclass_coercion_err() -> None:
@@ -330,7 +330,7 @@ def test_dataclass_coercion_err() -> None:
     validator = DataclassValidator(Person)
     result = validator(4)
     assert isinstance(result, Invalid)
-    assert to_serializable_errs(result) == {"__container__": ["expected an object"]}
+    assert to_serializable_errs(result) == {"__container__": ["expected a dict"]}
 
 
 def test_namedtuple_coercion_err() -> None:
@@ -341,7 +341,7 @@ def test_namedtuple_coercion_err() -> None:
     validator = NamedTupleValidator(Person)
     result = validator(4)
     assert isinstance(result, Invalid)
-    assert to_serializable_errs(result) == {"__container__": ["expected an object"]}
+    assert to_serializable_errs(result) == {"__container__": ["expected a dict"]}
 
 
 def test_default_coercion_err() -> None:

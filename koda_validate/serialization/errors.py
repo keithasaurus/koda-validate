@@ -120,7 +120,7 @@ def to_serializable_errs(
     invalid: Invalid, next_level: Optional[Callable[[Invalid], Serializable]] = None
 ) -> Serializable:
     """
-    Convert an ``Invalid`` instance to human readable (in English) ``Serializable``
+    Convert an ``Invalid`` instance to human readable (English) ``Serializable``
     representation of ``Invalid``.
 
     It can serve as an example of how to build similar functions to convert ``Invalid``
@@ -148,9 +148,9 @@ def to_serializable_errs(
         elif isinstance(vldtr, DateValidator):
             return ["expected YYYY-MM-DD"]
         elif err.dest_type is list or err.dest_type is tuple:
-            return {"__container__": ["expected an list"]}
+            return {"__container__": ["expected a list"]}
         elif isinstance(vldtr, (DataclassValidator, NamedTupleValidator)):
-            return {"__container__": ["expected an dictionary"]}
+            return {"__container__": ["expected a dict"]}
         else:
             compatible_names = sorted([t.__name__ for t in err.compatible_types])
             return [
@@ -161,7 +161,7 @@ def to_serializable_errs(
         return err.obj
     elif isinstance(err, ExtraKeysErr):
         err_message = (
-            "expected an empty dictionary"
+            "expected an empty dict"
             if len(err.expected_keys) == 0
             else "only expected "
             + ", ".join(sorted([repr(k) for k in err.expected_keys]))
@@ -169,7 +169,7 @@ def to_serializable_errs(
         return {"__unknown_keys__": err_message}
     elif isinstance(err, TypeErr):
         if err.expected_type is dict:
-            return {"__container__": ["expected a dictionary"]}
+            return {"__container__": ["expected a dict"]}
         elif err.expected_type is list or err.expected_type is tuple:
             return {"__container__": ["expected a list"]}
         else:
