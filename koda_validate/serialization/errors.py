@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Type, Union
+from typing import Any, Callable, Dict, Optional, Type, Union
 
 from koda_validate import NotBlank
 from koda_validate.base import Predicate, PredicateAsync
@@ -116,7 +116,26 @@ TYPE_DESCRIPTION_LOOKUP: Dict[Type[Any], str] = {
 }
 
 
-def to_serializable_errs(invalid: Invalid) -> Serializable:
+def to_serializable_errs(
+    invalid: Invalid, next_level: Optional[Callable[[Invalid], Serializable]] = None
+) -> Serializable:
+    """
+    Convert an ``Invalid`` instance to human readable (English) ``Serializable``
+    representation of ``Invalid``.
+
+    It can serve as an example of how to build similar functions to convert ``Invalid``
+    instances to other formats, other languages, etc.
+
+    :param invalid: The error you'd like to represent
+    :param next_level: If supplied, this callable will handle any calls for container
+        ``ErrType``s such as ``ContainerErr``, ``KeyErr``, and so on
+
+    :return: an error message appropriate for serializing in JSON or YAML. Because this
+        function can handle any kind of Invalid, any type narrowing desired beyond
+        ``Serializable`` needs to be done outside of this function.
+
+    """
+    next_level = next_level or to_serializable_errs
     err = invalid.err_type
     vldtr = invalid.validator
     if isinstance(err, CoercionErr):
@@ -129,9 +148,9 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
         elif isinstance(vldtr, DateValidator):
             return ["expected YYYY-MM-DD"]
         elif err.dest_type is list or err.dest_type is tuple:
-            return {"__container__": ["expected an array"]}
+            return {"__container__": ["expected a list"]}
         elif isinstance(vldtr, (DataclassValidator, NamedTupleValidator)):
-            return {"__container__": ["expected an object"]}
+            return {"__container__": ["expected a dict"]}
         else:
             compatible_names = sorted([t.__name__ for t in err.compatible_types])
             return [
@@ -142,7 +161,7 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
         return err.obj
     elif isinstance(err, ExtraKeysErr):
         err_message = (
-            "expected an empty object"
+            "expected an empty dict"
             if len(err.expected_keys) == 0
             else "only expected "
             + ", ".join(sorted([repr(k) for k in err.expected_keys]))
@@ -150,9 +169,9 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
         return {"__unknown_keys__": err_message}
     elif isinstance(err, TypeErr):
         if err.expected_type is dict:
-            return {"__container__": ["expected an object"]}
+            return {"__container__": ["expected a dict"]}
         elif err.expected_type is list or err.expected_type is tuple:
-            return {"__container__": ["expected an array"]}
+            return {"__container__": ["expected a list"]}
         else:
             type_desc = TYPE_DESCRIPTION_LOOKUP.get(
                 err.expected_type, err.expected_type.__name__
@@ -165,26 +184,26 @@ def to_serializable_errs(invalid: Invalid) -> Serializable:
     elif isinstance(err, PredicateErrs):
         return [pred_to_err_message(p) for p in err.predicates]
     elif isinstance(err, IndexErrs):
-        return [[i, to_serializable_errs(err)] for i, err in err.indexes.items()]
+        return [[i, next_level(err)] for i, err in err.indexes.items()]
     elif isinstance(err, MissingKeyErr):
         return ["key missing"]
     elif isinstance(err, MapErr):
         errs_dict: Dict[str, Serializable] = {}
         for key, k_v_errs in err.keys.items():
             kv_dict: Dict[str, Serializable] = {
-                k: to_serializable_errs(v)
+                k: next_level(v)
                 for k, v in [("key", k_v_errs.key), ("value", k_v_errs.val)]
                 if v is not None
             }
             errs_dict[str(key)] = kv_dict
         return errs_dict
     elif isinstance(err, SetErrs):
-        return {"member_errors": [to_serializable_errs(x) for x in err.item_errs]}
+        return {"member_errors": [next_level(x) for x in err.item_errs]}
     elif isinstance(err, KeyErrs):
-        return {str(k): to_serializable_errs(v) for k, v in err.keys.items()}
+        return {str(k): next_level(v) for k, v in err.keys.items()}
     elif isinstance(err, UnionErrs):
-        return {"variants": [to_serializable_errs(x) for x in err.variants]}
+        return {"variants": [next_level(x) for x in err.variants]}
     elif isinstance(err, ContainerErr):
-        return to_serializable_errs(err.child)
+        return next_level(err.child)
     else:
         raise TypeError(f"got unhandled type: {type(err)}")

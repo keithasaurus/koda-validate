@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from voluptuous import MultipleInvalid, Schema
 
 from koda_validate import IntValidator, RecordValidator, StringValidator
@@ -30,7 +30,10 @@ class BasicString(BaseModel):
 
 def run_pyd(objs: List[Any]) -> None:
     for obj in objs:
-        BasicString(**obj)
+        try:
+            BasicString(**obj)
+        except ValidationError:
+            pass
 
 
 v_schema = Schema(

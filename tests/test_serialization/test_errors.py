@@ -32,7 +32,7 @@ from koda_validate import (
 from koda_validate.base import Predicate, PredicateAsync
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import DictValidatorAny, MapValidator, MaxKeys, MinKeys
-from koda_validate.errors import ContainerErr, KeyValErrs
+from koda_validate.errors import ContainerErr, KeyValErrs, ValidationErrBase
 from koda_validate.float import FloatValidator
 from koda_validate.generic import (
     Choices,
@@ -50,6 +50,7 @@ from koda_validate.generic import (
 )
 from koda_validate.integer import IntValidator
 from koda_validate.maybe import MaybeValidator
+from koda_validate.serialization import Serializable
 from koda_validate.serialization.errors import (
     SerializableErr,
     pred_to_err_message,
@@ -68,20 +69,20 @@ def test_type_err_str() -> None:
 
 def test_type_err_dict() -> None:
     assert to_serializable_errs(Invalid(TypeErr(dict), 5, DictValidatorAny({}))) == {
-        "__container__": ["expected an object"]
+        "__container__": ["expected a dict"]
     }
 
 
 def test_type_err_list() -> None:
     assert to_serializable_errs(
         Invalid(TypeErr(list), 5, ListValidator(StringValidator()))
-    ) == {"__container__": ["expected an array"]}
+    ) == {"__container__": ["expected a list"]}
 
 
 def test_type_err_tuple() -> None:
     assert to_serializable_errs(
         Invalid(TypeErr(tuple), 5, UniformTupleValidator(StringValidator()))
-    ) == {"__container__": ["expected an array"]}
+    ) == {"__container__": ["expected a list"]}
 
 
 def test_predicate_returns_err_in_list() -> None:
@@ -317,7 +318,7 @@ def test_date_coercion_err() -> None:
 def test_ntuple_coercion_err() -> None:
     result = NTupleValidator.typed(fields=(StringValidator(), IntValidator()))(4)
     assert isinstance(result, Invalid)
-    assert to_serializable_errs(result) == {"__container__": ["expected an array"]}
+    assert to_serializable_errs(result) == {"__container__": ["expected a list"]}
 
 
 def test_dataclass_coercion_err() -> None:
@@ -329,7 +330,7 @@ def test_dataclass_coercion_err() -> None:
     validator = DataclassValidator(Person)
     result = validator(4)
     assert isinstance(result, Invalid)
-    assert to_serializable_errs(result) == {"__container__": ["expected an object"]}
+    assert to_serializable_errs(result) == {"__container__": ["expected a dict"]}
 
 
 def test_namedtuple_coercion_err() -> None:
@@ -340,7 +341,7 @@ def test_namedtuple_coercion_err() -> None:
     validator = NamedTupleValidator(Person)
     result = validator(4)
     assert isinstance(result, Invalid)
-    assert to_serializable_errs(result) == {"__container__": ["expected an object"]}
+    assert to_serializable_errs(result) == {"__container__": ["expected a dict"]}
 
 
 def test_default_coercion_err() -> None:
@@ -360,3 +361,36 @@ def test_startswith() -> None:
 def test_endswith() -> None:
     assert pred_to_err_message(EndsWith("abcd")) == "must end with 'abcd'"
     assert pred_to_err_message(EndsWith(b"abcd")) == "must end with b'abcd'"
+
+
+def test_to_serializable_errors_custom_func() -> None:
+    class CoolCustomErrType(ValidationErrBase):
+        pass
+
+    def custom_serialize(invalid: Invalid) -> Serializable:
+        if isinstance(invalid.err_type, CoolCustomErrType):
+            return {"COOL ERROR": invalid.value}
+        else:
+            return to_serializable_errs(invalid, next_level=custom_serialize)
+
+    s_validator = StringValidator()
+
+    assert custom_serialize(
+        Invalid(err_type=CoolCustomErrType(), value="5", validator=s_validator)
+    ) == {"COOL ERROR": "5"}
+
+    l_validator = ListValidator(s_validator)
+
+    assert custom_serialize(
+        Invalid(
+            err_type=IndexErrs(
+                {
+                    0: Invalid(
+                        err_type=CoolCustomErrType(), value="5", validator=s_validator
+                    )
+                }
+            ),
+            validator=l_validator,
+            value=["5"],
+        )
+    ) == [[0, {"COOL ERROR": "5"}]]
