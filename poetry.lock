@@ -172,8 +172,8 @@ tomli = {version = "*", optional = true, markers = "python_full_version <= \"3.1
 toml = ["tomli"]
 
 [[package]]
-name = "darglint2"
-version = "1.8.2"
+name = "darglint"
+version = "1.8.1"
 description = "A utility for ensuring Google-style docstrings stay up to date with the source code."
 category = "dev"
 optional = false
@@ -1067,7 +1067,7 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8.1"
-content-hash = "eaa4e02847dd02b2fdadbb85cf115d5a8c080af653af7a1b08b6c9610f784b31"
+content-hash = "512e27534f57fc93ec16013d40a5cc18278d47b7aa8cd390a3c0e3bb351bbe5c"
 
 [metadata.files]
 alabaster = [
@@ -1287,9 +1287,9 @@ coverage = [
     {file = "coverage-7.3.1-pp38.pp39.pp310-none-any.whl", hash = "sha256:220eb51f5fb38dfdb7e5d54284ca4d0cd70ddac047d750111a68ab1798945194"},
     {file = "coverage-7.3.1.tar.gz", hash = "sha256:6cb7fe1581deb67b782c153136541e20901aa312ceedaf1467dcb35255787952"},
 ]
-darglint2 = [
-    {file = "darglint2-1.8.2-py3-none-any.whl", hash = "sha256:8f950c9b5fab25dd54bf537bef1569c267073e5828cb5ab76428876df6d947af"},
-    {file = "darglint2-1.8.2.tar.gz", hash = "sha256:11e0fc9c999bf09e192f42b72d202d177cb82da258eba387b24c2f0f5943650f"},
+darglint = [
+    {file = "darglint-1.8.1-py3-none-any.whl", hash = "sha256:5ae11c259c17b0701618a20c3da343a3eb98b3bc4b5a83d31cdd94f5ebdced8d"},
+    {file = "darglint-1.8.1.tar.gz", hash = "sha256:080d5106df149b199822e7ee7deb9c012b49891538f14a11be681044f0bb20da"},
 ]
 distlib = [
     {file = "distlib-0.3.7-py2.py3-none-any.whl", hash = "sha256:2e24928bc811348f0feb63014e97aaae3037f2cf48712d51ae61df7fd6075057"},
