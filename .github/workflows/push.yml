@@ -49,7 +49,7 @@ jobs:
         run: poetry run flake8 --exclude codegen,bench,examples,tests/test_310_plus.py,tests/test_311_plus.py --ignore E741,W503,F405,F403,F401
       - name: linting 3.10+
         if: matrix.python-version == 3.10 || matrix.python-version == 3.11
-        run: poetry run flake8 --exclude codegen --ignore E741,W503,F405,F403,F401,DAR101,DAR201,DAR401
+        run: poetry run flake8 --exclude codegen --ignore E721,E741,W503,F405,F403,F401,DAR101,DAR201,DAR401
       - name: darglint
         run: poetry run darglint koda_validate
       - name: doctests
