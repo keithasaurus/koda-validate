@@ -32,7 +32,7 @@ from koda_validate import (
 from koda_validate.base import Predicate, PredicateAsync
 from koda_validate.decimal import DecimalValidator
 from koda_validate.dictionary import DictValidatorAny, MapValidator, MaxKeys, MinKeys
-from koda_validate.errors import ContainerErr, ErrType, KeyValErrs, ValidationErrBase
+from koda_validate.errors import ContainerErr, KeyValErrs, ValidationErrBase
 from koda_validate.float import FloatValidator
 from koda_validate.generic import (
     Choices,
