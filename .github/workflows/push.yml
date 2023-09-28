@@ -48,7 +48,7 @@ jobs:
         if: matrix.python-version == 3.9 || matrix.python-version == 3.8 || matrix.python-version == 'pypy3.9'
         run: poetry run flake8 --exclude codegen,bench,examples,tests/test_310_plus.py,tests/test_311_plus.py --ignore E721,E741,W503,F405,F403,F401
       - name: linting 3.10+
-        if: matrix.python-version == 3.10 || matrix.python-version == 3.11 || matric.python-version == 3.12
+        if: matrix.python-version == 3.10 || matrix.python-version == 3.11 || matrix.python-version == 3.12
         run: poetry run flake8 --exclude codegen --ignore E721,E741,W503,F405,F403,F401,DAR101,DAR201,DAR401
       - name: darglint
         run: poetry run darglint koda_validate
