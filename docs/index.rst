@@ -11,7 +11,7 @@ Koda Validate
 
 Build validation logic :ref:`automatically<index:Derived Validators>`, explicitly, or :ref:`write your own<how_to/extension:Extension>`. Combine
 validators for arbitrarily complex validation logic. Koda Validator can be used in normal control flow
-(:ref:`compatible with asyncio`<how_to/async>) or as a :ref:`how_to/runtime_type_checking:runtime type checker`.
+(:ref:`compatible with asyncio<how_to/async:Async>`) or as a :ref:`runtime type checker<how_to/runtime_type_checking:Runtime Type Checking>`.
 
 
 Basic Usage
