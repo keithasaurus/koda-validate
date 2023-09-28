@@ -24,7 +24,6 @@ class Person(TypedDict):
 person_validator = TypedDictValidator(Person)
 
 # Produce readable errors
-
 match person_validator({"name": "Guido"}):
     case Valid(string_list):
         print(f"woohoo, valid!")
@@ -44,6 +43,16 @@ list_string_validator = ListValidator(string_validator)
 @validate_signature
 def add(a: int, b: int) -> int:
     return a + b
+
+
+add(1, 2)  # returns 3
+
+add(1, "2")  # raises `InvalidArgsError`
+# koda_validate.signature.InvalidArgsError:
+# Invalid Argument Values
+# -----------------------
+# b='2'
+#     expected <class 'int'>
 
 ```
 
