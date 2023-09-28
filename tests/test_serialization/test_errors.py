@@ -368,11 +368,10 @@ def test_to_serializable_errors_custom_func() -> None:
         pass
 
     def custom_serialize(invalid: Invalid) -> Serializable:
-        match invalid.err_type:
-            case CoolCustomErrType():
-                return {"COOL ERROR": invalid.value}
-            case _:
-                return to_serializable_errs(invalid, next_level=custom_serialize)
+        if isinstance(invalid.err_type, CoolCustomErrType):
+            return {"COOL ERROR": invalid.value}
+        else:
+            return to_serializable_errs(invalid, next_level=custom_serialize)
 
     s_validator = StringValidator()
 
