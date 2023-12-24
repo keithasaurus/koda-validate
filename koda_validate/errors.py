@@ -161,7 +161,7 @@ ErrType = Union[
     KeyErrs,
     MapErr,
     MissingKeyErr,
-    PredicateErrs,
+    PredicateErrs[Any],
     SetErrs,
     TypeErr,
     ValidationErrBase,
