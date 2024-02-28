@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, Union
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, Literal, Union
 
-from koda_validate._generics import A
+from koda_validate._generics import A, B
 from koda_validate.errors import ErrType
 
 if TYPE_CHECKING:
@@ -24,6 +24,9 @@ class Valid(Generic[A]):
     This is always ``True`` on :class:`Valid` instances. It's useful for ``if``
     statements. Mypy understands it as a tag for a tagged union.
     """
+
+    def map(self, func: Callable[[A], B]) -> "ValidationResult[B]":
+        return Valid(func(self.val))
 
 
 @dataclass
@@ -54,6 +57,9 @@ class Invalid:
     This is always ``False`` on :class:`Invalid` instances. It’s useful for ``if``
     statements. Mypy understands it as a tag for a tagged union.
     """
+
+    def map(self, func: Callable[[A], B]) -> "ValidationResult[B]":
+        return self
 
 
 ValidationResult = Union[Valid[A], Invalid]
