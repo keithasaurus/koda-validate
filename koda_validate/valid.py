@@ -58,7 +58,7 @@ class Invalid:
     statements. Mypy understands it as a tag for a tagged union.
     """
 
-    def map(self, func: Callable[[A], B]) -> "ValidationResult[B]":
+    def map(self, func: Callable[[Any], B]) -> "ValidationResult[B]":
         return self
 
 

@@ -2,7 +2,7 @@
 
 Build typesafe validators automatically or explicitly -- or write your own. Combine them to
 build validators of arbitrary complexity. Koda Validate is async-friendly, pure Python, and
-1.5x - 12x faster than Pydantic.
+comparable in performance to Pydantic 2.
 
 Docs: [https://koda-validate.readthedocs.io/en/stable/](https://koda-validate.readthedocs.io/en/stable/)
 
