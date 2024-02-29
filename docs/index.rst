@@ -9,9 +9,14 @@ Koda Validate
 .. module:: koda_validate
    :noindex:
 
-Build validation logic :ref:`automatically<index:Derived Validators>`, explicitly, or :ref:`write your own<how_to/extension:Extension>`. Combine
-validators for arbitrarily complex validation logic. Koda Validate can be used in normal control flow
-(:ref:`compatible with asyncio<how_to/async:Async>`) or as a :ref:`runtime type checker<how_to/runtime_type_checking:Runtime Type Checking>`.
+
+Koda Validate is a library and toolkit for building composable and typesafe validators. In many cases, validators can be
+derived from typehints :ref:`automatically<index:Derived Validators>` (e.g. ``TypeDict``s, ``@dataclass``es, ``NamedTuples``).
+For everything else, you can compose validator callables or :ref:`write your own<how_to/extension:Extension>`. At its heart, Koda Validate
+is just a few kinds of functions that fit together, so the possibilities of what it can validate are endless. It is async-friendly, and comparable
+in performance to Pydantic 2.
+
+Koda Validate can be used in normal control flow or as a :ref:`runtime type checker<how_to/runtime_type_checking:Runtime Type Checking>`.
 
 
 Basic Usage

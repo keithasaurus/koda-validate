@@ -1,8 +1,12 @@
 # Koda Validate
 
-Build typesafe validators automatically or explicitly -- or write your own. Combine them to
-build validators of arbitrary complexity. Koda Validate is async-friendly, pure Python, and
-comparable in performance to Pydantic 2.
+Koda Validate is a library and toolkit for building composable and typesafe validators. In many cases,
+validators can be derived from typehints (e.g. `TypeDict`s, `@dataclass`es, `NamedTuples`). For everything else, you can 
+combine existing validation logic, or write your own. At its heart, Koda Validate is just a few kinds of
+callables that fit together, so the possibilities are as endless as the kinds of functions 
+you can write. It is async-friendly and comparable in performance to Pydantic 2.
+
+Koda Validate can be used in normal control flow or as a runtime type checker.
 
 Docs: [https://koda-validate.readthedocs.io/en/stable/](https://koda-validate.readthedocs.io/en/stable/)
 
