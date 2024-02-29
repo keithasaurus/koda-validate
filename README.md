@@ -10,6 +10,8 @@ Koda Validate can be used in normal control flow or as a runtime type checker.
 
 Docs: [https://koda-validate.readthedocs.io/en/stable/](https://koda-validate.readthedocs.io/en/stable/)
 
+### At a Glance 
+
 ```python
 
 from typing import TypedDict
@@ -17,6 +19,12 @@ from koda_validate import (StringValidator, MaxLength, MinLength,
                            ListValidator, TypedDictValidator, Valid, Invalid)
 from koda_validate.serialization import to_serializable_errs
 from koda_validate.signature import validate_signature
+
+
+# Explicit Validators
+string_validator = StringValidator(MinLength(8), MaxLength(20))
+
+list_string_validator = ListValidator(string_validator)
 
 
 # Automatic Validators
@@ -35,12 +43,6 @@ match person_validator({"name": "Guido"}):
         print(to_serializable_errs(invalid))
 
 # prints: {'hobbies': ['key missing']}
-
-
-# Explicit Validators
-string_validator = StringValidator(MinLength(8), MaxLength(20))
-
-list_string_validator = ListValidator(string_validator)
 
 
 # Runtime type checking
@@ -63,5 +65,5 @@ add(1, "2")  # raises `InvalidArgsError`
 There's much, much more... Check out the [Docs](https://koda-validate.readthedocs.io/en/stable/).
 
 
-## Something's Missing Or Wrong 
+## Something's Missing or Wrong 
 Open an [issue on GitHub](https://github.com/keithasaurus/koda-validate/issues) please!

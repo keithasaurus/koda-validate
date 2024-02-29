@@ -1,3 +1,7 @@
+4.1.0 (Feb 29, 2024)
+**Features**
+- `ValidationResult.map()` can be used to succinctly convert data contained within `Valid` objects to some other type or value
+
 4.0.0 (Sep 27, 2023)
 **Breaking Changes**
 - `to_serializable_errs` produces different text, removing assumption that validation input was deserialized from json
