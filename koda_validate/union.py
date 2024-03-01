@@ -168,7 +168,7 @@ class UnionValidator(_ToTupleValidator[A]):
             ]
             if v
         ]
-        return UnionValidator(validator_1, *validators)  # type: ignore
+        return UnionValidator(validator_1, *validators)
 
     @staticmethod
     def untyped(
