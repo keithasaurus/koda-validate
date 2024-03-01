@@ -10,7 +10,6 @@ homepage = "https://github.com/keithasaurus/koda-validate"
 keywords = ["validation", "type hints", "asyncio", "serialization", "typesafe", "validate", "validators", "predicate", "processor"]
 classifiers = [
     'Development Status :: 5 - Production/Stable',
-    'Environment :: Console',
     'Environment :: MacOS X',
     'Environment :: Web Environment',
     'Intended Audience :: Developers',
