@@ -381,11 +381,13 @@ def validate_signature(
     if func is None:
 
         def inner(func_inner: _DecoratedFunc) -> _DecoratedFunc:
-            return _wrap_fn_partial(func_inner)
+            # there may be a good way to replace this cast with ParamSpec in the future
+            return cast(_DecoratedFunc, _wrap_fn_partial(func_inner))
 
         return inner
     else:
-        return _wrap_fn_partial(func)
+        # there may be a good way to replace this cast with ParamSpec in the future
+        return cast(_DecoratedFunc, _wrap_fn_partial(func))
 
 
 def _trunc_str(s: str, max_chars: int) -> str:
