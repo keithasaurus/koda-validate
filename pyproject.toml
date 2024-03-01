@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "koda-validate"
-version = "4.0.0"
+version = "4.1.0"
 readme = "README.md"
 description = "Typesafe, composable validation"
 documentation = "https://koda-validate.readthedocs.io/en/stable/"
@@ -10,7 +10,6 @@ homepage = "https://github.com/keithasaurus/koda-validate"
 keywords = ["validation", "type hints", "asyncio", "serialization", "typesafe", "validate", "validators", "predicate", "processor"]
 classifiers = [
     'Development Status :: 5 - Production/Stable',
-    'Environment :: Console',
     'Environment :: MacOS X',
     'Environment :: Web Environment',
     'Intended Audience :: Developers',

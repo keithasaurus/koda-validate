@@ -95,6 +95,17 @@ Let's try it
     'Error of type TypeErr, while validating abc with IntValidator()'
 
 
+ValidationResult.map()
+^^^^^^^^^^^^^^^^^^^^^^
+Sometimes you might want to convert the data contained by :class:`Valid` into another
+type. ``.map`` allows you to do that without a lot of boilerplate:
+
+.. doctest:: valid-map
+    >>> validator = IntValidator()
+    >>> validator(5).map(str)
+    Valid(val="5")
+
+
 Working with ``Invalid``
 ------------------------
 :class:`Invalid` instances provide machine-readable validation failure data.
