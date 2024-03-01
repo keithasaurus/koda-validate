@@ -5,6 +5,7 @@ from koda_validate import Invalid, StringValidator, TypeErr, Valid
 
 def test_valid_map() -> None:
     assert Valid("something").map(lambda x: x.replace("some", "no")) == Valid("nothing")
+    assert Valid(5).map(str) == Valid("5")
 
     inv = Invalid(
         err_type=TypeErr(str),
