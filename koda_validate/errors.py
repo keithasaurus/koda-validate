@@ -161,7 +161,9 @@ ErrType = Union[
     KeyErrs,
     MapErr,
     MissingKeyErr,
-    PredicateErrs,
+    # This seems like a type exception worth making..., but that might change in the
+    # future. This is backwards compatible with existing code
+    PredicateErrs[Any],
     SetErrs,
     TypeErr,
     ValidationErrBase,

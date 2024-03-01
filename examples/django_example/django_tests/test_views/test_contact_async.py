@@ -1,5 +1,5 @@
 import pytest
-from django.test import AsyncClient  # type: ignore[attr-defined]
+from django.test import AsyncClient
 
 
 @pytest.mark.asyncio
