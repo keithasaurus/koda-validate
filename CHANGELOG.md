@@ -1,6 +1,6 @@
 4.1.1 (Apr 9, 2024)
 **Optimization**
-- Use `pattern.match(...)` instead of `re.match(pattern, ...)` in RegexPredicate and EmailPredicate
+- Use `pattern.match(...)` instead of `re.match(pattern, ...)` in `RegexPredicate` and `EmailPredicate`
 
 4.1.0 (Feb 29, 2024)
 **Features**
