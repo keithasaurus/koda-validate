@@ -10,7 +10,7 @@ from typing import List
 project = "Koda Validate"
 copyright = "2023, Keith Philpott"
 author = "Keith Philpott"
-release = "4.1.0"
+release = "4.1.1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
