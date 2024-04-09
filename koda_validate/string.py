@@ -38,7 +38,7 @@ class RegexPredicate(Predicate[str]):
     pattern: Pattern[str]
 
     def __call__(self, val: str) -> bool:
-        return re.match(self.pattern, val) is not None
+        return self.pattern.match(val) is not None
 
 
 @dataclass
@@ -46,4 +46,4 @@ class EmailPredicate(Predicate[str]):
     pattern: Pattern[str] = re.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+")
 
     def __call__(self, val: str) -> bool:
-        return re.match(self.pattern, val) is not None
+        return self.pattern.match(val) is not None
