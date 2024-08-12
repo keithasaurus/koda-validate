@@ -20,5 +20,5 @@ from .views.contact_simple import contact
 
 urlpatterns = [
     path("contact", contact),
-    path("contact-async", contact_async),  # type: ignore[arg-type]
+    path("contact-async", contact_async),
 ]
