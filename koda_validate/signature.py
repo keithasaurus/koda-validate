@@ -59,7 +59,8 @@ _DecoratedFunc = TypeVar("_DecoratedFunc", bound=_BaseDecoratedFunc)
 ReturnOverrideKey = Tuple[Literal["return_key"]]
 RETURN_OVERRIDE_KEY: ReturnOverrideKey = ("return_key",)
 
-OverridesDict = Dict[Union[str, ReturnOverrideKey], Validator[Any]]
+OverridesDictKey = Union[str, ReturnOverrideKey]
+OverridesDict = Dict[OverridesDictKey, Validator[Any]]
 
 
 def resolve_signature_typehint_default(annotation: Any) -> Validator[Any]:
@@ -100,7 +101,7 @@ def resolve_signature_typehint_default(annotation: Any) -> Validator[Any]:
 def _get_validator(
     overrides: OverridesDict,
     typehint_resolver: Callable[[Any], Validator[Any]],
-    param_name: str,
+    param_name: OverridesDictKey,
     annotation: Any,
 ) -> Validator[Any]:
     return (
@@ -382,12 +383,12 @@ def validate_signature(
 
         def inner(func_inner: _DecoratedFunc) -> _DecoratedFunc:
             # there may be a good way to replace this cast with ParamSpec in the future
-            return cast(_DecoratedFunc, _wrap_fn_partial(func_inner))
+            return _wrap_fn_partial(func_inner)
 
         return inner
     else:
         # there may be a good way to replace this cast with ParamSpec in the future
-        return cast(_DecoratedFunc, _wrap_fn_partial(func))
+        return _wrap_fn_partial(func)
 
 
 def _trunc_str(s: str, max_chars: int) -> str:
