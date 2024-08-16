@@ -52,7 +52,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         self.fields = fields
         self.validate_object = validate_object
         self.coerce = coerce
-        self._len_predicate = ExactItemCount(len(fields))
+        self._len_predicate: Predicate[tuple[Any, ...]] = ExactItemCount(len(fields))
         self._wrapped_fields_sync = [_wrap_sync_validator(v) for v in fields]
         self._wrapped_fields_async = [_wrap_async_validator(v) for v in fields]
 
