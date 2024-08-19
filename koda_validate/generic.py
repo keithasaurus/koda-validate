@@ -1,18 +1,7 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import (
-    Any,
-    ClassVar,
-    Hashable,
-    List,
-    Optional,
-    Set,
-    Sized,
-    Tuple,
-    Type,
-    TypeVar,
-)
+from typing import Any, ClassVar, Hashable, List, Optional, Set, Tuple, Type, TypeVar
 from uuid import UUID
 
 from koda import Thunk
@@ -227,10 +216,10 @@ class MaxItems(Predicate[ListOrTupleOrSetAny]):
 
 
 @dataclass
-class ExactItemCount(Predicate[Sized]):
+class ExactItemCount(Predicate[ListOrTupleOrSetAny]):
     item_count: int
 
-    def __call__(self, val: Sized) -> bool:
+    def __call__(self, val: ListOrTupleOrSetAny) -> bool:
         return len(val) == self.item_count
 
 

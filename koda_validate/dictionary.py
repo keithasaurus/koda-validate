@@ -303,9 +303,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1], Ret],
-        keys: Tuple[
-            KeyValidator[T1],
-        ],
+        keys: Tuple[KeyValidator[T1],],
         validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
@@ -867,7 +865,6 @@ class RecordValidator(_ToTupleValidator[Ret]):
         ] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
-
         self.into = into
         # needs to be `Any` until we have variadic generics presumably
         self.keys: Tuple[KeyValidator[Any], ...] = keys
@@ -891,8 +888,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
 
         for key, val in keys:
             is_required = not isinstance(val, KeyNotRequired)
-            self._fast_keys_sync.append((key, _wrap_sync_validator(val), is_required))  # type: ignore  # noqa: E501
-            self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))  # type: ignore  # noqa: E501
+            self._fast_keys_sync.append((key, _wrap_sync_validator(val), is_required))
+            self._fast_keys_async.append((key, _wrap_async_validator(val), is_required))
             self._key_set.add(key)
 
         self._unknown_keys_err: ExtraKeysErr = ExtraKeysErr(self._key_set)
