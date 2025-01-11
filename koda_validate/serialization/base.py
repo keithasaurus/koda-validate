@@ -6,7 +6,7 @@ Serializable = Union[
     str,
     bool,
     float,
-    List["Serializable"],
+    list["Serializable"],
     Tuple["Serializable", ...],
     Dict[str, "Serializable"],
 ]

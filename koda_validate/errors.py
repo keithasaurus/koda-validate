@@ -114,7 +114,7 @@ class SetErrs:
     Errors from items in a set.
     """
 
-    item_errs: List["Invalid"]
+    item_errs: list["Invalid"]
 
 
 @dataclass
@@ -123,7 +123,7 @@ class UnionErrs:
     Errors from each variant of a union.
     """
 
-    variants: List["Invalid"]
+    variants: list["Invalid"]
 
 
 @dataclass
@@ -132,7 +132,7 @@ class PredicateErrs(Generic[A]):
     A grouping of failed Predicates
     """
 
-    predicates: List[Union["Predicate[A]", "PredicateAsync[A]"]]
+    predicates: list[Union["Predicate[A]", "PredicateAsync[A]"]]
 
 
 class ValidationErrBase:

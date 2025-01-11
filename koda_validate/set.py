@@ -21,8 +21,8 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
         self,
         item_validator: Validator[_ItemT],
         *,
-        predicates: Optional[List[Predicate[Set[_ItemT]]]] = None,
-        predicates_async: Optional[List[PredicateAsync[Set[_ItemT]]]] = None,
+        predicates: Optional[list[Predicate[Set[_ItemT]]]] = None,
+        predicates_async: Optional[list[PredicateAsync[Set[_ItemT]]]] = None,
         coerce: Optional[Coercer[Set[Any]]] = None,
     ) -> None:
         self.item_validator = item_validator
@@ -50,7 +50,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
             return False, Invalid(TypeErr(set), val, self)
 
         if self.predicates:
-            list_errors: List[
+            list_errors: list[
                 Union[Predicate[Set[_ItemT]], PredicateAsync[Set[_ItemT]]]
             ] = [pred for pred in self.predicates if not pred(coerced_val)]
 
@@ -58,7 +58,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
                 return False, Invalid(PredicateErrs(list_errors), coerced_val, self)
 
         return_set: Set[_ItemT] = set()
-        item_errs: List[Invalid] = []
+        item_errs: list[Invalid] = []
         for i, item in enumerate(coerced_val):
             if self._item_validator_is_tuple:
                 is_valid, item_result = self.item_validator._validate_to_tuple(item)  # type: ignore # noqa: E501
@@ -92,7 +92,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
         else:
             return False, Invalid(TypeErr(set), val, self)
 
-        predicate_errors: List[
+        predicate_errors: list[
             Union[Predicate[Set[_ItemT]], PredicateAsync[Set[_ItemT]]]
         ] = []
         if self.predicates:
@@ -109,7 +109,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
             return False, Invalid(PredicateErrs(predicate_errors), coerced_val, self)
 
         return_set: Set[_ItemT] = set()
-        item_errs: List[Invalid] = []
+        item_errs: list[Invalid] = []
         for i, item in enumerate(coerced_val):
             if self._item_validator_is_tuple:
                 (

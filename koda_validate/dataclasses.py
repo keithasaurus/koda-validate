@@ -73,7 +73,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         @dataclass
         class Person:
             name: str
-            hobbies: List[str]
+            hobbies: list[str]
 
         validator = DataclassValidator(Person)
 

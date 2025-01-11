@@ -61,7 +61,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         class Person(TypedDict):
             name: str
-            hobbies: List[str]
+            hobbies: list[str]
 
         validator = TypedDictValidator(Person)
 

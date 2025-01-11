@@ -130,7 +130,7 @@ def _wrap_fn(
     kwargs_validator: Optional[Validator[Any]] = None
     var_args_key_and_validator: Optional[Tuple[str, Validator[Any]]] = None
     positional_args_names: Set[str] = set()
-    positional_validators: List[Optional[Tuple[str, Validator[Any]]]] = []
+    positional_validators: list[Optional[Tuple[str, Validator[Any]]]] = []
     _get_validator_partial = functools.partial(
         _get_validator, overrides, typehint_resolver
     )
@@ -185,9 +185,9 @@ def _wrap_fn(
 
         async def inner_async(*args: Any, **kwargs: Any) -> Any:
             errs: Dict[str, Invalid] = {}
-            var_args_errs: List[Tuple[Any, Invalid]] = []
+            var_args_errs: list[Tuple[Any, Invalid]] = []
             # in case the values get mutated during validation
-            ok_args: List[Any] = list(args)
+            ok_args: list[Any] = list(args)
             ok_kw_args: Dict[str, Any] = kwargs.copy()
             for i, arg in enumerate(args):
                 if len(positional_validators) >= i + 1:
@@ -258,9 +258,9 @@ def _wrap_fn(
         @functools.wraps(func)
         def inner(*args: Any, **kwargs: Any) -> Any:
             errs: Dict[str, Invalid] = {}
-            var_args_errs: List[Tuple[Any, Invalid]] = []
+            var_args_errs: list[Tuple[Any, Invalid]] = []
             # in case the values get mutated during validation
-            ok_args: List[Any] = list(args)
+            ok_args: list[Any] = list(args)
             ok_kw_args: Dict[str, Any] = kwargs.copy()
             for i, arg in enumerate(args):
                 if len(positional_validators) >= i + 1:

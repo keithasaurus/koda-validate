@@ -199,7 +199,7 @@ def obj_schema(
     to_schema_fn: ValidatorToSchema,
     obj: RecordValidator[Any],
 ) -> Dict[str, Serializable]:
-    required: List[str] = []
+    required: list[str] = []
     properties: Dict[str, Serializable] = {}
     for label, field in obj.keys:
         str_label = str(label)
@@ -219,7 +219,7 @@ def dict_validator_schema(
     to_schema_fn: ValidatorToSchema,
     obj: DictValidatorAny,
 ) -> Dict[str, Serializable]:
-    required: List[str] = []
+    required: list[str] = []
     properties: Dict[str, Serializable] = {}
     for label, field in obj.schema.items():
         str_label = str(label)

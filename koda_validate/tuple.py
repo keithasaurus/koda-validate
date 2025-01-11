@@ -391,8 +391,8 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
         self,
         item_validator: Validator[A],
         *,
-        predicates: Optional[List[Predicate[Tuple[A, ...]]]] = None,
-        predicates_async: Optional[List[PredicateAsync[Tuple[A, ...]]]] = None,
+        predicates: Optional[list[Predicate[Tuple[A, ...]]]] = None,
+        predicates_async: Optional[list[PredicateAsync[Tuple[A, ...]]]] = None,
         coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> None:
         self.item_validator = item_validator
@@ -420,7 +420,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
             return False, Invalid(TypeErr(tuple), val, self)
 
         if self.predicates:
-            tuple_errors: List[
+            tuple_errors: list[
                 Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
             ] = [pred for pred in self.predicates if not pred(coerced_val)]
 
@@ -428,7 +428,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
             if tuple_errors:
                 return False, Invalid(PredicateErrs(tuple_errors), coerced_val, self)
 
-        return_list: List[A] = []
+        return_list: list[A] = []
         index_errors: Dict[int, Invalid] = {}
         for i, item in enumerate(coerced_val):
             if self._item_validator_is_tuple:
@@ -463,7 +463,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
         else:
             return False, Invalid(TypeErr(tuple), val, self)
 
-        tuple_errors: List[
+        tuple_errors: list[
             Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
         ] = []
         if self.predicates:
@@ -479,7 +479,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
         if tuple_errors:
             return False, Invalid(PredicateErrs(tuple_errors), coerced_val, self)
 
-        return_list: List[A] = []
+        return_list: list[A] = []
         index_errors: Dict[int, Invalid] = {}
         for i, item in enumerate(coerced_val):
             if self._item_validator_is_tuple:

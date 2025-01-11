@@ -65,7 +65,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
 
         class Person(NamedTuple):
             name: str
-            hobbies: List[str]
+            hobbies: list[str]
 
         validator = NamedTupleValidator(Person)
 

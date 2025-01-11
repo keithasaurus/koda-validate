@@ -155,7 +155,7 @@ class UnionValidator(_ToTupleValidator[A]):
         :param validator_8: the eighth variant (if defined)
         :return: UnionValidator with the variants defined above.
         """
-        validators: List[Validator[Any]] = [
+        validators: list[Validator[Any]] = [
             v
             for v in [
                 validator_2,
