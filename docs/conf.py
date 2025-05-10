@@ -8,9 +8,9 @@ from typing import List
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Koda Validate"
-copyright = "2024, Keith Philpott"
+copyright = "2025, Keith Philpott"
 author = "Keith Philpott"
-release = "4.2.0"
+release = "5.0.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
