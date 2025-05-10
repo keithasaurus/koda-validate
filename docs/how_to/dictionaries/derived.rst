@@ -192,7 +192,7 @@ to add a custom :class:`Validator` for a given key.
 
 Overrides
 ^^^^^^^^^
-If you're using Python3.8, or don't want to add ``Annotated`` to your class annotations,
+If you don't want to add ``Annotated`` to your class annotations,
 you can use ``overrides={<key>: <validator>}``. The following will produce the same
 :class:`Validator` as in the :ref:`Annotated example<how_to/dictionaries/derived:Annotated>` above.
 
