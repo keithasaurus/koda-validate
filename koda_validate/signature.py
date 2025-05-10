@@ -3,6 +3,7 @@ import inspect
 from dataclasses import is_dataclass
 from datetime import date, datetime
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -79,6 +80,11 @@ def resolve_signature_typehint_default(annotation: Any) -> Validator[Any]:
     elif annotation_is_naked_tuple(annotation):
         return UniformTupleValidator(always_valid, coerce=None)
     elif is_dataclass(annotation):
+        if TYPE_CHECKING:
+            from _typeshed import DataclassInstance
+
+            annotation = cast(annotation, DataclassInstance)
+
         return DataclassValidator(annotation, coerce=dataclass_no_coerce(annotation))
     elif annotation_is_namedtuple(annotation):
         return NamedTupleValidator(annotation, coerce=namedtuple_no_coerce(annotation))
