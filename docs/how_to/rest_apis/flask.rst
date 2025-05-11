@@ -7,7 +7,7 @@ Basic
 .. code-block:: python
 
     from dataclasses import dataclass
-    from typing import Annotated, Optional, Tuple
+    from typing import Annotated, Optional
 
     from flask import Flask, jsonify, request
     from flask.typing import ResponseValue
@@ -28,7 +28,7 @@ Basic
 
 
     @app.route("/contact", methods=["POST"])
-    def contact_api() -> Tuple[ResponseValue, int]:
+    def contact_api() -> tuple[ResponseValue, int]:
         result = DataclassValidator(ContactForm)(request.json)
         match result:
             case Valid(contact_form):
@@ -56,7 +56,7 @@ Fuller Example (with Async)
 .. code-block:: python
 
     import asyncio
-    from typing import Annotated, Optional, Tuple, TypedDict
+    from typing import Annotated, Optional, TypedDict
 
     from flask import Flask, jsonify, request
     from flask.typing import ResponseValue
@@ -103,7 +103,7 @@ Fuller Example (with Async)
 
 
     @app.route("/contact", methods=["POST"])
-    async def contact_api() -> Tuple[ResponseValue, int]:
+    async def contact_api() -> tuple[ResponseValue, int]:
         result = await contact_validator.validate_async(request.json)
         match result:
             case Valid(contact_form):
