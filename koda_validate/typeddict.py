@@ -3,7 +3,6 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    FrozenSet,
     Mapping,
     Optional,
     Type,
@@ -123,7 +122,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         if sys.version_info >= (3, 9):
             # Required/NotRequired keys are always present in
-            self.required_keys: FrozenSet[str] = getattr(
+            self.required_keys: frozenset[str] = getattr(
                 td_cls, "__required_keys__", frozenset()
             )
             type_hints = get_type_hints(self.td_cls, include_extras=True)
