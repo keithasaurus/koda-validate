@@ -1,15 +1,5 @@
 from dataclasses import dataclass
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    ClassVar,
-    Dict,
-    Generic,
-    Hashable,
-    Optional,
-    Type,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Hashable, Optional, Type, Union
 
 from koda_validate._generics import A
 from koda_validate.base import Predicate, PredicateAsync
@@ -54,7 +44,7 @@ class KeyErrs:
     dictionary
     """
 
-    keys: Dict[Any, "Invalid"]
+    keys: dict[Any, "Invalid"]
 
 
 @dataclass
@@ -74,7 +64,7 @@ class MapErr:
     errors from key/value pairs of a map-like dictionary
     """
 
-    keys: Dict[Any, KeyValErrs]
+    keys: dict[Any, KeyValErrs]
 
 
 class MissingKeyErr:
@@ -103,7 +93,7 @@ class IndexErrs:
     dictionary of validation errors by index
     """
 
-    indexes: Dict[int, "Invalid"]
+    indexes: dict[int, "Invalid"]
 
 
 @dataclass

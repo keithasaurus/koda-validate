@@ -6,7 +6,6 @@ from typing import (
     Awaitable,
     Callable,
     ClassVar,
-    Dict,
     Optional,
     Protocol,
     Type,
@@ -40,14 +39,14 @@ from koda_validate.valid import Invalid
 
 
 class DataclassLike(Protocol):
-    __dataclass_fields__: ClassVar[Dict[str, Any]]
+    __dataclass_fields__: ClassVar[dict[str, Any]]
 
 
 _DCT = TypeVar("_DCT", bound=DataclassLike)
 
 
-def dataclass_no_coerce(data_cls: Type[_DCT]) -> Coercer[Dict[Any, Any]]:
-    def _fn(val: Any) -> Maybe[Dict[Any, Any]]:
+def dataclass_no_coerce(data_cls: Type[_DCT]) -> Coercer[dict[Any, Any]]:
+    def _fn(val: Any) -> Maybe[dict[Any, Any]]:
         return Just(val.__dict__) if type(val) is data_cls else nothing
 
     return Coercer(_fn, {data_cls})
@@ -104,14 +103,14 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         self,
         data_cls: Type[_DCT],
         *,
-        overrides: Optional[Dict[str, Validator[Any]]] = None,
+        overrides: Optional[dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_DCT], Optional[ErrType]]] = None,
         validate_object_async: Optional[
             Callable[[_DCT], Awaitable[Optional[ErrType]]]
         ] = None,
         fail_on_unknown_keys: bool = False,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
-        coerce: Optional[Coercer[Dict[Any, Any]]] = None,
+        coerce: Optional[Coercer[dict[Any, Any]]] = None,
     ) -> None:
         if not is_dataclass(data_cls):
             raise TypeError("Must be a dataclass")
@@ -171,7 +170,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                     CoercionErr(self.coerce.compatible_types, dict), val, self
                 )
             else:
-                coerced_val: Dict[Any, Any] = coerced.val
+                coerced_val: dict[Any, Any] = coerced.val
 
         elif type(val) is dict:
             coerced_val = val
@@ -192,8 +191,8 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, coerced_val, self)
 
-        success_dict: Dict[Any, Any] = {}
-        errs: Dict[Any, Invalid] = {}
+        success_dict: dict[Any, Any] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
             if key_ not in coerced_val:
                 if key_required:
@@ -222,7 +221,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                     CoercionErr(self.coerce.compatible_types, dict), val, self
                 )
             else:
-                coerced_val: Dict[Any, Any] = coerced.val
+                coerced_val: dict[Any, Any] = coerced.val
 
         elif type(val) is dict:
             coerced_val = val
@@ -244,8 +243,8 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, coerced_val, self)
 
-        success_dict: Dict[Any, Any] = {}
-        errs: Dict[Any, Invalid] = {}
+        success_dict: dict[Any, Any] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_async:
             if key_ not in coerced_val:
                 if key_required:

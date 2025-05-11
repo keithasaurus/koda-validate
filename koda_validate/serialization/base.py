@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Union
 
 Serializable = Union[
     None,
@@ -8,5 +8,5 @@ Serializable = Union[
     float,
     list["Serializable"],
     tuple["Serializable", ...],
-    Dict[str, "Serializable"],
+    dict[str, "Serializable"],
 ]

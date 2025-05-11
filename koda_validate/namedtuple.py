@@ -4,7 +4,6 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    Dict,
     NamedTuple,
     Optional,
     Type,
@@ -38,8 +37,8 @@ from koda_validate.valid import Invalid
 _NTT = TypeVar("_NTT", bound=NamedTuple)
 
 
-def namedtuple_no_coerce(nt_cls: Type[_NTT]) -> Coercer[Dict[Any, Any]]:
-    def _fn(val: Any) -> Maybe[Dict[Any, Any]]:
+def namedtuple_no_coerce(nt_cls: Type[_NTT]) -> Coercer[dict[Any, Any]]:
+    def _fn(val: Any) -> Maybe[dict[Any, Any]]:
         return Just(val._asdict()) if type(val) is nt_cls else nothing
 
     return Coercer(_fn, {nt_cls})
@@ -98,14 +97,14 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         self,
         named_tuple_cls: Type[_NTT],
         *,
-        overrides: Optional[Dict[str, Validator[Any]]] = None,
+        overrides: Optional[dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_NTT], Optional[ErrType]]] = None,
         validate_object_async: Optional[
             Callable[[_NTT], Awaitable[Optional[ErrType]]]
         ] = None,
         fail_on_unknown_keys: bool = False,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
-        coerce: Optional[Coercer[Dict[Any, Any]]] = None,
+        coerce: Optional[Coercer[dict[Any, Any]]] = None,
     ) -> None:
         self.named_tuple_cls = named_tuple_cls
         self.overrides = overrides
@@ -164,7 +163,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
                     CoercionErr(self.coerce.compatible_types, dict), val, self
                 )
             else:
-                coerced_val: Dict[Any, Any] = coerced.val
+                coerced_val: dict[Any, Any] = coerced.val
 
         elif type(val) is dict:
             coerced_val = val
@@ -185,8 +184,8 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, coerced_val, self)
 
-        success_dict: Dict[Any, Any] = {}
-        errs: Dict[Any, Invalid] = {}
+        success_dict: dict[Any, Any] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
             if key_ not in coerced_val:
                 if key_required:
@@ -215,7 +214,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
                     CoercionErr(self.coerce.compatible_types, dict), val, self
                 )
             else:
-                coerced_val: Dict[Any, Any] = coerced.val
+                coerced_val: dict[Any, Any] = coerced.val
 
         elif type(val) is dict:
             coerced_val = val
@@ -236,8 +235,8 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, coerced_val, self)
 
-        success_dict: Dict[Any, Any] = {}
-        errs: Dict[Any, Invalid] = {}
+        success_dict: dict[Any, Any] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_async:
             if key_ not in coerced_val:
                 if key_required:

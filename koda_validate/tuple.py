@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional, Tuple, Union, overload
+from typing import Any, Callable, Optional, Tuple, Union, overload
 
 from koda import Just, Maybe, nothing
 
@@ -301,7 +301,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         # are deserialized to lists
         if not self._len_predicate(coerced_val):
             return False, Invalid(PredicateErrs([self._len_predicate]), coerced_val, self)
-        errs: Dict[int, Invalid] = {}
+        errs: dict[int, Invalid] = {}
         vals = []
         for i, (validator, tuple_val) in enumerate(
             zip(self._wrapped_fields_sync, coerced_val)
@@ -341,7 +341,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         if not self._len_predicate(val):
             return False, Invalid(PredicateErrs([self._len_predicate]), val, self)
 
-        errs: Dict[int, Invalid] = {}
+        errs: dict[int, Invalid] = {}
         vals = []
         for i, (validator, tuple_val) in enumerate(
             zip(self._wrapped_fields_async, coerced_val)
@@ -429,7 +429,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
                 return False, Invalid(PredicateErrs(tuple_errors), coerced_val, self)
 
         return_list: list[A] = []
-        index_errors: Dict[int, Invalid] = {}
+        index_errors: dict[int, Invalid] = {}
         for i, item in enumerate(coerced_val):
             if self._item_validator_is_tuple:
                 is_valid, item_result = self.item_validator._validate_to_tuple(item)  # type: ignore # noqa: E501
@@ -480,7 +480,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
             return False, Invalid(PredicateErrs(tuple_errors), coerced_val, self)
 
         return_list: list[A] = []
-        index_errors: Dict[int, Invalid] = {}
+        index_errors: dict[int, Invalid] = {}
         for i, item in enumerate(coerced_val):
             if self._item_validator_is_tuple:
                 (

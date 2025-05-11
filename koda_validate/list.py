@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 from koda_validate._generics import A
 from koda_validate._internal import (
@@ -61,7 +61,7 @@ class ListValidator(_ToTupleValidator[list[A]]):
                 return False, Invalid(PredicateErrs(list_errors), coerced_val, self)
 
         return_list: list[A] = []
-        index_errs: Dict[int, Invalid] = {}
+        index_errs: dict[int, Invalid] = {}
         for i, item in enumerate(coerced_val):
             is_valid, item_result = self._wrapped_item_validator_sync(item)
 

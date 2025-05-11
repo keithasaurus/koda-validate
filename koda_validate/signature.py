@@ -6,7 +6,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Literal,
     Optional,
     TypeVar,
@@ -58,7 +57,7 @@ ReturnOverrideKey = tuple[Literal["return_key"]]
 RETURN_OVERRIDE_KEY: ReturnOverrideKey = ("return_key",)
 
 OverridesDictKey = Union[str, ReturnOverrideKey]
-OverridesDict = Dict[OverridesDictKey, Validator[Any]]
+OverridesDict = dict[OverridesDictKey, Validator[Any]]
 
 
 def resolve_signature_typehint_default(annotation: Any) -> Validator[Any]:
@@ -128,7 +127,7 @@ def _wrap_fn(
     # If we simply didn't store the keys of arguments we're ignoring, we
     # wouldn't be able to tell the difference between a **kwargs key and a
     # defined argument name
-    schema: Dict[str, Optional[Validator[Any]]] = {}
+    schema: dict[str, Optional[Validator[Any]]] = {}
 
     kwargs_validator: Optional[Validator[Any]] = None
     var_args_key_and_validator: Optional[tuple[str, Validator[Any]]] = None
@@ -187,11 +186,11 @@ def _wrap_fn(
     ):
 
         async def inner_async(*args: Any, **kwargs: Any) -> Any:
-            errs: Dict[str, Invalid] = {}
+            errs: dict[str, Invalid] = {}
             var_args_errs: list[tuple[Any, Invalid]] = []
             # in case the values get mutated during validation
             ok_args: list[Any] = list(args)
-            ok_kw_args: Dict[str, Any] = kwargs.copy()
+            ok_kw_args: dict[str, Any] = kwargs.copy()
             for i, arg in enumerate(args):
                 if len(positional_validators) >= i + 1:
                     arg_details = positional_validators[i]
@@ -260,11 +259,11 @@ def _wrap_fn(
 
         @functools.wraps(func)
         def inner(*args: Any, **kwargs: Any) -> Any:
-            errs: Dict[str, Invalid] = {}
+            errs: dict[str, Invalid] = {}
             var_args_errs: list[tuple[Any, Invalid]] = []
             # in case the values get mutated during validation
             ok_args: list[Any] = list(args)
-            ok_kw_args: Dict[str, Any] = kwargs.copy()
+            ok_kw_args: dict[str, Any] = kwargs.copy()
             for i, arg in enumerate(args):
                 if len(positional_validators) >= i + 1:
                     arg_details = positional_validators[i]
@@ -475,7 +474,7 @@ def _get_arg_fail_message(invalid: Invalid, indent: str = "", prefix: str = "") 
     return ret
 
 
-def _get_args_fail_msg(errs: Dict[str, Invalid]) -> str:
+def _get_args_fail_msg(errs: dict[str, Invalid]) -> str:
     messages = [
         f"{k}={_trunc_str(repr(v.value), 60)}\n{_get_arg_fail_message(v, '    ')}"
         for k, v in errs.items()
@@ -492,7 +491,7 @@ class InvalidArgsError(Exception):
     Represents the validation failure of one or more arguments.
     """
 
-    def __init__(self, errs: Dict[str, Invalid]) -> None:
+    def __init__(self, errs: dict[str, Invalid]) -> None:
         super().__init__(_INVALID_ARGS_MESSAGE_HEADER + _get_args_fail_msg(errs))
         self.errs = errs
 

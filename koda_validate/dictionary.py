@@ -1,15 +1,5 @@
 import dataclasses
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    ClassVar,
-    Dict,
-    Hashable,
-    Optional,
-    Union,
-    overload,
-)
+from typing import Any, Awaitable, Callable, ClassVar, Hashable, Optional, Union, overload
 
 from koda import Just, Maybe, nothing
 
@@ -91,7 +81,7 @@ KeyValidator = tuple[
 ]
 
 
-class MapValidator(Validator[Dict[T1, T2]]):
+class MapValidator(Validator[dict[T1, T2]]):
     __match_args__ = (
         "key_validator",
         "value_validator",
@@ -105,9 +95,9 @@ class MapValidator(Validator[Dict[T1, T2]]):
         *,
         key: Validator[T1],
         value: Validator[T2],
-        predicates: Optional[list[Predicate[Dict[T1, T2]]]] = None,
-        predicates_async: Optional[list[PredicateAsync[Dict[T1, T2]]]] = None,
-        coerce: Optional[Coercer[Dict[Any, Any]]] = None,
+        predicates: Optional[list[Predicate[dict[T1, T2]]]] = None,
+        predicates_async: Optional[list[PredicateAsync[dict[T1, T2]]]] = None,
+        coerce: Optional[Coercer[dict[Any, Any]]] = None,
     ) -> None:
         self.key_validator = key
         self.value_validator = value
@@ -115,12 +105,12 @@ class MapValidator(Validator[Dict[T1, T2]]):
         self.predicates_async = predicates_async
         self.coerce = coerce
 
-    async def validate_async(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
+    async def validate_async(self, val: Any) -> ValidationResult[dict[T1, T2]]:
         if self.coerce:
             if not (coerced := self.coerce(val)).is_just:
                 return Invalid(CoercionErr(self.coerce.compatible_types, dict), val, self)
             else:
-                coerced_val: Dict[Any, Any] = coerced.val
+                coerced_val: dict[Any, Any] = coerced.val
 
         elif type(val) is dict:
             coerced_val = val
@@ -128,7 +118,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
             return Invalid(TypeErr(dict), val, self)
 
         predicate_errors: list[
-            Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
+            Union[Predicate[dict[Any, Any]], PredicateAsync[dict[Any, Any]]]
         ] = []
         if self.predicates is not None:
             for predicate in self.predicates:
@@ -148,8 +138,8 @@ class MapValidator(Validator[Dict[T1, T2]]):
         if predicate_errors:
             return Invalid(PredicateErrs(predicate_errors), coerced_val, self)
 
-        return_dict: Dict[T1, T2] = {}
-        errors: Dict[Any, KeyValErrs] = {}
+        return_dict: dict[T1, T2] = {}
+        errors: dict[Any, KeyValErrs] = {}
 
         for key, val_ in coerced_val.items():
             key_result = await self.key_validator.validate_async(key)
@@ -168,7 +158,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
         else:
             return Valid(return_dict)
 
-    def __call__(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
+    def __call__(self, val: Any) -> ValidationResult[dict[T1, T2]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -176,7 +166,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
             if not (coerced := self.coerce(val)).is_just:
                 return Invalid(CoercionErr(self.coerce.compatible_types, dict), val, self)
             else:
-                coerced_val: Dict[Any, Any] = coerced.val
+                coerced_val: dict[Any, Any] = coerced.val
 
         elif type(val) is dict:
             coerced_val = val
@@ -184,7 +174,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
             return Invalid(TypeErr(dict), val, self)
 
         predicate_errors: list[
-            Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
+            Union[Predicate[dict[Any, Any]], PredicateAsync[dict[Any, Any]]]
         ] = []
         if self.predicates is not None:
             for predicate in self.predicates:
@@ -199,8 +189,8 @@ class MapValidator(Validator[Dict[T1, T2]]):
         if predicate_errors:
             return Invalid(PredicateErrs(predicate_errors), coerced_val, self)
 
-        return_dict: Dict[T1, T2] = {}
-        errors: Dict[Any, KeyValErrs] = {}
+        return_dict: dict[T1, T2] = {}
+        errors: dict[Any, KeyValErrs] = {}
         for key, val_ in coerced_val.items():
             key_result = self.key_validator(key)
             val_result = self.value_validator(val_)
@@ -247,7 +237,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
         )
 
 
-class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
+class IsDictValidator(_ToTupleValidator[dict[Any, Any]]):
     _instance: ClassVar[Optional["IsDictValidator"]] = None
 
     def __new__(cls) -> "IsDictValidator":
@@ -256,13 +246,13 @@ class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
             cls._instance = super(IsDictValidator, cls).__new__(cls)
         return cls._instance
 
-    def _validate_to_tuple(self, val: Any) -> _ResultTuple[Dict[Any, Any]]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[dict[Any, Any]]:
         if isinstance(val, dict):
             return True, val
         else:
             return False, Invalid(TypeErr(dict), val, self)
 
-    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[Dict[Any, Any]]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[dict[Any, Any]]:
         return self._validate_to_tuple(val)
 
     def __repr__(self) -> str:
@@ -273,18 +263,18 @@ is_dict_validator = IsDictValidator()
 
 
 @dataclasses.dataclass
-class MinKeys(Predicate[Dict[Any, Any]]):
+class MinKeys(Predicate[dict[Any, Any]]):
     size: int
 
-    def __call__(self, val: Dict[Any, Any]) -> bool:
+    def __call__(self, val: dict[Any, Any]) -> bool:
         return len(val) >= self.size
 
 
 @dataclasses.dataclass
-class MaxKeys(Predicate[Dict[Any, Any]]):
+class MaxKeys(Predicate[dict[Any, Any]]):
     size: int
 
-    def __call__(self, val: Dict[Any, Any]) -> bool:
+    def __call__(self, val: dict[Any, Any]) -> bool:
         return len(val) <= self.size
 
 
@@ -904,7 +894,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                     return False, Invalid(self._unknown_keys_err, data, self)
 
         args: list[Any] = []
-        errs: Dict[Any, Invalid] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
             if key_ not in data:
                 if key_required:
@@ -937,7 +927,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                     return False, Invalid(self._unknown_keys_err, data, self)
 
         args: list[Any] = []
-        errs: Dict[Any, Invalid] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, async_validator, key_required in self._fast_keys_async:
             if key_ not in data:
                 if key_required:
@@ -994,7 +984,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         )
 
 
-class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
+class DictValidatorAny(_ToTupleValidator[dict[Any, Any]]):
     """
     This class exists for a few reasons:
 
@@ -1002,7 +992,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
     - it's initialization is very straightforward
 
-    The big caveat is that a valid result is always typed as ``Dict[Any, Any]``, even
+    The big caveat is that a valid result is always typed as ``dict[Any, Any]``, even
     though the validation will work just as well as with any other :class:`Validator`
 
     """
@@ -1015,20 +1005,20 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
     def __init__(
         self,
-        schema: Dict[Any, Validator[Any]],
+        schema: dict[Any, Validator[Any]],
         *,
         validate_object: Optional[
-            Callable[[Dict[Hashable, Any]], Optional[ErrType]]
+            Callable[[dict[Hashable, Any]], Optional[ErrType]]
         ] = None,
         validate_object_async: Optional[
             Callable[
-                [Dict[Any, Any]],
+                [dict[Any, Any]],
                 Awaitable[Optional[ErrType]],
             ]
         ] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
-        self.schema: Dict[Any, Validator[Any]] = schema
+        self.schema: dict[Any, Validator[Any]] = schema
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
@@ -1058,7 +1048,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
         self._unknown_keys_err = ExtraKeysErr(set(schema.keys()))
 
-    def _validate_to_tuple(self, data: Any) -> _ResultTuple[Dict[Any, Any]]:
+    def _validate_to_tuple(self, data: Any) -> _ResultTuple[dict[Any, Any]]:
         if self._disallow_synchronous:
             _raise_validate_object_async_in_sync_mode(self.__class__)
 
@@ -1070,8 +1060,8 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
 
-        success_dict: Dict[Any, Any] = {}
-        errs: Dict[Any, Invalid] = {}
+        success_dict: dict[Any, Any] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
             if key_ not in data:
                 if key_required:
@@ -1091,7 +1081,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
         return True, success_dict
 
-    async def _validate_to_tuple_async(self, data: Any) -> _ResultTuple[Dict[Any, Any]]:
+    async def _validate_to_tuple_async(self, data: Any) -> _ResultTuple[dict[Any, Any]]:
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 
@@ -1101,8 +1091,8 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
 
-        success_dict: Dict[Any, Any] = {}
-        errs: Dict[Any, Invalid] = {}
+        success_dict: dict[Any, Any] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_async:
             if key_ not in data:
                 if key_required:

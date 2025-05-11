@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Callable, Dict, Optional, Type, Union
+from typing import Any, Callable, Optional, Type, Union
 
 from koda_validate import NotBlank
 from koda_validate.base import Predicate, PredicateAsync
@@ -105,7 +105,7 @@ def pred_to_err_message(pred: Union[Predicate[Any], PredicateAsync[Any]]) -> str
         )
 
 
-TYPE_DESCRIPTION_LOOKUP: Dict[Type[Any], str] = {
+TYPE_DESCRIPTION_LOOKUP: dict[Type[Any], str] = {
     str: "string",
     int: "integer",
     Decimal: "decimal",
@@ -188,9 +188,9 @@ def to_serializable_errs(
     elif isinstance(err, MissingKeyErr):
         return ["key missing"]
     elif isinstance(err, MapErr):
-        errs_dict: Dict[str, Serializable] = {}
+        errs_dict: dict[str, Serializable] = {}
         for key, k_v_errs in err.keys.items():
-            kv_dict: Dict[str, Serializable] = {
+            kv_dict: dict[str, Serializable] = {
                 k: next_level(v)
                 for k, v in [("key", k_v_errs.key), ("value", k_v_errs.val)]
                 if v is not None
