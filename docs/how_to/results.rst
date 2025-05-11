@@ -5,7 +5,7 @@ Validation Results
     :noindex:
 
 In Koda Validate, :class:`Validator`\s express validation success or failure by returning
-a :data:`ValidationResult`. To be more specific it requires on generic parameter: the
+a :data:`ValidationResult`. To be more specific it requires one generic parameter: the
 valid data type. Likewise, :class:`Validator<koda_validate.Validator>`\s take the same
 generic parameter for the same purpose. So, a ``Validator[int]`` will always return a
 ``ValidationResult[int]``:
