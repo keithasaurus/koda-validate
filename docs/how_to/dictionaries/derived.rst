@@ -59,7 +59,7 @@ extensive, and you can build complex nested validators, even using things like
 .. testcode:: complex
 
     from dataclasses import dataclass
-    from typing import List, Literal, Optional, TypedDict, Union
+    from typing import Literal, Optional, TypedDict, Union
     from koda_validate import TypedDictValidator, Valid
 
 
@@ -72,7 +72,7 @@ extensive, and you can build complex nested validators, even using things like
 
     class Recipe(TypedDict):
         title: str
-        ingredients: List[Ingredient]
+        ingredients: list[Ingredient]
         instructions: str
 
     recipe_validator = TypedDictValidator(Recipe)

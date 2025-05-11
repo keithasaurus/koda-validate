@@ -111,7 +111,7 @@ In the code above, if :class:`Predicate<koda_validate.Predicate>` is specified, 
     Invalid(err_type=PredicateErrs(predicates=[FloatMin(min=2.5)]), value=1.1, ...)
 
 We limited the Validator to one :class:`Predicate` for simplicity. In Koda Validate, :class:`Validator`\s
-that accept predicates typically allow of a ``List`` of :class:`Predicate`\s. Because :class:`Predicate`\s
+that accept predicates typically allow of a ``list`` of :class:`Predicate`\s. Because :class:`Predicate`\s
 cannot alter values, it's safe to have as many as you want (i.e. ``SimpleFloatValidator(FloatMin(3.3), FloatMax(4.4), ...)``).
 
 

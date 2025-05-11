@@ -81,7 +81,7 @@ In this example, we'll use a basic ``dict`` to act as a cache.
 .. testcode:: cache
 
     from dataclasses import dataclass, field
-    from typing import Dict, Any, TypeVar
+    from typing import Any, TypeVar
     from koda import Maybe, Just, nothing
     from koda_validate import (CacheValidatorBase, ValidationResult, ListValidator,
                                StringValidator, IntValidator)
@@ -90,7 +90,7 @@ In this example, we'll use a basic ``dict`` to act as a cache.
 
     @dataclass
     class DictCacheValidator(CacheValidatorBase[A]):
-        _dict_cache: Dict[Any, ValidationResult[A]] = field(default_factory=dict)
+        _dict_cache: dict[Any, ValidationResult[A]] = field(default_factory=dict)
 
         def cache_get_sync(self, val: Any) -> Maybe[ValidationResult[A]]:
             if val in self._dict_cache:
