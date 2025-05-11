@@ -43,7 +43,7 @@ sphinx  = "7.4.7"
 furo = "2024.8.6"
 flask = {version = "3.1.0", extras = ["async"]}
 django = "4.2.21"
-django-stubs = "4.2.7"
+django-stubs = "5.0.4"
 pytest-django = "4.11.1"
 sphinx-autodoc-typehints = "1.25.3"
 darglint = "1.8.1"
