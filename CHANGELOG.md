@@ -1,4 +1,4 @@
-5.0.0 (May 11, 2024)
+5.0.0 (May 11, 2025)
 **Breaking Changes**
 - Remove support for Python 3.8 
 
