@@ -59,7 +59,7 @@ extensive, and you can build complex nested validators, even using things like
 .. testcode:: complex
 
     from dataclasses import dataclass
-    from typing import List, Literal, Optional, TypedDict, Union
+    from typing import Literal, Optional, TypedDict, Union
     from koda_validate import TypedDictValidator, Valid
 
 
@@ -72,7 +72,7 @@ extensive, and you can build complex nested validators, even using things like
 
     class Recipe(TypedDict):
         title: str
-        ingredients: List[Ingredient]
+        ingredients: list[Ingredient]
         instructions: str
 
     recipe_validator = TypedDictValidator(Recipe)
@@ -192,7 +192,7 @@ to add a custom :class:`Validator` for a given key.
 
 Overrides
 ^^^^^^^^^
-If you're using Python3.8, or don't want to add ``Annotated`` to your class annotations,
+If you don't want to add ``Annotated`` to your class annotations,
 you can use ``overrides={<key>: <validator>}``. The following will produce the same
 :class:`Validator` as in the :ref:`Annotated example<how_to/dictionaries/derived:Annotated>` above.
 

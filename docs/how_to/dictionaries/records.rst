@@ -57,7 +57,6 @@ Here's a more complex example of mixing and matching different kinds of keys.
 
 .. testcode::
 
-    from typing import List
     from dataclasses import dataclass
     from koda import Maybe, Just
     from koda_validate import (
@@ -69,7 +68,7 @@ Here's a more complex example of mixing and matching different kinds of keys.
     class Person:
         name: str
         age: Maybe[int]
-        hobbies: List[str]
+        hobbies: list[str]
 
 
     person_validator = RecordValidator(

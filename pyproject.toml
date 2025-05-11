@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "koda-validate"
-version = "4.2.0"
+version = "5.0.0"
 readme = "README.md"
 description = "Typesafe, composable validation"
 documentation = "https://koda-validate.readthedocs.io/en/stable/"
@@ -23,32 +23,31 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8.1"
+python = "^3.9"
 koda = "1.4.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "8.3.2"
-pyright = "1.1.375"
+pytest = "8.3.5"
 pytest-cov = "5.0.0"
-isort = "5.13.2"
-flake8 = "7.1.1"
-pre-commit = "3.5.0"
-mypy = "1.11.1"
-pydantic = "2.8.2"
-pytest-asyncio = "0.23.8"
-voluptuous = "0.14.2"
-ssort = "0.13.0"
+isort = "6.0.1"
+flake8 = "7.2.0"
+pre-commit = "3.8.0"
+mypy = "1.15.0"
+pydantic = "2.11.4"
+pytest-asyncio = "0.26.0"
+voluptuous = "0.15.2"
+ssort = "0.14.0"
 jsonschema = "4.23.0"
 types-jsonschema = "4.23.0.20240712"
-sphinx = "6.2.1"
-furo = "2023.9.10"
-flask = {version = "3.0.3", extras = ["async"]}
-django = "4.2.15"
+sphinx  = "7.4.7"
+furo = "2024.8.6"
+flask = {version = "3.1.0", extras = ["async"]}
+django = "4.2.21"
 django-stubs = "5.0.4"
-pytest-django = "4.8.0"
-sphinx-autodoc-typehints = "1.23.0"
+pytest-django = "4.11.1"
+sphinx-autodoc-typehints = "1.25.3"
 darglint = "1.8.1"
-black = "24.8.0"
+black = "25.1.0"
 
 [tool.mypy]
 exclude = ["build", "bench"]

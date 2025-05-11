@@ -28,4 +28,4 @@ For dictionaries with consistent key/value types, you can use :class:`MapValidat
     )
 
 Mypy will infer that the type of valid data returned from ``validator`` above will be
-``Dict[str, int]``.
+``dict[str, int]``.

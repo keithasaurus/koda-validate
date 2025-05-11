@@ -165,7 +165,7 @@ Let's try it.
 
 Overrides
 ^^^^^^^^^
-If you are using Python 3.8, or if you don't like the ``Annotated`` syntax, you can achieve
+If you don't like the ``Annotated`` syntax, you can achieve
 the same thing with ``overrides``. This is equivalent to the ``Annotated`` example above`:
 
 .. testcode:: overrides

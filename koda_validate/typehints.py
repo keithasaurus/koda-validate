@@ -10,7 +10,7 @@ from .is_type import TypeValidator
 from .maybe import MaybeValidator
 
 if sys.version_info >= (3, 9):
-    from typing import Annotated
+    from typing import TYPE_CHECKING, Annotated, List, Set, cast
 
 if sys.version_info >= (3, 10):
     from types import UnionType
@@ -18,18 +18,7 @@ if sys.version_info >= (3, 10):
 if sys.version_info >= (3, 11):
     from typing import NotRequired, Required
 
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Literal,
-    Set,
-    Tuple,
-    Union,
-    get_args,
-    get_origin,
-)
+from typing import Any, Callable, Dict, Literal, Tuple, Union, get_args, get_origin
 from uuid import UUID
 
 from ._internal import _is_typed_dict_cls
@@ -115,6 +104,11 @@ def get_typehint_validator_base(
         return MapValidator(key=always_valid, value=always_valid)
     elif is_dataclass(annotation):
         from .dataclasses import DataclassValidator
+
+        if TYPE_CHECKING:
+            from _typeshed import DataclassInstance
+
+            annotation = cast(annotation, DataclassInstance)
 
         return DataclassValidator(annotation)
     elif annotation_is_namedtuple(annotation):

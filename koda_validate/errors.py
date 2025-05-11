@@ -1,17 +1,5 @@
 from dataclasses import dataclass
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    ClassVar,
-    Dict,
-    Generic,
-    Hashable,
-    List,
-    Optional,
-    Set,
-    Type,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Hashable, Optional, Type, Union
 
 from koda_validate._generics import A
 from koda_validate.base import Predicate, PredicateAsync
@@ -27,7 +15,7 @@ class CoercionErr:
     coerced to a destination type
     """
 
-    compatible_types: Set[Type[Any]]
+    compatible_types: set[Type[Any]]
     dest_type: Type[Any]
 
 
@@ -46,7 +34,7 @@ class ExtraKeysErr:
     extra keys were present in a dictionary
     """
 
-    expected_keys: Set[Hashable]
+    expected_keys: set[Hashable]
 
 
 @dataclass
@@ -56,7 +44,7 @@ class KeyErrs:
     dictionary
     """
 
-    keys: Dict[Any, "Invalid"]
+    keys: dict[Any, "Invalid"]
 
 
 @dataclass
@@ -76,7 +64,7 @@ class MapErr:
     errors from key/value pairs of a map-like dictionary
     """
 
-    keys: Dict[Any, KeyValErrs]
+    keys: dict[Any, KeyValErrs]
 
 
 class MissingKeyErr:
@@ -105,7 +93,7 @@ class IndexErrs:
     dictionary of validation errors by index
     """
 
-    indexes: Dict[int, "Invalid"]
+    indexes: dict[int, "Invalid"]
 
 
 @dataclass
@@ -114,7 +102,7 @@ class SetErrs:
     Errors from items in a set.
     """
 
-    item_errs: List["Invalid"]
+    item_errs: list["Invalid"]
 
 
 @dataclass
@@ -123,7 +111,7 @@ class UnionErrs:
     Errors from each variant of a union.
     """
 
-    variants: List["Invalid"]
+    variants: list["Invalid"]
 
 
 @dataclass
@@ -132,7 +120,7 @@ class PredicateErrs(Generic[A]):
     A grouping of failed Predicates
     """
 
-    predicates: List[Union["Predicate[A]", "PredicateAsync[A]"]]
+    predicates: list[Union["Predicate[A]", "PredicateAsync[A]"]]
 
 
 class ValidationErrBase:

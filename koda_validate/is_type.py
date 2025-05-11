@@ -1,4 +1,4 @@
-from typing import List, Optional, Type
+from typing import Optional, Type
 
 from koda_validate import Predicate, PredicateAsync, Processor
 from koda_validate._generics import SuccessT
@@ -11,9 +11,9 @@ class TypeValidator(_ToTupleStandardValidator[SuccessT]):
         self,
         type_: Type[SuccessT],
         *,
-        predicates: Optional[List[Predicate[SuccessT]]] = None,
-        predicates_async: Optional[List[PredicateAsync[SuccessT]]] = None,
-        preprocessors: Optional[List[Processor[SuccessT]]] = None,
+        predicates: Optional[list[Predicate[SuccessT]]] = None,
+        predicates_async: Optional[list[PredicateAsync[SuccessT]]] = None,
+        preprocessors: Optional[list[Processor[SuccessT]]] = None,
         coerce: Optional[Coercer[SuccessT]] = None,
     ) -> None:
         self._TYPE = type_

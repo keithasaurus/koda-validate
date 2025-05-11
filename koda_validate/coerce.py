@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Generic, Set, Type
+from typing import Any, Callable, Generic, Type
 
 from koda import Maybe
 
@@ -12,7 +12,7 @@ class Coercer(Generic[A]):
     """
     The function which handles the coercion.
     """
-    compatible_types: Set[Type[Any]]
+    compatible_types: set[Type[Any]]
     """
     All the types which can potentially be coerced.
     """

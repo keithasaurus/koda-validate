@@ -1,17 +1,5 @@
 import dataclasses
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    ClassVar,
-    Dict,
-    Hashable,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    overload,
-)
+from typing import Any, Awaitable, Callable, ClassVar, Hashable, Optional, Union, overload
 
 from koda import Just, Maybe, nothing
 
@@ -87,13 +75,13 @@ class KeyNotRequired(Validator[Maybe[A]]):
         return f"KeyNotRequired({repr(self.validator)})"
 
 
-KeyValidator = Tuple[
+KeyValidator = tuple[
     Hashable,
     Validator[A],
 ]
 
 
-class MapValidator(Validator[Dict[T1, T2]]):
+class MapValidator(Validator[dict[T1, T2]]):
     __match_args__ = (
         "key_validator",
         "value_validator",
@@ -107,9 +95,9 @@ class MapValidator(Validator[Dict[T1, T2]]):
         *,
         key: Validator[T1],
         value: Validator[T2],
-        predicates: Optional[List[Predicate[Dict[T1, T2]]]] = None,
-        predicates_async: Optional[List[PredicateAsync[Dict[T1, T2]]]] = None,
-        coerce: Optional[Coercer[Dict[Any, Any]]] = None,
+        predicates: Optional[list[Predicate[dict[T1, T2]]]] = None,
+        predicates_async: Optional[list[PredicateAsync[dict[T1, T2]]]] = None,
+        coerce: Optional[Coercer[dict[Any, Any]]] = None,
     ) -> None:
         self.key_validator = key
         self.value_validator = value
@@ -117,20 +105,20 @@ class MapValidator(Validator[Dict[T1, T2]]):
         self.predicates_async = predicates_async
         self.coerce = coerce
 
-    async def validate_async(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
+    async def validate_async(self, val: Any) -> ValidationResult[dict[T1, T2]]:
         if self.coerce:
             if not (coerced := self.coerce(val)).is_just:
                 return Invalid(CoercionErr(self.coerce.compatible_types, dict), val, self)
             else:
-                coerced_val: Dict[Any, Any] = coerced.val
+                coerced_val: dict[Any, Any] = coerced.val
 
         elif type(val) is dict:
             coerced_val = val
         else:
             return Invalid(TypeErr(dict), val, self)
 
-        predicate_errors: List[
-            Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
+        predicate_errors: list[
+            Union[Predicate[dict[Any, Any]], PredicateAsync[dict[Any, Any]]]
         ] = []
         if self.predicates is not None:
             for predicate in self.predicates:
@@ -150,8 +138,8 @@ class MapValidator(Validator[Dict[T1, T2]]):
         if predicate_errors:
             return Invalid(PredicateErrs(predicate_errors), coerced_val, self)
 
-        return_dict: Dict[T1, T2] = {}
-        errors: Dict[Any, KeyValErrs] = {}
+        return_dict: dict[T1, T2] = {}
+        errors: dict[Any, KeyValErrs] = {}
 
         for key, val_ in coerced_val.items():
             key_result = await self.key_validator.validate_async(key)
@@ -170,7 +158,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
         else:
             return Valid(return_dict)
 
-    def __call__(self, val: Any) -> ValidationResult[Dict[T1, T2]]:
+    def __call__(self, val: Any) -> ValidationResult[dict[T1, T2]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -178,15 +166,15 @@ class MapValidator(Validator[Dict[T1, T2]]):
             if not (coerced := self.coerce(val)).is_just:
                 return Invalid(CoercionErr(self.coerce.compatible_types, dict), val, self)
             else:
-                coerced_val: Dict[Any, Any] = coerced.val
+                coerced_val: dict[Any, Any] = coerced.val
 
         elif type(val) is dict:
             coerced_val = val
         else:
             return Invalid(TypeErr(dict), val, self)
 
-        predicate_errors: List[
-            Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
+        predicate_errors: list[
+            Union[Predicate[dict[Any, Any]], PredicateAsync[dict[Any, Any]]]
         ] = []
         if self.predicates is not None:
             for predicate in self.predicates:
@@ -201,8 +189,8 @@ class MapValidator(Validator[Dict[T1, T2]]):
         if predicate_errors:
             return Invalid(PredicateErrs(predicate_errors), coerced_val, self)
 
-        return_dict: Dict[T1, T2] = {}
-        errors: Dict[Any, KeyValErrs] = {}
+        return_dict: dict[T1, T2] = {}
+        errors: dict[Any, KeyValErrs] = {}
         for key, val_ in coerced_val.items():
             key_result = self.key_validator(key)
             val_result = self.value_validator(val_)
@@ -249,7 +237,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
         )
 
 
-class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
+class IsDictValidator(_ToTupleValidator[dict[Any, Any]]):
     _instance: ClassVar[Optional["IsDictValidator"]] = None
 
     def __new__(cls) -> "IsDictValidator":
@@ -258,13 +246,13 @@ class IsDictValidator(_ToTupleValidator[Dict[Any, Any]]):
             cls._instance = super(IsDictValidator, cls).__new__(cls)
         return cls._instance
 
-    def _validate_to_tuple(self, val: Any) -> _ResultTuple[Dict[Any, Any]]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[dict[Any, Any]]:
         if isinstance(val, dict):
             return True, val
         else:
             return False, Invalid(TypeErr(dict), val, self)
 
-    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[Dict[Any, Any]]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[dict[Any, Any]]:
         return self._validate_to_tuple(val)
 
     def __repr__(self) -> str:
@@ -275,18 +263,18 @@ is_dict_validator = IsDictValidator()
 
 
 @dataclasses.dataclass
-class MinKeys(Predicate[Dict[Any, Any]]):
+class MinKeys(Predicate[dict[Any, Any]]):
     size: int
 
-    def __call__(self, val: Dict[Any, Any]) -> bool:
+    def __call__(self, val: dict[Any, Any]) -> bool:
         return len(val) >= self.size
 
 
 @dataclasses.dataclass
-class MaxKeys(Predicate[Dict[Any, Any]]):
+class MaxKeys(Predicate[dict[Any, Any]]):
     size: int
 
-    def __call__(self, val: Dict[Any, Any]) -> bool:
+    def __call__(self, val: dict[Any, Any]) -> bool:
         return len(val) <= self.size
 
 
@@ -303,7 +291,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1], Ret],
-        keys: Tuple[KeyValidator[T1],],
+        keys: tuple[KeyValidator[T1],],
         validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
@@ -317,7 +305,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
         ],
@@ -334,7 +322,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -352,7 +340,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -371,7 +359,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -391,7 +379,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -412,7 +400,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -434,7 +422,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -457,7 +445,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -481,7 +469,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -506,7 +494,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -532,7 +520,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -559,7 +547,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -589,7 +577,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         into: Callable[
             [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret
         ],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -620,7 +608,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         into: Callable[
             [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
         ],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -652,7 +640,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         into: Callable[
             [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
         ],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -704,18 +692,18 @@ class RecordValidator(_ToTupleValidator[Ret]):
             ],
         ],
         keys: Union[
-            Tuple[KeyValidator[T1]],
-            Tuple[KeyValidator[T1], KeyValidator[T2]],
-            Tuple[KeyValidator[T1], KeyValidator[T2], KeyValidator[T3]],
-            Tuple[KeyValidator[T1], KeyValidator[T2], KeyValidator[T3], KeyValidator[T4]],
-            Tuple[
+            tuple[KeyValidator[T1]],
+            tuple[KeyValidator[T1], KeyValidator[T2]],
+            tuple[KeyValidator[T1], KeyValidator[T2], KeyValidator[T3]],
+            tuple[KeyValidator[T1], KeyValidator[T2], KeyValidator[T3], KeyValidator[T4]],
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
                 KeyValidator[T4],
                 KeyValidator[T5],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -723,7 +711,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T5],
                 KeyValidator[T6],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -732,7 +720,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T6],
                 KeyValidator[T7],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -742,7 +730,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T7],
                 KeyValidator[T8],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -753,7 +741,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T8],
                 KeyValidator[T9],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -765,7 +753,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T9],
                 KeyValidator[T10],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -778,7 +766,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T10],
                 KeyValidator[T11],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -792,7 +780,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T11],
                 KeyValidator[T12],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -807,7 +795,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T12],
                 KeyValidator[T13],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -823,7 +811,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T13],
                 KeyValidator[T14],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -840,7 +828,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T14],
                 KeyValidator[T15],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -867,7 +855,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
     ) -> None:
         self.into = into
         # needs to be `Any` until we have variadic generics presumably
-        self.keys: Tuple[KeyValidator[Any], ...] = keys
+        self.keys: tuple[KeyValidator[Any], ...] = keys
         if validate_object is not None and validate_object_async is not None:
             _raise_cannot_define_validate_object_and_validate_object_async()
         self.validate_object = validate_object
@@ -878,12 +866,12 @@ class RecordValidator(_ToTupleValidator[Ret]):
 
         # so we don't need to calculate each time we validate
         self._key_set = set()
-        self._fast_keys_sync: List[
-            Tuple[Hashable, Callable[[Any], _ResultTuple[Any]], bool]
+        self._fast_keys_sync: list[
+            tuple[Hashable, Callable[[Any], _ResultTuple[Any]], bool]
         ] = []
 
-        self._fast_keys_async: List[
-            Tuple[Hashable, Callable[[Any], Awaitable[_ResultTuple[Any]]], bool]
+        self._fast_keys_async: list[
+            tuple[Hashable, Callable[[Any], Awaitable[_ResultTuple[Any]]], bool]
         ] = []
 
         for key, val in keys:
@@ -905,8 +893,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 if key_ not in self._key_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
 
-        args: List[Any] = []
-        errs: Dict[Any, Invalid] = {}
+        args: list[Any] = []
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
             if key_ not in data:
                 if key_required:
@@ -938,8 +926,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 if key_ not in self._key_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
 
-        args: List[Any] = []
-        errs: Dict[Any, Invalid] = {}
+        args: list[Any] = []
+        errs: dict[Any, Invalid] = {}
         for key_, async_validator, key_required in self._fast_keys_async:
             if key_ not in data:
                 if key_required:
@@ -996,7 +984,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         )
 
 
-class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
+class DictValidatorAny(_ToTupleValidator[dict[Any, Any]]):
     """
     This class exists for a few reasons:
 
@@ -1004,7 +992,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
     - it's initialization is very straightforward
 
-    The big caveat is that a valid result is always typed as ``Dict[Any, Any]``, even
+    The big caveat is that a valid result is always typed as ``dict[Any, Any]``, even
     though the validation will work just as well as with any other :class:`Validator`
 
     """
@@ -1017,20 +1005,20 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
     def __init__(
         self,
-        schema: Dict[Any, Validator[Any]],
+        schema: dict[Any, Validator[Any]],
         *,
         validate_object: Optional[
-            Callable[[Dict[Hashable, Any]], Optional[ErrType]]
+            Callable[[dict[Hashable, Any]], Optional[ErrType]]
         ] = None,
         validate_object_async: Optional[
             Callable[
-                [Dict[Any, Any]],
+                [dict[Any, Any]],
                 Awaitable[Optional[ErrType]],
             ]
         ] = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
-        self.schema: Dict[Any, Validator[Any]] = schema
+        self.schema: dict[Any, Validator[Any]] = schema
         self.validate_object = validate_object
         self.validate_object_async = validate_object_async
 
@@ -1060,7 +1048,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
         self._unknown_keys_err = ExtraKeysErr(set(schema.keys()))
 
-    def _validate_to_tuple(self, data: Any) -> _ResultTuple[Dict[Any, Any]]:
+    def _validate_to_tuple(self, data: Any) -> _ResultTuple[dict[Any, Any]]:
         if self._disallow_synchronous:
             _raise_validate_object_async_in_sync_mode(self.__class__)
 
@@ -1072,8 +1060,8 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
 
-        success_dict: Dict[Any, Any] = {}
-        errs: Dict[Any, Invalid] = {}
+        success_dict: dict[Any, Any] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
             if key_ not in data:
                 if key_required:
@@ -1093,7 +1081,7 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
 
         return True, success_dict
 
-    async def _validate_to_tuple_async(self, data: Any) -> _ResultTuple[Dict[Any, Any]]:
+    async def _validate_to_tuple_async(self, data: Any) -> _ResultTuple[dict[Any, Any]]:
         if not type(data) is dict:
             return False, Invalid(TypeErr(dict), data, self)
 
@@ -1103,8 +1091,8 @@ class DictValidatorAny(_ToTupleValidator[Dict[Any, Any]]):
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
 
-        success_dict: Dict[Any, Any] = {}
-        errs: Dict[Any, Invalid] = {}
+        success_dict: dict[Any, Any] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_async:
             if key_ not in data:
                 if key_required:

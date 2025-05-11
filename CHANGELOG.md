@@ -1,3 +1,7 @@
+5.0.0 (May 11, 2025)
+**Breaking Changes**
+- Remove support for Python 3.8 
+
 4.1.1 (Apr 9, 2024)
 **Optimization**
 - Use `pattern.match(...)` instead of `re.match(pattern, ...)` in `RegexPredicate` and `EmailPredicate`

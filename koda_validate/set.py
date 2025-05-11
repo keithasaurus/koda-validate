@@ -1,4 +1,4 @@
-from typing import Any, Hashable, List, Optional, Set, TypeVar, Union
+from typing import Any, Hashable, Optional, TypeVar, Union
 
 from koda_validate import Coercer
 from koda_validate._internal import (
@@ -14,16 +14,16 @@ from koda_validate.valid import Invalid
 _ItemT = TypeVar("_ItemT", bound=Hashable)
 
 
-class SetValidator(_ToTupleValidator[Set[_ItemT]]):
+class SetValidator(_ToTupleValidator[set[_ItemT]]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "coerce")
 
     def __init__(
         self,
         item_validator: Validator[_ItemT],
         *,
-        predicates: Optional[List[Predicate[Set[_ItemT]]]] = None,
-        predicates_async: Optional[List[PredicateAsync[Set[_ItemT]]]] = None,
-        coerce: Optional[Coercer[Set[Any]]] = None,
+        predicates: Optional[list[Predicate[set[_ItemT]]]] = None,
+        predicates_async: Optional[list[PredicateAsync[set[_ItemT]]]] = None,
+        coerce: Optional[Coercer[set[Any]]] = None,
     ) -> None:
         self.item_validator = item_validator
         self.predicates = predicates
@@ -32,7 +32,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
 
         self._item_validator_is_tuple = isinstance(item_validator, _ToTupleValidator)
 
-    def _validate_to_tuple(self, val: Any) -> _ResultTuple[Set[_ItemT]]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[set[_ItemT]]:
         if self.predicates_async:
             _async_predicates_warning(self.__class__)
 
@@ -42,7 +42,7 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
                     CoercionErr(self.coerce.compatible_types, set), val, self
                 )
             else:
-                coerced_val: Set[Any] = coerced.val
+                coerced_val: set[Any] = coerced.val
 
         elif type(val) is set:
             coerced_val = val
@@ -50,15 +50,15 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
             return False, Invalid(TypeErr(set), val, self)
 
         if self.predicates:
-            list_errors: List[
-                Union[Predicate[Set[_ItemT]], PredicateAsync[Set[_ItemT]]]
+            list_errors: list[
+                Union[Predicate[set[_ItemT]], PredicateAsync[set[_ItemT]]]
             ] = [pred for pred in self.predicates if not pred(coerced_val)]
 
             if list_errors:
                 return False, Invalid(PredicateErrs(list_errors), coerced_val, self)
 
-        return_set: Set[_ItemT] = set()
-        item_errs: List[Invalid] = []
+        return_set: set[_ItemT] = set()
+        item_errs: list[Invalid] = []
         for i, item in enumerate(coerced_val):
             if self._item_validator_is_tuple:
                 is_valid, item_result = self.item_validator._validate_to_tuple(item)  # type: ignore # noqa: E501
@@ -78,22 +78,22 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
         else:
             return True, return_set
 
-    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[Set[_ItemT]]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[set[_ItemT]]:
         if self.coerce:
             if not (coerced := self.coerce(val)).is_just:
                 return False, Invalid(
                     CoercionErr(self.coerce.compatible_types, set), val, self
                 )
             else:
-                coerced_val: Set[Any] = coerced.val
+                coerced_val: set[Any] = coerced.val
 
         elif type(val) is set:
             coerced_val = val
         else:
             return False, Invalid(TypeErr(set), val, self)
 
-        predicate_errors: List[
-            Union[Predicate[Set[_ItemT]], PredicateAsync[Set[_ItemT]]]
+        predicate_errors: list[
+            Union[Predicate[set[_ItemT]], PredicateAsync[set[_ItemT]]]
         ] = []
         if self.predicates:
             predicate_errors.extend(
@@ -108,8 +108,8 @@ class SetValidator(_ToTupleValidator[Set[_ItemT]]):
         if predicate_errors:
             return False, Invalid(PredicateErrs(predicate_errors), coerced_val, self)
 
-        return_set: Set[_ItemT] = set()
-        item_errs: List[Invalid] = []
+        return_set: set[_ItemT] = set()
+        item_errs: list[Invalid] = []
         for i, item in enumerate(coerced_val):
             if self._item_validator_is_tuple:
                 (

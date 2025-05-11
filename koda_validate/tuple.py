@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
+from typing import Any, Callable, Optional, Tuple, Union, overload
 
 from koda import Just, Maybe, nothing
 
@@ -19,7 +19,7 @@ from koda_validate.valid import Invalid
 
 
 @coercer(list, tuple)
-def tuple_or_list_to_tuple(val: Any) -> Maybe[Tuple[Any, ...]]:
+def tuple_or_list_to_tuple(val: Any) -> Maybe[tuple[Any, ...]]:
     if (val_type := type(val)) is tuple:
         return Just(val)
     elif val_type is list:
@@ -34,9 +34,9 @@ class NTupleValidator(_ToTupleValidator[A]):
     def __init__(
         self,
         *,
-        fields: Tuple[Validator[Any], ...],
+        fields: tuple[Validator[Any], ...],
         validate_object: Optional[Callable[[A], Optional[ErrType]]] = None,
-        coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
+        coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> None:
         """
         You probably don't want to be using __init__ directly. For type-hinting reasons,
@@ -52,7 +52,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         self.fields = fields
         self.validate_object = validate_object
         self.coerce = coerce
-        self._len_predicate: Predicate[Tuple[Any, ...]] = ExactItemCount(len(fields))
+        self._len_predicate: Predicate[tuple[Any, ...]] = ExactItemCount(len(fields))
         self._wrapped_fields_sync = [_wrap_sync_validator(v) for v in fields]
         self._wrapped_fields_async = [_wrap_async_validator(v) for v in fields]
 
@@ -60,51 +60,51 @@ class NTupleValidator(_ToTupleValidator[A]):
     @staticmethod
     def typed(
         *,
-        fields: Tuple[Validator[T1]],
-        validate_object: Optional[Callable[[Tuple[T1]], Optional[ErrType]]] = None,
-        coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
-    ) -> "NTupleValidator[Tuple[T1]]":
+        fields: tuple[Validator[T1]],
+        validate_object: Optional[Callable[[tuple[T1]], Optional[ErrType]]] = None,
+        coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
+    ) -> "NTupleValidator[tuple[T1]]":
         ...  # pragma: no cover
 
     @overload
     @staticmethod
     def typed(
         *,
-        fields: Tuple[Validator[T1], Validator[T2]],
-        validate_object: Optional[Callable[[Tuple[T1, T2]], Optional[ErrType]]] = None,
-        coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
-    ) -> "NTupleValidator[Tuple[T1, T2]]":
+        fields: tuple[Validator[T1], Validator[T2]],
+        validate_object: Optional[Callable[[tuple[T1, T2]], Optional[ErrType]]] = None,
+        coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
+    ) -> "NTupleValidator[tuple[T1, T2]]":
         ...  # pragma: no cover
 
     @overload
     @staticmethod
     def typed(
         *,
-        fields: Tuple[Validator[T1], Validator[T2], Validator[T3]],
+        fields: tuple[Validator[T1], Validator[T2], Validator[T3]],
         validate_object: Optional[
-            Callable[[Tuple[T1, T2, T3]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3]], Optional[ErrType]]
         ] = None,
-        coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
-    ) -> "NTupleValidator[Tuple[T1, T2, T3]]":
+        coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
+    ) -> "NTupleValidator[tuple[T1, T2, T3]]":
         ...  # pragma: no cover
 
     @overload
     @staticmethod
     def typed(
         *,
-        fields: Tuple[Validator[T1], Validator[T2], Validator[T3], Validator[T4]],
+        fields: tuple[Validator[T1], Validator[T2], Validator[T3], Validator[T4]],
         validate_object: Optional[
-            Callable[[Tuple[T1, T2, T3, T4]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3, T4]], Optional[ErrType]]
         ] = None,
-        coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
-    ) -> "NTupleValidator[Tuple[T1, T2, T3, T4]]":
+        coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
+    ) -> "NTupleValidator[tuple[T1, T2, T3, T4]]":
         ...  # pragma: no cover
 
     @overload
     @staticmethod
     def typed(
         *,
-        fields: Tuple[
+        fields: tuple[
             Validator[T1],
             Validator[T2],
             Validator[T3],
@@ -112,17 +112,17 @@ class NTupleValidator(_ToTupleValidator[A]):
             Validator[T5],
         ],
         validate_object: Optional[
-            Callable[[Tuple[T1, T2, T3, T4, T5]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3, T4, T5]], Optional[ErrType]]
         ] = None,
-        coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
-    ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5]]":
+        coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
+    ) -> "NTupleValidator[tuple[T1, T2, T3, T4, T5]]":
         ...  # pragma: no cover
 
     @overload
     @staticmethod
     def typed(
         *,
-        fields: Tuple[
+        fields: tuple[
             Validator[T1],
             Validator[T2],
             Validator[T3],
@@ -131,17 +131,17 @@ class NTupleValidator(_ToTupleValidator[A]):
             Validator[T6],
         ],
         validate_object: Optional[
-            Callable[[Tuple[T1, T2, T3, T4, T5, T6]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3, T4, T5, T6]], Optional[ErrType]]
         ] = None,
-        coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
-    ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6]]":
+        coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
+    ) -> "NTupleValidator[tuple[T1, T2, T3, T4, T5, T6]]":
         ...  # pragma: no cover
 
     @overload
     @staticmethod
     def typed(
         *,
-        fields: Tuple[
+        fields: tuple[
             Validator[T1],
             Validator[T2],
             Validator[T3],
@@ -151,17 +151,17 @@ class NTupleValidator(_ToTupleValidator[A]):
             Validator[T7],
         ],
         validate_object: Optional[
-            Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3, T4, T5, T6, T7]], Optional[ErrType]]
         ] = None,
-        coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
-    ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6, T7]]":
+        coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
+    ) -> "NTupleValidator[tuple[T1, T2, T3, T4, T5, T6, T7]]":
         ...  # pragma: no cover
 
     @overload
     @staticmethod
     def typed(
         *,
-        fields: Tuple[
+        fields: tuple[
             Validator[T1],
             Validator[T2],
             Validator[T3],
@@ -172,29 +172,29 @@ class NTupleValidator(_ToTupleValidator[A]):
             Validator[T8],
         ],
         validate_object: Optional[
-            Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3, T4, T5, T6, T7, T8]], Optional[ErrType]]
         ] = None,
-        coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
-    ) -> "NTupleValidator[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]]":
+        coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
+    ) -> "NTupleValidator[tuple[T1, T2, T3, T4, T5, T6, T7, T8]]":
         ...  # pragma: no cover
 
     @staticmethod
     def typed(
         *,
         fields: Union[
-            Tuple[Validator[T1]],
-            Tuple[Validator[T1], Validator[T2]],
-            Tuple[Validator[T1], Validator[T2], Validator[T3]],
-            Tuple[
+            tuple[Validator[T1]],
+            tuple[Validator[T1], Validator[T2]],
+            tuple[Validator[T1], Validator[T2], Validator[T3]],
+            tuple[
                 Validator[T1],
                 Validator[T2],
                 Validator[T3],
                 Validator[T4],
             ],
-            Tuple[
+            tuple[
                 Validator[T1], Validator[T2], Validator[T3], Validator[T4], Validator[T5]
             ],
-            Tuple[
+            tuple[
                 Validator[T1],
                 Validator[T2],
                 Validator[T3],
@@ -202,7 +202,7 @@ class NTupleValidator(_ToTupleValidator[A]):
                 Validator[T5],
                 Validator[T6],
             ],
-            Tuple[
+            tuple[
                 Validator[T1],
                 Validator[T2],
                 Validator[T3],
@@ -211,7 +211,7 @@ class NTupleValidator(_ToTupleValidator[A]):
                 Validator[T6],
                 Validator[T7],
             ],
-            Tuple[
+            tuple[
                 Validator[T1],
                 Validator[T2],
                 Validator[T3],
@@ -223,11 +223,11 @@ class NTupleValidator(_ToTupleValidator[A]):
             ],
         ],
         validate_object: Union[
-            Optional[Callable[[Tuple[T1]], Optional[ErrType]]],
-            Optional[Callable[[Tuple[T1, T2]], Optional[ErrType]]],
-            Optional[Callable[[Tuple[T1, T2, T3]], Optional[ErrType]]],
-            Optional[Callable[[Tuple[T1, T2, T3, T4]], Optional[ErrType]]],
-            Optional[Callable[[Tuple[T1, T2, T3, T4, T5]], Optional[ErrType]]],
+            Optional[Callable[[tuple[T1]], Optional[ErrType]]],
+            Optional[Callable[[tuple[T1, T2]], Optional[ErrType]]],
+            Optional[Callable[[tuple[T1, T2, T3]], Optional[ErrType]]],
+            Optional[Callable[[tuple[T1, T2, T3, T4]], Optional[ErrType]]],
+            Optional[Callable[[tuple[T1, T2, T3, T4, T5]], Optional[ErrType]]],
             Optional[Callable[[Tuple[T1, T2, T3, T4, T5, T6]], Optional[ErrType]]],
             Optional[Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7]], Optional[ErrType]]],
             Optional[
@@ -301,7 +301,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         # are deserialized to lists
         if not self._len_predicate(coerced_val):
             return False, Invalid(PredicateErrs([self._len_predicate]), coerced_val, self)
-        errs: Dict[int, Invalid] = {}
+        errs: dict[int, Invalid] = {}
         vals = []
         for i, (validator, tuple_val) in enumerate(
             zip(self._wrapped_fields_sync, coerced_val)
@@ -341,7 +341,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         if not self._len_predicate(val):
             return False, Invalid(PredicateErrs([self._len_predicate]), val, self)
 
-        errs: Dict[int, Invalid] = {}
+        errs: dict[int, Invalid] = {}
         vals = []
         for i, (validator, tuple_val) in enumerate(
             zip(self._wrapped_fields_async, coerced_val)
@@ -391,8 +391,8 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
         self,
         item_validator: Validator[A],
         *,
-        predicates: Optional[List[Predicate[Tuple[A, ...]]]] = None,
-        predicates_async: Optional[List[PredicateAsync[Tuple[A, ...]]]] = None,
+        predicates: Optional[list[Predicate[Tuple[A, ...]]]] = None,
+        predicates_async: Optional[list[PredicateAsync[Tuple[A, ...]]]] = None,
         coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> None:
         self.item_validator = item_validator
@@ -420,7 +420,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
             return False, Invalid(TypeErr(tuple), val, self)
 
         if self.predicates:
-            tuple_errors: List[
+            tuple_errors: list[
                 Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
             ] = [pred for pred in self.predicates if not pred(coerced_val)]
 
@@ -428,8 +428,8 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
             if tuple_errors:
                 return False, Invalid(PredicateErrs(tuple_errors), coerced_val, self)
 
-        return_list: List[A] = []
-        index_errors: Dict[int, Invalid] = {}
+        return_list: list[A] = []
+        index_errors: dict[int, Invalid] = {}
         for i, item in enumerate(coerced_val):
             if self._item_validator_is_tuple:
                 is_valid, item_result = self.item_validator._validate_to_tuple(item)  # type: ignore # noqa: E501
@@ -463,7 +463,7 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
         else:
             return False, Invalid(TypeErr(tuple), val, self)
 
-        tuple_errors: List[
+        tuple_errors: list[
             Union[Predicate[Tuple[A, ...]], PredicateAsync[Tuple[A, ...]]]
         ] = []
         if self.predicates:
@@ -479,8 +479,8 @@ class UniformTupleValidator(_ToTupleValidator[Tuple[A, ...]]):
         if tuple_errors:
             return False, Invalid(PredicateErrs(tuple_errors), coerced_val, self)
 
-        return_list: List[A] = []
-        index_errors: Dict[int, Invalid] = {}
+        return_list: list[A] = []
+        index_errors: dict[int, Invalid] = {}
         for i, item in enumerate(coerced_val):
             if self._item_validator_is_tuple:
                 (

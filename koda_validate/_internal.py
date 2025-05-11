@@ -1,15 +1,4 @@
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    List,
-    Literal,
-    NoReturn,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Any, Awaitable, Callable, Literal, NoReturn, Optional, Type, Union
 
 from koda_validate._generics import A, SuccessT
 from koda_validate.base import Predicate, PredicateAsync, Processor, Validator
@@ -17,7 +6,7 @@ from koda_validate.coerce import Coercer
 from koda_validate.errors import CoercionErr, PredicateErrs, TypeErr, UnionErrs
 from koda_validate.valid import Invalid, Valid, ValidationResult
 
-_ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], Invalid]]
+_ResultTuple = Union[tuple[Literal[True], A], tuple[Literal[False], Invalid]]
 
 
 class _ToTupleValidator(Validator[SuccessT]):
@@ -80,7 +69,7 @@ def _raise_validate_object_async_in_sync_mode(cls: Type[Any]) -> NoReturn:
     )
 
 
-def _repr_helper(cls: Type[Any], arg_strs: List[str]) -> str:
+def _repr_helper(cls: Type[Any], arg_strs: list[str]) -> str:
     return f"{cls.__name__}({', '.join(arg_strs)})"
 
 
@@ -105,8 +94,8 @@ class _ToTupleStandardValidator(_ToTupleValidator[SuccessT]):
     def __init__(
         self,
         *predicates: Predicate[SuccessT],
-        predicates_async: Optional[List[PredicateAsync[SuccessT]]] = None,
-        preprocessors: Optional[List[Processor[SuccessT]]] = None,
+        predicates_async: Optional[list[PredicateAsync[SuccessT]]] = None,
+        preprocessors: Optional[list[Processor[SuccessT]]] = None,
         coerce: Optional[Coercer[SuccessT]] = None,
     ) -> None:
         self.predicates = predicates
@@ -146,7 +135,7 @@ class _ToTupleStandardValidator(_ToTupleValidator[SuccessT]):
                 val = proc(val)
 
         if self.predicates:
-            errors: List[Any] = [pred for pred in self.predicates if not pred(val)]
+            errors: list[Any] = [pred for pred in self.predicates if not pred(val)]
             if errors:
                 return False, Invalid(PredicateErrs(errors), val, self)
             else:
@@ -174,7 +163,7 @@ class _ToTupleStandardValidator(_ToTupleValidator[SuccessT]):
             for proc in self.preprocessors:
                 val = proc(val)
 
-        errors: List[Union[Predicate[SuccessT], PredicateAsync[SuccessT]]] = [
+        errors: list[Union[Predicate[SuccessT], PredicateAsync[SuccessT]]] = [
             pred for pred in self.predicates if not pred(val)
         ]
 
@@ -215,7 +204,7 @@ class _ToTupleStandardValidator(_ToTupleValidator[SuccessT]):
 
 
 def _union_validator(
-    source_validator: Validator[A], validators: Tuple[Validator[Any], ...], val: Any
+    source_validator: Validator[A], validators: tuple[Validator[Any], ...], val: Any
 ) -> _ResultTuple[A]:
     errs = []
     for validator in validators:
@@ -235,7 +224,7 @@ def _union_validator(
 
 
 async def _union_validator_async(
-    source_validator: Validator[A], validators: Tuple[Validator[Any], ...], val: Any
+    source_validator: Validator[A], validators: tuple[Validator[Any], ...], val: Any
 ) -> _ResultTuple[A]:
     errs = []
     for validator in validators:

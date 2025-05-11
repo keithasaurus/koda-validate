@@ -2,7 +2,7 @@ import re
 from datetime import date, datetime
 from decimal import Decimal
 from functools import partial
-from typing import Any, Callable, Dict, List, NoReturn, Type, Union
+from typing import Any, Callable, NoReturn, Type, Union
 from uuid import UUID
 
 from koda_validate import NotBlank, UUIDValidator
@@ -49,7 +49,7 @@ from koda_validate.typeddict import TypedDictValidator
 from koda_validate.union import UnionValidator
 
 AnyValidatorOrPredicate = Union[Validator[Any], Predicate[Any], PredicateAsync[Any]]
-ValidatorToSchema = Callable[[AnyValidatorOrPredicate], Dict[str, Serializable]]
+ValidatorToSchema = Callable[[AnyValidatorOrPredicate], dict[str, Serializable]]
 
 
 def unhandled_type(obj: Any) -> NoReturn:
@@ -58,7 +58,7 @@ def unhandled_type(obj: Any) -> NoReturn:
     )
 
 
-def get_base(t: Type[Any]) -> Dict[str, Any]:
+def get_base(t: Type[Any]) -> dict[str, Any]:
     if t is str:
         return {"type": "string"}
     elif t is bytes:
@@ -89,8 +89,8 @@ def get_base(t: Type[Any]) -> Dict[str, Any]:
 
 def string_schema(
     to_schema_fn: ValidatorToSchema, validator: StringValidator
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = get_base(str)
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = get_base(str)
 
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
@@ -100,8 +100,8 @@ def string_schema(
 
 def bytes_schema(
     to_schema_fn: ValidatorToSchema, validator: BytesValidator
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = get_base(bytes)
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = get_base(bytes)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
 
@@ -110,8 +110,8 @@ def bytes_schema(
 
 def integer_schema(
     to_schema_fn: ValidatorToSchema, validator: IntValidator
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = get_base(int)
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = get_base(int)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
 
@@ -120,8 +120,8 @@ def integer_schema(
 
 def decimal_schema(
     to_schema_fn: ValidatorToSchema, validator: DecimalValidator
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = get_base(Decimal)
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = get_base(Decimal)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
     return ret
@@ -129,8 +129,8 @@ def decimal_schema(
 
 def float_schema(
     to_schema_fn: ValidatorToSchema, validator: FloatValidator
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = get_base(float)
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = get_base(float)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
     return ret
@@ -138,8 +138,8 @@ def float_schema(
 
 def date_schema(
     to_schema_fn: ValidatorToSchema, validator: DateValidator
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = get_base(date)
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = get_base(date)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
     return ret
@@ -147,8 +147,8 @@ def date_schema(
 
 def datetime_schema(
     to_schema_fn: ValidatorToSchema, validator: DatetimeValidator
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = get_base(datetime)
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = get_base(datetime)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
     return ret
@@ -156,16 +156,16 @@ def datetime_schema(
 
 def equals_schema(
     to_schema_fn: ValidatorToSchema, validator: EqualsValidator[Any]
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = get_base(type(validator.match))
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = get_base(type(validator.match))
     ret.update(to_schema_fn(validator.predicate))
     return ret
 
 
 def boolean_schema(
     to_schema_fn: ValidatorToSchema, validator: BoolValidator
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = get_base(bool)
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = get_base(bool)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
     return ret
@@ -173,8 +173,8 @@ def boolean_schema(
 
 def uuid_schema(
     to_schema_fn: ValidatorToSchema, validator: UUIDValidator
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = get_base(UUID)
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = get_base(UUID)
     for pred in list(validator.predicates) + (validator.predicates_async or []):
         ret.update(to_schema_fn(pred))
     return ret
@@ -183,8 +183,8 @@ def uuid_schema(
 def array_of_schema(
     to_schema_fn: ValidatorToSchema,
     validator: Union[ListValidator[Any], UniformTupleValidator[Any]],
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = {
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = {
         "type": "array",
         "items": to_schema_fn(validator.item_validator),
     }
@@ -198,9 +198,9 @@ def array_of_schema(
 def obj_schema(
     to_schema_fn: ValidatorToSchema,
     obj: RecordValidator[Any],
-) -> Dict[str, Serializable]:
-    required: List[str] = []
-    properties: Dict[str, Serializable] = {}
+) -> dict[str, Serializable]:
+    required: list[str] = []
+    properties: dict[str, Serializable] = {}
     for label, field in obj.keys:
         str_label = str(label)
         if not isinstance(field, KeyNotRequired):
@@ -218,9 +218,9 @@ def obj_schema(
 def dict_validator_schema(
     to_schema_fn: ValidatorToSchema,
     obj: DictValidatorAny,
-) -> Dict[str, Serializable]:
-    required: List[str] = []
-    properties: Dict[str, Serializable] = {}
+) -> dict[str, Serializable]:
+    required: list[str] = []
+    properties: dict[str, Serializable] = {}
     for label, field in obj.schema.items():
         str_label = str(label)
         if not isinstance(field, KeyNotRequired):
@@ -238,8 +238,8 @@ def dict_validator_schema(
 def dataclass_validator_schema(
     to_schema_fn: ValidatorToSchema,
     obj: DataclassValidator[Any],
-) -> Dict[str, Serializable]:
-    properties: Dict[str, Serializable] = {}
+) -> dict[str, Serializable]:
+    properties: dict[str, Serializable] = {}
     for label, field in obj.schema.items():
         str_label = str(label)
         properties[str_label] = to_schema_fn(field)
@@ -254,8 +254,8 @@ def dataclass_validator_schema(
 def namedtuple_validator_schema(
     to_schema_fn: ValidatorToSchema,
     obj: NamedTupleValidator[Any],
-) -> Dict[str, Serializable]:
-    properties: Dict[str, Serializable] = {}
+) -> dict[str, Serializable]:
+    properties: dict[str, Serializable] = {}
     for label, field in obj.schema.items():
         str_label = str(label)
         properties[str_label] = to_schema_fn(field)
@@ -270,8 +270,8 @@ def namedtuple_validator_schema(
 def typeddict_validator_schema(
     to_schema_fn: ValidatorToSchema,
     obj: TypedDictValidator[Any],
-) -> Dict[str, Serializable]:
-    properties: Dict[str, Serializable] = {}
+) -> dict[str, Serializable]:
+    properties: dict[str, Serializable] = {}
     for label, field in obj.schema.items():
         str_label = str(label)
         properties[str_label] = to_schema_fn(field)
@@ -285,8 +285,8 @@ def typeddict_validator_schema(
 
 def map_of_schema(
     to_schema_fn: ValidatorToSchema, validator: MapValidator[Any, Any]
-) -> Dict[str, Serializable]:
-    ret: Dict[str, Serializable] = {
+) -> dict[str, Serializable]:
+    ret: dict[str, Serializable] = {
         "type": "object",
         "additionalProperties": to_schema_fn(validator.value_validator),
     }
@@ -299,7 +299,7 @@ def map_of_schema(
 
 def generate_schema_predicate(
     pred: Union[Predicate[Any], PredicateAsync[Any]]
-) -> Dict[str, Serializable]:
+) -> dict[str, Serializable]:
     # strings
     if isinstance(pred, EmailPredicate):
         return {"format": "email"}
@@ -406,7 +406,7 @@ def generate_schema_predicate(
 
 def generate_schema_validator(
     to_schema_fn: ValidatorToSchema, obj: Validator[Any]
-) -> Dict[str, Serializable]:
+) -> dict[str, Serializable]:
     r"""
     Produces a JSON Schema compatible Serializable from a ``Validator``
 
@@ -489,7 +489,7 @@ def generate_schema_validator(
 
 def generate_schema_base(
     obj: Union[Validator[Any], Predicate[Any], PredicateAsync[Any]]
-) -> Dict[str, Serializable]:
+) -> dict[str, Serializable]:
     if isinstance(obj, Validator):
         return generate_schema_validator(generate_schema_base, obj)
     elif isinstance(obj, (Predicate, PredicateAsync)):
@@ -500,7 +500,7 @@ def generate_schema_base(
 
 def generate_named_schema_base(
     ref_location: str, schema_name: str, obj: AnyValidatorOrPredicate
-) -> Dict[str, Serializable]:
+) -> dict[str, Serializable]:
     if isinstance(obj, Validator):
         to_schema_fn = partial(generate_named_schema_base, ref_location, schema_name)
         if isinstance(obj, Lazy):
@@ -521,7 +521,7 @@ def to_named_json_schema(
     schema_name: str,
     obj: AnyValidatorOrPredicate,
     ref_location: str = "#/components/schemas/",
-) -> Dict[str, Serializable]:
+) -> dict[str, Serializable]:
     """
     Produces a ``Serializable`` from a ``Validator``, ``Predicate`` or ``PredicateAsync``
     that conforms to a valid JSON Schema. The root dict's only key is the schema name,
@@ -537,7 +537,7 @@ def to_named_json_schema(
     return {schema_name: generate_named_schema_base(ref_location, schema_name, obj)}
 
 
-def to_json_schema(obj: AnyValidatorOrPredicate) -> Dict[str, Serializable]:
+def to_json_schema(obj: AnyValidatorOrPredicate) -> dict[str, Serializable]:
     """
     Produces a ``Serializable`` from a ``Validator``, ``Predicate`` or ``PredicateAsync``
     that conforms to a valid JSON Schema.

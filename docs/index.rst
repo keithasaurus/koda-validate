@@ -72,12 +72,12 @@ Koda Validate can inspect typehints and build :class:`Validator<koda_validate.Va
 
 .. testcode:: derived
 
-   from typing import List, TypedDict
+   from typing import TypedDict
    from koda_validate import TypedDictValidator
 
    class Person(TypedDict):
        name: str
-       hobbies: List[str]
+       hobbies: list[str]
 
    validator = TypedDictValidator(Person)
 
@@ -128,16 +128,16 @@ We can build complex nested :class:`Validator`\s with ease.
 
 .. testcode:: nested
 
-   from typing import Annotated, Union, TypedDict, Literal, List
+   from typing import Annotated, Union, TypedDict, Literal
    from koda_validate import TypedDictValidator
 
 
    class Group(TypedDict):
        name: str
-       members: List[str]
+       members: list[str]
 
    class Song(TypedDict):
-       artist: Union[List[str], Group, Literal["unknown"]]
+       artist: Union[list[str], Group, Literal["unknown"]]
        title: str
        duration_seconds: int
 
@@ -188,7 +188,7 @@ It's easy to keep nesting validators:
 
    class Playlist(TypedDict):
       title: str
-      songs: Annotated[List[Song], songs_validator]
+      songs: Annotated[list[Song], songs_validator]
    
    playlist_validator = TypedDictValidator(Playlist)
 

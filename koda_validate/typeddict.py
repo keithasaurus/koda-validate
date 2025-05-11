@@ -3,8 +3,6 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    Dict,
-    FrozenSet,
     Mapping,
     Optional,
     Type,
@@ -56,12 +54,12 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
     .. testcode:: tdexample
 
-        from typing import List, TypedDict
+        from typing import TypedDict
         from koda_validate import *
 
         class Person(TypedDict):
             name: str
-            hobbies: List[str]
+            hobbies: list[str]
 
         validator = TypedDictValidator(Person)
 
@@ -94,7 +92,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         self,
         td_cls: Type[_TDT],
         *,
-        overrides: Optional[Dict[str, Validator[Any]]] = None,
+        overrides: Optional[dict[str, Validator[Any]]] = None,
         validate_object: Optional[Callable[[_TDT], Optional[ErrType]]] = None,
         validate_object_async: Optional[
             Callable[
@@ -102,7 +100,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                 Awaitable[Optional[ErrType]],
             ]
         ] = None,
-        coerce: Optional[Coercer[Dict[Any, Any]]] = None,
+        coerce: Optional[Coercer[dict[Any, Any]]] = None,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
         fail_on_unknown_keys: bool = False,
     ) -> None:
@@ -124,7 +122,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
         if sys.version_info >= (3, 9):
             # Required/NotRequired keys are always present in
-            self.required_keys: FrozenSet[str] = getattr(
+            self.required_keys: frozenset[str] = getattr(
                 td_cls, "__required_keys__", frozenset()
             )
             type_hints = get_type_hints(self.td_cls, include_extras=True)
@@ -166,7 +164,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                     CoercionErr(self.coerce.compatible_types, dict), data, self
                 )
             else:
-                coerced_val: Dict[Any, Any] = coerced.val
+                coerced_val: dict[Any, Any] = coerced.val
 
         elif type(data) is dict:
             coerced_val = data
@@ -178,8 +176,8 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, coerced_val, self)
 
-        success_dict: Dict[str, object] = {}
-        errs: Dict[Any, Invalid] = {}
+        success_dict: dict[str, object] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
             if key_ not in coerced_val:
                 if key_required:
@@ -208,7 +206,7 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                     CoercionErr(self.coerce.compatible_types, dict), data, self
                 )
             else:
-                coerced_val: Dict[Any, Any] = coerced.val
+                coerced_val: dict[Any, Any] = coerced.val
 
         elif type(data) is dict:
             coerced_val = data
@@ -220,8 +218,8 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
                 if key_ not in self._keys_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
 
-        success_dict: Dict[str, object] = {}
-        errs: Dict[Any, Invalid] = {}
+        success_dict: dict[str, object] = {}
+        errs: dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_async:
             if key_ not in coerced_val:
                 if key_required:
