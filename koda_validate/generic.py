@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, ClassVar, Hashable, Optional, Tuple, Type, TypeVar
+from typing import Any, ClassVar, Hashable, Optional, Type, TypeVar
 from uuid import UUID
 
 from koda import Thunk
@@ -196,7 +196,7 @@ class AlwaysValid(_ToTupleValidator[A]):
 # Any must be the generic param here, but, AlwaysValid() can take on any generic type
 always_valid: AlwaysValid[Any] = AlwaysValid()
 
-ListOrTupleOrSetAny = TypeVar("ListOrTupleOrSetAny", list[Any], Tuple[Any, ...], set[Any])
+ListOrTupleOrSetAny = TypeVar("ListOrTupleOrSetAny", list[Any], tuple[Any, ...], set[Any])
 
 
 @dataclass
@@ -230,9 +230,9 @@ class UniqueItems(Predicate[ListOrTupleOrSetAny]):
     """
 
     def __call__(self, val: ListOrTupleOrSetAny) -> bool:
-        hashable_items: set[Tuple[Type[Any], Any]] = set()
+        hashable_items: set[tuple[Type[Any], Any]] = set()
         # slower lookups for unhashables
-        unhashable_items: list[Tuple[Type[Any], Any]] = []
+        unhashable_items: list[tuple[Type[Any], Any]] = []
         for item in val:
             # needed to tell difference between things like
             # ints and bools
@@ -251,7 +251,7 @@ class UniqueItems(Predicate[ListOrTupleOrSetAny]):
             return True
 
 
-# mypy has a problem with this for Tuple[Any, ...]
+# mypy has a problem with this for tuple[Any, ...]
 # for some types, you might need to use UniqueItems()
 unique_items = UniqueItems()
 

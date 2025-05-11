@@ -1,14 +1,4 @@
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Literal,
-    NoReturn,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Any, Awaitable, Callable, Literal, NoReturn, Optional, Type, Union
 
 from koda_validate._generics import A, SuccessT
 from koda_validate.base import Predicate, PredicateAsync, Processor, Validator
@@ -16,7 +6,7 @@ from koda_validate.coerce import Coercer
 from koda_validate.errors import CoercionErr, PredicateErrs, TypeErr, UnionErrs
 from koda_validate.valid import Invalid, Valid, ValidationResult
 
-_ResultTuple = Union[Tuple[Literal[True], A], Tuple[Literal[False], Invalid]]
+_ResultTuple = Union[tuple[Literal[True], A], tuple[Literal[False], Invalid]]
 
 
 class _ToTupleValidator(Validator[SuccessT]):
@@ -214,7 +204,7 @@ class _ToTupleStandardValidator(_ToTupleValidator[SuccessT]):
 
 
 def _union_validator(
-    source_validator: Validator[A], validators: Tuple[Validator[Any], ...], val: Any
+    source_validator: Validator[A], validators: tuple[Validator[Any], ...], val: Any
 ) -> _ResultTuple[A]:
     errs = []
     for validator in validators:
@@ -234,7 +224,7 @@ def _union_validator(
 
 
 async def _union_validator_async(
-    source_validator: Validator[A], validators: Tuple[Validator[Any], ...], val: Any
+    source_validator: Validator[A], validators: tuple[Validator[Any], ...], val: Any
 ) -> _ResultTuple[A]:
     errs = []
     for validator in validators:

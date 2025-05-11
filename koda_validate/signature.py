@@ -9,7 +9,6 @@ from typing import (
     Dict,
     Literal,
     Optional,
-    Tuple,
     TypeVar,
     Union,
     cast,
@@ -55,7 +54,7 @@ _BaseDecoratedFunc = Callable[..., Any]
 _DecoratedFunc = TypeVar("_DecoratedFunc", bound=_BaseDecoratedFunc)
 
 # for overrides - just to avoid parameter name conflicts
-ReturnOverrideKey = Tuple[Literal["return_key"]]
+ReturnOverrideKey = tuple[Literal["return_key"]]
 RETURN_OVERRIDE_KEY: ReturnOverrideKey = ("return_key",)
 
 OverridesDictKey = Union[str, ReturnOverrideKey]
@@ -132,9 +131,9 @@ def _wrap_fn(
     schema: Dict[str, Optional[Validator[Any]]] = {}
 
     kwargs_validator: Optional[Validator[Any]] = None
-    var_args_key_and_validator: Optional[Tuple[str, Validator[Any]]] = None
+    var_args_key_and_validator: Optional[tuple[str, Validator[Any]]] = None
     positional_args_names: set[str] = set()
-    positional_validators: list[Optional[Tuple[str, Validator[Any]]]] = []
+    positional_validators: list[Optional[tuple[str, Validator[Any]]]] = []
     _get_validator_partial = functools.partial(
         _get_validator, overrides, typehint_resolver
     )
@@ -189,7 +188,7 @@ def _wrap_fn(
 
         async def inner_async(*args: Any, **kwargs: Any) -> Any:
             errs: Dict[str, Invalid] = {}
-            var_args_errs: list[Tuple[Any, Invalid]] = []
+            var_args_errs: list[tuple[Any, Invalid]] = []
             # in case the values get mutated during validation
             ok_args: list[Any] = list(args)
             ok_kw_args: Dict[str, Any] = kwargs.copy()
@@ -262,7 +261,7 @@ def _wrap_fn(
         @functools.wraps(func)
         def inner(*args: Any, **kwargs: Any) -> Any:
             errs: Dict[str, Invalid] = {}
-            var_args_errs: list[Tuple[Any, Invalid]] = []
+            var_args_errs: list[tuple[Any, Invalid]] = []
             # in case the values get mutated during validation
             ok_args: list[Any] = list(args)
             ok_kw_args: Dict[str, Any] = kwargs.copy()

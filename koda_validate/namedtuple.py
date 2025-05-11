@@ -7,7 +7,6 @@ from typing import (
     Dict,
     NamedTuple,
     Optional,
-    Set,
     Type,
     TypeVar,
     get_type_hints,

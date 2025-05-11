@@ -7,7 +7,6 @@ from typing import (
     Dict,
     Hashable,
     Optional,
-    Tuple,
     Union,
     overload,
 )
@@ -86,7 +85,7 @@ class KeyNotRequired(Validator[Maybe[A]]):
         return f"KeyNotRequired({repr(self.validator)})"
 
 
-KeyValidator = Tuple[
+KeyValidator = tuple[
     Hashable,
     Validator[A],
 ]
@@ -302,7 +301,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1], Ret],
-        keys: Tuple[KeyValidator[T1],],
+        keys: tuple[KeyValidator[T1],],
         validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
         validate_object_async: Optional[
             Callable[[Ret], Awaitable[Optional[ErrType]]]
@@ -316,7 +315,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
         ],
@@ -333,7 +332,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -351,7 +350,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -370,7 +369,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -390,7 +389,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -411,7 +410,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -433,7 +432,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -456,7 +455,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -480,7 +479,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -505,7 +504,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -531,7 +530,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -558,7 +557,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         self,
         *,
         into: Callable[[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13], Ret],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -588,7 +587,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         into: Callable[
             [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14], Ret
         ],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -619,7 +618,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         into: Callable[
             [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15], Ret
         ],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -651,7 +650,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
         into: Callable[
             [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16], Ret
         ],
-        keys: Tuple[
+        keys: tuple[
             KeyValidator[T1],
             KeyValidator[T2],
             KeyValidator[T3],
@@ -703,18 +702,18 @@ class RecordValidator(_ToTupleValidator[Ret]):
             ],
         ],
         keys: Union[
-            Tuple[KeyValidator[T1]],
-            Tuple[KeyValidator[T1], KeyValidator[T2]],
-            Tuple[KeyValidator[T1], KeyValidator[T2], KeyValidator[T3]],
-            Tuple[KeyValidator[T1], KeyValidator[T2], KeyValidator[T3], KeyValidator[T4]],
-            Tuple[
+            tuple[KeyValidator[T1]],
+            tuple[KeyValidator[T1], KeyValidator[T2]],
+            tuple[KeyValidator[T1], KeyValidator[T2], KeyValidator[T3]],
+            tuple[KeyValidator[T1], KeyValidator[T2], KeyValidator[T3], KeyValidator[T4]],
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
                 KeyValidator[T4],
                 KeyValidator[T5],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -722,7 +721,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T5],
                 KeyValidator[T6],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -731,7 +730,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T6],
                 KeyValidator[T7],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -741,7 +740,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T7],
                 KeyValidator[T8],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -752,7 +751,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T8],
                 KeyValidator[T9],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -764,7 +763,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T9],
                 KeyValidator[T10],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -777,7 +776,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T10],
                 KeyValidator[T11],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -791,7 +790,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T11],
                 KeyValidator[T12],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -806,7 +805,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T12],
                 KeyValidator[T13],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -822,7 +821,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T13],
                 KeyValidator[T14],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -839,7 +838,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T14],
                 KeyValidator[T15],
             ],
-            Tuple[
+            tuple[
                 KeyValidator[T1],
                 KeyValidator[T2],
                 KeyValidator[T3],
@@ -866,7 +865,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
     ) -> None:
         self.into = into
         # needs to be `Any` until we have variadic generics presumably
-        self.keys: Tuple[KeyValidator[Any], ...] = keys
+        self.keys: tuple[KeyValidator[Any], ...] = keys
         if validate_object is not None and validate_object_async is not None:
             _raise_cannot_define_validate_object_and_validate_object_async()
         self.validate_object = validate_object
@@ -878,11 +877,11 @@ class RecordValidator(_ToTupleValidator[Ret]):
         # so we don't need to calculate each time we validate
         self._key_set = set()
         self._fast_keys_sync: list[
-            Tuple[Hashable, Callable[[Any], _ResultTuple[Any]], bool]
+            tuple[Hashable, Callable[[Any], _ResultTuple[Any]], bool]
         ] = []
 
         self._fast_keys_async: list[
-            Tuple[Hashable, Callable[[Any], Awaitable[_ResultTuple[Any]]], bool]
+            tuple[Hashable, Callable[[Any], Awaitable[_ResultTuple[Any]]], bool]
         ] = []
 
         for key, val in keys:

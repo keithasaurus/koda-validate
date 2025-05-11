@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple, Union, overload
+from typing import Any, Optional, Union, overload
 
 from koda_validate._generics import T1, T2, T3, T4, T5, T6, T7, T8, A
 from koda_validate._internal import (
@@ -29,7 +29,7 @@ class UnionValidator(_ToTupleValidator[A]):
             so we have at least one variant specified
         :param validators: the rest of the variants of the union
         """
-        self.validators: Tuple[Validator[Any], ...] = (validator_1,) + validators
+        self.validators: tuple[Validator[Any], ...] = (validator_1,) + validators
 
     @overload
     @staticmethod

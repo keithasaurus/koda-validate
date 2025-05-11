@@ -9,7 +9,6 @@ from typing import (
     Dict,
     Optional,
     Protocol,
-    Set,
     Type,
     TypeVar,
     cast,

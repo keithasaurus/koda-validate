@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Generic, Set, Type
+from typing import Any, Callable, Generic, Type
 
 from koda import Maybe
 
