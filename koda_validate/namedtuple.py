@@ -60,12 +60,12 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
     .. testcode:: dcexample
 
         from dataclasses import dataclass
-        from typing import List, NamedTuple
+        from typing import NamedTuple
         from koda_validate import *
 
         class Person(NamedTuple):
             name: str
-            hobbies: List[str]
+            hobbies: list[str]
 
         validator = NamedTupleValidator(Person)
 
@@ -127,7 +127,7 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         else:
             type_hints = get_type_hints(self.named_tuple_cls)
 
-        keys_with_defaults: Set[str] = {
+        keys_with_defaults: set[str] = {
             k
             for k, v in inspect.signature(self.named_tuple_cls).parameters.items()
             if v.default != inspect.Parameter.empty

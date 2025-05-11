@@ -6,9 +6,7 @@ from typing import (
     Dict,
     Generic,
     Hashable,
-    List,
     Optional,
-    Set,
     Type,
     Union,
 )
@@ -27,7 +25,7 @@ class CoercionErr:
     coerced to a destination type
     """
 
-    compatible_types: Set[Type[Any]]
+    compatible_types: set[Type[Any]]
     dest_type: Type[Any]
 
 
@@ -46,7 +44,7 @@ class ExtraKeysErr:
     extra keys were present in a dictionary
     """
 
-    expected_keys: Set[Hashable]
+    expected_keys: set[Hashable]
 
 
 @dataclass
@@ -114,7 +112,7 @@ class SetErrs:
     Errors from items in a set.
     """
 
-    item_errs: List["Invalid"]
+    item_errs: list["Invalid"]
 
 
 @dataclass
@@ -123,7 +121,7 @@ class UnionErrs:
     Errors from each variant of a union.
     """
 
-    variants: List["Invalid"]
+    variants: list["Invalid"]
 
 
 @dataclass
@@ -132,7 +130,7 @@ class PredicateErrs(Generic[A]):
     A grouping of failed Predicates
     """
 
-    predicates: List[Union["Predicate[A]", "PredicateAsync[A]"]]
+    predicates: list[Union["Predicate[A]", "PredicateAsync[A]"]]
 
 
 class ValidationErrBase:

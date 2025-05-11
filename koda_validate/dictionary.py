@@ -6,7 +6,6 @@ from typing import (
     ClassVar,
     Dict,
     Hashable,
-    List,
     Optional,
     Tuple,
     Union,
@@ -107,8 +106,8 @@ class MapValidator(Validator[Dict[T1, T2]]):
         *,
         key: Validator[T1],
         value: Validator[T2],
-        predicates: Optional[List[Predicate[Dict[T1, T2]]]] = None,
-        predicates_async: Optional[List[PredicateAsync[Dict[T1, T2]]]] = None,
+        predicates: Optional[list[Predicate[Dict[T1, T2]]]] = None,
+        predicates_async: Optional[list[PredicateAsync[Dict[T1, T2]]]] = None,
         coerce: Optional[Coercer[Dict[Any, Any]]] = None,
     ) -> None:
         self.key_validator = key
@@ -129,7 +128,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
         else:
             return Invalid(TypeErr(dict), val, self)
 
-        predicate_errors: List[
+        predicate_errors: list[
             Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
         ] = []
         if self.predicates is not None:
@@ -185,7 +184,7 @@ class MapValidator(Validator[Dict[T1, T2]]):
         else:
             return Invalid(TypeErr(dict), val, self)
 
-        predicate_errors: List[
+        predicate_errors: list[
             Union[Predicate[Dict[Any, Any]], PredicateAsync[Dict[Any, Any]]]
         ] = []
         if self.predicates is not None:
@@ -878,11 +877,11 @@ class RecordValidator(_ToTupleValidator[Ret]):
 
         # so we don't need to calculate each time we validate
         self._key_set = set()
-        self._fast_keys_sync: List[
+        self._fast_keys_sync: list[
             Tuple[Hashable, Callable[[Any], _ResultTuple[Any]], bool]
         ] = []
 
-        self._fast_keys_async: List[
+        self._fast_keys_async: list[
             Tuple[Hashable, Callable[[Any], Awaitable[_ResultTuple[Any]]], bool]
         ] = []
 
@@ -905,7 +904,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 if key_ not in self._key_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
 
-        args: List[Any] = []
+        args: list[Any] = []
         errs: Dict[Any, Invalid] = {}
         for key_, validator, key_required in self._fast_keys_sync:
             if key_ not in data:
@@ -938,7 +937,7 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 if key_ not in self._key_set:
                     return False, Invalid(self._unknown_keys_err, data, self)
 
-        args: List[Any] = []
+        args: list[Any] = []
         errs: Dict[Any, Invalid] = {}
         for key_, async_validator, key_required in self._fast_keys_async:
             if key_ not in data:

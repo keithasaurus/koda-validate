@@ -67,13 +67,12 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
     .. testcode:: dcexample
 
         from dataclasses import dataclass
-        from typing import List
         from koda_validate import *
 
         @dataclass
         class Person:
             name: str
-            hobbies: List[str]
+            hobbies: list[str]
 
         validator = DataclassValidator(Person)
 
@@ -129,7 +128,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
 
         self._disallow_synchronous = bool(validate_object_async)
 
-        keys_with_defaults: Set[str] = {
+        keys_with_defaults: set[str] = {
             k
             for k, v in inspect.signature(self.data_cls).parameters.items()
             if v.default != inspect.Parameter.empty

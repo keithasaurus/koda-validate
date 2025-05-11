@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Tuple, Union, overload
+from typing import Any, Optional, Tuple, Union, overload
 
 from koda_validate._generics import T1, T2, T3, T4, T5, T6, T7, T8, A
 from koda_validate._internal import (
@@ -155,7 +155,7 @@ class UnionValidator(_ToTupleValidator[A]):
         :param validator_8: the eighth variant (if defined)
         :return: UnionValidator with the variants defined above.
         """
-        validators: List[Validator[Any]] = [
+        validators: list[Validator[Any]] = [
             v
             for v in [
                 validator_2,

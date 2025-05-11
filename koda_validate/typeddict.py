@@ -56,12 +56,12 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
 
     .. testcode:: tdexample
 
-        from typing import List, TypedDict
+        from typing import TypedDict
         from koda_validate import *
 
         class Person(TypedDict):
             name: str
-            hobbies: List[str]
+            hobbies: list[str]
 
         validator = TypedDictValidator(Person)
 

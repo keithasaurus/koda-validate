@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from koda_validate._generics import A
 from koda_validate._internal import (
@@ -15,16 +15,16 @@ from koda_validate.errors import CoercionErr, IndexErrs, PredicateErrs, TypeErr
 from koda_validate.valid import Invalid
 
 
-class ListValidator(_ToTupleValidator[List[A]]):
+class ListValidator(_ToTupleValidator[list[A]]):
     __match_args__ = ("item_validator", "predicates", "predicates_async", "coerce")
 
     def __init__(
         self,
         item_validator: Validator[A],
         *,
-        predicates: Optional[List[Predicate[List[A]]]] = None,
-        predicates_async: Optional[List[PredicateAsync[List[A]]]] = None,
-        coerce: Optional[Coercer[List[Any]]] = None,
+        predicates: Optional[list[Predicate[list[A]]]] = None,
+        predicates_async: Optional[list[PredicateAsync[list[A]]]] = None,
+        coerce: Optional[Coercer[list[Any]]] = None,
     ) -> None:
         self.item_validator = item_validator
         self.predicates = predicates
@@ -35,7 +35,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
         self._wrapped_item_validator_sync = _wrap_sync_validator(item_validator)
         self._wrapped_item_validator_async = _wrap_async_validator(item_validator)
 
-    def _validate_to_tuple(self, val: Any) -> _ResultTuple[List[A]]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[list[A]]:
         if self._disallow_synchronous:
             _async_predicates_warning(self.__class__)
 
@@ -45,7 +45,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
                     CoercionErr(self.coerce.compatible_types, list), val, self
                 )
             else:
-                coerced_val: List[Any] = coerced.val
+                coerced_val: list[Any] = coerced.val
 
         elif type(val) is list:
             coerced_val = val
@@ -53,14 +53,14 @@ class ListValidator(_ToTupleValidator[List[A]]):
             return False, Invalid(TypeErr(list), val, self)
 
         if self.predicates:
-            list_errors: List[Union[Predicate[List[A]], PredicateAsync[List[A]]]] = [
+            list_errors: list[Union[Predicate[list[A]], PredicateAsync[list[A]]]] = [
                 pred for pred in self.predicates if not pred.__call__(coerced_val)
             ]
 
             if list_errors:
                 return False, Invalid(PredicateErrs(list_errors), coerced_val, self)
 
-        return_list: List[A] = []
+        return_list: list[A] = []
         index_errs: Dict[int, Invalid] = {}
         for i, item in enumerate(coerced_val):
             is_valid, item_result = self._wrapped_item_validator_sync(item)
@@ -75,22 +75,22 @@ class ListValidator(_ToTupleValidator[List[A]]):
         else:
             return True, return_list
 
-    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[List[A]]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[list[A]]:
         if self.coerce:
             if not (coerced := self.coerce(val)).is_just:
                 return False, Invalid(
                     CoercionErr(self.coerce.compatible_types, list), val, self
                 )
             else:
-                coerced_val: List[Any] = coerced.val
+                coerced_val: list[Any] = coerced.val
 
         elif type(val) is list:
             coerced_val = val
         else:
             return False, Invalid(TypeErr(list), val, self)
 
-        predicate_errors: List[
-            Union[Predicate[List[Any]], PredicateAsync[List[Any]]]
+        predicate_errors: list[
+            Union[Predicate[list[Any]], PredicateAsync[list[Any]]]
         ] = []
         if self.predicates:
             predicate_errors.extend(
@@ -105,7 +105,7 @@ class ListValidator(_ToTupleValidator[List[A]]):
         if predicate_errors:
             return False, Invalid(PredicateErrs(predicate_errors), coerced_val, self)
 
-        return_list: List[A] = []
+        return_list: list[A] = []
         index_errs = {}
         for i, item in enumerate(coerced_val):
             (

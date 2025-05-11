@@ -2,7 +2,7 @@ import re
 from datetime import date, datetime
 from decimal import Decimal
 from functools import partial
-from typing import Any, Callable, Dict, List, NoReturn, Type, Union
+from typing import Any, Callable, Dict, NoReturn, Type, Union
 from uuid import UUID
 
 from koda_validate import NotBlank, UUIDValidator
@@ -199,7 +199,7 @@ def obj_schema(
     to_schema_fn: ValidatorToSchema,
     obj: RecordValidator[Any],
 ) -> Dict[str, Serializable]:
-    required: List[str] = []
+    required: list[str] = []
     properties: Dict[str, Serializable] = {}
     for label, field in obj.keys:
         str_label = str(label)
@@ -219,7 +219,7 @@ def dict_validator_schema(
     to_schema_fn: ValidatorToSchema,
     obj: DictValidatorAny,
 ) -> Dict[str, Serializable]:
-    required: List[str] = []
+    required: list[str] = []
     properties: Dict[str, Serializable] = {}
     for label, field in obj.schema.items():
         str_label = str(label)
