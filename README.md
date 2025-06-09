@@ -15,8 +15,10 @@ Docs: [https://koda-validate.readthedocs.io/en/stable/](https://koda-validate.re
 from koda_validate import StringValidator
 
 my_string_validator = StringValidator()
+
 my_string_validator("a string!")
 #> Valid("a string!")
+
 my_string_validator(5)
 #> Invalid(...)
 ```
@@ -27,9 +29,13 @@ from koda_validate import MaxLength, MinLength
 
 str_len_validator = StringValidator(MinLength(1), MaxLength(20))
 
-str_len_validator("") # too short
+str_len_validator("abc")
+#> Valid("abc")
+
+str_len_validator("")
 #> Invalid(...)
-str_len_validator("abcdefghijklmnopqrstuvwxyz")  # too long
+
+str_len_validator("abcdefghijklmnopqrstuvwxyz")
 #> Invalid(...)
 ```
 
