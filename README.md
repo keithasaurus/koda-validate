@@ -1,3 +1,5 @@
+from examples.simple_validation import min_length_3_validator
+
 # Koda Validate
 
 Koda Validate is a library and toolkit for building composable and typesafe validators. In many cases,
@@ -11,18 +13,31 @@ Docs: [https://koda-validate.readthedocs.io/en/stable/](https://koda-validate.re
 
 ## At a Glance
 
-#### Explicit Validators
-
 ```python
-from koda_validate import ListValidator, StringValidator, MaxLength, MinLength
+from koda_validate import StringValidator
 
-my_string_validator = StringValidator(MinLength(1), MaxLength(20))
+my_string_validator = StringValidator()
 my_string_validator("a string!")
 #> Valid("a string!")
 my_string_validator(5)
 #> Invalid(...)
+```
 
+#### Additional Validation
+```python
+from koda_validate import MaxLength, MinLength
 
+str_len_validator = StringValidator(MinLength(1), MaxLength(20))
+
+str_len_validator("") # too short
+#> Invalid(...)
+str_len_validator("abcdefghijklmnopqrstuvwxyz")  # too long
+#> Invalid(...)
+```
+
+#### Combining Validators
+```python
+from koda_validate import ListValidator
 # Composing validators
 list_string_validator = ListValidator(my_string_validator)
 list_string_validator(["a", "b", "c"])
