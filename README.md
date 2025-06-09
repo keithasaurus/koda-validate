@@ -1,5 +1,3 @@
-from examples.simple_validation import min_length_3_validator
-
 # Koda Validate
 
 Koda Validate is a library and toolkit for building composable and typesafe validators. In many cases,
