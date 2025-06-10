@@ -40,12 +40,17 @@ str_len_validator("abcdefghijklmnopqrstuvwxyz")
 ```
 
 #### Combining Validators
+
 ```python
-from koda_validate import ListValidator
-# Composing validators
-list_string_validator = ListValidator(my_string_validator)
+from koda_validate import ListValidator, StringValidator
+
+list_string_validator = ListValidator(StringValidator())
+
 list_string_validator(["a", "b", "c"])
-#> Valid(["a", "b", "c"])
+# > Valid(["a", "b", "c"])
+
+list_string_validator([1, 2, 3])
+# > Invalid(...)
 ```
 
 #### Derived Validators
