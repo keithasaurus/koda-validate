@@ -269,11 +269,11 @@ def _wrap_async_validator(
         async_validator = obj.validate_async
 
         async def inner(v: Any) -> _ResultTuple[A]:
-            match await async_validator(v):
-                case Valid(val):
-                    return True, val
-                case Invalid() as inv:
-                    return False, inv
+            result = await async_validator(v)
+            if result.is_valid:
+                return True, result.val
+            else:
+                return False, result
 
         return inner
 

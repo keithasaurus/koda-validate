@@ -104,9 +104,9 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
         data_cls: Type[_DCT],
         *,
         overrides: Optional[dict[str, Validator[Any]]] = None,
-        validate_object: Optional[Callable[[_DCT], Optional[ErrType]]] = None,
+        validate_object: Optional[Callable[[_DCT], ErrType | None]] = None,
         validate_object_async: Optional[
-            Callable[[_DCT], Awaitable[Optional[ErrType]]]
+            Callable[[_DCT], Awaitable[ErrType | None]]
         ] = None,
         fail_on_unknown_keys: bool = False,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,

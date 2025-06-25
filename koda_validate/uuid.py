@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 from koda import Just, Maybe, nothing
@@ -28,9 +28,9 @@ class UUIDValidator(_ToTupleStandardValidator[UUID]):
     def __init__(
         self,
         *predicates: Predicate[UUID],
-        predicates_async: Optional[list[PredicateAsync[UUID]]] = None,
-        preprocessors: Optional[list[Processor[UUID]]] = None,
-        coerce: Optional[Coercer[UUID]] = coerce_uuid,
+        predicates_async: list[PredicateAsync[UUID]] | None = None,
+        preprocessors: list[Processor[UUID]] | None = None,
+        coerce: Coercer[UUID] | None = coerce_uuid,
     ) -> None:
         super().__init__(
             *predicates,

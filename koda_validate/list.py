@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 from koda_validate._generics import A
 from koda_validate._internal import (
@@ -22,9 +22,9 @@ class ListValidator(_ToTupleValidator[list[A]]):
         self,
         item_validator: Validator[A],
         *,
-        predicates: Optional[list[Predicate[list[A]]]] = None,
-        predicates_async: Optional[list[PredicateAsync[list[A]]]] = None,
-        coerce: Optional[Coercer[list[Any]]] = None,
+        predicates: list[Predicate[list[A]]] | None = None,
+        predicates_async: list[PredicateAsync[list[A]]] | None = None,
+        coerce: Coercer[list[Any]] | None = None,
     ) -> None:
         self.item_validator = item_validator
         self.predicates = predicates

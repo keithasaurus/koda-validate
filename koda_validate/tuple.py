@@ -35,7 +35,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         self,
         *,
         fields: tuple[Validator[Any], ...],
-        validate_object: Optional[Callable[[A], Optional[ErrType]]] = None,
+        validate_object: Optional[Callable[[A], ErrType | None]] = None,
         coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> None:
         """
@@ -61,7 +61,7 @@ class NTupleValidator(_ToTupleValidator[A]):
     def typed(
         *,
         fields: tuple[Validator[T1]],
-        validate_object: Optional[Callable[[tuple[T1]], Optional[ErrType]]] = None,
+        validate_object: Optional[Callable[[tuple[T1]], ErrType | None]] = None,
         coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[tuple[T1]]":
         ...  # pragma: no cover
@@ -71,7 +71,7 @@ class NTupleValidator(_ToTupleValidator[A]):
     def typed(
         *,
         fields: tuple[Validator[T1], Validator[T2]],
-        validate_object: Optional[Callable[[tuple[T1, T2]], Optional[ErrType]]] = None,
+        validate_object: Optional[Callable[[tuple[T1, T2]], ErrType | None]] = None,
         coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[tuple[T1, T2]]":
         ...  # pragma: no cover
@@ -81,9 +81,7 @@ class NTupleValidator(_ToTupleValidator[A]):
     def typed(
         *,
         fields: tuple[Validator[T1], Validator[T2], Validator[T3]],
-        validate_object: Optional[
-            Callable[[tuple[T1, T2, T3]], Optional[ErrType]]
-        ] = None,
+        validate_object: Optional[Callable[[tuple[T1, T2, T3]], ErrType | None]] = None,
         coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[tuple[T1, T2, T3]]":
         ...  # pragma: no cover
@@ -94,7 +92,7 @@ class NTupleValidator(_ToTupleValidator[A]):
         *,
         fields: tuple[Validator[T1], Validator[T2], Validator[T3], Validator[T4]],
         validate_object: Optional[
-            Callable[[tuple[T1, T2, T3, T4]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3, T4]], ErrType | None]
         ] = None,
         coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[tuple[T1, T2, T3, T4]]":
@@ -112,7 +110,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             Validator[T5],
         ],
         validate_object: Optional[
-            Callable[[tuple[T1, T2, T3, T4, T5]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3, T4, T5]], ErrType | None]
         ] = None,
         coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[tuple[T1, T2, T3, T4, T5]]":
@@ -131,7 +129,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             Validator[T6],
         ],
         validate_object: Optional[
-            Callable[[tuple[T1, T2, T3, T4, T5, T6]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3, T4, T5, T6]], ErrType | None]
         ] = None,
         coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[tuple[T1, T2, T3, T4, T5, T6]]":
@@ -151,7 +149,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             Validator[T7],
         ],
         validate_object: Optional[
-            Callable[[tuple[T1, T2, T3, T4, T5, T6, T7]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3, T4, T5, T6, T7]], ErrType | None]
         ] = None,
         coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[tuple[T1, T2, T3, T4, T5, T6, T7]]":
@@ -172,7 +170,7 @@ class NTupleValidator(_ToTupleValidator[A]):
             Validator[T8],
         ],
         validate_object: Optional[
-            Callable[[tuple[T1, T2, T3, T4, T5, T6, T7, T8]], Optional[ErrType]]
+            Callable[[tuple[T1, T2, T3, T4, T5, T6, T7, T8]], ErrType | None]
         ] = None,
         coerce: Optional[Coercer[tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[tuple[T1, T2, T3, T4, T5, T6, T7, T8]]":
@@ -223,16 +221,14 @@ class NTupleValidator(_ToTupleValidator[A]):
             ],
         ],
         validate_object: Union[
-            Optional[Callable[[tuple[T1]], Optional[ErrType]]],
-            Optional[Callable[[tuple[T1, T2]], Optional[ErrType]]],
-            Optional[Callable[[tuple[T1, T2, T3]], Optional[ErrType]]],
-            Optional[Callable[[tuple[T1, T2, T3, T4]], Optional[ErrType]]],
-            Optional[Callable[[tuple[T1, T2, T3, T4, T5]], Optional[ErrType]]],
-            Optional[Callable[[Tuple[T1, T2, T3, T4, T5, T6]], Optional[ErrType]]],
-            Optional[Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7]], Optional[ErrType]]],
-            Optional[
-                Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]], Optional[ErrType]]
-            ],
+            Optional[Callable[[tuple[T1]], ErrType | None]],
+            Optional[Callable[[tuple[T1, T2]], ErrType | None]],
+            Optional[Callable[[tuple[T1, T2, T3]], ErrType | None]],
+            Optional[Callable[[tuple[T1, T2, T3, T4]], ErrType | None]],
+            Optional[Callable[[tuple[T1, T2, T3, T4, T5]], ErrType | None]],
+            Optional[Callable[[Tuple[T1, T2, T3, T4, T5, T6]], ErrType | None]],
+            Optional[Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7]], ErrType | None]],
+            Optional[Callable[[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]], ErrType | None]],
         ] = None,
         coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> Union[
@@ -265,7 +261,7 @@ class NTupleValidator(_ToTupleValidator[A]):
     def untyped(
         *,
         fields: Tuple[Validator[Any], ...],
-        validate_object: Optional[Callable[[Tuple[Any, ...]], Optional[ErrType]]] = None,
+        validate_object: Optional[Callable[[Tuple[Any, ...]], ErrType | None]] = None,
         coerce: Optional[Coercer[Tuple[Any, ...]]] = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[Tuple[Any, ...]]":
         """

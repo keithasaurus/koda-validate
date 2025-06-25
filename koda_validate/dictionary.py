@@ -1,6 +1,5 @@
 import dataclasses
 from typing import Any, Awaitable, Callable, ClassVar, Hashable, Optional, Union, overload
-from unittest import case
 
 from koda import Just, Maybe, nothing
 
@@ -55,10 +54,13 @@ class KeyNotRequired(Validator[Maybe[A]]):
     def __init__(self, validator: Validator[A]):
         self.validator = validator
 
-    async def validate_async(self, val: Any) -> ValidationResult[Maybe[A]]:
+    # the type: ignore is because mypy sometimes gets confused when the `match` subject
+    # is an expression
+    async def validate_async(self, val: Any) -> ValidationResult[Maybe[A]]:  # type: ignore[return]
         match await self.validator.validate_async(val):
             case Valid(val):
                 return Valid(Just(val))
+
             case Invalid() as inv:
                 return inv
 
@@ -96,9 +98,9 @@ class MapValidator(Validator[dict[T1, T2]]):
         *,
         key: Validator[T1],
         value: Validator[T2],
-        predicates: Optional[list[Predicate[dict[T1, T2]]]] = None,
-        predicates_async: Optional[list[PredicateAsync[dict[T1, T2]]]] = None,
-        coerce: Optional[Coercer[dict[Any, Any]]] = None,
+        predicates: list[Predicate[dict[T1, T2]]] | None = None,
+        predicates_async: list[PredicateAsync[dict[T1, T2]]] | None = None,
+        coerce: Coercer[dict[Any, Any]] | None = None,
     ) -> None:
         self.key_validator = key
         self.value_validator = value
@@ -293,10 +295,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
         *,
         into: Callable[[T1], Ret],
         keys: tuple[KeyValidator[T1],],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -310,10 +310,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T1],
             KeyValidator[T2],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -328,10 +326,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T2],
             KeyValidator[T3],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -347,10 +343,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T3],
             KeyValidator[T4],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -367,10 +361,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T4],
             KeyValidator[T5],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -388,10 +380,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T5],
             KeyValidator[T6],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -410,10 +400,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T6],
             KeyValidator[T7],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -433,10 +421,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T7],
             KeyValidator[T8],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -457,10 +443,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T8],
             KeyValidator[T9],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -482,10 +466,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T9],
             KeyValidator[T10],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -508,10 +490,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T10],
             KeyValidator[T11],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -535,10 +515,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T11],
             KeyValidator[T12],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -563,10 +541,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T12],
             KeyValidator[T13],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -594,10 +570,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T13],
             KeyValidator[T14],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -626,10 +600,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T14],
             KeyValidator[T15],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -659,10 +631,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
             KeyValidator[T15],
             KeyValidator[T16],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         ...  # pragma: no cover
@@ -848,10 +818,8 @@ class RecordValidator(_ToTupleValidator[Ret]):
                 KeyValidator[T16],
             ],
         ],
-        validate_object: Optional[Callable[[Ret], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[[Ret], Awaitable[Optional[ErrType]]]
-        ] = None,
+        validate_object: Callable[[Ret], ErrType | None] | None = None,
+        validate_object_async: Callable[[Ret], Awaitable[ErrType | None]] | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         self.into = into
@@ -1008,15 +976,12 @@ class DictValidatorAny(_ToTupleValidator[dict[Any, Any]]):
         self,
         schema: dict[Any, Validator[Any]],
         *,
-        validate_object: Optional[
-            Callable[[dict[Hashable, Any]], Optional[ErrType]]
-        ] = None,
-        validate_object_async: Optional[
-            Callable[
-                [dict[Any, Any]],
-                Awaitable[Optional[ErrType]],
-            ]
-        ] = None,
+        validate_object: Callable[[dict[Hashable, Any]], ErrType | None] | None = None,
+        validate_object_async: Callable[
+            [dict[Any, Any]],
+            Awaitable[ErrType | None],
+        ]
+        | None = None,
         fail_on_unknown_keys: bool = False,
     ) -> None:
         self.schema: dict[Any, Validator[Any]] = schema

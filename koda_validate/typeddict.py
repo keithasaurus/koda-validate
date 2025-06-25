@@ -92,15 +92,14 @@ class TypedDictValidator(_ToTupleValidator[_TDT]):
         self,
         td_cls: Type[_TDT],
         *,
-        overrides: Optional[dict[str, Validator[Any]]] = None,
-        validate_object: Optional[Callable[[_TDT], Optional[ErrType]]] = None,
-        validate_object_async: Optional[
-            Callable[
-                [_TDT],
-                Awaitable[Optional[ErrType]],
-            ]
-        ] = None,
-        coerce: Optional[Coercer[dict[Any, Any]]] = None,
+        overrides: dict[str, Validator[Any]] | None = None,
+        validate_object: Callable[[_TDT], ErrType | None] | None = None,
+        validate_object_async: Callable[
+            [_TDT],
+            Awaitable[ErrType | None],
+        ]
+        | None = None,
+        coerce: Coercer[dict[Any, Any]] | None = None,
         typehint_resolver: Callable[[Any], Validator[Any]] = get_typehint_validator,
         fail_on_unknown_keys: bool = False,
     ) -> None:
