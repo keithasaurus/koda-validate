@@ -1,5 +1,6 @@
 import dataclasses
 from typing import Any, Awaitable, Callable, ClassVar, Hashable, Optional, Union, overload
+from unittest import case
 
 from koda import Just, Maybe, nothing
 
@@ -55,18 +56,18 @@ class KeyNotRequired(Validator[Maybe[A]]):
         self.validator = validator
 
     async def validate_async(self, val: Any) -> ValidationResult[Maybe[A]]:
-        result = await self.validator.validate_async(val)
-        if result.is_valid:
-            return Valid(Just(result.val))
-        else:
-            return result
+        match await self.validator.validate_async(val):
+            case Valid(val):
+                return Valid(Just(val))
+            case Invalid() as inv:
+                return inv
 
     def __call__(self, val: Any) -> ValidationResult[Maybe[A]]:
-        result = self.validator(val)
-        if result.is_valid:
-            return Valid(Just(result.val))
-        else:
-            return result
+        match self.validator(val):
+            case Valid(val):
+                return Valid(Just(val))
+            case Invalid() as inv:
+                return inv
 
     def __eq__(self, other: Any) -> bool:
         return type(self) == type(other) and self.validator == other.validator

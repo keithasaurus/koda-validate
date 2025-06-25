@@ -1,4 +1,5 @@
 from typing import Any, Awaitable, Callable, Literal, NoReturn, Optional, Type, Union
+from unittest import case
 
 from koda_validate._generics import A, SuccessT
 from koda_validate.base import Predicate, PredicateAsync, Processor, Validator
@@ -215,11 +216,12 @@ def _union_validator(
             else:
                 errs.append(result_tup[1])
         else:
-            result = validator(val)
-            if result.is_valid:
-                return True, result.val
-            else:
-                errs.append(result)
+            match validator(val):
+                case Valid(val):
+                    return True, val
+                case Invalid() as inv:
+                    errs.append(inv)
+
     return False, Invalid(UnionErrs(errs), val, source_validator)
 
 
@@ -235,11 +237,11 @@ async def _union_validator_async(
             else:
                 errs.append(result_tup[1])
         else:
-            result = await validator.validate_async(val)
-            if result.is_valid:
-                return True, result.val
-            else:
-                errs.append(result)
+            match await validator.validate_async(val):
+                case Valid(val):
+                    return True, val
+                case Invalid() as inv:
+                    errs.append(inv)
     return False, Invalid(UnionErrs(errs), val, source_validator)
 
 
@@ -249,11 +251,11 @@ def _wrap_sync_validator(obj: Validator[A]) -> Callable[[Any], _ResultTuple[A]]:
     else:
 
         def inner(v: Any) -> _ResultTuple[A]:
-            result = obj(v)
-            if result.is_valid:
-                return True, result.val
-            else:
-                return False, result
+            match obj(v):
+                case Valid(val):
+                    return True, val
+                case Invalid() as inv:
+                    return False, inv
 
         return inner
 
@@ -267,11 +269,11 @@ def _wrap_async_validator(
         async_validator = obj.validate_async
 
         async def inner(v: Any) -> _ResultTuple[A]:
-            result = await async_validator(v)
-            if result.is_valid:
-                return True, result.val
-            else:
-                return False, result
+            match await async_validator(v):
+                case Valid(val):
+                    return True, val
+                case Invalid() as inv:
+                    return False, inv
 
         return inner
 
