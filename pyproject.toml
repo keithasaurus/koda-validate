@@ -88,11 +88,11 @@ addopts ="""
 # ^^  --ds = "django settings module"
 #
 #
-#[tool.coverage.run]
-#omit = [
-#    "koda_validate/validate_and_map.py",
-#    "tests/*"
-#]
+[tool.coverage.run]
+omit = [
+    "koda_validate/validate_and_map.py",
+    "tests/*"
+]
 
 [tool.isort]
 line_length = 90
