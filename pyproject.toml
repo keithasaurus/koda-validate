@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "koda-validate"
-version = "5.0.0"
+version = "6.0.0"
 readme = "README.md"
 description = "Typesafe, composable validation"
 documentation = "https://koda-validate.readthedocs.io/en/stable/"
@@ -23,18 +23,18 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 koda = "1.4.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "8.3.5"
-pytest-cov = "5.0.0"
+pytest = "8.4.1"
+pytest-cov = "6.2.1"
 isort = "6.0.1"
-flake8 = "7.2.0"
+flake8 = "7.3.0"
 pre-commit = "3.8.0"
-mypy = "1.15.0"
-pydantic = "2.11.4"
-pytest-asyncio = "0.26.0"
+mypy = "1.16.1"
+pydantic = "2.11.7"
+pytest-asyncio = "1.0.0"
 voluptuous = "0.15.2"
 ssort = "0.14.0"
 jsonschema = "4.23.0"
@@ -42,7 +42,7 @@ types-jsonschema = "4.23.0.20240712"
 sphinx  = "7.4.7"
 furo = "2024.8.6"
 flask = {version = "3.1.0", extras = ["async"]}
-django = "4.2.21"
+django = "5.2.3"
 django-stubs = "5.0.4"
 pytest-django = "4.11.1"
 sphinx-autodoc-typehints = "1.25.3"
@@ -86,13 +86,13 @@ addopts ="""
   --ds=examples.django_example.django_example.settings
 """
 # ^^  --ds = "django settings module"
-
-
-[tool.coverage.run]
-omit = [
-    "koda_validate/validate_and_map.py",
-    "tests/*"
-]
+#
+#
+#[tool.coverage.run]
+#omit = [
+#    "koda_validate/validate_and_map.py",
+#    "tests/*"
+#]
 
 [tool.isort]
 line_length = 90

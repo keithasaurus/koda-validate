@@ -3,17 +3,13 @@ import sys
 from dataclasses import is_dataclass
 from datetime import date, datetime
 from decimal import Decimal
+from types import UnionType
+from typing import TYPE_CHECKING, Annotated, List, Set, cast
 
 from koda import Just, Nothing
 
 from .is_type import TypeValidator
 from .maybe import MaybeValidator
-
-if sys.version_info >= (3, 9):
-    from typing import TYPE_CHECKING, Annotated, List, Set, cast
-
-if sys.version_info >= (3, 10):
-    from types import UnionType
 
 if sys.version_info >= (3, 11):
     from typing import NotRequired, Required
@@ -131,7 +127,7 @@ def get_typehint_validator_base(
             return MapValidator(
                 key=get_hint_next_depth(args[0]), value=get_hint_next_depth(args[1])
             )
-        elif origin is Union or (sys.version_info >= (3, 10) and origin is UnionType):
+        elif origin is Union or origin is UnionType:
             if len(args) == 2 and args[1] is Nothing and get_origin(args[0]) is Just:
                 return MaybeValidator(get_hint_next_depth(get_args(args[0])[0]))
             else:
@@ -176,7 +172,7 @@ def get_typehint_validator_base(
             return get_typehint_validator(args[0])
 
         # not validating with annotations at this point
-        elif sys.version_info >= (3, 9) and origin is Annotated:
+        elif origin is Annotated:
             if len(args) == 1:
                 return get_typehint_validator(args[0])
             else:
