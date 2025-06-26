@@ -7,7 +7,6 @@ from typing import (
     Any,
     Callable,
     Literal,
-    Optional,
     TypeVar,
     Union,
     cast,
@@ -127,12 +126,12 @@ def _wrap_fn(
     # If we simply didn't store the keys of arguments we're ignoring, we
     # wouldn't be able to tell the difference between a **kwargs key and a
     # defined argument name
-    schema: dict[str, Optional[Validator[Any]]] = {}
+    schema: dict[str, Validator[Any] | None] = {}
 
-    kwargs_validator: Optional[Validator[Any]] = None
-    var_args_key_and_validator: Optional[tuple[str, Validator[Any]]] = None
+    kwargs_validator: Validator[Any] | None = None
+    var_args_key_and_validator: tuple[str, Validator[Any]] | None = None
     positional_args_names: set[str] = set()
-    positional_validators: list[Optional[tuple[str, Validator[Any]]]] = []
+    positional_validators: list[tuple[str, Validator[Any]] | None] = []
     _get_validator_partial = functools.partial(
         _get_validator, overrides, typehint_resolver
     )
@@ -172,7 +171,7 @@ def _wrap_fn(
                 kwargs_validator = _get_validator_partial(key, annotation)
 
     if not ignore_return and sig.return_annotation != sig.empty:
-        return_validator: Optional[Validator[Any]] = _get_validator_partial(
+        return_validator: Validator[Any] | None = _get_validator_partial(
             RETURN_OVERRIDE_KEY, sig.return_annotation
         )
     else:
@@ -323,12 +322,12 @@ def _wrap_fn(
 def validate_signature(
     func: _DecoratedFunc,
     *,
-    ignore_args: Optional[set[str]] = None,
+    ignore_args: set[str] | None = None,
     ignore_return: bool = False,
     typehint_resolver: Callable[
         [Any], Validator[Any]
     ] = resolve_signature_typehint_default,  # noqa: E501
-    overrides: Optional[OverridesDict] = None,
+    overrides: OverridesDict | None = None,
 ) -> _DecoratedFunc:
     ...
 
@@ -337,25 +336,25 @@ def validate_signature(
 def validate_signature(
     func: None = None,
     *,
-    ignore_args: Optional[set[str]] = None,
+    ignore_args: set[str] | None = None,
     ignore_return: bool = False,
     typehint_resolver: Callable[
         [Any], Validator[Any]
     ] = resolve_signature_typehint_default,  # noqa: E501
-    overrides: Optional[OverridesDict] = None,
+    overrides: OverridesDict | None = None,
 ) -> Callable[[_DecoratedFunc], _DecoratedFunc]:
     ...
 
 
 def validate_signature(
-    func: Optional[_DecoratedFunc] = None,
+    func: _DecoratedFunc | None = None,
     *,
     ignore_return: bool = False,
-    ignore_args: Optional[set[str]] = None,
+    ignore_args: set[str] | None = None,
     typehint_resolver: Callable[
         [Any], Validator[Any]
     ] = resolve_signature_typehint_default,  # noqa: E501
-    overrides: Optional[OverridesDict] = None,
+    overrides: OverridesDict | None = None,
 ) -> Union[_DecoratedFunc, Callable[[_DecoratedFunc], _DecoratedFunc]]:
     r"""
     Validates a function's arguments and / or return value adhere to the respective
