@@ -11,10 +11,10 @@ class TypeValidator(_ToTupleStandardValidator[SuccessT]):
         self,
         type_: Type[SuccessT],
         *,
-        predicates: Optional[list[Predicate[SuccessT]]] = None,
-        predicates_async: Optional[list[PredicateAsync[SuccessT]]] = None,
-        preprocessors: Optional[list[Processor[SuccessT]]] = None,
-        coerce: Optional[Coercer[SuccessT]] = None,
+        predicates: list[Predicate[SuccessT]] | None = None,
+        predicates_async: list[PredicateAsync[SuccessT]] | None = None,
+        preprocessors: list[Processor[SuccessT]] | None = None,
+        coerce: Coercer[SuccessT] | None = None,
     ) -> None:
         self._TYPE = type_
         super().__init__(

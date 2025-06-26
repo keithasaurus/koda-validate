@@ -39,7 +39,7 @@ class NoneValidator(_ToTupleValidator[None]):
 none_validator = NoneValidator()
 
 
-class OptionalValidator(_ToTupleValidator[Optional[A]]):
+class OptionalValidator(_ToTupleValidator[A | None]):
     """
     We have a value for a key, but it can be null (None)
     """
@@ -56,10 +56,10 @@ class OptionalValidator(_ToTupleValidator[Optional[A]]):
         self.none_validator = none_validator
         self.validators = (none_validator, validator)
 
-    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[Optional[A]]:
+    async def _validate_to_tuple_async(self, val: Any) -> _ResultTuple[A | None]:
         return await _union_validator_async(self, self.validators, val)
 
-    def _validate_to_tuple(self, val: Any) -> _ResultTuple[Optional[A]]:
+    def _validate_to_tuple(self, val: Any) -> _ResultTuple[A | None]:
         return _union_validator(self, self.validators, val)
 
     def __eq__(self, other: Any) -> bool:

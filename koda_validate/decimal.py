@@ -1,6 +1,6 @@
 import decimal
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 
 from koda import Just, Maybe, nothing
 
@@ -28,9 +28,9 @@ class DecimalValidator(_ToTupleStandardValidator[Decimal]):
     def __init__(
         self,
         *predicates: Predicate[Decimal],
-        predicates_async: Optional[list[PredicateAsync[Decimal]]] = None,
-        preprocessors: Optional[list[Processor[Decimal]]] = None,
-        coerce: Optional[Coercer[Decimal]] = coerce_decimal,
+        predicates_async: list[PredicateAsync[Decimal]] | None = None,
+        preprocessors: list[Processor[Decimal]] | None = None,
+        coerce: Coercer[Decimal] | None = coerce_decimal,
     ) -> None:
         super().__init__(
             *predicates,

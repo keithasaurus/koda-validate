@@ -140,12 +140,12 @@ class EqualsValidator(_ToTupleValidator[ExactMatchT]):
     """
 
     match: ExactMatchT
-    preprocessors: Optional[list[Processor[ExactMatchT]]] = None
+    preprocessors: list[Processor[ExactMatchT]] | None = None
 
     def __init__(
         self,
         match: ExactMatchT,
-        preprocessors: Optional[list[Processor[ExactMatchT]]] = None,
+        preprocessors: list[Processor[ExactMatchT]] | None = None,
     ) -> None:
         self.match = match
         self.preprocessors = preprocessors

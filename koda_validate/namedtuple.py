@@ -97,8 +97,8 @@ class NamedTupleValidator(_ToTupleValidator[_NTT]):
         self,
         named_tuple_cls: Type[_NTT],
         *,
-        overrides: Optional[dict[str, Validator[Any]]] = None,
-        validate_object: Optional[Callable[[_NTT], ErrType | None]] = None,
+        overrides: dict[str, Validator[Any]] | None = None,
+        validate_object: Callable[[_NTT], ErrType | None] | None = None,
         validate_object_async: Optional[
             Callable[[_NTT], Awaitable[ErrType | None]]
         ] = None,
