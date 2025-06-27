@@ -255,7 +255,7 @@ class NTupleValidator(_ToTupleValidator[A]):
     def untyped(
         *,
         fields: Tuple[Validator[Any], ...],
-        validate_object: Optional[Callable[[Tuple[Any, ...]], ErrType | None]] = None,
+        validate_object: Callable[[Tuple[Any, ...]], ErrType | None] | None = None,
         coerce: Coercer[tuple[Any, ...]] | None = tuple_or_list_to_tuple,
     ) -> "NTupleValidator[Tuple[Any, ...]]":
         """
