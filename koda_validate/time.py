@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, Optional
+from typing import Any
 
 from koda import Just, Maybe, nothing
 
@@ -25,9 +25,9 @@ class DateValidator(_ToTupleStandardValidator[date]):
     def __init__(
         self,
         *predicates: Predicate[date],
-        predicates_async: Optional[list[PredicateAsync[date]]] = None,
-        preprocessors: Optional[list[Processor[date]]] = None,
-        coerce: Optional[Coercer[date]] = coerce_date,
+        predicates_async: list[PredicateAsync[date]] | None = None,
+        preprocessors: list[Processor[date]] | None = None,
+        coerce: Coercer[date] | None = coerce_date,
     ) -> None:
         super().__init__(
             *predicates,
@@ -54,9 +54,9 @@ class DatetimeValidator(_ToTupleStandardValidator[datetime]):
     def __init__(
         self,
         *predicates: Predicate[datetime],
-        predicates_async: Optional[list[PredicateAsync[datetime]]] = None,
-        preprocessors: Optional[list[Processor[datetime]]] = None,
-        coerce: Optional[Coercer[datetime]] = coerce_datetime,
+        predicates_async: list[PredicateAsync[datetime]] | None = None,
+        preprocessors: list[Processor[datetime]] | None = None,
+        coerce: Coercer[datetime] | None = coerce_datetime,
     ) -> None:
         super().__init__(
             *predicates,

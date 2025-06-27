@@ -123,13 +123,13 @@ class UnionValidator(_ToTupleValidator[A]):
     @staticmethod
     def typed(
         validator_1: Validator[T1],
-        validator_2: Optional[Validator[T2]] = None,
-        validator_3: Optional[Validator[T3]] = None,
-        validator_4: Optional[Validator[T4]] = None,
-        validator_5: Optional[Validator[T5]] = None,
-        validator_6: Optional[Validator[T6]] = None,
-        validator_7: Optional[Validator[T7]] = None,
-        validator_8: Optional[Validator[T8]] = None,
+        validator_2: Validator[T2] | None = None,
+        validator_3: Validator[T3] | None = None,
+        validator_4: Validator[T4] | None = None,
+        validator_5: Validator[T5] | None = None,
+        validator_6: Validator[T6] | None = None,
+        validator_7: Validator[T7] | None = None,
+        validator_8: Validator[T8] | None = None,
     ) -> Union[
         "UnionValidator[T1]",
         "UnionValidator[Union[T1, T2]]",
