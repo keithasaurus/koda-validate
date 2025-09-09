@@ -6,7 +6,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.14.0-rc2', '3.13', '3.12', '3.11', '3.10', '3.9']
+        python-version: ['3.14.0-rc.2', '3.13', '3.12', '3.11', '3.10', '3.9']
         poetry-version: ['2.1.3']
         os: [ubuntu-22.04, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -27,7 +27,7 @@ jobs:
         # exclude examples in CI because some 3.10 features are used
         run: poetry run mypy . --exclude examples --exclude tests/test_310_plus.py --exclude tests/test_311_plus.py --exclude tests/test_39_plus.py
       - name: mypy 3.11
-        if: matrix.python-version == 3.11 || matrix.python-version == 3.12 || matrix.python-version == 3.13 || matrix.python-version == '3.14.0-rc2'
+        if: matrix.python-version == 3.11 || matrix.python-version == 3.12 || matrix.python-version == 3.13 || matrix.python-version == '3.14.0-rc.2'
         run: poetry run mypy .
       - name: mypy 3.10
         if: matrix.python-version == 3.10
@@ -39,7 +39,7 @@ jobs:
         if: matrix.python-version == 3.10
         run: poetry run pytest --ignore tests/test_311_plus.py
       - name: run 3.11/3.12 tests
-        if: matrix.python-version == 3.11 || matrix.python-version == 3.12 || matrix.python-version == 3.13 || matrix.python-version == '3.14.0-rc2'
+        if: matrix.python-version == 3.11 || matrix.python-version == 3.12 || matrix.python-version == 3.13 || matrix.python-version == '3.14.0-rc.2'
         run: poetry run pytest --ignore tests/test_311_plus.py
       - name: run all examples
         if: matrix.python-version == 3.10
@@ -48,12 +48,12 @@ jobs:
         if: matrix.python-version == 3.9
         run: poetry run flake8 --exclude codegen,bench,examples,tests/test_310_plus.py,tests/test_311_plus.py --ignore E721,E741,W503,F405,F403,F401
       - name: linting 3.10+
-        if: matrix.python-version == 3.10 || matrix.python-version == 3.11 || matrix.python-version == 3.12 || matrix.python-version == 3.13 || matrix.python-version == '3.14.0-rc2'
+        if: matrix.python-version == 3.10 || matrix.python-version == 3.11 || matrix.python-version == 3.12 || matrix.python-version == 3.13 || matrix.python-version == '3.14.0-rc.2'
         run: poetry run flake8 --exclude codegen --ignore E721,E741,W503,F405,F403,F401,DAR101,DAR201,DAR401
       - name: darglint
         run: poetry run darglint koda_validate
       - name: doctests
-        if: matrix.python-version == 3.10 || matrix.python-version == 3.11 || matrix.python-version == 3.12 || matrix.python-version == 3.13 || matrix.python-version == '3.14.0-rc2'
+        if: matrix.python-version == 3.10 || matrix.python-version == 3.11 || matrix.python-version == 3.12 || matrix.python-version == 3.13 || matrix.python-version == '3.14.0-rc.2'
         run: cd docs && poetry run make doctest
       - name: benchmarks
         run: poetry run python -m bench.run
