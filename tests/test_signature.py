@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, List, NamedTuple, NewType, Optional, Tuple, TypedDict
+from typing import Any, List, NamedTuple, NewType, Optional, Tuple, TypedDict, Annotated
 from uuid import UUID
 
 import pytest
@@ -886,3 +886,21 @@ async def test_override_coerce_works_async() -> None:
     assert await func2("abc", kwarg1="ok") == ("Abc", "Ok")
 
     assert await func2(arg1=5, kwarg1=6) == ("5", "6")  # type: ignore[arg-type]
+
+
+def test_annotated() -> None:
+    @validate_signature
+    def something(
+        a: Annotated[str, StringValidator(MinLength(2))]
+    ) -> Annotated[str, StringValidator(MinLength(2))]:
+        # the function signature here can be regarded as somewhat of a mistake
+        # because the return minlength should be 1, since we remove one character. It just
+        # serves to allow us to test both the argument and return validators.
+        return a[:-1]
+
+    assert something("abc") == "ab"
+    with pytest.raises(InvalidArgsError):
+        something("")
+
+    with pytest.raises(InvalidReturnError):
+        something("ab")

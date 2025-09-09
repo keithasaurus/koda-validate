@@ -1,5 +1,4 @@
 import inspect
-import sys
 from dataclasses import is_dataclass
 from typing import (
     Any,
@@ -132,10 +131,7 @@ class DataclassValidator(_ToTupleValidator[_DCT]):
             if v.default != inspect.Parameter.empty
         }
 
-        if sys.version_info >= (3, 9):
-            type_hints = get_type_hints(self.data_cls, include_extras=True)
-        else:
-            type_hints = get_type_hints(self.data_cls)
+        type_hints = get_type_hints(self.data_cls, include_extras=True)
 
         overrides = self.overrides or {}
         self.schema = {

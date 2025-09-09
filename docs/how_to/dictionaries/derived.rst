@@ -157,7 +157,7 @@ to achieve that.
 
 Annotated
 ^^^^^^^^^
-In Python 3.9+, you can use `Annotated <https://docs.python.org/3/library/typing.html#typing.Annotated>`_
+You can use `Annotated <https://docs.python.org/3/library/typing.html#typing.Annotated>`_
 to add a custom :class:`Validator` for a given key.
 
 .. testcode:: annotated

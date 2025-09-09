@@ -9,8 +9,7 @@ from koda import Just, Nothing
 from .is_type import TypeValidator
 from .maybe import MaybeValidator
 
-if sys.version_info >= (3, 9):
-    from typing import TYPE_CHECKING, Annotated, List, Set, cast
+from typing import TYPE_CHECKING, Annotated, List, Set, cast
 
 if sys.version_info >= (3, 10):
     from types import UnionType
@@ -176,7 +175,7 @@ def get_typehint_validator_base(
             return get_typehint_validator(args[0])
 
         # not validating with annotations at this point
-        elif sys.version_info >= (3, 9) and origin is Annotated:
+        elif origin is Annotated:
             if len(args) == 1:
                 return get_typehint_validator(args[0])
             else:
