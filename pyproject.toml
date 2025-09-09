@@ -23,27 +23,27 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 koda = "1.4.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "8.3.5"
-pytest-cov = "5.0.0"
+pytest = "8.4.2"
+pytest-cov = "7.0.0"
 isort = "6.0.1"
-flake8 = "7.2.0"
-pre-commit = "3.8.0"
-mypy = "1.15.0"
-pydantic = "2.11.4"
-pytest-asyncio = "0.26.0"
+flake8 = "7.3.0"
+pre-commit = "4.3.0"
+mypy = "1.17.1"
+pydantic = "2.11.7"
+pytest-asyncio = "1.1.0"
 voluptuous = "0.15.2"
-ssort = "0.14.0"
-jsonschema = "4.23.0"
-types-jsonschema = "4.23.0.20240712"
+ssort = "0.15.0"
+jsonschema = "4.25.1"
+types-jsonschema = "4.25.1.20250822"
 sphinx  = "7.4.7"
 furo = "2024.8.6"
-flask = {version = "3.1.0", extras = ["async"]}
-django = "4.2.21"
-django-stubs = "5.0.4"
+flask = {version = "3.1.2", extras = ["async"]}
+django = "5.2.6"
+django-stubs = "5.2.2"
 pytest-django = "4.11.1"
 sphinx-autodoc-typehints = "1.25.3"
 darglint = "1.8.1"
