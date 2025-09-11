@@ -4,14 +4,14 @@ Overview
 .. module:: koda_validate
     :noindex:
 
-At it's core, Koda Validate is little more than a few function signatures (see
+At its core, Koda Validate is little more than a few function signatures (see
 :ref:`philosophy/validators:Validators`, :ref:`philosophy/predicates:Predicates`,
 :ref:`philosophy/coercion:Coercion`, and :ref:`philosophy/processors:Processors`), which
 can be combined to build validators of arbitrary complexity. This simplicity also
 provides straightforward paths for:
 
 - optimization: Koda Validate tends to be fast (for Python)
-- extension: Koda Validate can be extended to Validate essentially anything, even asynchronusly.
+- extension: Koda Validate can be extended to Validate essentially anything, even asynchronously.
 
 .. note::
 
@@ -25,4 +25,4 @@ Flexible
 any specific framework, serialization format, or language. Instead Koda Validate aims to make it
 straightforward to contextualize validation outputs and artifacts -- by writing *interpreters* that
 consume a :class:`Validator` and produce some output. This effectively makes Koda Validate just as easy to
-work with in any framework, format or langauge. More info is available at :ref:`how_to/metadata:Metadata`.
+work with in any framework, format or language. More info is available at :ref:`how_to/metadata:Metadata`.
