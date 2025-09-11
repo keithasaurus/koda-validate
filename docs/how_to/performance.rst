@@ -150,8 +150,9 @@ Look at koda_validate._internals
 There are a few classes in ``_internals.py`` that are optimized for speed. For instance,
 most of the built-in :class:`Validator`\s subclass ``_ToTupleValidator``.
 
-The contents of ``koda_validate._internals`` may change without notice. You can use some
-of the base classes in there at your own risk, or just mimic some of the patterns.
+The contents of ``koda_validate._internals`` may change without notice. If you use
+the base classes defined there, take heed. It may be wise to simply mimic the patterns
+you find there to build your own classes.
 
 --------------------
 
