@@ -39,8 +39,11 @@ jobs:
         if: matrix.python-version == 3.10
         run: poetry run pytest --ignore tests/test_311_plus.py
       - name: run 3.11/3.12 tests
-        if: matrix.python-version == 3.11 || matrix.python-version == 3.12 || matrix.python-version == 3.13
-        run: poetry run pytest --ignore tests/test_311_plus.py
+        if: matrix.python-version == 3.11 || matrix.python-version == 3.12
+        run: poetry run pytest --ignore tests/test_313_plus.py
+      - name: run 3.13 tests
+        if: matrix.python-version == 3.13
+        run: poetry run pytest
       - name: run all examples
         if: matrix.python-version == 3.10
         run: poetry run bash run_all_examples.sh
