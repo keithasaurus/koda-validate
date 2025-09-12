@@ -53,7 +53,7 @@ you'll usually want to convert them to something more useful for your specific
 use case.
 
 It's helpful to understand that :class:`Invalid` errors typically form into trees (which mirror
-the structure of the :class:`Validator<koda_validate.Validator>` they come from):
+the structure of the :class:`Validator<koda_validate.Validator>` from which they come):
 
 .. code-block:: python
 
