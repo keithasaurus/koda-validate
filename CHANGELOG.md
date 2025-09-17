@@ -1,5 +1,5 @@
 5.0.1 (Sep 16, 2025)
-- add support for ReadOnly type annotation
+- Add support for ReadOnly type annotation
 
 5.0.0 (May 11, 2025)
 **Breaking Changes**
