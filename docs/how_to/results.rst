@@ -24,7 +24,8 @@ generic parameter for the same purpose. So, a ``Validator[int]`` will always ret
 
 .. note::
 
-    ``ValidationResult[int]`` can be de-sugared to ``Union[Valid[int], Invalid]``.
+    ``ValidationResult[int]`` is a more concise way to express ``Union[Valid[int], Invalid]``,
+to which it is exactly equivalent.
 
 Branching on Validity
 ---------------------
