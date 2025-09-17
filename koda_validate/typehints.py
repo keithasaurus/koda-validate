@@ -5,6 +5,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from koda import Just, Nothing
+from typing_extensions import ReadOnly
 
 from .is_type import TypeValidator
 from .maybe import MaybeValidator
@@ -17,6 +18,9 @@ if sys.version_info >= (3, 10):
 
 if sys.version_info >= (3, 11):
     from typing import NotRequired, Required
+
+if sys.version_info >= (3, 13):
+    from typing import ReadOnly  # noqa: F811
 
 from typing import Any, Callable, Dict, Literal, Tuple, Union, get_args, get_origin
 from uuid import UUID
@@ -174,7 +178,10 @@ def get_typehint_validator_base(
             origin is NotRequired or origin is Required
         ):
             return get_typehint_validator(args[0])
-
+        elif sys.version_info >= (3, 13) and (
+            origin is ReadOnly
+        ):
+            return get_typehint_validator(args[0])
         # not validating with annotations at this point
         elif sys.version_info >= (3, 9) and origin is Annotated:
             if len(args) == 1:

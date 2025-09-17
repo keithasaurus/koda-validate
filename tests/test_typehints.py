@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal, NamedTuple, Tuple, TypeVar
+from typing import Literal, NamedTuple, Tuple, TypeVar, Union, Dict, List
 
 from koda_validate import (
     AlwaysValid,
@@ -20,7 +20,7 @@ from koda_validate import (
     UnionErrs,
     UnionValidator,
     Valid,
-    none_validator,
+    none_validator, ListValidator, MapValidator,
 )
 from koda_validate.namedtuple import NamedTupleValidator
 from koda_validate.typehints import get_typehint_validator
@@ -137,3 +137,18 @@ def test_unhandled_message() -> None:
             assert str(e) == f"Got unhandled annotation: {repr(obj)}."
         else:
             raise AssertionError("should have raised a TypeError")
+
+
+def test_get_typehint_validator_type_aliases() -> None:
+    StringList = List[str]
+    UserDict = Dict[str, Union[str, int]]
+
+    # Test that aliases resolve to their underlying types
+    string_list_validator = get_typehint_validator(StringList)
+    assert isinstance(string_list_validator, ListValidator)
+    assert isinstance(string_list_validator.item_validator, StringValidator)
+
+    user_dict_validator = get_typehint_validator(UserDict)
+    assert isinstance(user_dict_validator, MapValidator)
+    assert isinstance(user_dict_validator.key_validator, StringValidator)
+    assert isinstance(user_dict_validator.value_validator, UnionValidator)

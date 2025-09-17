@@ -9,7 +9,7 @@
 project = "Koda Validate"
 copyright = "2025, Keith Philpott"
 author = "Keith Philpott"
-release = "5.0.0"
+release = "5.0.1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
