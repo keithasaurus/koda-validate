@@ -1,3 +1,6 @@
+5.0.1 (Sep 16, 2025)
+- add support for ReadOnly type annotation
+
 5.0.0 (May 11, 2025)
 **Breaking Changes**
 - Remove support for Python 3.8 
