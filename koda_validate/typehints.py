@@ -20,7 +20,7 @@ if sys.version_info >= (3, 11):
     from typing import NotRequired, Required
 
 if sys.version_info >= (3, 13):
-    from typing import ReadOnly
+    from typing import ReadOnly  # noqa: F811
 
 from typing import Any, Callable, Dict, Literal, Tuple, Union, get_args, get_origin
 from uuid import UUID

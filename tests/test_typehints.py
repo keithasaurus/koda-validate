@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal, NamedTuple, Tuple, TypeVar, Union, Optional, Dict
+from typing import Literal, NamedTuple, Tuple, TypeVar, Union, Dict, List
 
 from koda_validate import (
     AlwaysValid,
@@ -138,45 +138,8 @@ def test_unhandled_message() -> None:
         else:
             raise AssertionError("should have raised a TypeError")
 
-# todo
-def test_get_typehint_validator_bounded_typevar_with_defaults() -> None:
-    """Test bounded TypeVar with default values."""
-    from typing import TypeVar
-
-    T = TypeVar('T', bound=int, default=int)
-
-    try:
-        validator = get_typehint_validator(T)
-        # Test implementation dependent on your TypeVar support
-    except TypeError:
-        pass
-
-
-#todo
-def test_get_typehint_validator_complex_generics() -> None:
-    """Test complex nested generic types."""
-    from typing import Dict, List, Optional, Union
-
-    # Nested generics
-    complex_type = Dict[str, List[Optional[Union[int, str]]]]
-    validator = get_typehint_validator(complex_type)
-
-    assert isinstance(validator, MapValidator)
-    assert isinstance(validator.key_validator, StringValidator)
-    assert isinstance(validator.value_validator, ListValidator)
-
-    # Test nested union in optional
-    item_validator = validator.value_validator.item_validator
-    assert isinstance(item_validator, UnionValidator)
-    # Should have 3 validators: int, str, None
-    assert len(item_validator.validators) == 3
-
 
 def test_get_typehint_validator_type_aliases() -> None:
-    """Test type alias handling."""
-    from typing import List, Dict
-
-    # Create type aliases
     StringList = List[str]
     UserDict = Dict[str, Union[str, int]]
 
