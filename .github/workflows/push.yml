@@ -19,6 +19,7 @@ jobs:
         uses: abatilo/actions-poetry@v2.0.0
         with:
           poetry-version: ${{ matrix.poetry-version }}
+      # run just tests first to make sure no external packages are needed
       - name: install pytest only
         run: pip install pytest pytest-asyncio
       - name: run 3.9- tests
