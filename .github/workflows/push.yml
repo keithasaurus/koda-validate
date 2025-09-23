@@ -19,6 +19,20 @@ jobs:
         uses: abatilo/actions-poetry@v2.0.0
         with:
           poetry-version: ${{ matrix.poetry-version }}
+      - name: install pytest only
+        run: pip install pytest pytest-asyncio
+      - name: run 3.9- tests
+        if: matrix.python-version == 3.9
+        run: poetry run pytest --ignore tests/test_310_plus.py --ignore tests/test_311_plus.py --ignore examples --ignore tests/test_313_plus.py
+      - name: run 3.10 tests
+        if: matrix.python-version == 3.10
+        run: poetry run pytest --ignore tests/test_311_plus.py --ignore tests/test_313_plus.py
+      - name: run 3.11/3.12 tests
+        if: matrix.python-version == 3.11 || matrix.python-version == 3.12
+        run: poetry run pytest --ignore tests/test_313_plus.py
+      - name: run 3.13 tests
+        if: matrix.python-version == 3.13
+        run: poetry run pytest
       - name: poetry install
         run: poetry install
       # not running mypy against 3.11 (yet) because it's like 10x slower
@@ -35,18 +49,6 @@ jobs:
       - name: mypy 3.10
         if: matrix.python-version == 3.10
         run: poetry run mypy .  --exclude tests/test_311_plus.py --exclude tests/test_313_plus.py
-      - name: run 3.9- tests
-        if: matrix.python-version == 3.9
-        run: poetry run pytest --ignore tests/test_310_plus.py --ignore tests/test_311_plus.py --ignore examples --ignore tests/test_313_plus.py
-      - name: run 3.10 tests
-        if: matrix.python-version == 3.10
-        run: poetry run pytest --ignore tests/test_311_plus.py --ignore tests/test_313_plus.py
-      - name: run 3.11/3.12 tests
-        if: matrix.python-version == 3.11 || matrix.python-version == 3.12
-        run: poetry run pytest --ignore tests/test_313_plus.py
-      - name: run 3.13 tests
-        if: matrix.python-version == 3.13
-        run: poetry run pytest
       - name: run all examples
         if: matrix.python-version == 3.10
         run: poetry run bash run_all_examples.sh
