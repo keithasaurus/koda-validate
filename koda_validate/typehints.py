@@ -5,7 +5,6 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from koda import Just, Nothing
-from typing_extensions import ReadOnly
 
 from .is_type import TypeValidator
 from .maybe import MaybeValidator
@@ -178,9 +177,7 @@ def get_typehint_validator_base(
             origin is NotRequired or origin is Required
         ):
             return get_typehint_validator(args[0])
-        elif sys.version_info >= (3, 13) and (
-            origin is ReadOnly
-        ):
+        elif sys.version_info >= (3, 13) and (origin is ReadOnly):
             return get_typehint_validator(args[0])
         # not validating with annotations at this point
         elif sys.version_info >= (3, 9) and origin is Annotated:

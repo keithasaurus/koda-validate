@@ -21,7 +21,7 @@ jobs:
           poetry-version: ${{ matrix.poetry-version }}
       # run just tests first to make sure no external packages are needed
       - name: install pytest only
-        run: pip install pytest pytest-asyncio
+        run: poetry install --only test
       - name: run 3.9- tests
         if: matrix.python-version == 3.9
         run: poetry run pytest --ignore tests/test_310_plus.py --ignore tests/test_311_plus.py --ignore examples --ignore tests/test_313_plus.py
