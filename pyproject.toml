@@ -25,6 +25,8 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.9"
 koda = "1.4.0"
+jsonschema = "^4.17.0"
+
 
 [tool.poetry.group.test.dependencies]
 pytest = "8.3.5"
@@ -40,7 +42,6 @@ mypy = "1.15.0"
 pydantic = "2.11.4"
 voluptuous = "0.15.2"
 ssort = "0.14.0"
-jsonschema = "4.23.0"
 types-jsonschema = "4.23.0.20240712"
 sphinx  = "7.4.7"
 furo = "2024.8.6"
