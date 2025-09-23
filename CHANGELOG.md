@@ -1,3 +1,6 @@
+5.0.2 (Sep 22, 2025)
+- remove implicit dependency on typing-extensions
+
 5.0.1 (Sep 16, 2025)
 - Add support for ReadOnly type annotation
 
