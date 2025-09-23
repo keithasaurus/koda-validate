@@ -30,7 +30,6 @@ koda = "1.4.0"
 pytest = "8.3.5"
 pytest-cov = "5.0.0"
 pytest-asyncio = "0.26.0"
-pytest-django = "4.11.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -86,7 +85,6 @@ addopts ="""
   --cov-report=html
   --cov-branch
   --cov-fail-under=94
-  --ds=examples.django_example.django_example.settings
 """
 # ^^  --ds = "django settings module"
 
