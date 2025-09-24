@@ -42,8 +42,6 @@ pydantic = "2.11.4"
 voluptuous = "0.15.2"
 ssort = "0.14.0"
 types-jsonschema = "4.23.0.20240712"
-sphinx  = "7.4.7"
-furo = "2024.8.6"
 flask = {version = "3.1.0", extras = ["async"]}
 django = "4.2.21"
 django-stubs = "5.0.4"
