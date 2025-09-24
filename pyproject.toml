@@ -45,7 +45,6 @@ types-jsonschema = "4.23.0.20240712"
 flask = {version = "3.1.0", extras = ["async"]}
 django = "4.2.21"
 django-stubs = "5.0.4"
-sphinx-autodoc-typehints = "1.25.3"
 darglint = "1.8.1"
 black = "25.1.0"
 
