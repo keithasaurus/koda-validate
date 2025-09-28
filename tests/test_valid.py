@@ -21,10 +21,61 @@ def test_valid_map() -> None:
     assert mapped.err_type == inv.err_type
     assert mapped.validator == inv.validator
 
-
 def test_invalid_repr() -> None:
+    sv = StringValidator()
+
+    assert repr(sv(5)) == """
+Invalid(
+    err_type=TypeErr(expected_type=<class 'str'>),
+    value=5,
+    validator=StringValidator()
+)
+""".strip()
+
     lv = get_typehint_validator(list[str])
 
-    print(lv([5]))
-    breakpoint()
-    assert repr(lv([5])) == """Invalid(err_type=IndexErrs(indexes={0: Invalid(err_type=UnionErrs(variants=[Invalid(err_type=TypeErr(expected_type=<class 'str'>), value=5, validator=StringValidator()), Invalid(err_type=CoercionErr(compatible_types={<class 'dict'>, <class 'tests.test_valid.test_invalid_repr.<locals>.Person'>}, dest_type=<class 'tests.test_valid.test_invalid_repr.<locals>.Person'>), value=5, validator=DataclassValidator(<class 'tests.test_valid.test_invalid_repr.<locals>.Person'>))]), value=5, validator=UnionValidator(StringValidator(), DataclassValidator(<class 'tests.test_valid.test_invalid_repr.<locals>.Person'>)))}), value=[5], validator=ListValidator(UnionValidator(StringValidator(), DataclassValidator(<class 'tests.test_valid.test_invalid_repr.<locals>.Person'>))))"""
+    assert repr(lv([4])) == """
+Invalid(
+    err_type=IndexErrs(index_errs={
+        0: Invalid(
+            err_type=TypeErr(expected_type=<class 'str'>),
+            value=4,
+            validator=StringValidator()
+        ),
+    }),
+    value=[4],
+    validator=ListValidator(StringValidator())
+)
+""".strip()
+
+    # @dataclass
+    # class Person:
+    #     name: str
+    #     age: int
+    #
+    # v1 = DataclassValidator(Person, fail_on_unknown_keys=True)
+    #
+    # print(v1({}))
+    #
+    # mayv = MaybeValidator(ListValidator(StringValidator()))
+    # print(mayv(Just([4])))
+    #
+    # print(v1({"name": "John", "age": 10, "favorite_color": "blue"}))
+    #
+    # mv = MapValidator(
+    #     key=StringValidator(),
+    #     value=IntValidator()
+    # )
+    #
+    # print(mv({"ok": "not ok"}))
+    #
+    # setv = SetValidator(IntValidator())
+    #
+    # print(setv({"ok", "not ok"}))
+    #
+    # pred_v = StringValidator(
+    #     MaxLength(1),
+    #     MinLength(1),
+    #     ExactLength(1),
+    # )
+    # print(pred_v(""))

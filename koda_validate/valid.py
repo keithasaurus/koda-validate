@@ -75,18 +75,17 @@ def _make_invalid_repr(indent: str, inv: Invalid) -> str:
 
 
 def _render_err_type(indent: str, err: "ErrType") -> str:
-    from koda_validate.errors import ErrType, IndexErrs, TypeErr, CoercionErr, KeyErrs, ContainerErr, ExtraKeysErr, MapErr, KeyValErrs
-    # MissingKeyErr,
-    # # This seems like a type exception worth making..., but that might change in the
-    # # future. This is backwards compatible with existing code
-    # PredicateErrs[Any],
-    # SetErrs,
-    # TypeErr,
-    # ValidationErrBase,
-    # UnionErrs,
+    from koda_validate.errors import IndexErrs, CoercionErr, KeyErrs, ContainerErr, ExtraKeysErr, MapErr, KeyValErrs, SetErrs, PredicateErrs, UnionErrs
 
     next_indent_str = indent + (" " * 4)
     match err:
+        case PredicateErrs(predicates):
+            return f"\n{next_indent_str}".join(
+                ["PredicateErrs(predicates=[", ] + [
+                    f"{repr(pred)}"","
+                    for pred in predicates
+                ]
+            ) + f"\n{indent}])"
         case CoercionErr(compatible_types, dest_type):
             return f"\n{next_indent_str}".join(
                 ["CoercionErr(",
@@ -137,6 +136,20 @@ def _render_err_type(indent: str, err: "ErrType") -> str:
                 )
 
             return f"\n{next_indent_str}".join(to_join) + f"\n{indent})"
+        case SetErrs(item_errs):
+            return f"\n{next_indent_str}".join(
+                ["SetErrs(item_errs=[",] + [
+                    f"{_make_invalid_repr(next_indent_str, item)},"
+                    for item in item_errs
+                ]
+            ) + f"\n{indent}])"
+        case UnionErrs(variants):
+            return f"\n{next_indent_str}".join(
+                ["UnionErrs(variants=[",] + [
+                    f"{_make_invalid_repr(next_indent_str, variant)},"
+                    for variant in variants
+                ]
+            ) + f"\n{indent}])"
         case _:
             return repr(err)
 
