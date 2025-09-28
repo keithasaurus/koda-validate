@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from pprint import pformat
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, Literal, Union
 
 from koda_validate._generics import A, B
@@ -76,13 +75,7 @@ def _make_invalid_repr(indent: str, inv: Invalid) -> str:
 
 
 def _render_err_type(indent: str, err: "ErrType") -> str:
-    from koda_validate.errors import ErrType, IndexErrs, TypeErr, CoercionErr, KeyErrs
-    # CoercionErr,
-    # ContainerErr,
-    # ExtraKeysErr,
-    # IndexErrs,
-    # KeyErrs,
-    # MapErr,
+    from koda_validate.errors import ErrType, IndexErrs, TypeErr, CoercionErr, KeyErrs, ContainerErr, ExtraKeysErr, MapErr, KeyValErrs
     # MissingKeyErr,
     # # This seems like a type exception worth making..., but that might change in the
     # # future. This is backwards compatible with existing code
@@ -104,7 +97,7 @@ def _render_err_type(indent: str, err: "ErrType") -> str:
         case KeyErrs(keys):
             return f"\n{next_indent_str}".join(
                 ["KeyErrs(keys={", ] + [
-                    f"{key}: {_make_invalid_repr(next_indent_str, k_err)},"
+                    f"{repr(key)}: {_make_invalid_repr(next_indent_str, k_err)},"
                     for key, k_err in keys.items()
                 ]
             ) + f"\n{indent}}})"
@@ -115,8 +108,35 @@ def _render_err_type(indent: str, err: "ErrType") -> str:
                     for key, i_err in i_errs.items()
                 ]
             ) + f"\n{indent}}})"
-        case TypeErr(err):
-            return repr(err)
+        case ContainerErr(child):
+            return f"\n{next_indent_str}".join(
+                [f"ContainerErr(",
+                 f"child={_make_invalid_repr(next_indent_str, child)}",]
+            ) + f"\n{indent})"
+        case ExtraKeysErr(expected_keys):
+            return f"\n{next_indent_str}".join(
+                [f"ExtraKeysErr(",
+                 f"expected_keys={{{", ".join(sorted([repr(k) for k in expected_keys]))}}},""}",]
+            ) + f"\n{indent})"
+        case MapErr(keys):
+            return f"\n{next_indent_str}".join(
+                ["MapErr(keys={", ] + [
+                    f"{repr(key)}: {_render_err_type(next_indent_str, k_err)},"
+                    for key, k_err in keys.items()
+                ]
+            ) + f"\n{indent}}})"
+        case KeyValErrs(key, val):
+            to_join = ["KeyValErrs(",]
+            if key is not None:
+                to_join.append(
+                    f"key={_make_invalid_repr(next_indent_str, key)},"
+                )
+            if val is not None:
+                to_join.append(
+                    f"val={_make_invalid_repr(next_indent_str, val)}"
+                )
+
+            return f"\n{next_indent_str}".join(to_join) + f"\n{indent})"
         case _:
             return repr(err)
 
