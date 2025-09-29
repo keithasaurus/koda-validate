@@ -125,16 +125,11 @@ def _render_err_type(indent: str, err: "ErrType") -> str:
                 ]
             ) + f"\n{indent}}})"
         case KeyValErrs(key, val):
-            to_join = ["KeyValErrs(",]
-            if key is not None:
-                to_join.append(
-                    f"key={_make_invalid_repr(next_indent_str, key)},"
-                )
-            if val is not None:
-                to_join.append(
-                    f"val={_make_invalid_repr(next_indent_str, val)}"
-                )
-
+            to_join = [
+                "KeyValErrs(",
+                f"key={'None' if key is None else _make_invalid_repr(next_indent_str, key)},",
+                f"val={'None' if val is None else _make_invalid_repr(next_indent_str, val)}",
+            ]
             return f"\n{next_indent_str}".join(to_join) + f"\n{indent})"
         case SetErrs(item_errs):
             return f"\n{next_indent_str}".join(
