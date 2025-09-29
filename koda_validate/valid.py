@@ -5,6 +5,7 @@ from koda_validate._generics import A, B
 
 if TYPE_CHECKING:
     from koda_validate.base import Validator
+    from koda_validate.errors import ErrType, KeyValErrs
 
 
 @dataclass
@@ -63,6 +64,15 @@ class Invalid:
     def __repr__(self) -> str:
         return _make_invalid_repr("", self)
 
+def _render_key_val_err(indent: str, err: "KeyValErrs") -> str:
+    next_indent_str = indent + (" " * 4)
+    to_join = [
+        "KeyValErrs(",
+        f"key={'None' if err.key is None else _make_invalid_repr(next_indent_str, err.key)},",
+        f"val={'None' if err.val is None else _make_invalid_repr(next_indent_str, err.val)}",
+    ]
+    return f"\n{next_indent_str}".join(to_join) + f"\n{indent})"
+
 
 def _make_invalid_repr(indent: str, inv: Invalid) -> str:
     next_indent = indent + " " * 4
@@ -120,17 +130,10 @@ def _render_err_type(indent: str, err: "ErrType") -> str:
         case MapErr(keys):
             return f"\n{next_indent_str}".join(
                 ["MapErr(keys={", ] + [
-                    f"{repr(key)}: {_render_err_type(next_indent_str, k_err)},"
+                    f"{repr(key)}: {_render_key_val_err(next_indent_str, k_err)},"
                     for key, k_err in keys.items()
                 ]
             ) + f"\n{indent}}})"
-        case KeyValErrs(key, val):
-            to_join = [
-                "KeyValErrs(",
-                f"key={'None' if key is None else _make_invalid_repr(next_indent_str, key)},",
-                f"val={'None' if val is None else _make_invalid_repr(next_indent_str, val)}",
-            ]
-            return f"\n{next_indent_str}".join(to_join) + f"\n{indent})"
         case SetErrs(item_errs):
             return f"\n{next_indent_str}".join(
                 ["SetErrs(item_errs=[",] + [
