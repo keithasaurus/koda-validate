@@ -104,7 +104,7 @@ def _render_err_type(indent: str, err: "ErrType") -> str:
         case CoercionErr(compatible_types, dest_type):
             return f"\n{next_indent_str}".join([
                 "CoercionErr(",
-                f"compatible_types={{{", ".join([repr(ct) for ct in compatible_types])}}},",  # noqa: E501
+                f"compatible_types={{{', '.join([repr(ct) for ct in compatible_types])}}},",  # noqa: E501
                 f"dest_type={repr(dest_type)}",
             ]) + f"\n{indent})"
         case KeyErrs(keys):
@@ -129,7 +129,7 @@ def _render_err_type(indent: str, err: "ErrType") -> str:
         case ExtraKeysErr(expected_keys):
             return f"\n{next_indent_str}".join(
                 ["ExtraKeysErr(",
-                 f"expected_keys={{{", ".join(sorted([repr(k) for k in expected_keys]))}}},""}",]  # noqa: E501
+                 f"expected_keys={{{', '.join(sorted([repr(k) for k in expected_keys]))}}},""}",]  # noqa: E501
             ) + f"\n{indent})"
         case MapErr(keys):
             return f"\n{next_indent_str}".join(
