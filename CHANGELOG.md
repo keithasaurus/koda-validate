@@ -1,3 +1,6 @@
+5.1.0 (Sep 28, 2025)
+- make `Invalid.__repr__` human-readable
+
 5.0.2 (Sep 22, 2025)
 - remove implicit dependency on typing-extensions
 

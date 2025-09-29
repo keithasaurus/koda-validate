@@ -54,8 +54,11 @@ Usage:
     Valid(val=5)
 
     >>> int_validator("not an integer")
-    Invalid(err_type=TypeErr(expected_type=<class 'int'>), ...)
-
+    Invalid(
+        err_type=TypeErr(expected_type=<class 'int'>),
+        value='not an integer',
+        validator=IntValidator()
+    )
 
 Having this simple function signature-based definition for validation is useful, because it means we can *compose*
 validators. Perhaps the simplest example of this is how ``ListValidator`` accepts a validator for the items of the ``list``:

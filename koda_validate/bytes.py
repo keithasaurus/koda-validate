@@ -13,9 +13,19 @@ class BytesValidator(_ToTupleStandardValidator[bytes]):
     >>> from koda_validate import *
     >>> validator = BytesValidator(not_blank, MaxLength(100), preprocessors=[strip])
     >>> validator(b"")
-    Invalid(err_type=PredicateErrs(predicates=[NotBlank()]), ...)
+    Invalid(
+        err_type=PredicateErrs(predicates=[
+            NotBlank(),
+        ]),
+        value=b'',
+        validator=BytesValidator(NotBlank(), MaxLength(length=100), preprocessors=[Strip()])
+    )
     >>> validator("")
-    Invalid(err_type=TypeErr(expected_type=<class 'bytes'>), ...)
+    Invalid(
+        err_type=TypeErr(expected_type=<class 'bytes'>),
+        value='',
+        validator=BytesValidator(NotBlank(), MaxLength(length=100), preprocessors=[Strip()])
+    )
     >>> validator(b' ok ')
     Valid(val=b'ok')
 
@@ -24,6 +34,6 @@ class BytesValidator(_ToTupleStandardValidator[bytes]):
     :param preprocessors: any number of ``Processor[bytes]``, which will be run before
         :class:`Predicate`\s and :class:`PredicateAsync`\s are checked.
     :param coerce: a function that can control coercion
-    """
+    """  # noqa: E501
 
     _TYPE = bytes

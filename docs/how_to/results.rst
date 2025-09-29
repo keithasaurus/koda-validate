@@ -25,7 +25,7 @@ generic parameter for the same purpose. So, a ``Validator[int]`` will always ret
 .. note::
 
     ``ValidationResult[int]`` is a more concise way to express ``Union[Valid[int], Invalid]``,
-to which it is exactly equivalent.
+    to which it is exactly equivalent.
 
 Branching on Validity
 ---------------------
@@ -101,10 +101,14 @@ ValidationResult.map()
 Sometimes you might want to convert the data contained by :class:`Valid` into another
 type. ``.map`` allows you to do that without a lot of boilerplate:
 
+.. testsetup:: valid-map
+
+    from koda_validate import IntValidator
+
 .. doctest:: valid-map
-    >>> validator = IntValidator()
-    >>> validator(5).map(str)
-    Valid(val="5")
+
+    >>> IntValidator()(5).map(str)
+    Valid(val='5')
 
 
 Working with ``Invalid``

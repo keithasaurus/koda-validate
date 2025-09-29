@@ -44,7 +44,11 @@ Here's how our :class:`Validator` can be used:
     >>> float_validator(5.5)
     Valid(val=5.5)
     >>> float_validator(5)
-    Invalid(err_type=TypeErr(expected_type=<class 'float'>), value=5, ...)
+    Invalid(
+        err_type=TypeErr(expected_type=<class 'float'>),
+        value=5,
+        validator=<SimpleFloatValidator object at ...>
+    )
 
 Predicates
 ----------
@@ -108,7 +112,13 @@ In the code above, if :class:`Predicate<koda_validate.Predicate>` is specified, 
     >>> validator(3.14)
     Valid(val=3.14)
     >>> validator(1.1)
-    Invalid(err_type=PredicateErrs(predicates=[FloatMin(min=2.5)]), value=1.1, ...)
+    Invalid(
+        err_type=PredicateErrs(predicates=[
+            FloatMin(min=2.5),
+        ]),
+        value=1.1,
+        validator=<SimpleFloatValidator object at ...>
+    )
 
 We limited the Validator to one :class:`Predicate` for simplicity. In Koda Validate, :class:`Validator`\s
 that accept predicates typically allow of a ``list`` of :class:`Predicate`\s. Because :class:`Predicate`\s
