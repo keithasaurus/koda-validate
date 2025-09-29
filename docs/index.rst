@@ -35,7 +35,11 @@ Easy enough. Let's see how it works:
    Valid(val='a string')
 
    >>> my_first_validator(0)
-   Invalid(err_type=TypeErr(expected_type=<class 'str'>), ...)
+   Invalid(
+       err_type=TypeErr(expected_type=<class 'str'>),
+       value=0,
+       validator=StringValidator()
+   )
 
 For both valid and invalid cases, a value is returned -- no exceptions
 are raised.

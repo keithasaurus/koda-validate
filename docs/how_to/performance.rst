@@ -118,9 +118,17 @@ The validator should behave as the wrapped :class:`Validator` normally would:
     >>> cached_int_validator(5)  # cache hit
     Valid(val=5)
     >>> cached_int_validator("a string")  # cache miss
-    Invalid(err_type=TypeErr(expected_type=<class 'int'>), ...)
+    Invalid(
+        err_type=TypeErr(expected_type=<class 'int'>),
+        value='a string',
+        validator=IntValidator()
+    )
     >>> cached_int_validator("a string")  # cache hit
-    Invalid(err_type=TypeErr(expected_type=<class 'int'>), ...)
+    Invalid(
+        err_type=TypeErr(expected_type=<class 'int'>),
+        value='a string',
+        validator=IntValidator()
+    )
 
 .. note::
 

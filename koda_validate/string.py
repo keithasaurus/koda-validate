@@ -18,9 +18,19 @@ class StringValidator(_ToTupleStandardValidator[str]):
     >>> from koda_validate import *
     >>> validator = StringValidator(not_blank, MaxLength(100), preprocessors=[strip])
     >>> validator("")
-    Invalid(err_type=PredicateErrs(predicates=[NotBlank()]), ...)
+    Invalid(
+        err_type=PredicateErrs(predicates=[
+            NotBlank(),
+        ]),
+        value='',
+        validator=StringValidator(NotBlank(), MaxLength(length=100), preprocessors=[Strip()])
+    )
     >>> validator(None)
-    Invalid(err_type=TypeErr(expected_type=<class 'str'>), ...)
+    Invalid(
+        err_type=TypeErr(expected_type=<class 'str'>),
+        value=None,
+        validator=StringValidator(NotBlank(), MaxLength(length=100), preprocessors=[Strip()])
+    )
     >>> validator(" ok ")
     Valid(val='ok')
 

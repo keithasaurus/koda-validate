@@ -30,10 +30,20 @@ Usage:
     Valid(val=6)
 
     >>> int_validator("a string")
-    Invalid(err_type=TypeErr(expected_type=<class 'int'>), ...)
+    Invalid(
+        err_type=TypeErr(expected_type=<class 'int'>),
+        value='a string',
+        validator=IntValidator(Min(minimum=5, exclusive_minimum=False))
+    )
 
     >>> int_validator(4)
-    Invalid(err_type=PredicateErrs(predicates=[Min(minimum=5, exclusive_minimum=False)]), ...)
+    Invalid(
+        err_type=PredicateErrs(predicates=[
+            Min(minimum=5, exclusive_minimum=False),
+        ]),
+        value=4,
+        validator=IntValidator(Min(minimum=5, exclusive_minimum=False))
+    )
 
 As you can see the value ``4`` passes the ``int`` type check but fails to pass the ``Min(5)`` predicate.
 

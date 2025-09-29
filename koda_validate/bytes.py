@@ -13,9 +13,19 @@ class BytesValidator(_ToTupleStandardValidator[bytes]):
     >>> from koda_validate import *
     >>> validator = BytesValidator(not_blank, MaxLength(100), preprocessors=[strip])
     >>> validator(b"")
-    Invalid(err_type=PredicateErrs(predicates=[NotBlank()]), ...)
+    Invalid(
+        err_type=PredicateErrs(predicates=[
+            NotBlank(),
+        ]),
+        value=b'',
+        validator=BytesValidator(NotBlank(), MaxLength(length=100), preprocessors=[Strip()])
+    )
     >>> validator("")
-    Invalid(err_type=TypeErr(expected_type=<class 'bytes'>), ...)
+    Invalid(
+        err_type=TypeErr(expected_type=<class 'bytes'>),
+        value='',
+        validator=BytesValidator(NotBlank(), MaxLength(length=100), preprocessors=[Strip()])
+    )
     >>> validator(b' ok ')
     Valid(val=b'ok')
 
