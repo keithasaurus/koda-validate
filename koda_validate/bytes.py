@@ -34,6 +34,6 @@ class BytesValidator(_ToTupleStandardValidator[bytes]):
     :param preprocessors: any number of ``Processor[bytes]``, which will be run before
         :class:`Predicate`\s and :class:`PredicateAsync`\s are checked.
     :param coerce: a function that can control coercion
-    """
+    """  # noqa: E501
 
     _TYPE = bytes

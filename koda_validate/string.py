@@ -38,7 +38,7 @@ class StringValidator(_ToTupleStandardValidator[str]):
     :param predicates_async: any number of ``PredicateAsync[str]`` instances
     :param preprocessors: any number of ``Processor[str]``, which will be run before
         :class:`Predicate`\s and :class:`PredicateAsync`\s are checked.
-    """
+    """  # noqa: E501
 
     _TYPE = str
 
