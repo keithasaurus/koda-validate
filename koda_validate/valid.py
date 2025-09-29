@@ -93,67 +93,66 @@ def _render_err_type(indent: str, err: "ErrType") -> str:
                                       UnionErrs)
 
     next_indent_str = indent + (" " * 4)
-    match err:
-        case PredicateErrs(predicates):
-            return f"\n{next_indent_str}".join(
-                ["PredicateErrs(predicates=[", ] + [
-                    f"{repr(pred)}"","
-                    for pred in predicates
-                ]
-            ) + f"\n{indent}])"
-        case CoercionErr(compatible_types, dest_type):
-            return f"\n{next_indent_str}".join([
-                "CoercionErr(",
-                f"compatible_types={{{', '.join([repr(ct) for ct in compatible_types])}}},",  # noqa: E501
-                f"dest_type={repr(dest_type)}",
-            ]) + f"\n{indent})"
-        case KeyErrs(keys):
-            return f"\n{next_indent_str}".join(
-                ["KeyErrs(keys={", ] + [
-                    f"{repr(key)}: {_make_invalid_repr(next_indent_str, k_err)},"
-                    for key, k_err in keys.items()
-                ]
-            ) + f"\n{indent}}})"
-        case IndexErrs(i_errs):
-            return f"\n{next_indent_str}".join(
-                ["IndexErrs(index_errs={",] + [
-                    f"{key}: {_make_invalid_repr(next_indent_str, i_err)},"
-                    for key, i_err in i_errs.items()
-                ]
-            ) + f"\n{indent}}})"
-        case ContainerErr(child):
-            return f"\n{next_indent_str}".join(
-                ["ContainerErr(",
-                 f"child={_make_invalid_repr(next_indent_str, child)}",]
-            ) + f"\n{indent})"
-        case ExtraKeysErr(expected_keys):
-            return f"\n{next_indent_str}".join(
-                ["ExtraKeysErr(",
-                 f"expected_keys={{{', '.join(sorted([repr(k) for k in expected_keys]))}}},""}",]  # noqa: E501
-            ) + f"\n{indent})"
-        case MapErr(keys):
-            return f"\n{next_indent_str}".join(
-                ["MapErr(keys={", ] + [
-                    f"{repr(key)}: {_render_key_val_err(next_indent_str, k_err)},"
-                    for key, k_err in keys.items()
-                ]
-            ) + f"\n{indent}}})"
-        case SetErrs(item_errs):
-            return f"\n{next_indent_str}".join(
-                ["SetErrs(item_errs=[",] + [
-                    f"{_make_invalid_repr(next_indent_str, item)},"
-                    for item in item_errs
-                ]
-            ) + f"\n{indent}])"
-        case UnionErrs(variants):
-            return f"\n{next_indent_str}".join(
-                ["UnionErrs(variants=[",] + [
-                    f"{_make_invalid_repr(next_indent_str, variant)},"
-                    for variant in variants
-                ]
-            ) + f"\n{indent}])"
-        case _:
-            return repr(err)
+    if isinstance(err, PredicateErrs):
+        return f"\n{next_indent_str}".join(
+            ["PredicateErrs(predicates=[", ] + [
+                f"{repr(pred)}"","
+                for pred in err.predicates
+            ]
+        ) + f"\n{indent}])"
+    elif isinstance(err, CoercionErr):
+        return f"\n{next_indent_str}".join([
+            "CoercionErr(",
+            f"compatible_types={{{', '.join([repr(ct) for ct in err.compatible_types])}}},",  # noqa: E501
+            f"dest_type={repr(err.dest_type)}",
+        ]) + f"\n{indent})"
+    elif isinstance(err, KeyErrs):
+        return f"\n{next_indent_str}".join(
+            ["KeyErrs(keys={", ] + [
+                f"{repr(key)}: {_make_invalid_repr(next_indent_str, k_err)},"
+                for key, k_err in err.keys.items()
+            ]
+        ) + f"\n{indent}}})"
+    elif isinstance(err, IndexErrs):
+        return f"\n{next_indent_str}".join(
+            ["IndexErrs(index_errs={",] + [
+                f"{key}: {_make_invalid_repr(next_indent_str, i_err)},"
+                for key, i_err in err.indexes.items()
+            ]
+        ) + f"\n{indent}}})"
+    elif isinstance(err, ContainerErr):
+        return f"\n{next_indent_str}".join(
+            ["ContainerErr(",
+             f"child={_make_invalid_repr(next_indent_str, err.child)}",]
+        ) + f"\n{indent})"
+    elif isinstance(err, ExtraKeysErr):
+        return f"\n{next_indent_str}".join(
+            ["ExtraKeysErr(",
+             f"expected_keys={{{', '.join(sorted([repr(k) for k in err.expected_keys]))}}},""}",]  # noqa: E501
+        ) + f"\n{indent})"
+    elif isinstance(err, MapErr):
+        return f"\n{next_indent_str}".join(
+            ["MapErr(keys={", ] + [
+                f"{repr(key)}: {_render_key_val_err(next_indent_str, k_err)},"
+                for key, k_err in err.keys.items()
+            ]
+        ) + f"\n{indent}}})"
+    elif isinstance(err, SetErrs):
+        return f"\n{next_indent_str}".join(
+            ["SetErrs(item_errs=[",] + [
+                f"{_make_invalid_repr(next_indent_str, item)},"
+                for item in err.item_errs
+            ]
+        ) + f"\n{indent}])"
+    elif isinstance(err, UnionErrs):
+        return f"\n{next_indent_str}".join(
+            ["UnionErrs(variants=[",] + [
+                f"{_make_invalid_repr(next_indent_str, variant)},"
+                for variant in err.variants
+            ]
+        ) + f"\n{indent}])"
+    else:
+        return repr(err)
 
 
 ValidationResult = Union[Valid[A], Invalid]
