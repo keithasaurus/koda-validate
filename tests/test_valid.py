@@ -3,8 +3,9 @@ from dataclasses import dataclass
 
 from koda import Just
 
-from koda_validate import Invalid, StringValidator, TypeErr, Valid, ListValidator, DataclassValidator, MapValidator, \
-    IntValidator, SetValidator, MaxLength, MinLength, ExactLength
+from koda_validate import (Invalid, StringValidator, TypeErr, Valid, ListValidator,
+                           DataclassValidator, MapValidator, IntValidator, SetValidator,
+                           MaxLength, MinLength, ExactLength)
 from koda_validate.maybe import MaybeValidator
 from koda_validate.typehints import get_typehint_validator
 
@@ -24,6 +25,7 @@ def test_valid_map() -> None:
     assert mapped.value == inv.value
     assert mapped.err_type == inv.err_type
     assert mapped.validator == inv.validator
+
 
 def test_invalid_repr() -> None:
     sv = StringValidator()
@@ -76,7 +78,7 @@ Invalid(
     value={},
     validator=DataclassValidator(<class 'tests.test_valid.test_invalid_repr.<locals>.Person'>, fail_on_unknown_keys=True)
 )
-""".strip()
+""".strip()  # noqa: 501
 
     mayv = MaybeValidator(ListValidator(StringValidator()))
     assert repr(mayv(Just([4]))) == """
@@ -99,7 +101,6 @@ Invalid(
 )
 """.strip()
 
-
     assert repr(v1({"name": "John", "age": 10, "favorite_color": "blue"})) == """
 Invalid(
     err_type=ExtraKeysErr(
@@ -108,7 +109,7 @@ Invalid(
     value={'name': 'John', 'age': 10, 'favorite_color': 'blue'},
     validator=DataclassValidator(<class 'tests.test_valid.test_invalid_repr.<locals>.Person'>, fail_on_unknown_keys=True)
 )
-""".strip()
+""".strip()  # noqa: 501
 
     mv = MapValidator(
         key=StringValidator(),
@@ -162,4 +163,4 @@ Invalid(
     value='',
     validator=StringValidator(MaxLength(length=1), MinLength(length=1), ExactLength(length=1))
 )
-""".strip()
+""".strip()  # noqa: 501

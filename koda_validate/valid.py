@@ -64,12 +64,15 @@ class Invalid:
     def __repr__(self) -> str:
         return _make_invalid_repr("", self)
 
+
 def _render_key_val_err(indent: str, err: "KeyValErrs") -> str:
     next_indent_str = indent + (" " * 4)
+    k = err.key
+    v = err.val
     to_join = [
         "KeyValErrs(",
-        f"key={'None' if err.key is None else _make_invalid_repr(next_indent_str, err.key)},",
-        f"val={'None' if err.val is None else _make_invalid_repr(next_indent_str, err.val)}",
+        f"key={'None' if k is None else _make_invalid_repr(next_indent_str, k)},",
+        f"val={'None' if v is None else _make_invalid_repr(next_indent_str, v)}",
     ]
     return f"\n{next_indent_str}".join(to_join) + f"\n{indent})"
 
@@ -85,7 +88,9 @@ def _make_invalid_repr(indent: str, inv: Invalid) -> str:
 
 
 def _render_err_type(indent: str, err: "ErrType") -> str:
-    from koda_validate.errors import IndexErrs, CoercionErr, KeyErrs, ContainerErr, ExtraKeysErr, MapErr, KeyValErrs, SetErrs, PredicateErrs, UnionErrs
+    from koda_validate.errors import (IndexErrs, CoercionErr, KeyErrs, ContainerErr,
+                                      ExtraKeysErr, MapErr, SetErrs, PredicateErrs,
+                                      UnionErrs)
 
     next_indent_str = indent + (" " * 4)
     match err:
@@ -97,12 +102,11 @@ def _render_err_type(indent: str, err: "ErrType") -> str:
                 ]
             ) + f"\n{indent}])"
         case CoercionErr(compatible_types, dest_type):
-            return f"\n{next_indent_str}".join(
-                ["CoercionErr(",
-                f"compatible_types={{{", ".join([repr(ct) for ct in compatible_types])}}},",
+            return f"\n{next_indent_str}".join([
+                "CoercionErr(",
+                f"compatible_types={{{", ".join([repr(ct) for ct in compatible_types])}}},",  # noqa: E501
                 f"dest_type={repr(dest_type)}",
-                ]
-            ) + f"\n{indent})"
+            ]) + f"\n{indent})"
         case KeyErrs(keys):
             return f"\n{next_indent_str}".join(
                 ["KeyErrs(keys={", ] + [
@@ -119,13 +123,13 @@ def _render_err_type(indent: str, err: "ErrType") -> str:
             ) + f"\n{indent}}})"
         case ContainerErr(child):
             return f"\n{next_indent_str}".join(
-                [f"ContainerErr(",
+                ["ContainerErr(",
                  f"child={_make_invalid_repr(next_indent_str, child)}",]
             ) + f"\n{indent})"
         case ExtraKeysErr(expected_keys):
             return f"\n{next_indent_str}".join(
-                [f"ExtraKeysErr(",
-                 f"expected_keys={{{", ".join(sorted([repr(k) for k in expected_keys]))}}},""}",]
+                ["ExtraKeysErr(",
+                 f"expected_keys={{{", ".join(sorted([repr(k) for k in expected_keys]))}}},""}",]  # noqa: E501
             ) + f"\n{indent})"
         case MapErr(keys):
             return f"\n{next_indent_str}".join(
